@@ -45,7 +45,7 @@ Behavior docs stay. Bookkeeping and balance run on demand. Contract: `docs/agent
 - A PR is done when it compiles, the breakage suite is green in CI on its final head, and the human gates that apply are noted.
 - **Do not balance the game until Jack says he wants to.** Balance means the full test suite (Actions → Full tests, on GitHub too, not only locally), the `Kind=Balance` tests, S-29 and cohort bands, park-factor reports, flight probes and evidence seals. Constant balancing costs too much time. A PR that moves a feel or rule number, even a tuning PR, names the move in its body and stops at the breakage suite. Jack starts a balance pass; then run Full tests (`balance_only` for the balance set only).
 - A feature PR does not reseal the evidence seals, edit a `trials/` twin, or touch a decision register or an implementation ledger. One batched docs PR updates registers and ledgers at a phase checkpoint or when Jack asks.
-- A behavior change updates its rule in its `docs/spec/` file in the same PR. Keep every spec line at 600 characters or fewer (`SpecLineLengthTests`). Write the rule, not the provenance: no PR numbers, no "✅ (#nnn, PR #nnn)". Existing provenance stays.
+- A behavior change updates its rule in its `docs/spec/` file in the same PR. Keep every spec line at 600 characters or fewer (`SpecLineLengthTests`). Write the rule, not the provenance: no issue or PR numbers, no "✅ (#nnn, PR #nnn)", no dates. CI refuses an added spec line that carries one (`tools/spec-provenance.py`).
 - A debug-protocol row is for a novel failure signature only.
 - There is one diamond: 80-ft basepaths. Its numbers are the defaults in `data/`.
 

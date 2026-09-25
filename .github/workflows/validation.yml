@@ -21,9 +21,14 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
+      # Depth 2: a PR checks out its merge commit, so HEAD^1 is the base and HEAD^1..HEAD is the change.
       - uses: actions/checkout@v7
         with:
           lfs: true
+          fetch-depth: 2
+      # An added spec line says what the game does, never who built it or when (AGENTS.md).
+      - name: Spec provenance
+        run: python3 tools/spec-provenance.py
       - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: 10.0.x
