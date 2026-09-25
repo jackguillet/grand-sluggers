@@ -23,7 +23,7 @@ public sealed class DiveTests
         Assert.Equal((0.60, 0.025), (t.DiveRecoverySec, t.DiveRecoveryFieldCut));
 
         // 0.60 at Field 1, 2.5 % of it less per point: 0.54 at 5, 0.465 at 10.
-        double Cost(ContentCatalog c, int field) => FieldingResolver.DiveRecoverySec(c.Must("ashlord") with { Stats = c.Must("ashlord").Stats with { Field = field } }, c.Rules);
+        double Cost(ContentCatalog c, int field) => FieldingResolver.DiveRecoverySec(c.Must("ashlord") with { Stats = c.Must("ashlord").Stats.WithField(field) }, c.Rules);
         Assert.Equal(0.60, Cost(Game, 1), 9);
         Assert.Equal(0.54, Cost(Game, 5), 9);
         Assert.Equal(0.465, Cost(Game, 10), 9);

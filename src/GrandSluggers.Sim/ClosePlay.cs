@@ -27,7 +27,7 @@ public static class ClosePlay
     public static bool WithinMargin(double runnerArrivalSec, RulesTable rules) =>
         runnerArrivalSec > 0 && runnerArrivalSec <= rules.Running.Close.MarginSec;
 
-    /// <summary>Seconds after the icon until a CPU side mashes (running.close, × cpu reactionMul). Better Field (defense) or Run (offense) is faster.</summary>
+    /// <summary>Seconds after the icon until a CPU side mashes (running.close, × cpu reactionMul). Better Hands (defense: the tag) or Run (offense) is faster.</summary>
     public static double CpuReactionSec(int stat, RulesTable rules)
     {
         var r = rules;

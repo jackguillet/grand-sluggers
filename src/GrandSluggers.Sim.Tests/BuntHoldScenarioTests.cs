@@ -615,7 +615,7 @@ public sealed class BuntHoldScenarioTests
     static AtBatInput Input(ContentCatalog content, Character batter, BuntSide side, double err, double crossingX, double crossingY)
     {
         var arm = content.Must("vale");
-        arm = arm with { Stats = arm.Stats with { Pitch = 5 } };
+        arm = arm with { Stats = arm.Stats.WithPitch(5) };
         return new AtBatInput(arm, batter, null, [],
             ChargePitch: false, ChangeupPitch: false, TimingErrorFrames: err,
             UseStarPitch: false, UseStarSwing: false, Bat: content.Bats["harbor-lumber"], PitcherStamina: 80,

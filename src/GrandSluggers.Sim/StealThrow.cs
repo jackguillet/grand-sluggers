@@ -25,12 +25,12 @@ public static class StealThrow
         return InPlay.ThrowSec(Diamond.Dist(c.X, c.Z, dest.X, dest.Z), thr, rules);
     }
 
-    /// <summary>CPU catcher release (fielding.catcher.cpuRelease*, × cpu reactionMul). Dead stick still guns.</summary>
+    /// <summary>CPU catcher release (fielding.catcher.cpuRelease*, × cpu reactionMul), off the catcher's Hands: the transfer is handling, not throw speed. Dead stick still guns.</summary>
     public static double CpuReleaseSec(Character catcher, Random rng, RulesTable rules)
     {
         var r = rules;
         var k = r.Fielding.Catcher;
-        var hands = Math.Clamp(catcher.Stats.Field, 1, 10);
+        var hands = Math.Clamp(catcher.Stats.Hands, 1, 10);
         var mean = k.CpuReleaseBaseSec - hands * k.CpuReleasePerField;
         var noise = (rng.NextDouble() - 0.5) * k.CpuReleaseNoiseSec;
         return Math.Clamp(mean + noise, k.CpuReleaseMinSec, k.CpuReleaseMaxSec) * r.Cpu.Active.ReactionMul;

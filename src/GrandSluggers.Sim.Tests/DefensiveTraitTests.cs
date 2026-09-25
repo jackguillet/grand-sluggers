@@ -5,53 +5,27 @@ using GrandSluggers.Sim;
 namespace GrandSluggers.Sim.Tests;
 
 /// <summary>
-/// The Arm / Hands / reach split (#710, F693-02-defensive-trait-mapping). The rule these encode is
-/// that an <b>unauthored</b> roster behaves exactly as it did before the split, and that once a trait
-/// is authored it moves its own consumers and nobody else's.
+/// The Arm / Hands / reach split (F693-02-defensive-trait-mapping, CH-07). Arm (throw speed) and Hands
+/// are authored sub-stats; the Field bar is their rounded mean. Each moves its own consumers and nobody
+/// else's, and neither sizes the catch reach.
 /// </summary>
 public class DefensiveTraitTests
 {
-    readonly ContentCatalog _content = Shipped.Content;
-
-    static Stats Seeded(int field) => new(5, 5, field, 5);
-
     [Fact]
-    public void UnauthoredTraitsSeedFromField()
+    public void TheFieldBarIsTheRoundedMeanOfHandsAndArm()
     {
-        foreach (var field in new[] { 1, 5, 10 })
-        {
-            var stats = Seeded(field);
-            Assert.Equal(field, stats.Arm);
-            Assert.Equal(field, stats.Hands);
-            Assert.False(stats.ArmAuthored);
-            Assert.False(stats.HandsAuthored);
-        }
+        Assert.Equal(6, (Stats.Even(5, 5, 5, 5) with { Hands = 5, Arm = 7 }).Field);
+        Assert.Equal(8, (Stats.Even(5, 5, 5, 5) with { Hands = 7, Arm = 8 }).Field); // 7.5 rounds half up
+        Assert.Equal(7, (Stats.Even(5, 5, 5, 5) with { Hands = 6, Arm = 7 }).Field); // 6.5 rounds half up
     }
 
     [Fact]
-    public void EveryShippedCharacterIsStillSeeded()
+    public void AClampHoldsHandsAndArmAndTheBarFollows()
     {
-        // The migration authors no ratings, so the whole roster must still track Field.
-        foreach (var c in _content.Characters.Values)
-        {
-            Assert.Equal(c.Stats.Field, c.Stats.Arm);
-            Assert.Equal(c.Stats.Field, c.Stats.Hands);
-            Assert.Null(c.ReachFt);
-        }
-    }
-
-    [Fact]
-    public void AnUnauthoredTraitKeepsTrackingFieldThroughAClamp()
-    {
-        var clamped = new Stats(5, 5, 99, 5).Clamp();
-        Assert.Equal(10, clamped.Field);
-        Assert.Equal(10, clamped.Arm);
+        var clamped = (Stats.Even(5, 5, 5, 5) with { Hands = 99, Arm = -3 }).Clamp();
         Assert.Equal(10, clamped.Hands);
-        Assert.False(clamped.ArmAuthored);
-
-        var authored = new Stats(5, 5, 99, 5) { Arm = 99 }.Clamp();
-        Assert.Equal(10, authored.Arm);
-        Assert.True(authored.ArmAuthored);
+        Assert.Equal(1, clamped.Arm);
+        Assert.Equal(6, clamped.Field);
     }
 
     [Fact]
@@ -100,22 +74,14 @@ public class DefensiveTraitTests
         Assert.Equal(4, FieldingResolver.CatchRadiusFt(big, null, rules), 6);
     }
 
-    [Fact]
-    public void ArmStaysOutOfRosterFill()
-    {
-        // Teams.Tools sums four ratings. While Arm equals Field, including it would double-count
-        // defence and change which players the auto-fill picks (F693-02-arm-rating-migration).
-        var (home, away) = PresetTeams.Pair(_content, "rio", "ashlord");
-        foreach (var c in home.Roster.Concat(away.Roster))
-            Assert.False(c.Stats.ArmAuthored, $"{c.Id} would change roster fill once Arm is authored");
-    }
+    readonly ContentCatalog _content = Shipped.Content;
 
     Character Character(int field = 5, int arm = 0, int hands = 0, double? reachFt = null)
     {
         var rio = _content.Must("rio");
         return rio with
         {
-            Stats = new Stats(rio.Stats.Pitch, rio.Stats.Bat, field, rio.Stats.Run) { Arm = arm, Hands = hands },
+            Stats = rio.Stats with { Arm = arm > 0 ? arm : field, Hands = hands > 0 ? hands : field },
             ReachFt = reachFt,
             FieldAbility = ""
         };
