@@ -1188,7 +1188,7 @@ public sealed partial class LivePlaySystem
             WalkGloveWithStick(dt, map, pad);
         else if (SwapLock <= 0 && FieldAssist.CpuChases(HoldsBall, Throwing, dead))
         {
-            TryHandoffLoose(map);
+            TryHandoffLoose();
             if (CanMove(GlovePos)) WalkGloveTo((BallX, BallZ), dt);
         }
         var d = Diamond.Dist(GloveX, GloveZ, BallX, BallZ);
@@ -1577,7 +1577,7 @@ public sealed partial class LivePlaySystem
         var map = Assigned();
         if (LooseBall)
         {
-            TryHandoffLoose(map);
+            TryHandoffLoose();
             if (!CanMove(GlovePos)) return;
             var chaser = map.TryGetValue(GlovePos, out var lc) ? lc : pre.Fielder;
             var run = FieldingResolver.ChaseSpeedFt(chaser, pre.Frozen, R);
@@ -1593,7 +1593,7 @@ public sealed partial class LivePlaySystem
         var hang = Hang;
         var airborne = FieldingResolver.InAir(pre, live.Y, ElapsedSeconds, R, hang);
         var airTarget = FlyCatch.ChaseTarget(pre, R, Park);
-        TryHandoffOutfield(map, airborne ? airTarget.X : live.X, airborne ? airTarget.Z : live.Z, airborne);
+        TryHandoffOutfield(airborne ? airTarget.X : live.X, airborne ? airTarget.Z : live.Z, airborne);
         if (!CanMove(GlovePos)) return;
         var who = map.TryGetValue(GlovePos, out var c) ? c : pre.Fielder;
         var speed = FieldingResolver.ChaseSpeedFt(who, GlovePos, pre, R);
@@ -1607,45 +1607,16 @@ public sealed partial class LivePlaySystem
         _fielders[GlovePos] = (GloveX, GloveZ);
     }
 
-    /// <summary>
-    /// The infield → outfield hand-off (§8.9): once the ball (its plant while in the air, or the first reachable point on a liner
-    /// that will bounce, #667) is on the outfield grass, the play glove moves to the outfielder whose route meets it earliest
-    /// (D16) — and never while the current glove still has a route to it (D17, S-96 on the ground, S-97 in the air, #636): the
-    /// body keeps the ball as long as its own route reaches it no later than that outfielder's, or the ball is inside its reach.
-    /// Never by the ball's position alone; one way only. The infield's reach on a ball in the air is
-    /// <c>fielding.chase.infieldAirMul</c> (§8.1): the S-29 band is held there, not by giving the liner away.
-    /// </summary>
-    void TryHandoffOutfield(Dictionary<string, Character> map, double ballX, double ballZ, bool airborne)
+    /// <summary>The infield → outfield hand-off (§8.9, D16, D17): the glove goes where <see cref="PursuitDecider.OutfieldHandoff"/> says, if anywhere.</summary>
+    void TryHandoffOutfield(double ballX, double ballZ, bool airborne)
     {
-        if (FieldingResolver.IsOutfield(GlovePos) || !FieldingResolver.OutfieldGrass(ballX, ballZ, R)) return;
-        if (Preview is null || Path is null)
-        {
-            var pick = FieldingResolver.PlayGlove(map, ballX, ballZ, R, _fielders);
-            if (FieldingResolver.HandoffToOutfield(GlovePos, pick.Pos)) HandGloveTo(pick.Pos);
-            return;
-        }
-        var of = FieldingPursuit.Choose(
-            map, FieldingResolver.OutfieldPursuitPositions, Preview, Park, Path, R, _fielders, ElapsedSeconds, _readyAt);
-        // D17, in the air and on the ground alike: the glove keeps the ball while its own route still meets it no later than the
-        // outfielder's (the plant on a fly, the first reachable sample on a roller or a liner that will bounce).
-        var who = map.TryGetValue(GlovePos, out var c) ? c : Preview.Fielder;
-        var speed = FieldingResolver.ChaseSpeedFt(who, GlovePos, Preview, R);
-        var mine = FieldingPursuit.Plan(Preview, Park, Path, ElapsedSeconds, GloveX, GloveZ, speed, R, ReadyAt(GlovePos),
-            !FieldingResolver.IsOutfield(GlovePos), GloveChar());
-        // A scoopable ball inside the glove's reach is a route of zero feet: the touch (§8.3) is this frame's play, whatever the planner says of the next sample.
-        var inReach = !airborne && FlyCatch.TouchScoop(Preview, Park, BallX, BallZ, BallY, ElapsedSeconds, Hang,
-            Diamond.Dist(GloveX, GloveZ, BallX, BallZ), CatchWindow(map), R);
-        if (inReach || mine.Reachable && !FieldingPursuit.Better(of.Route, mine)) return;
-        HandGloveTo(of.Position);
+        if (PursuitDecider.OutfieldHandoff(this, ballX, ballZ, airborne) is { } to) HandGloveTo(to);
     }
 
-    /// <summary>A loose ball is the nearest body's (§8.6, §8.7): the backup behind an overthrow, the fielder beside a fumble.</summary>
-    void TryHandoffLoose(Dictionary<string, Character> map)
+    /// <summary>A loose ball is the nearest body's (§8.6, §8.7): the glove goes where <see cref="PursuitDecider.LooseHandoff"/> says, if anywhere.</summary>
+    void TryHandoffLoose()
     {
-        var pick = FieldingResolver.NearestGlove(map, BallX, BallZ, _fielders);
-        if (pick.Pos == GlovePos || string.IsNullOrEmpty(pick.Pos)) return;
-        if (_items.IsOff(pick.Pos)) return;
-        HandGloveTo(pick.Pos);
+        if (PursuitDecider.LooseHandoff(this) is { } to) HandGloveTo(to);
     }
 
     /// <summary>
@@ -1711,25 +1682,11 @@ public sealed partial class LivePlaySystem
 
     bool Coasting(string pos) => _coast.Coasting(pos);
 
+    /// <summary>The outfielder <see cref="PursuitDecider.Charger"/> names charges the ball on its route, one step this frame.</summary>
     void ChargeOutfield(double dt)
     {
-        if (Preview is null || Hit is null || Path is null) return;
-        if (HoldsBall || Throwing || LooseBall) return;
-        var live = BallFlight.PointAt(Path, ElapsedSeconds, R);
-        var hang = Hang;
-        var inAir = FieldingResolver.InAir(Preview, live.Y, ElapsedSeconds, R, hang);
-        var plant = FlyCatch.ChaseTarget(Preview, R, Park);
-        if (!FieldingResolver.OutfieldShouldCharge(live.X, live.Z, plant.X, plant.Z, R))
-            return;
-        // Once a grounded ball reaches the grass, ChaseGlove owns the handoff.
-        if (!inAir && FieldingResolver.OutfieldGrass(live.X, live.Z, R))
-            return;
-        var map = Assigned();
-        var of = FieldingPursuit.Choose(
-            map, FieldingResolver.OutfieldPursuitPositions, Preview, Park, Path, R, _fielders, ElapsedSeconds, _readyAt);
-        if (of.Position == GlovePos || of.Position == BuddyPos || Coasting(of.Position)) return;
-        if (!CanMove(of.Position)) return;
-        if (!_fielders.TryGetValue(of.Position, out var at)) return;
+        if (PursuitDecider.Charger(this) is not { } of || Preview is null) return;
+        var at = _fielders[of.Position];
         var speed = FieldingResolver.ChaseSpeedFt(of.Fielder, of.Position, Preview, R);
         _fielders[of.Position] = StepTo(of.Position, at, (of.Route.X, of.Route.Z), speed, R.Fielding.Chase.StepStopFt, dt, flat: false);
     }
@@ -2697,7 +2654,7 @@ public sealed partial class LivePlaySystem
         var flight = Math.Max(1, ThrowDur - R.Fielding.Throw.ReleaseSec);
         var speed = len / flight * R.Fielding.Overthrow.CarryMul;
         SetLoose(ThrowTo.X, ThrowTo.Z, len > 1e-6 ? dx / len * speed : 0, len > 1e-6 ? dz / len * speed : 0);
-        TryHandoffLoose(map);
+        TryHandoffLoose();
     }
 
     /// <summary>The lob nobody came for drops at the bag, live.</summary>
@@ -2709,7 +2666,7 @@ public sealed partial class LivePlaySystem
         _flight.EndLob();
         _support.ClearCutoff();
         SetLoose(ThrowTo.X, ThrowTo.Z, 0, 0);
-        TryHandoffLoose(Assigned());
+        TryHandoffLoose();
     }
 
     void SetLoose(double x, double z, double vx, double vz)
