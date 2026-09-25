@@ -167,7 +167,7 @@ public sealed class PursuitStickTests
     // In play
     // ---------------------------------------------------------------------------------
 
-    /// <summary>The human shortstop (zig, 22.48 ft/s) holds the ball and runs with the stick: half the usable range is half the speed, full is full, the diagonal is still capped.</summary>
+    /// <summary>The human shortstop (zig, 20.32 ft/s) holds the ball and runs with the stick: half the usable range is half the speed, full is full, the diagonal is still capped.</summary>
     [Theory]
     [InlineData(0.0, 0.575, 0.5)]
     [InlineData(0.0, 1.0, 1.0)]
@@ -176,7 +176,7 @@ public sealed class PursuitStickTests
     {
         var (live, rated) = HumanShortstopHoldsTheBall(Game, "zig");
         var track = Push(live, new LivePadInput(StickX: x, StickY: y), frames: 24);
-        Assert.Equal(22.48, rated, 9);
+        Assert.Equal(20.32, rated, 9);
         Assert.InRange(Speed(track, 20), rated * fraction * 0.97, rated * fraction * 1.03);
         Assert.InRange(Speed(track, 23), rated * fraction * 0.97, rated * fraction * 1.03);
         Assert.True(live.PursuitManual);
@@ -230,7 +230,8 @@ public sealed class PursuitStickTests
         Assert.False(live.PursuitUnready);
         var going = Push(live, held, frames: 20);
         Assert.True(live.PursuitManual);
-        Assert.InRange(Speed(going, 19), 22.48 * (0.45 / 0.85) * 0.97, 22.48 * (0.45 / 0.85) * 1.03);
+        var rated = FieldingResolver.ChaseSpeedFt(Game.Must("zig"), false, match.Rules);
+        Assert.InRange(Speed(going, 19), rated * (0.45 / 0.85) * 0.97, rated * (0.45 / 0.85) * 1.03);
     }
 
     // ---------------------------------------------------------------------------------

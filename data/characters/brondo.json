@@ -3,6 +3,8 @@
   "name": "Brondo",
   "faction": "goldrush",
   "captain": true,
+  // The body class (data/rules/body-classes.json, spec §8.1): reach, contact width, ramp, knockback, motion style.
+  "bodyClass": "brick",
   "teamName": "Goldrush",
   "signatureBat": "gold-brick",
   // Body proportions on the shared rig (docs/silhouette-bible.md): root multipliers, height ladder vs the research stills.

@@ -133,10 +133,11 @@ public class FlyCatchTests
         var rio = _content.Must("rio");
         var ashlord = _content.Must("ashlord");
         var park = Harbor;
-        var rioRadius = FieldingResolver.CatchRadiusFt(rio, park, rules: Rules.Default);
-        var ashRadius = FieldingResolver.CatchRadiusFt(ashlord, park, rules: Rules.Default);
-        Assert.Equal(c.StandUpReachFt + FieldAbilities.CatchBonus(rio, rules: Rules.Default), rioRadius);
-        Assert.Equal(c.StandUpReachFt, ashRadius);
+        var rioRadius = FieldingResolver.CatchRadiusFt(rio, park, rules: Rules.Default, air: true);
+        var ashRadius = FieldingResolver.CatchRadiusFt(ashlord, park, rules: Rules.Default, air: true);
+        // The stand-up reach is the body class's fly reach (§8.1).
+        Assert.Equal(BodyClasses.ReachFt(rio, true, Rules.Default) + FieldAbilities.CatchBonus(rio, rules: Rules.Default), rioRadius);
+        Assert.Equal(BodyClasses.ReachFt(ashlord, true, Rules.Default), ashRadius);
         var standUp = FieldingResolver.StandUpCatchFt(rioRadius);
         var diveWin = FieldingResolver.DiveCatchFt(rioRadius, rules: Rules.Default);
         Assert.Equal(rioRadius, standUp);

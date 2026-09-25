@@ -111,7 +111,8 @@ public sealed class FieldingReachTests
     public void NewReachRequiresTheBodyToGetCloserForCatchScoopAndDive()
     {
         var r = Game.Rules;
-        var reach = FieldingResolver.CatchRadiusFt(Game.Must("ashlord"), Game.Parks[ParkId.Harbor], r);
+        // The unclassed body (the table's 4-ft reach): the stack's arithmetic, whatever the classes say.
+        var reach = FieldingResolver.CatchRadiusFt(Game.Must("ashlord") with { BodyClass = "" }, Game.Parks[ParkId.Harbor], r, air: false);
         Assert.Equal(4, reach);
         Assert.Equal(5, FieldingResolver.CatchWindowFt(reach, false, false, r));
         Assert.Equal(6, FieldingResolver.DiveCatchFt(reach, r));

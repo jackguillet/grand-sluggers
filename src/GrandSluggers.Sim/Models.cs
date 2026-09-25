@@ -252,12 +252,15 @@ public sealed record Character(
     string StarPitch,
     string StarSwing,
     string FieldAbility,
-    string Bio,
-    /// <summary>
-    /// Authored stand-up catch reach in feet (F693-02-catch-reach-envelope). Null takes the table's <c>standUpReachFt</c>.
-    /// </summary>
-    double? ReachFt = null)
+    string Bio)
 {
+    /// <summary>
+    /// The body class this character plays (spec §8.1, <c>data/rules/body-classes.json</c>): its reach, contact width, ramp and
+    /// knockback. A captain authors it; a role player authors its own or wears its captain's, resolved when the catalog loads.
+    /// A character built by hand has none and plays the unclassed body (<see cref="BodyClasses.Unclassed"/>).
+    /// </summary>
+    public string BodyClass { get; init; } = "";
+
     /// <summary>
     /// The three ordinary pitches this character throws (§4.3, PH-15-R1/R2/R4). Separate from
     /// <see cref="StarPitch"/>, which names a row in <c>data/abilities/star-skills.json</c> and sits

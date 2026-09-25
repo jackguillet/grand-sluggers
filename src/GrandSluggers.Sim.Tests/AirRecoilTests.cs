@@ -52,7 +52,7 @@ public sealed class AirRecoilTests
         Assert.True(a.TakeAt < a.Hang, "the liner was caught in the air");
         Assert.False(a.Dive || a.Jump || a.Airborne, "a catch on his feet");
         Assert.InRange(a.Speed, 80.01, 115);
-        Assert.Equal(FieldingResolver.RecoilSec(Game.Must("grit"), a.Speed, Game.Rules, airborne: true), a.Dur, 9);
+        Assert.Equal(FieldingResolver.RecoilSec(Game.Must("grit") with { BodyClass = "" }, a.Speed, Game.Rules, airborne: true), a.Dur, 9);
         Assert.True(a.Dur > 0);
         Assert.Equal(1, a.Events);
         Assert.Equal(PlayKind.FlyOut, a.Play.Kind);
@@ -146,7 +146,8 @@ public sealed class AirRecoilTests
     /// <summary>Harbor, grit (Hands 6) at short, hex (Hands 4) in right, gull on first so the catch is not the completing frame.</summary>
     static (Match Match, AtBatResult Hit, FieldingPreview Preview) Fixture(ContentCatalog content, double exitMph, double launchDeg, double sprayDeg)
     {
-        var home = content.Team("Defense", "vale", "pewter", "lace", "frost", "basil", "grit", "vine", "moss", "hex");
+        // The unclassed defense (§8.1): the full knockback, so the recoil these rows measure is the hands' and the ball's alone.
+        var home = content.Team("Defense", "vale", "pewter", "lace", "frost", "basil", "grit", "vine", "moss", "hex").Unclassed();
         var away = content.Team("Offense", "rio", "boom", "cinder", "soot", "nugget", "nico", "gull", "marlow", "ashlord");
         var match = Match.Exhibition(content, home, away, 3, 1, parkId: ParkId.Harbor);
         var hit = FlightFixtures.Hit(match.Park, exitMph, launchDeg, sprayDeg, ContactQuality.Perfect, rules: match.Rules);
