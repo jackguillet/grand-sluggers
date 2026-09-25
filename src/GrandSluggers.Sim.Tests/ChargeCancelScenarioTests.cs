@@ -88,7 +88,7 @@ public sealed class ChargeCancelScenarioTests
         var swing = Frame(ref state, released: true);
         Assert.True(swing.Committed);
         Assert.Equal(Dt / ToFull, swing.CommitFill01, 12);
-        Assert.True(ChargeFeel.IsSlap(swing.CommitFill01));
+        Assert.True(ChargeFeel.IsSlap(swing.CommitFill01, Shipped.Content.Rules));
     }
 
     // ---------------------------------------------------------------------------------

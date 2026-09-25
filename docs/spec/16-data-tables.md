@@ -76,7 +76,7 @@ Files and the sections each owns (P0 moved the numbers that existed; later epics
 | `running.json` | See note *running.json, Sections* below. |
 | `stars.json` | `meterMax`, `gains` (the base `plateAppearance` and the per-event bonuses, the double play and the robbed homer included), `tiers` (the price of each cost tier), `costs` (`guestCaptainSurcharge`), `startingReserve` (both teams' Stars at the first pitch), `mvp` (the §12 point table and the MVP line thresholds) |
 | `cpu.json` | See note *cpu.json, Sections* below. |
-| `match.json` | `extraInningsCap`, `mercy` (`runs`, `fromInning`, `minScheduledInnings`) — §1 |
+| `match.json` | `extraInningsCap`, `mercy` (`runs`, `fromInning`, `minScheduledInnings`) — §1; `charge` (`slapBelow`, `chargeAt`), the charge line both buttons share — §4.1, §5.1 |
 | `infield.json` | See note *infield.json, Sections* below. |
 | `boundary.json` | See note *boundary.json, Sections* below. |
 | `fielders.json` | See note *fielders.json, Sections* below. |

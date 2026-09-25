@@ -61,7 +61,7 @@ public sealed class AtBatResolver
         // The Charge Bat is a MAX charge for free with the narrow charge zones off (§5.5).
         var chargeBat = input.Bat?.ChargeAlwaysFull == true;
         var effective = chargeBat ? 1.0 : Math.Clamp(input.Charge01, 0, 1);
-        var charged = ChargeFeel.IsCharge(effective);
+        var charged = ChargeFeel.IsCharge(effective, _rules);
 
         // Timing (§5.3, D13): outside the window the bat is not on the plane.
         var window = ContactWindowFrames(input.UseStarPitch ? input.Pitcher.StarPitch : null, park, night, _rules, _skills);

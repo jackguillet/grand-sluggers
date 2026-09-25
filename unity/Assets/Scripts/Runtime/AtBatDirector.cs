@@ -369,7 +369,7 @@ namespace GrandSluggers.UnityClient
         }
 
         float EffectiveCharge(float charge, float past) =>
-            (float)ChargeFeel.Effective01(charge, past, _scene.Feel.ChargeMaxHoldSeconds, _scene.Feel.ChargeOverchargeDecay);
+            (float)ChargeFeel.Effective01(charge, past, _scene.Feel.ChargeMaxHoldSeconds, _scene.Feel.ChargeOverchargeDecay, _play.Match.Rules);
 
         /// <summary>
         /// The human's pitch (spec §4.1 – §4.2, §3): shape from the family the charge locked,

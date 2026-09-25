@@ -162,7 +162,7 @@ public sealed class Training
         if (Finished || Lesson != PracticeLesson.Batting) return false;
         if (!swing.Swing || hit.Quality == ContactQuality.Miss) return false;
         _timedContact = true;
-        if (ChargeFeel.IsCharge(swing.Charge01) || swing.Charge01 > 0.5)
+        if (ChargeFeel.IsCharge(swing.Charge01, Rules) || swing.Charge01 > 0.5)
             _chargedContact = true;
         if (_timedContact && _chargedContact)
         {

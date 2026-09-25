@@ -26,7 +26,7 @@ public class SwingPresentationTests
 
         var contactSec = AtBatMotion.SwingContactSec(err, window, rules);
         Assert.Equal(plateAt, press + contactSec, 8);
-        Assert.Equal(Motion.SwingContact, AtBatMotion.SwingClipTime(plateAt - press, charge, contactSec), 8);
+        Assert.Equal(Motion.SwingContact, AtBatMotion.SwingClipTime(plateAt - press, charge, Shipped.Content.Rules, contactSec), 8);
 
         // The committed clock reaches the ball's plate time on the flight and presents Contact there.
         var takeSec = AtBatMotion.SwingTakeSeconds(contactSec);
@@ -34,13 +34,13 @@ public class SwingPresentationTests
         Assert.Equal(0, clock, 8);
         clock = AtBatMotion.AdvanceCommittedSwing(clock, plateAt, press, 1.0 / 60, takeSec);
         Assert.Equal(Motion.SwingContact,
-            AtBatMotion.SwingClipTime(AtBatMotion.CommittedSwingSample(clock, takeSec), charge, contactSec), 8);
+            AtBatMotion.SwingClipTime(AtBatMotion.CommittedSwingSample(clock, takeSec), charge, Shipped.Content.Rules, contactSec), 8);
 
         // Every key of the take this charge plays, in order, never backward (#613: slap or charge).
-        var take = SwingPresentation.TakeFor(charge);
+        var take = SwingPresentation.TakeFor(charge, Shipped.Content.Rules);
         var keys = SwingPresentation.KeysFor(take);
-        var previous = AtBatMotion.SwingClipTime(0, charge, contactSec);
-        Assert.Equal(SwingPresentation.CommittedLoadAt(charge), previous, 8);
+        var previous = AtBatMotion.SwingClipTime(0, charge, Shipped.Content.Rules, contactSec);
+        Assert.Equal(SwingPresentation.CommittedLoadAt(charge, Shipped.Content.Rules), previous, 8);
         var crossed = new List<double>();
         var keyIndex = 0;
         void Cross(double sample)
@@ -53,13 +53,13 @@ public class SwingPresentationTests
         for (var i = 1; i <= steps; i++)
         {
             var t = takeSec * i / steps;
-            var sample = AtBatMotion.SwingClipTime(t, charge, contactSec);
+            var sample = AtBatMotion.SwingClipTime(t, charge, Shipped.Content.Rules, contactSec);
             Assert.True(sample >= previous - 1e-12, $"charge {charge} went backward at {t}: {sample} < {previous}");
             Cross(sample);
             previous = sample;
         }
         Assert.Equal(keys.Select(k => k.T), crossed);
-        Assert.Equal(Motion.SwingFinish, AtBatMotion.SwingClipTime(takeSec, charge, contactSec), 8);
+        Assert.Equal(Motion.SwingFinish, AtBatMotion.SwingClipTime(takeSec, charge, Shipped.Content.Rules, contactSec), 8);
         // The follow-through and finish after contact are the take's own 0.30 s, not warped.
         Assert.Equal(Motion.SwingFinish - Motion.SwingContact, takeSec - contactSec, 8);
     }
@@ -77,7 +77,7 @@ public class SwingPresentationTests
         Assert.Equal(Motion.SwingFinish, AtBatMotion.SwingTakeSeconds(contactSec), 8);
         foreach (var charge in new[] { 0.0, 1.0 })
         for (var t = 0.0; t <= Motion.SwingFinish; t += 0.01)
-            Assert.Equal(AtBatMotion.SwingClipTime(t, charge), AtBatMotion.SwingClipTime(t, charge, contactSec), 8);
+            Assert.Equal(AtBatMotion.SwingClipTime(t, charge, Shipped.Content.Rules), AtBatMotion.SwingClipTime(t, charge, Shipped.Content.Rules, contactSec), 8);
 
         // The bat's Contact mark is not on the ball: early lands after the ball has gone, late before it would arrive.
         const double plateAt = 0.98;
@@ -104,8 +104,8 @@ public class SwingPresentationTests
         Assert.True(AtBatResolver.InWindow(err, window));
         var contactSec = AtBatMotion.SwingContactSec(err, window, rules);
         Assert.Equal(0, contactSec, 8);
-        Assert.Equal(Motion.SwingContact, AtBatMotion.SwingClipTime(0, 0, contactSec), 8);
-        Assert.Equal(SwingPresentation.CommittedLoadAt(0), AtBatMotion.SwingClipTime(-0.01, 0, contactSec), 8);
+        Assert.Equal(Motion.SwingContact, AtBatMotion.SwingClipTime(0, 0, Shipped.Content.Rules, contactSec), 8);
+        Assert.Equal(SwingPresentation.CommittedLoadAt(0, Shipped.Content.Rules), AtBatMotion.SwingClipTime(-0.01, 0, Shipped.Content.Rules, contactSec), 8);
         Assert.True(rules.Batting.Window.LeadSec * 60 > rules.Batting.Window.Frames / 2,
             "batting.window.leadSec must cover half the window so contact meets the ball");
     }
@@ -285,14 +285,14 @@ public class SwingPresentationTests
     [Fact]
     public void TheResolversChargeTestPicksTheTake()
     {
-        Assert.Equal(SwingTake.Slap, SwingPresentation.TakeFor(ChargeFeel.ChargeAt - 0.01));
-        Assert.Equal(SwingTake.Charge, SwingPresentation.TakeFor(ChargeFeel.ChargeAt));
-        Assert.Equal(Motion.SwingSlapClip, Motion.CueFor(Motion.Verb.Swing, 0).Clip);
-        Assert.Equal(Motion.SwingChargeClip, Motion.CueFor(Motion.Verb.Swing, 1).Clip);
-        Assert.Equal(Motion.SwingChargeClip, Motion.CueFor(Motion.Verb.ChargeSwing, 0).Clip);
+        Assert.Equal(SwingTake.Slap, SwingPresentation.TakeFor(Shipped.Content.Rules.Match.Charge.ChargeAt - 0.01, Shipped.Content.Rules));
+        Assert.Equal(SwingTake.Charge, SwingPresentation.TakeFor(Shipped.Content.Rules.Match.Charge.ChargeAt, Shipped.Content.Rules));
+        Assert.Equal(Motion.SwingSlapClip, Motion.CueFor(Motion.Verb.Swing, 0, Shipped.Content.Rules).Clip);
+        Assert.Equal(Motion.SwingChargeClip, Motion.CueFor(Motion.Verb.Swing, 1, Shipped.Content.Rules).Clip);
+        Assert.Equal(Motion.SwingChargeClip, Motion.CueFor(Motion.Verb.ChargeSwing, 0, Shipped.Content.Rules).Clip);
         // A slap has no windup: it starts on its ready key. A charge continues from the held windup.
-        Assert.Equal(SwingPresentation.LoadAt, SwingPresentation.CommittedLoadAt(0.3), 8);
-        Assert.Equal(SwingPresentation.HeldLoadAt(0.8), SwingPresentation.CommittedLoadAt(0.8), 8);
+        Assert.Equal(SwingPresentation.LoadAt, SwingPresentation.CommittedLoadAt(0.3, Shipped.Content.Rules), 8);
+        Assert.Equal(SwingPresentation.HeldLoadAt(0.8), SwingPresentation.CommittedLoadAt(0.8, Shipped.Content.Rules), 8);
     }
 
     // -------------------------------------------------------------------------------------

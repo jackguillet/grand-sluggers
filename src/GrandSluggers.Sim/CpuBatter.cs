@@ -115,7 +115,7 @@ public sealed class CpuBatter
         // Timing sigma: how far off the ball the bat arrives is Contact's (⚠️ P2-b re-reads this one).
         var err = Rng.Gauss() * (11 - contact) * c.ErrorFramesPerBatStat * level.TimingSigmaMul;
         var offSpeed = Rules.Pitching.Families.Of(pitch.Type).OffSpeed;
-        if (!tracked && (offSpeed || ChargeFeel.IsCharge(pitch.Charge01)))
+        if (!tracked && (offSpeed || ChargeFeel.IsCharge(pitch.Charge01, Rules)))
         {
             // Fooled: an off-speed family pulls the bat early past the ball (late), a charged pitch beats it (early).
             var fooled = c.FooledMinFrames + Rng.NextDouble() * c.FooledSpanFrames;

@@ -97,7 +97,7 @@ public static class PitchFlight
         var row = pitch.Star ? StarSkillTable.Or(skills).Pitch(starPitchId) : null;
         if (row?.Leap is { } leap) u = leap.Progress(u);
         var p = Point(pitch.Type, u, r, pitch.AimX, pitch.AimY, pitch.BreakX * pitch.BreakMul,
-            pitch.RubberX, from, ChargeFeel.IsCharge(pitch.Charge01), pitch.Throws, zone);
+            pitch.RubberX, from, ChargeFeel.IsCharge(pitch.Charge01, r), pitch.Throws, zone);
         if (!pitch.Star) return p;
         // A row's own path shape (§13): the float rises early and lands on the crossing the pitch was always going to make.
         if (row?.Float is { } rise && rise.Lift(u) is var lift and not 0)

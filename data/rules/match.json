@@ -7,5 +7,11 @@
     "runs": 10,
     "fromInning": 3,
     "minScheduledInnings": 6
+  },
+  // The charge line on the effective charge, 0–1: below slapBelow a release is a tap (and a decayed overcharge floors
+  // here); at or above chargeAt it is a charge (§4.1, §5.1).
+  "charge": {
+    "slapBelow": 0.2,
+    "chargeAt": 0.55
   }
 }
