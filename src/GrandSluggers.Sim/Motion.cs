@@ -107,11 +107,11 @@ public static class Motion
         new("spin", false, false, HoldDur),
         new("scoop", false, false, 0.50, ClipEvent.Contact, ScoopContact),
         new("slide", false, false, 0.40, ClipEvent.FootPlant, SlidePlant),
-        new("catcherThrow", false, true, CatcherThrowDur, ClipEvent.Release, CatcherThrowRelease, StandIn: "throw"),
-        new("tag", false, true, HoldDur, StandIn: "catch"),
+        new("catcherThrow", false, true, CatcherThrowDur, ClipEvent.Release, CatcherThrowRelease),
+        new("tag", false, true, HoldDur),
         // The same length and plant as the feet-first slide: a style of slide is never a faster one.
-        new("slideHeadFirst", false, false, 0.40, ClipEvent.FootPlant, SlidePlant, StandIn: "slide"),
-        new("turnBack", false, false, TurnBackDur, StandIn: "run")
+        new("slideHeadFirst", false, false, 0.40, ClipEvent.FootPlant, SlidePlant),
+        new("turnBack", false, false, TurnBackDur)
     ];
 
     public static IReadOnlyList<string> ClipIds { get; } = Clips.Select(c => c.Id).ToArray();

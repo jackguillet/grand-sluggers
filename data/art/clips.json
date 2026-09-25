@@ -232,8 +232,8 @@
       "slot": "Assets/Art/Animation/Clips/slide",
       "playerSlot": "Assets/Resources/Art/Animation/Clips/slide"
     },
-    // The steal race (#966). Each slot states the contract its take must meet and plays its stand-in until the take lands;
-    // the take that fills a slot drops its standIn.
+    // The steal race (#966): the catcher's receive-to-release, the sweep tag, the head-first slide (reserved until its
+    // runners are chosen) and the runner's reversal.
     {
       "id": "catcherThrow",
       "loop": false,
@@ -242,7 +242,6 @@
         "Release"
       ],
       "releaseAt": 0.3,
-      "standIn": "throw",
       "slot": "Assets/Art/Animation/Clips/catcherThrow",
       "playerSlot": "Assets/Resources/Art/Animation/Clips/catcherThrow"
     },
@@ -251,7 +250,6 @@
       "loop": false,
       "handed": true,
       "events": [],
-      "standIn": "catch",
       "slot": "Assets/Art/Animation/Clips/tag",
       "playerSlot": "Assets/Resources/Art/Animation/Clips/tag"
     },
@@ -263,7 +261,6 @@
         "FootPlant"
       ],
       "footPlantAt": 0.18,
-      "standIn": "slide",
       "slot": "Assets/Art/Animation/Clips/slideHeadFirst",
       "playerSlot": "Assets/Resources/Art/Animation/Clips/slideHeadFirst"
     },
@@ -272,7 +269,6 @@
       "loop": false,
       "handed": false,
       "events": [],
-      "standIn": "run",
       "slot": "Assets/Art/Animation/Clips/turnBack",
       "playerSlot": "Assets/Resources/Art/Animation/Clips/turnBack"
     }

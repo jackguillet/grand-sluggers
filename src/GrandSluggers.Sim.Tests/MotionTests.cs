@@ -150,11 +150,12 @@ public class MotionTests
             Assert.Null(played.StandIn);
             Assert.Equal(played.Id, Motion.PlayedId(clip.Id));
         }
-        Assert.Equal("throw-L", Motion.ClipFile(Motion.Verb.CatcherThrow, Hand.R, Hand.L));
-        Assert.Equal("catch", Motion.ClipFile(Motion.Verb.Tag, Hand.R, Hand.L));
-        Assert.Equal("slide", Motion.ClipFile(Motion.Verb.SlideHeadFirst, Hand.R, Hand.R));
-        Assert.Equal("run", Motion.ClipFile(Motion.Verb.TurnBack, Hand.R, Hand.R));
-        Assert.Equal(Motion.ThrowRelease, Motion.Mark(Motion.Verb.CatcherThrow, Motion.ClipEvent.Release));
+        // The steal race's takes have landed (#966): each plays its own file, both hands where handed, on its own marker.
+        Assert.Equal("catcherThrow-L", Motion.ClipFile(Motion.Verb.CatcherThrow, Hand.R, Hand.L));
+        Assert.Equal("tag-L", Motion.ClipFile(Motion.Verb.Tag, Hand.R, Hand.L));
+        Assert.Equal("slideHeadFirst", Motion.ClipFile(Motion.Verb.SlideHeadFirst, Hand.R, Hand.R));
+        Assert.Equal("turnBack", Motion.ClipFile(Motion.Verb.TurnBack, Hand.R, Hand.R));
+        Assert.Equal(Motion.CatcherThrowRelease, Motion.Mark(Motion.Verb.CatcherThrow, Motion.ClipEvent.Release));
         Assert.Equal("idle", Motion.PlayedId("idle"));
     }
 
