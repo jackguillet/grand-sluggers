@@ -164,6 +164,9 @@
     // Long Toss (Hollis, #1150): the comfortable range runs 80 ft further before a long throw loses pace — an Arm 7 holder
     // throws 250 ft at full speed where the ordinary Arm 7 arm starts losing at 170. Nothing shorter changes.
     "longTossRangeFt": 80,
+    // Lily Leap (Reed, #1151): the same West press and 0.60 s airtime as every jump, rising 4.5 ft at the peak instead of 2.0 —
+    // the glove reaches a liner up to 10.5 ft where an ordinary jump tops out at 8. Only a press starts it; nothing auto-catches.
+    "lilyLeapRiseFt": 4.5,
     // #723: Laser is x1.25 and only on a throw home with a live runner on third or the third-home segment (a cutoff feed never
     // carries it); Snap Throw is a 0.22 s release after a clean received teammate throw at x1.0 flight against the ordinary 0.30.
     "laserMul": 1.25,

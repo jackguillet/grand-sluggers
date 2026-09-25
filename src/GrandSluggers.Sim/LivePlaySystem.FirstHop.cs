@@ -19,7 +19,7 @@ public sealed partial class LivePlaySystem
         _kickSwing = null;
         if (Hit is null || Ball is null || Path is null || !Hit.InPlay || Hit.Foul || Ball.Foul) return;
         if (Ball.Shape == BattedBallClass.Bunt) return;
-        if (StarSkillTable.Or(_match.Content?.StarSkills).Swing(Hit.StarSwingUsed) is not { FirstHopKickDeg: > 0 } swing) return;
+        if (StarSkillTable.Or(_match.Content?.StarSkills).Swing(Hit.StarSwingUsed) is not { ShapesFirstHop: true } swing) return;
         var i = BallFlight.LandingIndex(Path);
         if (i < 0 || Path[i].Event != SampleEvent.Ground) return;
         _kickAt = Path[i].T;
@@ -40,7 +40,9 @@ public sealed partial class LivePlaySystem
         var (vx, vy, vz) = ((next.X - now.X) / step, (next.Y - now.Y) / step, (next.Z - now.Z) / step);
         if (vx * vx + vz * vz < 1e-6) return;
         var away = Chaser(now.X, now.Z);
-        var turn = FirstHopTurnDeg(vx, vz, now.X, now.Z, away.X, away.Z, swing.FirstHopKickDeg);
+        var turn = swing.FirstHopKickDeg > 0 ? FirstHopTurnDeg(vx, vz, now.X, now.Z, away.X, away.Z, swing.FirstHopKickDeg) : 0;
+        // The hop's spring (§13): the ball leaves the ground this many times as fast upward, its horizontal pace its own.
+        if (swing.FirstHopBounceMul != 1 && vy > 0) vy *= swing.FirstHopBounceMul;
         var r = turn * Math.PI / 180;
         var (kx, kz) = (vx * Math.Cos(r) - vz * Math.Sin(r), vx * Math.Sin(r) + vz * Math.Cos(r));
         Path = BallFlight.Continue(Path, t, now.X, now.Y, now.Z, kx, vy, kz, Hit.LaunchDeg, Hit.ExitVeloMph, Park, R, Hit.WindMul);
@@ -49,7 +51,7 @@ public sealed partial class LivePlaySystem
         _ballPrev = null;
         Preview = Preview with { LandingX = Ball.LandingX, LandingZ = Ball.LandingZ };
         CoverBallX = Ball.LandingX;
-        RecordFact(new FirstHopKicked(swing.Id, t, now.X, now.Z, turn, away.Pos));
+        RecordFact(new FirstHopKicked(swing.Id, t, now.X, now.Z, turn, away.Pos, swing.FirstHopBounceMul));
         Sub = $"{swing.Name}!";
     }
 

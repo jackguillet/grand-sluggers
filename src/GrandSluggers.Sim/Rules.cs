@@ -2113,6 +2113,8 @@ public sealed record FieldAbilityRules
     public double SandScoopMaxFt { get; init; }
     /// <summary>Long Toss (§8.5): feet added to the holder's comfortable throwing range before the long-throw loss starts.</summary>
     public double LongTossRangeFt { get; init; }
+    /// <summary>Lily Leap (§8.4): the holder's normal-jump peak rise, in place of <c>catch.jumpRiseFt</c>; same press, same airtime.</summary>
+    public double LilyLeapRiseFt { get; init; }
     [Positive] public double LaserMul { get; init; }
     [Positive] public double SnapThrowMul { get; init; }
     /// <summary>

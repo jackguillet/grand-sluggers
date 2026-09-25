@@ -253,6 +253,10 @@ public static class ContentDataValidator
                     errors.Add($"{source}: star pitch '{key}' cannot carry firstHopKickDeg; it is a swing's");
                 if (value.WindMul is not null)
                     errors.Add($"{source}: star pitch '{key}' cannot carry windMul; it is a swing's");
+                if (value.Leap is { } leap && (leap.At <= 0 || leap.Hold <= 0 || leap.At + leap.Hold >= 1 || leap.HoldPace < 0 || leap.HoldPace >= 1))
+                    errors.Add($"{source}: star pitch '{key}' leap needs at > 0, hold > 0, at + hold < 1 and 0 <= holdPace < 1");
+                if (value.FirstHopBounceMul is not null)
+                    errors.Add($"{source}: star pitch '{key}' cannot carry firstHopBounceMul; it is a swing's");
                 if (value.Float is { } rise && (rise.RiseFt <= 0 || rise.RiseFt > PitchFloatLimits.MaxRiseFt || rise.DropFrom <= 0 || rise.DropFrom >= 1))
                     errors.Add($"{source}: star pitch '{key}' float needs 0 < riseFt <= {PitchFloatLimits.MaxRiseFt.ToString(CultureInfo.InvariantCulture)} and 0 < dropFrom < 1");
             }
@@ -268,6 +272,10 @@ public static class ContentDataValidator
                     errors.Add($"{source}: star swing '{key}' cannot carry a twin; it is a pitch's");
                 if (value.Float is not null)
                     errors.Add($"{source}: star swing '{key}' cannot carry a float; it is a pitch's");
+                if (value.Leap is not null)
+                    errors.Add($"{source}: star swing '{key}' cannot carry a leap; it is a pitch's");
+                if (value.FirstHopBounceMul is not null && (value.FirstHopBounceMul < 1 || value.FirstHopBounceMul > StarSwingSkill.MaxBounceMul))
+                    errors.Add($"{source}: star swing '{key}' firstHopBounceMul must be between 1 and {StarSwingSkill.MaxBounceMul.ToString(CultureInfo.InvariantCulture)}; got {value.FirstHopBounceMul}");
                 if (value.WindMul is not null && (value.WindMul < 0 || value.WindMul > StarSwingSkill.MaxWindMul))
                     errors.Add($"{source}: star swing '{key}' windMul must be between 0 and {StarSwingSkill.MaxWindMul.ToString(CultureInfo.InvariantCulture)}; got {value.WindMul}");
             }
@@ -1523,6 +1531,10 @@ internal sealed class StarSkillDto
     public PitchTwinDto? Twin { get; set; }
     /// <summary>A pitch's float (<see cref="PitchFloat"/>); pitches only.</summary>
     public PitchFloatDto? Float { get; set; }
+    /// <summary>A pitch's leap (<see cref="PitchLeap"/>); pitches only.</summary>
+    public PitchLeapDto? Leap { get; set; }
+    /// <summary>A swing's first hop springs this many times as fast upward (<see cref="StarSwingSkill.FirstHopBounceMul"/>); swings only.</summary>
+    public double? FirstHopBounceMul { get; set; }
     /// <summary>A swing's ball kicks this many degrees off its first hop (<see cref="StarSwingSkill.FirstHopKickDeg"/>); swings only.</summary>
     public double? FirstHopKickDeg { get; set; }
     /// <summary>A swing's ball rides the park's wind this many times as hard (<see cref="StarSwingSkill.WindMul"/>); swings only.</summary>
@@ -1533,11 +1545,19 @@ internal sealed class StarSkillDto
     public StarPitchSkill ToPitch() => new(Id, Name, Kind, SpeedMul ?? 1.0, StaminaCost ?? 0,
         LateBreak, Decoy, OnCatch, Tier ?? StarTierRules.LowId,
         Twin is null ? null : new PitchTwin(Twin.OffsetFt, Twin.FadeFrom, Twin.FadeTo),
-        Float is null ? null : new PitchFloat(Float.RiseFt, Float.DropFrom));
+        Float is null ? null : new PitchFloat(Float.RiseFt, Float.DropFrom),
+        Leap is null ? null : new PitchLeap(Leap.At, Leap.Hold, Leap.HoldPace));
 
     public StarSwingSkill ToSwing() => new(Id, Name, Kind, ExitVeloMul ?? 1.0, LaunchDeg, Terrain,
         FielderPauseSec ?? 0, InfieldChaos, Decoy, Fragments, Tier ?? StarTierRules.LowId, FirstHopKickDeg ?? 0,
-        WindMul ?? 1);
+        WindMul ?? 1, FirstHopBounceMul ?? 1);
+}
+
+internal sealed class PitchLeapDto
+{
+    public double At { get; set; }
+    public double Hold { get; set; }
+    public double HoldPace { get; set; }
 }
 
 internal sealed class PitchFloatDto

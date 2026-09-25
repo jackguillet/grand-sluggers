@@ -80,6 +80,7 @@ After the first surface contact, possession is a pickup and cannot retire the ba
 | Buddy Jump | North with both good-chem outfielders beneath the live ball (within 4 ft in XZ) | rob ≤ 18 ft; both bodies |
 | Dive | East tap | Up to 8 ft sideways relative to facing home plate, toward the ball’s side; +2 ft reach, ball < 7.5 ft; 0.60 s recovery at Field 1. No forward/backward dive, and no CPU dive |
 | Grow / Lick (ability) | passive | +6 / +3 ft catch radius, window +0.08 |
+| Lily Leap (ability) | North, the normal jump | the same press, buffer and 0.60-s airtime, rising `abilities.lilyLeapRiseFt` (4.5 ft) at the peak instead of 2.0, so the glove meets a liner up to 10.5 ft; only a pressed leap reaches it, nothing auto-catches, and the ring is not wider |
 | Sand Scoop (ability) | passive | +8 ft ground reach (`fielding.abilities.sandScoopFt`) for a ball at or below 1 ft (`sandScoopMaxFt`) at the take, and a scoop that low never bobbles; nothing in the air |
 
 Buddy Jump is offered only when both outfielders have a reachable pursuit route to the wall plant before the ball crosses the fence. The buddy plant is at the legal wall clearance (`fielding.chase.wallClearanceFt`, 2 ft inside the fence), where the ball can pass overhead. The partner uses its own reaction delay, run speed, acceleration and live movement constraints.

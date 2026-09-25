@@ -17,9 +17,9 @@
   "bats": "L",
   "throws": "L",
   "repertoire": ["changeup", "curveball"],
-  // Generic library abilities until this captain's own three land (WD-15 A; #1151); never another captain's.
-  "starPitch": "changeup",
-  "starSwing": "ground",
-  "fieldAbility": "super-jump",
+  // His own three (WD-15 A): Leapfrog's hang and leap, Pond Skip's high first hop, Lily Leap's high jump.
+  "starPitch": "leapfrog",
+  "starSwing": "pond-skip",
+  "fieldAbility": "lily-leap",
   "bio": "A frog from the river delta. One leap covers half the outfield; the landing is optional."
 }

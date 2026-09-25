@@ -324,6 +324,8 @@ public sealed partial class LivePlaySystem
     public double JumpAirT => _jump.AirT;
     /// <summary>The body's root rise this frame (<see cref="NormalJump.HeightFt"/>).</summary>
     public double JumpHeightFt => _jump.HeightFt;
+    /// <summary>The current jump's peak rise (Lily Leap's, or <c>catch.jumpRiseFt</c>); 0 on the ground.</summary>
+    public double JumpRiseFt => _jump.RiseFt;
     /// <summary>A grounded West press waiting on its first eligible instant (<see cref="NormalJump.Pending"/>).</summary>
     public bool JumpPending => _jump.Pending;
     public bool CatchJump { get; private set; }
@@ -925,6 +927,10 @@ public sealed partial class LivePlaySystem
                 if (FlyCatch.PlayerCaught(jumpTry, false, underStand, inWin, needsJump, canRob, linerInAir))
                 {
                     if (jumpTry) CatchJump = true;
+                    // A leap's catch over a height only its higher rise reaches (§8.4): the ordinary jump at the same instant would not.
+                    if (jumpTry && !needsJump && _jump.RiseFt > catchRules.JumpRiseFt
+                        && BallY > catchRules.StandingHeightFt + NormalJump.HeightAt(JumpAirT, catchRules.JumpAirSec, catchRules.JumpRiseFt))
+                        RecordFact(new ReachBonusTake(who.Id, who.FieldAbility));
                     if (buddyRob && jumpTry)
                     {
                         Buddy = true;
@@ -2345,7 +2351,8 @@ public sealed partial class LivePlaySystem
     /// <summary>West this frame (<see cref="NormalJump.Press"/>): a takeoff starts the arm window for the client's pose and the buddy leap.</summary>
     void TickJumpPress(LivePadInput pad, double dt)
     {
-        if (!_jump.Press(pad.WestDown, GlovePos, HoldsBall || Throwing || DiveT > 0, JumpEligible, dt, R.Fielding.Catch)) return;
+        if (!_jump.Press(pad.WestDown, GlovePos, HoldsBall || Throwing || DiveT > 0, JumpEligible, dt, R.Fielding.Catch,
+                FieldAbilities.JumpRiseFt(GloveChar(), R))) return;
         JumpT = R.Fielding.Catch.JumpAirSec;
         _events.Add(LiveEvent.JumpTakeoff);
     }

@@ -92,11 +92,15 @@ public static class PitchFlight
         var r = rules;
         u = Math.Clamp(u, 0, 1);
         var zone = StrikeZoneGeometry.Of(pitch);
+        // A row's own pace (§13): the leap hangs the ball over one stretch of its path and makes up the time after it,
+        // so the same path arrives at the same instant — the timing window and the crossing are the ordinary pitch's.
+        var row = pitch.Star ? StarSkillTable.Or(skills).Pitch(starPitchId) : null;
+        if (row?.Leap is { } leap) u = leap.Progress(u);
         var p = Point(pitch.Type, u, r, pitch.AimX, pitch.AimY, pitch.BreakX * pitch.BreakMul,
             pitch.RubberX, from, ChargeFeel.IsCharge(pitch.Charge01), pitch.Throws, zone);
         if (!pitch.Star) return p;
         // A row's own path shape (§13): the float rises early and lands on the crossing the pitch was always going to make.
-        if (StarSkillTable.Or(skills).Pitch(starPitchId)?.Float is { } rise && rise.Lift(u) is var lift and not 0)
+        if (row?.Float is { } rise && rise.Lift(u) is var lift and not 0)
             p = (p.X, p.Y + lift * zone.VerticalScale, p.Z);
         var st = r.Pitching.StarShapes;
         return starPitchId switch

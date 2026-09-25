@@ -15,7 +15,28 @@ public sealed record StarPitchSkill(
     /// <summary>A faint second ball drawn beside the real one early in the flight, or null (§13).</summary>
     PitchTwin? Twin = null,
     /// <summary>A path that floats high early and drops onto the unchanged crossing late, or null (§13).</summary>
-    PitchFloat? Float = null);
+    PitchFloat? Float = null,
+    /// <summary>A pace that hangs the ball over one stretch of its path and leaps it to the plate on time, or null (§13).</summary>
+    PitchLeap? Leap = null);
+
+/// <summary>
+/// A star pitch's leap (spec §13): from <see cref="At"/> of the flight the ball crawls at <see cref="HoldPace"/> of its pace for
+/// <see cref="Hold"/> of the flight, then leaps over the rest of its path to arrive at the ordinary instant. The path, the
+/// crossing and the arrival time are the ordinary pitch's; only where the ball is along its path, and when, changes.
+/// </summary>
+public sealed record PitchLeap(double At, double Hold, double HoldPace)
+{
+    /// <summary>How far along its path the ball is at time fraction <paramref name="u"/>: the identity, a crawl, then a catch-up; 1 at 1.</summary>
+    public double Progress(double u)
+    {
+        u = Math.Clamp(u, 0, 1);
+        if (u <= At) return u;
+        var held = At + HoldPace * Hold;
+        if (u <= At + Hold) return At + HoldPace * (u - At);
+        if (u >= 1) return 1;
+        return held + (1 - held) * (u - At - Hold) / (1 - At - Hold);
+    }
+}
 
 /// <summary>
 /// A star pitch's float (spec §13): the ball rises up to <see cref="RiseFt"/> above its ordinary path, highest at
@@ -69,8 +90,16 @@ public sealed record StarSwingSkill(
     /// </summary>
     double FirstHopKickDeg = 0,
     /// <summary>How strongly the park's wind acts on this swing's ball (§13, <see cref="AtBatResult.WindMul"/>); 1 is the ordinary ball.</summary>
-    double WindMul = 1)
+    double WindMul = 1,
+    /// <summary>A fair ball off this swing leaves its first hop this many times as fast upward (§13); 1 is the ordinary hop.</summary>
+    double FirstHopBounceMul = 1)
 {
+    /// <summary>The highest first-hop bounce a row may name: a chopper, not a moon shot.</summary>
+    public const double MaxBounceMul = 3;
+
+    /// <summary>The swing changes its ball's first hop.</summary>
+    public bool ShapesFirstHop => FirstHopKickDeg > 0 || FirstHopBounceMul != 1;
+
     /// <summary>The largest wind factor a row may name: the wind may carry a star ball twice as far, never more.</summary>
     public const double MaxWindMul = 2;
 

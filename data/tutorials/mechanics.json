@@ -585,6 +585,15 @@
       ]
     },
     {
+      "id": "ability.lily-leap",
+      "title": "lily-leap",
+      "category": "fielding",
+      "spec": "gameplay-spec:8.4",
+      "sources": [
+        "ability:lily-leap"
+      ]
+    },
+    {
       "id": "star-pitch.heatball",
       "title": "heatball",
       "category": "special",
@@ -693,6 +702,15 @@
       ]
     },
     {
+      "id": "star-pitch.leapfrog",
+      "title": "leapfrog",
+      "category": "special",
+      "spec": "gameplay-spec:13",
+      "sources": [
+        "star-pitch:leapfrog"
+      ]
+    },
+    {
       "id": "star-swing.heat-swing",
       "title": "heat-swing",
       "category": "special",
@@ -798,6 +816,15 @@
       "spec": "gameplay-spec:13",
       "sources": [
         "star-swing:updraft"
+      ]
+    },
+    {
+      "id": "star-swing.pond-skip",
+      "title": "pond-skip",
+      "category": "special",
+      "spec": "gameplay-spec:13",
+      "sources": [
+        "star-swing:pond-skip"
       ]
     },
     {
