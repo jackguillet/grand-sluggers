@@ -29,7 +29,7 @@ Standing order for every agent, every ticket: **[AGENTS.md](../AGENTS.md)** (sta
 1. **One GitHub child issue = one worktree = one agent.** Never share `/Users/jack/repos/grand-sluggers` except a final ff-only pull. Never `git add -A`.
 2. **Acceptance is the prompt.** Every issue lists: observable, files, tests, banned. For a Phase P child the observable is a list of spec scenario ids (`S-xx`) and the test is the headless scenario harness. If an agent cannot falsify the work with `dotnet test`, `cli art` / `cli match`, `tools/unity-compile.sh`, or a named Hierarchy object, the issue is too vague — rewrite it before launching. Personal Unity cannot `-batchmode`; the compile script is the Unity csc gate.
 3. **Serial for feel and for the play. Parallel for slots.** Camera, swing timing, fielding verbs, runner model, and out rules are one-after-another (they share the at-bat and the live ball). Filling `data/art` rows, VFX event prefabs, audio event files, captain extras, and `data/rules/` numbers that already have a scenario can fan out.
-4. **Harbor Exhibition is the only slice.** Do not start Challenge (#36), extra parks as products (#37), role-player variants (#25), online, motion, 40-man, or full-screen blinds (#38). Park **rails and greyboxes** are allowed work under [#814](https://github.com/jackguillet/grand-sluggers/issues/814) ([plan-fields.md](decisions/plan-fields.md), FD-01, September 21, 2026): Harbor parity first, one proving park, then one park at a time. Park art stays behind #37.
+4. **Harbor Exhibition is the only slice.** What not to start is the one list in [AGENTS.md](../AGENTS.md) "Do not start". Park **rails and greyboxes** are allowed; park art waits (AGENTS.md "Fields").
 5. **Catalog first, files second.** New clip / VFX / audio / skin = JSON slot + validator + empty folder, then the asset. New rule = `data/rules/` field + validator + scenario, then the code. Agents that skip the catalog will grow another C# switch.
 6. **Skeptic pass on every feel or play merge.** A second agent (or you) plays the path the issue named: Exhibition → pitch camera → swing → grounder → throw. First-pass "looks like baseball in the debugger" is not done.
 7. **Human gates.** Screenshot of plate (full batter, not a cap). Screenshot of a scoop. Screenshot of a star swing HUD-off. **A half-inning you can narrate: every out has a reason you saw.** If you would not show that still, or could not explain that out, the epic is open.
@@ -138,4 +138,4 @@ Milestone 0–1 (repo + vertical slice), playability (#59, #80), front of house 
 
 ## Non-goals until Exhibition is the reason people stay
 
-Online, motion, Toy Field, live ops, licensed music, 40-man, full-screen blinds, Nintendo IP, a second player-facing client, unique skeletons per captain.
+The one list is [AGENTS.md](../AGENTS.md) "Do not start".
