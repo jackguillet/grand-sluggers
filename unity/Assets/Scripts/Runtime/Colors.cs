@@ -28,42 +28,17 @@ namespace GrandSluggers.UnityClient
         public static readonly Color Water = Hex(0x2E7CB0);
         public static readonly Color Fence = Hex(0xD6D6CE);
 
-        public static Color Body(string faction)
-        {
-            switch (faction)
-            {
-                case "spark": return Spark;
-                case "royal": return Royal;
-                case "carnival": return Carnival;
-                case "goldrush": return Goldrush;
-                case "canopy": return Canopy;
-                case "ember": return Ember;
-                case "fen": return Fen;
-                default: return new Color(0.47f, 0.47f, 0.5f);
-            }
-        }
+        /// <summary>A faction's jersey (data/art/factions.json). A faction the file does not have is neutral grey.</summary>
+        public static Color Body(string faction) =>
+            ArtBinder.Art?.Factions?.Of(faction) is { } f ? Look.Of(f.Body) : new Color(0.47f, 0.47f, 0.5f);
 
-        public static Color Accent(string faction)
-        {
-            switch (faction)
-            {
-                case "spark": return Gold;
-                case "royal": return new Color(0.7f, 0.9f, 1f);
-                case "carnival": return new Color(1f, 0.31f, 0.63f);
-                case "goldrush": return EmberFire;
-                case "canopy": return new Color(0.31f, 0.63f, 0.27f);
-                case "ember": return EmberFire;
-                case "fen": return FenCream;
-                default: return Gold;
-            }
-        }
+        /// <summary>A faction's trim and HUD accent (data/art/factions.json).</summary>
+        public static Color Accent(string faction) =>
+            ArtBinder.Art?.Factions?.Of(faction) is { } f ? Look.Of(f.Accent) : Gold;
 
-        public static Color SkinTone(string faction) => faction switch
-        {
-            "ember" or "canopy" => SkinShadow,
-            "fen" => FenSkin,
-            _ => Skin
-        };
+        /// <summary>The skin tone a faction's bodies wear (data/art/factions.json).</summary>
+        public static Color SkinTone(string faction) =>
+            ArtBinder.Art?.Factions?.Of(faction) is { } f ? Look.Of(f.Skin) : Skin;
 
         public static Color Hex(int rgb) =>
             new(((rgb >> 16) & 255) / 255f, ((rgb >> 8) & 255) / 255f, (rgb & 255) / 255f, 1f);

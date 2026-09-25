@@ -25,32 +25,16 @@ public static class Palette
     public static readonly Color Fen = C(91, 143, 98);
     public static readonly Color FenCream = C(232, 220, 192);
 
-    public static Color Body(string faction) => faction switch
-    {
-        "spark" => Spark,
-        "royal" => Royal,
-        "carnival" => Carnival,
-        "goldrush" => Goldrush,
-        "canopy" => Canopy,
-        "ember" => Ember,
-        "fen" => Fen,
-        _ => C(120, 120, 128)
-    };
+    /// <summary>The faction colors the sandbox reads (data/art/factions.json), set once the catalog loads.</summary>
+    public static FactionLooks? Factions { get; set; }
 
-    public static Color Accent(string faction) => faction switch
-    {
-        "spark" => Gold,
-        "royal" => C(180, 230, 255),
-        "carnival" => C(255, 80, 160),
-        "goldrush" => C(255, 120, 40),
-        "canopy" => C(80, 160, 70),
-        "ember" => EmberFire,
-        "fen" => FenCream,
-        _ => Gold
-    };
+    static Color Of(LookColor c) => C((int)Math.Round(c.R * 255), (int)Math.Round(c.G * 255), (int)Math.Round(c.B * 255));
 
-    public static Color SkinTone(string faction) =>
-        faction is "ember" or "canopy" ? SkinShadow : Skin;
+    public static Color Body(string faction) => Factions?.Of(faction) is { } f ? Of(f.Body) : C(120, 120, 128);
+
+    public static Color Accent(string faction) => Factions?.Of(faction) is { } f ? Of(f.Accent) : Gold;
+
+    public static Color SkinTone(string faction) => Factions?.Of(faction) is { } f ? Of(f.Skin) : Skin;
     public static readonly Color Skin = C(242, 201, 164);
     public static readonly Color SkinShadow = C(90, 78, 92);
     public static readonly Color Ball = C(250, 248, 240);

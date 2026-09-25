@@ -68,6 +68,27 @@ public sealed class CaptainSelectionTests
         }
     }
 
+    /// <summary>
+    /// Ten captains share the board's one row: every tile keeps a portrait wider than 96 px, and every captain's name and the
+    /// widest tile mark fit the tile at the tile font (16 px, at most about 0.6 of the font per character).
+    /// </summary>
+    [Fact]
+    public void EveryCaptainsNameAndMarkFitTheirTile()
+    {
+        const double font = 16, perChar = 0.6 * font;
+        var n = Shipped.CaptainIds.Count;
+        Assert.Equal(10, n);
+        foreach (var (id, i) in Shipped.CaptainIds.Select((id, i) => (id, i)))
+        {
+            var tile = CarnivalFront.CaptainTile(i, n);
+            Assert.True(tile.W - 12 >= 96, $"tile {i} portrait is {tile.W - 12:0} px wide");
+            var name = Shipped.Content.Must(id).Name;
+            Assert.True(name.Length * perChar <= tile.W - 8, $"{name} needs {name.Length * perChar:0} px of a {tile.W - 8:0} px tile");
+        }
+        foreach (var mark in new[] { "P1 + CPU", "P1 + P2", "P1  READY", "P2  READY" })
+            Assert.True(mark.Length * perChar <= CarnivalFront.CaptainTile(0, n).W - 6, mark);
+    }
+
     [Fact]
     public void TeamPanelsAndEveryPortraitHaveSeparateSpaceAboveTheFooter()
     {
