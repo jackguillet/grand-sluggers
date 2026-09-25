@@ -61,7 +61,7 @@ A change is a **rail** — do this:
 - Works the same for 1P and 1v1 unless the design names a real difference
 - Lets the player own the verb
 - Has a test that would catch the *next* play, seat, or captain — not only this screenshot
-- Updates `docs/how-to-play.md` **and** `HowToPlay.cs` in the same PR when a couch verb or camera changes
+- Updates `docs/how-to-play.md` **and** `HowToPlay.cs` in the same PR when a couch verb or camera changes (CI: `tools/book-pair.py`; label `book-unchanged` when HowToPlay code moves but the book does not)
 
 Catalog first, files second. New clip / VFX / audio / skin = JSON slot + validator + empty folder, then the asset. Serial for feel (cameras, timing, in-play verbs). Parallel only for filling slots after the shared rig exists.
 
@@ -89,7 +89,7 @@ Steal the *feel* of Mario Super Sluggers. Do not steal Mario.
 - **Cast:** Rio, Vale, Zig, Brondo, Konga, Ashlord, Elder Fenn + faction role players. Role players reuse the captain body type. No skin lists extras until they read as toys (#687).
 - **Characters are DCC assets.** One rig (`hero-shared`), one body script, one takes script; every verb is a Blender take baked for both hands; C# holds no pose. A captain is proportions + palette in data. Contract: `docs/character-motion.md`. Procedure: `.claude/skills/character-art/`. Style lock: `tools/blender/style-lock/`. No caps yet; hats come back as accessories.
 - **Harbor is the expensive diamond** (the “real stadium”). Other parks stay JSON until Exhibition is the reason people stay; their rules and their greybox may be built first (`docs/decisions/plan-fields.md`), their art may not. Harbor kit meshes are authored in `tools/blender/harbor_kit.py` (procedure: `tools/blender/README.md`). Do not invent Unity-only park art when a kit slot exists.
-- **Original pictures, original tones.** No Nintendo samples, meshes, mushrooms, plumbers, princesses, or set dressing.
+- **Original pictures, original tones.** No Nintendo samples, meshes, mushrooms, plumbers, princesses, or set dressing. CI: `tools/original_ip.py` scans data, art, the book and couch copy.
 - Missing art is a placeholder that does not crash. Do not invent a new pipeline to hide a missing file.
 - Gameplay cameras look at the **chest / dirt / bag**, not the brim. Ashlord’s hat in the lens is a framing bug, not a scale bug.
 
