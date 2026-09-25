@@ -45,7 +45,9 @@ public enum PlayTraceMarkKind
     /// <summary>The ball hit a reward target (F4-c): <see cref="PlayTraceMark.Hazard"/> is the sign.</summary>
     RewardHit,
     /// <summary>The ball caromed off a solid body or mover (F4-f): <see cref="PlayTraceMark.Hazard"/> is the body, at the rim point.</summary>
-    BodyCarom
+    BodyCarom,
+    /// <summary>A surge band's wave started carrying the rolling ball (§14): <see cref="PlayTraceMark.Hazard"/> is the band.</summary>
+    BallCarried
 }
 
 /// <summary>T is the simulation execution clock. LowerT bounds sampled runner arrivals; animation release is unobserved.</summary>

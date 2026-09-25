@@ -124,7 +124,9 @@ public enum LiveEvent
     /// <summary>The ball caromed off a solid body or a mover this frame (F4-f): <see cref="LivePlaySystem.CaromsThisPlay"/>.</summary>
     BodyCarom,
     /// <summary>A throw command was accepted; transfer begins now, ThrowPop marks actual release.</summary>
-    ThrowCommitted
+    ThrowCommitted,
+    /// <summary>A surge band's wave started carrying the rolling ball this frame (§14): <see cref="LivePlaySystem.CarriesThisPlay"/>.</summary>
+    BallCarried
 }
 
 /// <summary>
@@ -486,6 +488,7 @@ public sealed partial class LivePlaySystem
         _redirectsThisPlay.Clear();
         _reward = null;
         _caromsThisPlay.Clear();
+        BeginSurges();
         _caromLock = null;
         _scoreTold.Clear();
         Pitch = command.Pitch;
@@ -694,6 +697,7 @@ public sealed partial class LivePlaySystem
             OffTheBat |= FlyCatch.OffTheBat(Path, BallX, BallY, BallZ, R);
             ReadBallHazards(dt);
             ReadFirstHopKick();
+            ReadSurges(dt);
         }
 
         _dive.Tick(dt);

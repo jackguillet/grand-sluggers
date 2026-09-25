@@ -24,7 +24,7 @@ namespace GrandSluggers.UnityClient
         /// The play clock (F4-f): every drawn mover stands where the sim places it at this second, so the train the player sees
         /// is the train the ball meets. Outside a live play the clock is 0 and each mover is at its spot.
         /// </summary>
-        public void SetPlayClock(double t)
+        public void SetPlayClock(double t, double surgePhaseSec = 0)
         {
             foreach (var (body, actor) in _movers)
             {
@@ -32,7 +32,17 @@ namespace GrandSluggers.UnityClient
                 var (x, z) = body.At(t);
                 actor.position = new Vector3((float)x, actor.position.y, (float)z);
             }
+            // The tide (§14): the band's water stands up and foams while the sim's wave is in, and swells as the next one nears.
+            foreach (var (band, water) in _tides)
+            {
+                if (water == null) continue;
+                var until = (float)band.UntilIn(t, surgePhaseSec);
+                var swell = band.In(t, surgePhaseSec) ? 1f : Mathf.Clamp01(1f - until / 3f) * 0.5f;
+                water.localScale = new Vector3(1f, 0.2f + 2.8f * swell, 1f);
+            }
         }
+
+        readonly System.Collections.Generic.List<(SurgeBand Band, Transform Water)> _tides = new();
         public bool Night => _night;
         /// <summary>The park this view last built: the one being played.</summary>
         public Park Park { get; private set; }
@@ -55,6 +65,7 @@ namespace GrandSluggers.UnityClient
             _night = night;
             _freezePose = 0;
             _movers.Clear();
+            _tides.Clear();
             // The park as it plays tonight (PlayedPark.Of): a played park resolves to itself, so this only matters for a
             // caller that hands the catalog's park, whose night instances would otherwise be missing at night.
             park = PlayedPark.Of(park, night, hazards: true, _rules.Hazards);
@@ -512,6 +523,7 @@ namespace GrandSluggers.UnityClient
                 case HazardActors.AcUnit: AcUnit(h); break;
                 case HazardActors.JungleTree: JungleTree(p, (float)h.Radius); break;
                 case HazardActors.LilyPad: LilyPad(h); break;
+                case HazardActors.TideWave: TideWave(h); break;
                 default: Debug.LogError("ParkView: no hazard toy " + toy); break;
             }
         }
@@ -541,6 +553,31 @@ namespace GrandSluggers.UnityClient
                 petalGo.transform.localRotation = Quaternion.Euler(-25f, a, 0);
             }
             Look.Prim(PrimitiveType.Sphere, "Heart", root, new Vector3(0, 1.0f, 0), Vector3.one * 0.5f, heart);
+        }
+
+        /// <summary>
+        /// The cove's tide: a shallow sea-green pool the size of the band with a foam rim. SetPlayClock stands the water up while the
+        /// sim's wave is in and swells it as the next one nears, so the player sees the wave coming.
+        /// </summary>
+        void TideWave(Hazard h)
+        {
+            var sea = Look.Lit(new Color(0.16f, 0.62f, 0.72f), smooth: 0.6f);
+            var foam = Look.Lit(new Color(0.94f, 0.98f, 0.96f), smooth: 0.3f);
+            var r = (float)HazardActors.PlayDiscFt(h.Radius, _rules.Hazards.Of(h.Type), _night);
+            var root = new GameObject("Tide").transform;
+            root.SetParent(_root, false);
+            root.position = new Vector3((float)h.X, 0, (float)h.Z);
+            var water = new GameObject("Water").transform;
+            water.SetParent(root, false);
+            Look.Prim(PrimitiveType.Cylinder, "Sea", water, new Vector3(0, 0.1f, 0), new Vector3(r * 2f, 0.1f, r * 2f), sea);
+            for (var i = 0; i < 10; i++)
+            {
+                var a = i * 36f * Mathf.Deg2Rad;
+                Look.Prim(PrimitiveType.Sphere, "Foam" + i, water, new Vector3(Mathf.Cos(a) * r, 0.2f, Mathf.Sin(a) * r),
+                    new Vector3(2.4f, 0.4f, 1.2f), foam);
+            }
+            var band = Surges.Of(Park, _rules, _night).FirstOrDefault(b => Math.Abs(b.X - h.X) < 1e-6 && Math.Abs(b.Z - h.Z) < 1e-6);
+            if (band != null) _tides.Add((band, water));
         }
 
         /// <summary>The canopy grove's jungle-tree hazard toy.</summary>

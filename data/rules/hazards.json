@@ -130,5 +130,10 @@
     "restitution": 0.4,
     "periodSec": 16,
     "travelFt": 18
-  }
+  },
+  // Coconut Cove's tide (#1153, WD-09 C): a surge band at each foul-side outfield corner. Every 12 s of the play clock (from a
+  // seeded offset a play) the wave is in for 4 s, and a ball rolling at or below 0.5 ft inside the band drifts toward the
+  // nearer foul line at 3 ft/s, 12 ft at most per band and never across the line. A ball in the air and every body are
+  // untouched. High tide (night) reaches 1.4 times as far in.
+  "tide": { "pattern": "surge", "nightRadiusMul": 1.4, "reachPadFt": 0, "heightFt": 0.5, "periodSec": 12, "surgeSec": 4, "carryFt": 12 }
 }

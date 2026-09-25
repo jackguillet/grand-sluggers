@@ -1,6 +1,6 @@
 # Tutorials — every mechanic has a playable lesson
 
-Status: **117 lessons implemented; 5 planned and 5 blocked; standalone learning gates pending**, September 23, 2026. The foundation, mastery, browser and expansion work is on main. `cli tutorials` is the live coverage report. Open coverage: Spin Check (#1010), the item lessons (#891), park effects (#37), and the train, billboard and wall hazard lessons (#814). Jack's human learning gate is #774. Tracker: [#770](https://github.com/jackguillet/grand-sluggers/issues/770). This is gameplay foundation work serving #209 and #342, before generating more artwork. The reference is Super Sluggers' approachable party baseball; the lessons teach Grand Sluggers' own accepted rules and controls.
+Status: **118 lessons implemented; 5 planned and 5 blocked; standalone learning gates pending**, September 23, 2026. The foundation, mastery, browser and expansion work is on main. `cli tutorials` is the live coverage report. Open coverage: Spin Check (#1010), the item lessons (#891), park effects (#37), and the train, billboard and wall hazard lessons (#814). Jack's human learning gate is #774. Tracker: [#770](https://github.com/jackguillet/grand-sluggers/issues/770). This is gameplay foundation work serving #209 and #342, before generating more artwork. The reference is Super Sluggers' approachable party baseball; the lessons teach Grand Sluggers' own accepted rules and controls.
 
 ## Product contract
 
@@ -229,6 +229,7 @@ A setup may name a `park` and `night`. The lesson plays at that park with its ha
 | T-H06 | Rooftop City | a billboard star (batting) | planned | |
 | T-H07 | Canopy Yard | the Clamber wall | planned | |
 | T-H08 | Coconut Cove | a grounder on the sand | planned | |
+| T-H09 | Coconut Cove | a liner into the right-field corner, seed 1 (the wave comes in while it rolls) | the player's glove takes it after the tide carried it | the assistance's take, a take before the tide |
 
 Regression: `HazardLessonTests` earns each implemented lesson with a scripted human pad and fails it with a dead pad; T-H02 also fails the straight run. The mover, reward and wall-trait mechanics are migration debt on #814. The standalone learning gate is Jack's.
 

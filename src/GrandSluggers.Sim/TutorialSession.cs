@@ -373,7 +373,7 @@ public sealed partial class TutorialSession
                 && !_assistedSinceManual.Contains(live.FirstGloveId);
             Finish(manual, manual ? "ground-possession" : "assisted-pickup", manual ? "You moved to the ground ball and secured it." : "The assistance collected that ball. Retry and move the glove yourself.");
         }
-        else if (Lesson.Objective is "hazard-redirect-take" or "hazard-carom-take") EvaluateHazardTake(live, result);
+        else if (Lesson.Objective is "hazard-redirect-take" or "hazard-carom-take" or "hazard-surge-take") EvaluateHazardTake(live, result);
         else if (Lesson.Objective == "hazard-dodge-catch") EvaluateHazardDodge(live, result);
         else if (Lesson.Objective == "human-special-ground") EvaluateSpecialGround(live, result);
         else if (Lesson.Objective == "human-ability-reach") EvaluateAbilityReach(live, result);
@@ -414,8 +414,18 @@ public sealed partial class TutorialSession
     /// </summary>
     void EvaluateHazardTake(LivePlaySystem live, LivePlayCommandResult result)
     {
-        var acted = Lesson.Objective == "hazard-redirect-take" ? live.RedirectsThisPlay.Count > 0 : live.CaromsThisPlay.Count > 0;
-        var what = Lesson.Objective == "hazard-redirect-take" ? "came out of the other mouth" : "bounced off the body";
+        var acted = Lesson.Objective switch
+        {
+            "hazard-redirect-take" => live.RedirectsThisPlay.Count > 0,
+            "hazard-surge-take" => live.CarriesThisPlay.Count > 0,
+            _ => live.CaromsThisPlay.Count > 0
+        };
+        var what = Lesson.Objective switch
+        {
+            "hazard-redirect-take" => "came out of the other mouth",
+            "hazard-surge-take" => "drifted on the tide",
+            _ => "bounced off the body"
+        };
         if (live.HoldsBall)
         {
             var manual = _manualGloves.Contains(live.FirstGloveId) && !_assistedSinceManual.Contains(live.FirstGloveId);

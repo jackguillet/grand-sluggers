@@ -121,7 +121,7 @@ public static class PlayStamp
     /// <summary>
     /// A hazard's tell (FD-15, FR-15; F8-b), from its typed event: the word the couch reads where it happened — SLOWED on the
     /// glove that touched a volume, and on the dirt the redirect's word (WARP! a can, BLAST! a barrel, CHOMP! a mouth), STAR!
-    /// for a billboard and BONK! off a body. Null for any other event. Copy, keyed by event and type, never by park.
+    /// for a billboard, BONK! off a body and SURF'S UP! when the tide takes a roller. Null for any other event. Copy, keyed by event and type, never by park.
     /// </summary>
     public static LiveStamp? HazardTell(LiveEvent cue, string? type = null) => cue switch
     {
@@ -134,6 +134,7 @@ public static class PlayStamp
         }, StampAnchor.Dirt),
         LiveEvent.RewardHit => new("STAR!", StampAnchor.Dirt),
         LiveEvent.BodyCarom => new("BONK!", StampAnchor.Dirt),
+        LiveEvent.BallCarried => new("SURF'S UP!", StampAnchor.Dirt),
         _ => null
     };
 

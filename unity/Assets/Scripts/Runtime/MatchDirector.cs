@@ -272,7 +272,7 @@ namespace GrandSluggers.UnityClient
             }
             _actors.Draw(dt);
             _park?.Tick(_ball, dt);
-            _park?.SetPlayClock(_match != null && _match.LivePlay.Active ? _match.LivePlay.ElapsedSeconds : 0);
+            _park?.SetPlayClock(_match != null && _match.LivePlay.Active ? _match.LivePlay.ElapsedSeconds : 0, _match?.LivePlay.SurgePhaseSec ?? 0);
             // East / G that the plate took as the swing cancel is not also the Training skip (PH-13-R1).
             _coach?.Tick(_rig != null ? _rig.Cam : Camera.main, CancelFree(Controls.Pad1));
             _stars?.Set(_match.HomeStars, _match.AwayStars);
