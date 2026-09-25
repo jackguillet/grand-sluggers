@@ -1,9 +1,9 @@
 namespace GrandSluggers.Sim;
 
 /// <summary>
-/// The bodies a throw brings into the play besides its thrower and receiver (§8.7): the cutoff on the line, where it stands, and
-/// the backup behind the bag. <see cref="LivePlaySystem"/> picks them when it throws, walks them to their spots, and keeps the
-/// cover walk off them.
+/// The bodies a throw brings into the play besides its thrower and receiver (§8.7): the cutoff on the line, where it stands, the bag
+/// the relay goes on to, and the backup behind the bag. <see cref="LivePlaySystem"/> picks them when it throws, walks them to their
+/// spots, and keeps the cover walk off them.
 /// </summary>
 public sealed class ThrowSupport
 {
@@ -12,6 +12,12 @@ public sealed class ThrowSupport
 
     /// <summary>Where the cutoff stands on the line, while there is one.</summary>
     public (double X, double Z)? CutoffSpot { get; private set; }
+
+    /// <summary>The bag the relay goes on to from the cutoff (1–4), or 0 when the cutoff decides again.</summary>
+    public int RelayBag { get; private set; }
+
+    /// <summary>The relay's onward bag, home when none is armed.</summary>
+    public int RelayTarget => RelayBag is >= 1 and <= 4 ? RelayBag : 4;
 
     /// <summary>The backup's position, or empty.</summary>
     public string BackupPos { get; private set; } = "";
@@ -25,7 +31,11 @@ public sealed class ThrowSupport
         CutoffSpot = null;
         BackupPos = "";
         BackupSpot = (0, 0);
+        RelayBag = 0;
     }
+
+    /// <summary>The relay's onward bag is <paramref name="bag"/> (0: the cutoff decides again).</summary>
+    public void ArmRelay(int bag) => RelayBag = bag;
 
     /// <summary>A throw to the cutoff at <paramref name="pos"/>, who stands at <paramref name="spot"/> on the line.</summary>
     public void Cutoff(string pos, (double X, double Z) spot)
