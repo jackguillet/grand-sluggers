@@ -31,11 +31,13 @@ public sealed class LooseBallMotion
     }
 
     /// <summary>
-    /// The ball is loose on the ground at (vx, vz): an overthrow, a drop at the bag, a ball knocked from a foiled glove. A ball
-    /// at rest has been at rest since <paramref name="elapsed"/>. The bobble's own state is left as it is.
+    /// The ball is loose on the ground at (vx, vz): an overthrow, a drop at the bag, a ball knocked from a foiled glove. It rolls
+    /// as an overthrow (§8.6), whatever came loose earlier in the play: an earlier bobble's fall, rebound and roll are over. A
+    /// ball at rest has been at rest since <paramref name="elapsed"/>.
     /// </summary>
     public void Roll(double vx, double vz, double elapsed)
     {
+        EndBobble();
         Active = true;
         _vx = vx;
         _vz = vz;
@@ -54,12 +56,20 @@ public sealed class LooseBallMotion
         _restAt = -1;
     }
 
-    /// <summary>A glove has the ball.</summary>
+    /// <summary>A glove has the ball; a bobble it took back is over (§8.6).</summary>
     public void Held()
     {
+        EndBobble();
         Active = false;
         _vx = _vz = 0;
         _restAt = -1;
+    }
+
+    void EndBobble()
+    {
+        Local = false;
+        _air = false;
+        _vy = 0;
     }
 
     /// <summary>The loose ball has been at rest for <paramref name="holdSec"/> by <paramref name="elapsed"/>.</summary>
