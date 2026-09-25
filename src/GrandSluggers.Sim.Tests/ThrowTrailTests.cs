@@ -56,7 +56,7 @@ public class ThrowTrailTests
     public void InPlayThrowKeepsChemistryOnTheSphereAfterPlace()
     {
         var src = File.ReadAllText(Path.Combine(_repo, "unity/Assets/Scripts/Runtime/ActorDirector.cs"));
-        var place = src.LastIndexOf("_park.Ball.Place(", StringComparison.Ordinal);
+        var place = src.LastIndexOf("Park.Ball.Place(", StringComparison.Ordinal);
         var tint = src.LastIndexOf("SetTrailColor(SpecialFx.ThrowColor", StringComparison.Ordinal);
         Assert.True(place >= 0, "live ball still Places");
         Assert.True(tint >= 0, "throw chemistry still tints the sphere trail");

@@ -74,25 +74,24 @@ namespace GrandSluggers.UnityClient
         bool _replaying;
         bool _turntable;
         internal Dictionary<string, HeroActor> _heroes => Scene.Heroes;
-        readonly HashSet<string> _used = new HashSet<string>();
 
         internal enum Phase { Title, Select, Field, Lineup, Set, Flight, InPlay, StealThrow, Result, GameOver }
         internal Phase _phase { get => Play.Phase; set => Play.Phase = value; }
         /// <summary>The SET defense arrangement window while open; null otherwise.</summary>
         internal DefenseSetupPick _swapPick;
         MenuNav.Gate _swapX, _swapY;
-        int _itemPick;
-        Character _itemTarget;
-        bool _itemThrown;
-        internal bool _itemFlying;
-        float _itemFly;
-        string _itemId = "";
+        int _itemPick { get => Play.ItemPick; set => Play.ItemPick = value; }
+        Character _itemTarget { get => Play.ItemTarget; set => Play.ItemTarget = value; }
+        bool _itemThrown { get => Play.ItemThrown; set => Play.ItemThrown = value; }
+        internal bool _itemFlying { get => Play.ItemFlying; set => Play.ItemFlying = value; }
+        float _itemFly { get => Play.ItemFly; set => Play.ItemFly = value; }
+        string _itemId { get => Play.ItemId; set => Play.ItemId = value; }
         internal bool _starPitch;
         bool _starSwing;
         /// <summary>The human batter's held bunt side on this tick (§5.8): the plate's side while squared, else none.</summary>
         internal BuntSide _buntSide;
         /// <summary>The square clock (§7.3): up while the batter is squared (a bunt trigger held, or the CPU batter's square read at SET), back down when released — the bunt tell the defense reads.</summary>
-        internal float _squareSec;
+        internal float _squareSec { get => Play.SquareSec; set => Play.SquareSec = value; }
         /// <summary>The bodies are off their spots on the square (crashing in, or walking back after a release).</summary>
         bool Squared => _squareSec > 0f;
         /// <summary>
@@ -116,7 +115,7 @@ namespace GrandSluggers.UnityClient
         internal AtBatResult _pending { get => Play.Pending; set => Play.Pending = value; }
         internal FieldingPreview _preview { get => Play.Preview; set => Play.Preview = value; }
         internal bool _playerFielding { get => Live.PlayerFielding; set => Live.PlayerFielding = value; }
-        internal bool _swung;
+        internal bool _swung { get => Play.Swung; set => Play.Swung = value; }
         internal float _flight { get => Play.Flight; set => Play.Flight = value; }
         internal float _pitchDur { get => Play.PitchDur; set => Play.PitchDur = value; }
         internal bool _pitchAir { get => Play.PitchAir; set => Play.PitchAir = value; }
@@ -130,7 +129,7 @@ namespace GrandSluggers.UnityClient
         internal bool _gateHold;
         CardToy _card { get => Scene.Card; set => Scene.Card = value; }
         LogoToy _logo { get => Scene.Logo; set => Scene.Logo = value; }
-        ChemToy _chem;
+        ChemToy _chem { get => Scene.Chem; set => Scene.Chem = value; }
         float _feelSlow = 1f;
         bool _freezeCam;
         float _aimX, _aimY;
@@ -244,7 +243,7 @@ namespace GrandSluggers.UnityClient
             _flow = new FlowDirector(this);
             _atBat = new AtBatDirector(this);
             _inPlay = new InPlayDirector(Scene, Play, Live, this, transform);
-            _actors = new ActorDirector(this);
+            _actors = new ActorDirector(Scene, Play, Live, _inPlay, this, transform);
         }
 
         void Update()

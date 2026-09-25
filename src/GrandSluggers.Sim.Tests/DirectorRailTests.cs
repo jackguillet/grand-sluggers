@@ -12,12 +12,12 @@ public sealed class DirectorRailTests
 {
     static readonly string[] StillPartial =
     [
-        "ActorDirector.cs", "AtBatDirector.cs", "FlowDirector.cs",
+        "AtBatDirector.cs", "FlowDirector.cs",
         "MatchDirector.cs",
     ];
 
     /// <summary>The line count of <c>MatchDirector.cs</c> may only fall. Lower it with every director that leaves.</summary>
-    const int MatchDirectorCeiling = 911;
+    const int MatchDirectorCeiling = 910;
 
     static string Scripts => Path.GetFullPath(Path.Combine(Shipped.Content.Root.Shipped, "..", "unity", "Assets", "Scripts"));
 
@@ -49,6 +49,7 @@ public sealed class DirectorRailTests
     [InlineData("TutorialDirector")]
     [InlineData("StillStaging")]
     [InlineData("InPlayDirector")]
+    [InlineData("ActorDirector")]
     public void TheDirectorIsARealClass(string director)
     {
         var text = File.ReadAllText(Path.Combine(Scripts, "Runtime", director + ".cs"));
