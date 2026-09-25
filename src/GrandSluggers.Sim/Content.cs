@@ -105,7 +105,13 @@ public sealed class ContentCatalog
         foreach (var c in characters.Values.Where(c => !c.Captain).ToList())
         {
             var cap = captainOf[c.Faction];
-            characters[c.Id] = c with { BodyType = cap.BodyType, Proportions = cap.Proportions };
+            // Its body class too (§8.1), unless it names its own.
+            characters[c.Id] = c with
+            {
+                BodyType = cap.BodyType,
+                Proportions = cap.Proportions,
+                BodyClass = string.IsNullOrEmpty(c.BodyClass) ? cap.BodyClass : c.BodyClass
+            };
         }
         var captainIds = data.Teams.Captains!.Select(id => characters[id!].Id).ToList();
         var presets = (data.Teams.Presets ?? []).ToDictionary(
@@ -145,6 +151,10 @@ public sealed class ContentCatalog
         var shots = CameraShots.Load(root);
         var feel = FeelTable.Load(root);
         var art = ArtCatalog.Load(root);
+        // The walk / run take reads the body's own pursuit profile (#1111): the rules' chase speeds and the feel share.
+        art.Gait = new GaitProfile(rules, feel.GaitRunOfPursuit);
+        // A body moves in the style its body class names (data/rules/body-classes.json motionStyle).
+        art.Classes = rules.BodyClasses;
         var starPitches = new Dictionary<string, StarPitchSkill>(StringComparer.OrdinalIgnoreCase);
         foreach (var (id, dto) in data.StarSkills.Pitches ?? [])
             if (dto is not null) starPitches[id] = dto.ToPitch();

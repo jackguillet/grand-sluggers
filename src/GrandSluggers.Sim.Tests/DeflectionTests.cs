@@ -141,7 +141,8 @@ public sealed class DeflectionTests
 
     static Run Drive(ContentCatalog content, double exitMph, double launchDeg, double sprayDeg, ContactQuality quality, int seed)
     {
-        var home = content.Team("Defense", "vale", "pewter", "lace", "frost", "basil", "grit", "vine", "moss", "hex");
+        // The unclassed defense (§8.1): the table's reach, so the obstruction these rows read is the ball's and the ring's alone.
+        var home = content.Team("Defense", "vale", "pewter", "lace", "frost", "basil", "grit", "vine", "moss", "hex").Unclassed();
         var away = content.Team("Offense", "rio", "boom", "cinder", "soot", "nugget", "nico", "gull", "marlow", "ashlord");
         var match = Match.Exhibition(content, home, away, 3, seed, parkId: ParkId.Harbor);
         var hit = FlightFixtures.Hit(match.Park, exitMph, launchDeg, sprayDeg, quality, rules: match.Rules);

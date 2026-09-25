@@ -36,7 +36,7 @@ public sealed class PlayTraceTests
         Assert.NotNull(met);
         // The C80 copy (#719): a body takes the ball from its stand-up reach (catch.standUpReachFt 6.0), so on the take's own
         // tick the ball is that far off the glove (3.6 ft here); the shipped glove runs onto the ball. One tick later it is in the glove on both.
-        var takeFt = FieldingResolver.CatchWindowFt(FieldingResolver.CatchRadiusFt(preview.Fielder, match.Park, match.Rules)
+        var takeFt = FieldingResolver.CatchWindowFt(FieldingResolver.CatchRadiusFt(preview.Fielder, match.Park, match.Rules, air: !preview.Grounder)
             + FieldAbilities.GroundRangeBonus(preview.Fielder, match.Rules), false, false, match.Rules);
         Assert.True(Diamond.Dist(met!.Glove.X, met.Glove.Z, met.Ball.X, met.Ball.Z) < takeFt,
             $"glove and ball must meet; glove ({met.Glove.X:0.0},{met.Glove.Z:0.0}) ball ({met.Ball.X:0.0},{met.Ball.Z:0.0})");

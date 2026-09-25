@@ -54,7 +54,7 @@ Agents do not relitigate these. Sources (Paper Route / @builtbysketch via @zekea
 
 ## 1. Session split
 
-The session kinds, what each owns and what each may not touch are the table in [AGENTS.md](../AGENTS.md) "Session kind", the one list.
+The session kinds, what each owns and what each may not touch are the table in [AGENTS.md](../AGENTS.md) "Session kind", the one list. Each kind's procedure is a skill under `.claude/skills/` (`gameplay-session`, `presentation-session`, `character-art`).
 
 ✅ **R1 #648 / #655.**
 

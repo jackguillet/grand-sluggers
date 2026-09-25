@@ -16,7 +16,7 @@ Every character authors **nine sub-stats**, each 1–10, in `data/characters/`. 
 | | Throw speed (`arm`) | A fielding throw's speed, comfortable range and accuracy (§8.5) | A pitch, catch reach |
 | **Run** | Speed (`run`) | Sprint speed on the bases and out of the box, chase speed in the field, dash, CPU send aggression, the runner's close-play reaction | Anything about the ball |
 
-Catch reach is not a stat: it is the table's stand-up reach, or a character's authored `reachFt` (§8).
+Catch reach is not a stat: it is the body class's authored ground and fly reach (§8.1). A character row does not author `reachFt`.
 
 **Pitch power and throw speed are separate verbs.** A pitcher's fastball comes from Pitch power; a fielder's throw comes from throw speed. A strong-armed outfielder is not a hard-throwing pitcher, and a changed Pitch power never moves a throw's arrival (SC-03, SC-04).
 

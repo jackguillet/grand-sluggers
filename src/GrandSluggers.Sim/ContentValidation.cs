@@ -356,10 +356,32 @@ public static class ContentDataValidator
 
         if (data.Rules is { } rules)
         {
+            ValidateBodyClasses(data, rules.BodyClasses, errors);
             var gloves = data.Gloves.Select(r => r.Value.Id).ToHashSet(StringComparer.OrdinalIgnoreCase);
             foreach (var (side, glove) in new[] { ("homeGlove", rules.Match.HomeGlove), ("awayGlove", rules.Match.AwayGlove) })
                 if (!gloves.Contains(glove))
                     errors.Add($"{data.MatchSource}: match.{side} '{glove}' is not a glove in data/gloves");
+        }
+    }
+
+    /// <summary>
+    /// Every character resolves exactly one body class (spec §8.1, SC-09): a captain names one, a role player names its own or
+    /// wears its captain's, and every name is a row in <c>data/rules/body-classes.json</c>.
+    /// </summary>
+    static void ValidateBodyClasses(ContentData data, BodyClassLibrary classes, List<string> errors)
+    {
+        foreach (var row in data.Characters)
+        {
+            var c = row.Value;
+            if (string.IsNullOrWhiteSpace(c.BodyClass))
+            {
+                if (c.Captain)
+                    errors.Add($"{row.Source}: captain '{c.Id}' bodyClass is required; one of [{string.Join(", ", classes.Classes.Select(k => k.Id))}]");
+                continue;
+            }
+            if (!classes.Has(c.BodyClass))
+                errors.Add($"{row.Source}: character '{c.Id}' bodyClass '{c.BodyClass}' is not a row in data/rules/body-classes.json; "
+                           + $"the classes are [{string.Join(", ", classes.Classes.Select(k => k.Id))}]");
         }
     }
 
@@ -407,8 +429,9 @@ public static class ContentDataValidator
         Required(row.Source, "character", c.Id, "name", c.Name, errors);
         Required(row.Source, "character", c.Id, "faction", c.Faction, errors);
         ValidateStats(row.Source, c, errors);
-        if (c.ReachFt is { } reach && reach <= 0)
-            errors.Add($"{row.Source}: character '{c.Id}' reachFt must be positive when present");
+        if (c.ReachFt is not null)
+            errors.Add($"{row.Source}: character '{c.Id}' authors reachFt; reach comes from the body class "
+                       + "(data/rules/body-classes.json, spec §8.1), so name a bodyClass instead");
         Known(row.Source, $"character '{c.Id}' bats", c.Bats, Hands, errors);
         Known(row.Source, $"character '{c.Id}' throws", c.Throws, Hands, errors);
         Known(row.Source, $"character '{c.Id}' fieldAbility", c.FieldAbility, FieldAbilityIds, errors);
@@ -1062,8 +1085,17 @@ internal sealed class CharacterDto
 
     int Need(int? value) => value ?? throw new InvalidDataException($"character '{Id}' is missing a sub-stat; the validator should have refused it");
 
-    /// <summary>Authored stand-up catch reach in feet. Absent takes the table's <c>standUpReachFt</c>.</summary>
+    /// <summary>
+    /// Retired: reach is the body class's (spec §8.1). Read only so the validator can refuse a row that still authors it — the
+    /// loader drops unknown keys, so a stale <c>reachFt</c> would otherwise sit in the file as if it counted.
+    /// </summary>
     public double? ReachFt { get; set; }
+
+    /// <summary>
+    /// The body class this character plays (<c>data/rules/body-classes.json</c>). Required on a captain; a role player that
+    /// names none wears its captain's.
+    /// </summary>
+    public string? BodyClass { get; set; }
 
     public string Bats { get; set; } = "";
     public string Throws { get; set; } = "";
@@ -1089,8 +1121,9 @@ internal sealed class CharacterDto
         Id, Name, Faction, Captain,
         ToStats(),
         ParseHand(Bats), ParseHand(Throws),
-        StarPitch, StarSwing, FieldAbility, Bio, ReachFt)
+        StarPitch, StarSwing, FieldAbility, Bio)
     {
+        BodyClass = BodyClass ?? "",
         Repertoire = ParseRepertoire(),
         TeamName = TeamName,
         SignatureBat = SignatureBat,

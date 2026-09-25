@@ -1,0 +1,23 @@
+{
+  // The body-class table (spec §8.1, §16; CH-05, CH-11, CH-12). One row per class; the table has room for fifteen, so a role
+  // player can get its own class later. Every captain names one (`bodyClass` in data/characters); a role player that names
+  // none wears its captain's. Seven ship, one per captain cut.
+  //
+  // Size in play: `groundReachFt` is the stand-up reach on a ball hit on the ground (a grounder, a bunt), `flyReachFt` on a
+  // ball hit in the air (a fly, a liner, a pop) — authored, never measured off the mesh, so a tall class may reach less than a
+  // short one. `contactWidthMul` multiplies the barrel's two half-extents along the bat (§5.2); the height is the zone's.
+  // Weight: `accelSec` is rest → rated speed and `brakeSec` rated speed → rest on the response law (light ramps fast, heavy
+  // slow; the rated speed is the Run sub-stat's), and `knockbackMul` multiplies the recoil a hard take costs (1.0 light →
+  // 0.5 heavy, the Sluggers ladder). `motionStyle` names the class's takes in data/art/clips.json.
+  //
+  // Proposed numbers (docs/decisions/plan-characters.md, "Open numbers"): a trial until Jack accepts one.
+  "classes": [
+    { "id": "harbor-kid", "motionStyle": "harbor-kid", "groundReachFt": 4.0, "flyReachFt": 4.0, "contactWidthMul": 1.00, "accelSec": 0.20, "brakeSec": 0.10, "knockbackMul": 0.80 },
+    { "id": "pageant",    "motionStyle": "pageant",    "groundReachFt": 3.8, "flyReachFt": 3.6, "contactWidthMul": 1.00, "accelSec": 0.16, "brakeSec": 0.08, "knockbackMul": 0.90 },
+    { "id": "speed",      "motionStyle": "speed",      "groundReachFt": 3.6, "flyReachFt": 4.2, "contactWidthMul": 1.00, "accelSec": 0.12, "brakeSec": 0.06, "knockbackMul": 1.00 },
+    { "id": "brick",      "motionStyle": "brick",      "groundReachFt": 4.6, "flyReachFt": 3.8, "contactWidthMul": 1.05, "accelSec": 0.28, "brakeSec": 0.14, "knockbackMul": 0.55 },
+    { "id": "ape",        "motionStyle": "ape",        "groundReachFt": 4.4, "flyReachFt": 4.6, "contactWidthMul": 1.10, "accelSec": 0.26, "brakeSec": 0.13, "knockbackMul": 0.60 },
+    { "id": "villain",    "motionStyle": "villain",    "groundReachFt": 4.2, "flyReachFt": 4.2, "contactWidthMul": 1.05, "accelSec": 0.30, "brakeSec": 0.15, "knockbackMul": 0.50 },
+    { "id": "turtle",     "motionStyle": "turtle",     "groundReachFt": 4.4, "flyReachFt": 4.0, "contactWidthMul": 1.00, "accelSec": 0.26, "brakeSec": 0.13, "knockbackMul": 0.60 }
+  ]
+}

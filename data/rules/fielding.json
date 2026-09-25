@@ -38,7 +38,8 @@
     // infield instead (hits inside the lip 0.04 -> 0.20 a game at 0.6).
     "infieldAirMul": 1.0,
     // #718 (F693-02-carry-movement-response): rest to the rated speed in 0.20 s, the rated speed to rest in 0.10 s; a reversal
-    // is the brake and then the ramp. The pursuit planner charges half the ramp to every route.
+    // is the brake and then the ramp. The pursuit planner charges half the ramp to every route. These are the unclassed body's
+    // (a character built by hand); every data character plays its body class's ramp (data/rules/body-classes.json, §8.1).
     "accelSec": 0.20,
     "brakeSec": 0.10
   },
@@ -90,7 +91,8 @@
     "itemSmashFt": 24
   },
   "catch": {
-    // Authored reach: 4 ft standing, 5 ft on the dirt, 6 ft diving in the air. Ability bonuses remain explicit.
+    // The unclassed body's stand-up reach (a character built by hand): every data character reaches its body class's
+    // groundReachFt / flyReachFt (data/rules/body-classes.json, §8.1). The dirt pad and the dive add to it. Ability bonuses remain explicit.
     "standUpReachFt": 4.0,
     "clamberRadiusFt": 6,
     // Dirt scoop slack (the §10.4 double-play rows). Not the fly ring: a fly stand-up is

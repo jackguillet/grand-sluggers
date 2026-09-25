@@ -187,7 +187,7 @@ namespace GrandSluggers.UnityClient
             {
                 if (_fieldFocus == 0) ApplyPick(ExhibitionPick.CyclePark(_content, CurrentPick(), dx == 0 ? 1 : dx));
                 if (_fieldFocus == 1) Night = !Night;
-                if (_fieldFocus is 0 or 1) GuidedStadiumChosen();
+                if (_fieldFocus is 0 or 1) GuidedObserve("T-G07", GuidedAction.StadiumChosen);
                 if (_fieldFocus == 2) Hazards = !Hazards;
                 if (_fieldFocus == 3) WantVersus(!_versusWanted);
                 if (_fieldFocus == 4) ApplyPick(ExhibitionPick.ToggleSeat(CurrentPick()));
@@ -342,8 +342,8 @@ namespace GrandSluggers.UnityClient
         void PickLineup(LineupSeat seat)
         {
             var focus = _lineup.FocusOf(seat);
-            if (!_lineup.PickOrSwap(seat) || seat != LineupSeat.Pad1 || !GuidedAttempt("T-G01")) return;
-            GuidedObserve(focus is LineupFocus.HomeOrder or LineupFocus.AwayOrder
+            if (!_lineup.PickOrSwap(seat) || seat != LineupSeat.Pad1) return;
+            GuidedObserve("T-G01", focus is LineupFocus.HomeOrder or LineupFocus.AwayOrder
                 ? GuidedAction.BattingOrderChanged : GuidedAction.GlovePositionChanged);
         }
 
@@ -352,7 +352,7 @@ namespace GrandSluggers.UnityClient
             var pool = _lineup.Pool;
             var who = pool.Count == 0 ? null : pool[Mathf.Clamp(_lineup.PoolOf(seat), 0, pool.Count - 1)];
             var dropped = _lineup.South(seat);
-            GuidedLineupDrop(seat, who, dropped && _lineup.Step == LineupStep.TeamSetup);
+            if (_guidedLessons.LineupDrop(seat, who, dropped && _lineup.Step == LineupStep.TeamSetup)) GuidedFeedbackOpened();
         }
 
         void TickLineupPad(Controls.Pad pad, LineupSeat seat, ref MenuNav.Gate armedX, ref MenuNav.Gate armedY)
@@ -420,7 +420,7 @@ namespace GrandSluggers.UnityClient
                 var wasReady = HumanReady(LineupSeat.Pad1) || HumanReady(LineupSeat.Pad2);
                 var changed = _settings.Change(LineupSeat.Pad1, direction);
                 if (changed) _lineup.ResetReady();
-                GuidedRuleEdit(_settings.Selected, LineupSeat.Pad1, refusal, changed && wasReady);
+                _guidedLessons.RuleEdit(_settings.Selected, LineupSeat.Pad1, refusal, changed && wasReady);
                 Innings = _settings.Innings;
                 Difficulty = _settings.Difficulty;
             }

@@ -1188,7 +1188,7 @@ public sealed partial class LivePlaySystem
             WalkGloveWithStick(dt, map, pad);
         else if (SwapLock <= 0 && FieldAssist.CpuChases(HoldsBall, Throwing, dead))
         {
-            TryHandoffLoose(map);
+            TryHandoffLoose();
             if (CanMove(GlovePos)) WalkGloveTo((BallX, BallZ), dt);
         }
         var d = Diamond.Dist(GloveX, GloveZ, BallX, BallZ);
@@ -1329,152 +1329,25 @@ public sealed partial class LivePlaySystem
     }
 
     /// <summary>
-    /// The CPU fielder's decision table (§8.8), computed from the live bodies the moment the throw
-    /// may go: for each bag, <c>margin = runnerArrival − throwArrival</c>; a play is makeable above the
-    /// difficulty's margin. Infielders: the lead force, home, third, first, else hold (or, on the grass,
-    /// throw in ahead of the lead runner). Outfielders: home if a run is at stake, third, second, else
-    /// the cutoff. A throw through the cutoff continues with the cutoff's arm.
+    /// The CPU fielder's decision table (§8.8) runs once for this possession (<see cref="CpuFieldDecider"/>), and the glove does
+    /// what it decided: walks the ball to a bag, throws to a bag (straight or through the cutoff), throws it in, or holds.
     /// </summary>
     void CpuDecide()
     {
         _cpuClock.Decide();
-        var makeable = R.Cpu.Active.MakeableMarginSec;
-        var onGrass = FieldingResolver.OutfieldGrass(GloveX, GloveZ, R);
-        double Margin(int bag)
+        var decision = CpuFieldDecider.Decide(this);
+        switch (decision.Action)
         {
-            var runner = RunnerForBag(bag);
-            if (runner is null || runner.Bag >= bag) return double.NegativeInfinity;
-            if (!runner.Forced || runner.FromBag != bag - 1)
-            {
-                // An unforced runner is a candidate only when their body is bound for the bag.
-                if (!(runner.Advancing && runner.DestBag >= bag && runner.Bag == bag - 1)) return double.NegativeInfinity;
-            }
-            return RunnerSystem.ArrivalSec(runner, bag, ElapsedSeconds, R, Dash01) - CpuPlayArrivalSec(bag);
+            case CpuFieldAction.WalkTo:
+                _cpuWalkBag = decision.Bag;
+                break;
+            case CpuFieldAction.ThrowTo:
+                CpuThrowTo(decision.Bag);
+                break;
+            case CpuFieldAction.ThrowIn:
+                CpuThrowIn();
+                break;
         }
-        bool Makeable(int bag) => Margin(bag) > makeable;
-        // A tag play is worth the throw (§8.8 rules 2–3, §11.3): the bag is played when the ball can land inside the
-        // close margin of the body, even short of the tie band; the mash (third, home) or the tag at the bag decides.
-        // A glove never concedes a bag by holding the ball while the race is that close.
-        bool TagWorthIt(int bag) => !Forces.At(bag) && Margin(bag) > -R.Running.Close.MarginSec;
-        bool PlateWorthIt() => TagWorthIt(4);
-        double DistTo(int bag)
-        {
-            var at = Diamond.Bag(bag);
-            return Diamond.Dist(GloveX, GloveZ, at.X, at.Z);
-        }
-        // The lead forced bag ahead of a forced runner still short of it (second, third, home), or 0.
-        int LeadForce()
-        {
-            for (var bag = 4; bag >= 2; bag--)
-            {
-                if (!Forces.At(bag)) continue;
-                var forced = _match.RunnerAt(bag - 1);
-                if (forced is null || !forced.Live || forced.Bag >= bag) continue;
-                return bag;
-            }
-            return 0;
-        }
-
-        // The doubled-off race (§10.5): a body off its start bag after the catch is a force back there.
-        if (Fly == FlyState.Caught)
-        {
-            Runner? best = null;
-            var bestMargin = double.NegativeInfinity;
-            foreach (var r in Runners)
-            {
-                if (!r.Live || !r.LeftEarly) continue;
-                var margin = RunnerSystem.ReturnSec(r, R, Dash01) - CpuThrowArrivalSec(r.FromBag);
-                if (margin > bestMargin) { bestMargin = margin; best = r; }
-            }
-            if (best is not null && bestMargin > makeable) { CpuPlayAt(best.FromBag); return; }
-        }
-
-        if (!onGrass)
-        {
-            // Two outs (§10.4, S-50): any makeable out ends the inning; the shortest throw among them.
-            if (_match.Outs >= 2)
-            {
-                var pick = 0;
-                var pickDist = double.MaxValue;
-                for (var bag = 1; bag <= 4; bag++)
-                {
-                    var candidate = bag == 1 ? Forces.At(1) : Forces.At(bag) || RunnerForBag(bag) is not null;
-                    if (!candidate || !Makeable(bag)) continue;
-                    var d = DistTo(bag);
-                    if (d < pickDist) { pickDist = d; pick = bag; }
-                }
-                if (pick > 0) { CpuPlayAt(pick); return; }
-                return;
-            }
-            // The bunt (§7.3): the batter at first by default; the lead force only when the bunt came too hard for the
-            // sac (fielding.bunt.hardExitMph) and it is makeable; home on a squeeze only from inside bunt.squeezeHomeFt.
-            // A popped bunt is a pop (§5.8): the catch and the doubled-off race above are its rows.
-            if (Ball is { Shape: BattedBallClass.Bunt })
-            {
-                var b = R.Fielding.Bunt;
-                if (DistTo(4) <= b.SqueezeHomeFt && (Makeable(4) || PlateWorthIt())) { CpuPlayAt(4); return; }
-                if (Hit is not null && BuntDefense.TooHard(Hit, b) && LeadForce() is > 0 and var hardLead && Makeable(hardLead))
-                {
-                    CpuPlayAt(hardLead);
-                    return;
-                }
-                if (Forces.At(1) && Makeable(1)) { CpuPlayAt(1); return; }
-                return;
-            }
-            // 1. The lead forced bag ahead of a forced runner (second, third, home); the batter at first is rule 4.
-            if (LeadForce() is > 0 and var lead && Makeable(lead)) { CpuPlayAt(lead); return; }
-            // 2. Home, 3. third, then second (tags on a runner going): the lead body first, unless a trailing
-            // body's margin is better by running.steal.cpuTrailPreferSec (§11.3, the double steal).
-            var tagBag = 0;
-            var tagMargin = double.NegativeInfinity;
-            var prefer = R.Running.Steal.CpuTrailPreferSec;
-            for (var bag = 4; bag >= 2; bag--)
-            {
-                if (Forces.At(bag)) continue;
-                var m = Margin(bag);
-                if (!(m > makeable || TagWorthIt(bag))) continue;
-                if (tagBag == 0 || m >= tagMargin + prefer)
-                {
-                    tagBag = bag;
-                    tagMargin = m;
-                }
-            }
-            if (tagBag > 0) { CpuPlayAt(tagBag); return; }
-            // 4. First.
-            if (Forces.At(1) && Makeable(1)) { CpuPlayAt(1); return; }
-            // 5. Hold: nobody is out on a throw; Time comes when the bodies settle (§10.6).
-            return;
-        }
-
-        // Outfielders: home if a run is at stake, third, second, else the cutoff.
-        var runAtStake = _match.Outs < 2 || Math.Abs(_match.HomeScore - _match.AwayScore) <= 2;
-        if (runAtStake && (Makeable(4) || PlateWorthIt())) { CpuThrowTo(4); return; }
-        if (Makeable(3)) { CpuThrowTo(3); return; }
-        if (Makeable(2)) { CpuThrowTo(2); return; }
-        CpuThrowIn();
-    }
-
-    /// <summary>
-    /// The play the table chose at <paramref name="bag"/>: step on it when inside fielding.throw.unassistedFt
-    /// (§10.4, S-41); otherwise whoever gets the ball there first makes it — this body's legs, or a throw
-    /// to a cover who must be at the bag to take it (§8.5, §10.3: the catcher walks to the plate on a steal
-    /// of home rather than lobbing at a bag nobody covers).
-    /// </summary>
-    void CpuPlayAt(int bag)
-    {
-        var at = Diamond.Bag(bag);
-        var forceThere = Forces.At(bag) || Runners.Any(r => r.Live && r.LeftEarly && r.FromBag == bag);
-        if (forceThere && Diamond.Dist(GloveX, GloveZ, at.X, at.Z) <= R.Fielding.Throw.UnassistedFt)
-        {
-            _cpuWalkBag = bag;
-            return;
-        }
-        if (CpuWalkSec(bag) <= CpuThrowReadySec(bag))
-        {
-            _cpuWalkBag = bag;
-            return;
-        }
-        CpuThrowTo(bag);
     }
 
     /// <summary>Seconds for this glove to carry the ball to <paramref name="bag"/> at its carry speed (§8.1; Ball Dash's boost included, #718).</summary>
@@ -1496,9 +1369,6 @@ public sealed partial class LivePlaySystem
         var walk = Math.Max(0, Diamond.Dist(coverAt.X, coverAt.Z, at.X, at.Z) - cover.RadiusFt) / Math.Max(1, CoverSpeed(coverPos, Assigned()));
         return Math.Max(CpuThrowArrivalSec(bag), walk);
     }
-
-    /// <summary>Seconds until this glove can have the ball at <paramref name="bag"/> by the quicker of its legs and a throw (§8.8).</summary>
-    double CpuPlayArrivalSec(int bag) => Math.Min(CpuWalkSec(bag), CpuThrowReadySec(bag));
 
     /// <summary>
     /// The CPU's read of a throw to a bag (§8.7, §8.8, #722): straight, or through the cutoff on the line, each on the
@@ -1678,7 +1548,7 @@ public sealed partial class LivePlaySystem
             var who = GloveChar();
             var speed = FieldingResolver.ChaseSpeedFt(who, GlovePos, Preview, R);
             var route = FieldingPursuit.Plan(Preview, Park, Path, ElapsedSeconds, GloveX, GloveZ, speed, R, ReadyAt(GlovePos),
-                !FieldingResolver.IsOutfield(GlovePos));
+                !FieldingResolver.IsOutfield(GlovePos), GloveChar());
             var meetAt = route.Reachable ? route.MeetTimeSec : Math.Max(Rest, ElapsedSeconds + route.TravelTimeSec);
             ball = new BallSituation(false, false, 0, 0, route.X, route.Z, meetAt,
                 FieldingResolver.OutfieldGrass(route.X, route.Z, R), Preview.LandingX, Preview.LandingZ, carry);
@@ -1707,7 +1577,7 @@ public sealed partial class LivePlaySystem
         var map = Assigned();
         if (LooseBall)
         {
-            TryHandoffLoose(map);
+            TryHandoffLoose();
             if (!CanMove(GlovePos)) return;
             var chaser = map.TryGetValue(GlovePos, out var lc) ? lc : pre.Fielder;
             var run = FieldingResolver.ChaseSpeedFt(chaser, pre.Frozen, R);
@@ -1723,12 +1593,12 @@ public sealed partial class LivePlaySystem
         var hang = Hang;
         var airborne = FieldingResolver.InAir(pre, live.Y, ElapsedSeconds, R, hang);
         var airTarget = FlyCatch.ChaseTarget(pre, R, Park);
-        TryHandoffOutfield(map, airborne ? airTarget.X : live.X, airborne ? airTarget.Z : live.Z, airborne);
+        TryHandoffOutfield(airborne ? airTarget.X : live.X, airborne ? airTarget.Z : live.Z, airborne);
         if (!CanMove(GlovePos)) return;
         var who = map.TryGetValue(GlovePos, out var c) ? c : pre.Fielder;
         var speed = FieldingResolver.ChaseSpeedFt(who, GlovePos, pre, R);
         var route = FieldingPursuit.Plan(pre, Park, Path, ElapsedSeconds, GloveX, GloveZ, speed, R, ReadyAt(GlovePos),
-            !FieldingResolver.IsOutfield(GlovePos));
+            !FieldingResolver.IsOutfield(GlovePos), GloveChar());
         var next = StepTo(GlovePos, (GloveX, GloveZ), (route.X, route.Z), speed, R.Fielding.Chase.StepStopFt, dt, flat: false);
         if (Diamond.Dist(GloveX, GloveZ, next.X, next.Z) > 1e-6)
             _facts.Add(new AssistedRouteStep(who.Id));
@@ -1737,45 +1607,16 @@ public sealed partial class LivePlaySystem
         _fielders[GlovePos] = (GloveX, GloveZ);
     }
 
-    /// <summary>
-    /// The infield → outfield hand-off (§8.9): once the ball (its plant while in the air, or the first reachable point on a liner
-    /// that will bounce, #667) is on the outfield grass, the play glove moves to the outfielder whose route meets it earliest
-    /// (D16) — and never while the current glove still has a route to it (D17, S-96 on the ground, S-97 in the air, #636): the
-    /// body keeps the ball as long as its own route reaches it no later than that outfielder's, or the ball is inside its reach.
-    /// Never by the ball's position alone; one way only. The infield's reach on a ball in the air is
-    /// <c>fielding.chase.infieldAirMul</c> (§8.1): the S-29 band is held there, not by giving the liner away.
-    /// </summary>
-    void TryHandoffOutfield(Dictionary<string, Character> map, double ballX, double ballZ, bool airborne)
+    /// <summary>The infield → outfield hand-off (§8.9, D16, D17): the glove goes where <see cref="PursuitDecider.OutfieldHandoff"/> says, if anywhere.</summary>
+    void TryHandoffOutfield(double ballX, double ballZ, bool airborne)
     {
-        if (FieldingResolver.IsOutfield(GlovePos) || !FieldingResolver.OutfieldGrass(ballX, ballZ, R)) return;
-        if (Preview is null || Path is null)
-        {
-            var pick = FieldingResolver.PlayGlove(map, ballX, ballZ, R, _fielders);
-            if (FieldingResolver.HandoffToOutfield(GlovePos, pick.Pos)) HandGloveTo(pick.Pos);
-            return;
-        }
-        var of = FieldingPursuit.Choose(
-            map, FieldingResolver.OutfieldPursuitPositions, Preview, Park, Path, R, _fielders, ElapsedSeconds, _readyAt);
-        // D17, in the air and on the ground alike: the glove keeps the ball while its own route still meets it no later than the
-        // outfielder's (the plant on a fly, the first reachable sample on a roller or a liner that will bounce).
-        var who = map.TryGetValue(GlovePos, out var c) ? c : Preview.Fielder;
-        var speed = FieldingResolver.ChaseSpeedFt(who, GlovePos, Preview, R);
-        var mine = FieldingPursuit.Plan(Preview, Park, Path, ElapsedSeconds, GloveX, GloveZ, speed, R, ReadyAt(GlovePos),
-            !FieldingResolver.IsOutfield(GlovePos));
-        // A scoopable ball inside the glove's reach is a route of zero feet: the touch (§8.3) is this frame's play, whatever the planner says of the next sample.
-        var inReach = !airborne && FlyCatch.TouchScoop(Preview, Park, BallX, BallZ, BallY, ElapsedSeconds, Hang,
-            Diamond.Dist(GloveX, GloveZ, BallX, BallZ), CatchWindow(map), R);
-        if (inReach || mine.Reachable && !FieldingPursuit.Better(of.Route, mine)) return;
-        HandGloveTo(of.Position);
+        if (PursuitDecider.OutfieldHandoff(this, ballX, ballZ, airborne) is { } to) HandGloveTo(to);
     }
 
-    /// <summary>A loose ball is the nearest body's (§8.6, §8.7): the backup behind an overthrow, the fielder beside a fumble.</summary>
-    void TryHandoffLoose(Dictionary<string, Character> map)
+    /// <summary>A loose ball is the nearest body's (§8.6, §8.7): the glove goes where <see cref="PursuitDecider.LooseHandoff"/> says, if anywhere.</summary>
+    void TryHandoffLoose()
     {
-        var pick = FieldingResolver.NearestGlove(map, BallX, BallZ, _fielders);
-        if (pick.Pos == GlovePos || string.IsNullOrEmpty(pick.Pos)) return;
-        if (_items.IsOff(pick.Pos)) return;
-        HandGloveTo(pick.Pos);
+        if (PursuitDecider.LooseHandoff(this) is { } to) HandGloveTo(to);
     }
 
     /// <summary>
@@ -1841,25 +1682,11 @@ public sealed partial class LivePlaySystem
 
     bool Coasting(string pos) => _coast.Coasting(pos);
 
+    /// <summary>The outfielder <see cref="PursuitDecider.Charger"/> names charges the ball on its route, one step this frame.</summary>
     void ChargeOutfield(double dt)
     {
-        if (Preview is null || Hit is null || Path is null) return;
-        if (HoldsBall || Throwing || LooseBall) return;
-        var live = BallFlight.PointAt(Path, ElapsedSeconds, R);
-        var hang = Hang;
-        var inAir = FieldingResolver.InAir(Preview, live.Y, ElapsedSeconds, R, hang);
-        var plant = FlyCatch.ChaseTarget(Preview, R, Park);
-        if (!FieldingResolver.OutfieldShouldCharge(live.X, live.Z, plant.X, plant.Z, R))
-            return;
-        // Once a grounded ball reaches the grass, ChaseGlove owns the handoff.
-        if (!inAir && FieldingResolver.OutfieldGrass(live.X, live.Z, R))
-            return;
-        var map = Assigned();
-        var of = FieldingPursuit.Choose(
-            map, FieldingResolver.OutfieldPursuitPositions, Preview, Park, Path, R, _fielders, ElapsedSeconds, _readyAt);
-        if (of.Position == GlovePos || of.Position == BuddyPos || Coasting(of.Position)) return;
-        if (!CanMove(of.Position)) return;
-        if (!_fielders.TryGetValue(of.Position, out var at)) return;
+        if (PursuitDecider.Charger(this) is not { } of || Preview is null) return;
+        var at = _fielders[of.Position];
         var speed = FieldingResolver.ChaseSpeedFt(of.Fielder, of.Position, Preview, R);
         _fielders[of.Position] = StepTo(of.Position, at, (of.Route.X, of.Route.Z), speed, R.Fielding.Chase.StepStopFt, dt, flat: false);
     }
@@ -2180,7 +2007,7 @@ public sealed partial class LivePlaySystem
     /// One frame of a body's velocity toward what it wants (#718): the component along its heading builds at the ramp rate
     /// and dies at the brake rate; the component across it builds at the ramp rate. So a reversal is the brake and then the
     /// ramp, a stop is the brake, and an angled turn is continuous correction through the same two rates. Rest to the rated
-    /// speed takes <c>chase.accelSec</c>; the rated speed to rest takes <c>chase.brakeSec</c>.
+    /// speed takes the body class's <c>accelSec</c>; the rated speed to rest takes its <c>brakeSec</c> (§8.1, <see cref="BodyClasses.Ramp"/>).
     /// <para>
     /// The ground under the body (FD-04 B, FD-05, F3-d) scales those times: the row of the zone at <paramref name="at"/>, read
     /// every step, multiplies the ramp by <c>body.startMul</c>, the brake by <c>body.brakeMul</c> and the across-heading
@@ -2195,7 +2022,9 @@ public sealed partial class LivePlaySystem
         var top = RatedSpeed(pos, asked);
         // Airborne on a normal jump the body answers at a fraction of its ground rates (#719, F693-02-normal-jump-air-response-trial).
         var rate = Airborne && pos == GlovePos ? R.Fielding.Catch.JumpAirResponseMul : 1.0;
-        return _response.Respond(pos, want, top, rate, ground, R.Fielding.Chase, dt);
+        // The ramp is the body's class's (§8.1, CH-11): a light body gets to speed and stops sooner than a heavy one.
+        var ramp = BodyClasses.Ramp(Assigned().TryGetValue(pos, out var who) ? who : null, R);
+        return _response.Respond(pos, want, top, rate, ground, ramp, dt);
     }
 
     /// <summary>
@@ -2359,7 +2188,7 @@ public sealed partial class LivePlaySystem
             var who = map.TryGetValue(GlovePos, out var fielder) ? fielder : pre.Fielder;
             var speed = FieldingResolver.ChaseSpeedFt(who, GlovePos, pre, R);
             var route = FieldingPursuit.Plan(pre, Park, Path, ElapsedSeconds, GloveX, GloveZ, speed, R, ReadyAt(GlovePos),
-                !FieldingResolver.IsOutfield(GlovePos));
+                !FieldingResolver.IsOutfield(GlovePos), GloveChar());
             return (route.X, route.Z);
         }
         return (BallX, BallZ);
@@ -2414,7 +2243,8 @@ public sealed partial class LivePlaySystem
     double CatchRadius(Dictionary<string, Character> map)
     {
         var who = map.TryGetValue(GlovePos, out var c) ? c : Preview!.Fielder;
-        var radius = FieldingResolver.CatchRadiusFt(who, Preview is not null ? Park : null, R);
+        // The body class's reach for this ball (§8.1): the ground reach on a ball hit on the ground, the fly reach on one hit in the air.
+        var radius = FieldingResolver.CatchRadiusFt(who, Preview is not null ? Park : null, R, air: Preview is not { Grounder: true });
         // Abilities widen the reach for their ball (§8.4): Super Jump on a fly, Dive / Burrow on the dirt.
         if (Preview is not null && FlyCatch.IsFly(Preview))
             radius += FieldAbilities.FlyRangeBonus(who, R);
@@ -2824,7 +2654,7 @@ public sealed partial class LivePlaySystem
         var flight = Math.Max(1, ThrowDur - R.Fielding.Throw.ReleaseSec);
         var speed = len / flight * R.Fielding.Overthrow.CarryMul;
         SetLoose(ThrowTo.X, ThrowTo.Z, len > 1e-6 ? dx / len * speed : 0, len > 1e-6 ? dz / len * speed : 0);
-        TryHandoffLoose(map);
+        TryHandoffLoose();
     }
 
     /// <summary>The lob nobody came for drops at the bag, live.</summary>
@@ -2836,7 +2666,7 @@ public sealed partial class LivePlaySystem
         _flight.EndLob();
         _support.ClearCutoff();
         SetLoose(ThrowTo.X, ThrowTo.Z, 0, 0);
-        TryHandoffLoose(Assigned());
+        TryHandoffLoose();
     }
 
     void SetLoose(double x, double z, double vx, double vz)

@@ -166,10 +166,10 @@ public class FieldingPursuitTests
             var assigned = FieldingResolver.Assign(match.Defense.Roster, match.Pitcher);
             var ready = FieldingResolver.CpuReactionLockouts(match.Rules, pre.HangTimeSec);
             var cornerRoute = FieldingPursuit.Plan(pre, park, path, 0, atCorner.X, atCorner.Z,
-                FieldingResolver.ChaseSpeedFt(assigned[corner], corner, pre, match.Rules), match.Rules, ready[corner]);
+                FieldingResolver.ChaseSpeedFt(assigned[corner], corner, pre, match.Rules), match.Rules, ready[corner], body: assigned[corner]);
             if (cornerRoute.AirCatch) continue;
             var cfRoute = FieldingPursuit.Plan(pre, park, path, 0, atCf.X, atCf.Z,
-                FieldingResolver.ChaseSpeedFt(assigned["CF"], "CF", pre, match.Rules), match.Rules, ready["CF"]);
+                FieldingResolver.ChaseSpeedFt(assigned["CF"], "CF", pre, match.Rules), match.Rules, ready["CF"], body: assigned["CF"]);
             if (!FieldingPursuit.Better(cfRoute, cornerRoute)) continue;
             var choice = FieldingPursuit.Choose(assigned, FieldingResolver.OutfieldPursuitPositions,
                 pre, park, path, match.Rules, null, 0, ready);

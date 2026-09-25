@@ -34,6 +34,7 @@ namespace GrandSluggers.UnityClient
         [System.NonSerialized] public bool Pad1Home = true;
         internal bool _versusWanted;
         internal readonly MatchSeatLifecycle _matchSeats = new MatchSeatLifecycle();
+        readonly PursuitSeatDirector _seatStick = new PursuitSeatDirector();
         readonly DeviceSeatRecovery _deviceRecovery = new DeviceSeatRecovery();
         internal LineupScreens _lineup;
         ExhibitionSettings _settings = new ExhibitionSettings();
@@ -253,7 +254,7 @@ namespace GrandSluggers.UnityClient
             TickStarModifiers();
             if (_match == null) return;
             // The pursuit stick's seats (#718) bind every frame, recovery and Call time included, on the input clock.
-            TickPursuitSeats();
+            _seatStick.Tick(_match, _matchSeats.Bound, _phase is Phase.Set or Phase.Result, LiveSeats, TrainingOn);
             if (TickDeviceRecovery())
             {
                 _actors.Draw(0f);
@@ -289,7 +290,7 @@ namespace GrandSluggers.UnityClient
             {
                 _pausePad = Controls.Pad2.Start || Controls.Pad2.View ? Controls.Pad2 : Controls.Pad1;
                 _match.SetPaused(true);
-                if (openedPause && GuidedAttempt("T-G06")) GuidedObserve(GuidedAction.CallTimeOpened);
+                if (openedPause) GuidedObserve("T-G06", GuidedAction.CallTimeOpened);
                 _pauseItem = openedHowTo ? 2 : 0;
                 _pauseHowTo = openedHowTo;
                 _pauseFromHowTo = openedHowTo;
@@ -355,8 +356,8 @@ namespace GrandSluggers.UnityClient
             }
             if (_match.Paused && _phase is Phase.Select or Phase.Field or Phase.Lineup)
             {
-                if (_stickReset) DrawStickReset();
-                else HudView.Pause(_pauseItem, _pauseHowTo, _pausePage, OffersStickReset, DataProfile.Label);
+                if (_seatStick.ResetOpen) _seatStick.DrawReset();
+                else HudView.Pause(_pauseItem, _pauseHowTo, _pausePage, _seatStick.OffersReset, DataProfile.Label);
                 return;
             }
             if (_phase == Phase.Select || _phase == Phase.Field || (_phase == Phase.Lineup && _lineup != null))
@@ -399,9 +400,9 @@ namespace GrandSluggers.UnityClient
                 HudView.Pause(_pauseItem, true, _pausePage);
                 return;
             }
-            if (_match.Paused && _stickReset)
+            if (_match.Paused && _seatStick.ResetOpen)
             {
-                DrawStickReset();
+                _seatStick.DrawReset();
                 return;
             }
             HudView.Draw(_match, ui, parkName, home.Name, away.Name, _mode == PlayMode.Challenge, PitcherExtra(),
@@ -429,7 +430,7 @@ namespace GrandSluggers.UnityClient
                     BroadcastHud.Stamp(StampAnchor.Dirt));
             if (_match.Paused)
             {
-                HudView.Pause(_pauseItem, _pauseHowTo, _pausePage, OffersStickReset, DataProfile.Label);
+                HudView.Pause(_pauseItem, _pauseHowTo, _pausePage, _seatStick.OffersReset, DataProfile.Label);
                 return;
             }
             if (_phase == Phase.Set && _swapPick != null)
@@ -437,7 +438,7 @@ namespace GrandSluggers.UnityClient
                 TeamSheet.DrawPitcherPick(_match, _swapPick, PitchPad.Index);
                 return;
             }
-            if (!mutePlay) DrawStickTells();
+            if (!mutePlay) _seatStick.DrawTells();
             if (_closePlay)
                 HudView.ClosePlay(_closeBag, _closeIcon);
             if (!mutePlay && _phase == Phase.InPlay && HumanOwnsThrow)
@@ -453,7 +454,7 @@ namespace GrandSluggers.UnityClient
                 }
             }
             if (!mutePlay && _phase is Phase.InPlay or Phase.StealThrow)
-                DrawUnreadyTell();
+                PursuitSeatDirector.DrawUnready(_match, HumanFields);
             if (!mutePlay && ItemOffered && _itemTarget != null)
                 HudView.ItemPointer(_itemTarget.Name);
             if (!mutePlay && _phase == Phase.InPlay && (_caught || _buddy) && !_throwing)
@@ -492,9 +493,10 @@ namespace GrandSluggers.UnityClient
         {
             var dt = Time.unscaledDeltaTime;
             if (_pauseStick > 0) _pauseStick -= dt;
-            if (_stickReset)
+            if (_seatStick.ResetOpen)
             {
-                TickStickReset();
+                if (_seatStick.TickReset(PauseMenu.Dismiss(_pausePad.EastDown || Controls.CallTime || Controls.HowTo, _t)) is bool recalibrated)
+                    StickResetClosed(recalibrated);
                 return;
             }
             if (_pauseHowTo)
@@ -520,7 +522,7 @@ namespace GrandSluggers.UnityClient
                 }
                 return;
             }
-            var stick = OffersStickReset;
+            var stick = _seatStick.OffersReset;
             if (_pausePad.MenuDown)
             {
                 _pauseItem = PauseMenu.Wrap(_pauseItem, 1, stick);
@@ -550,12 +552,12 @@ namespace GrandSluggers.UnityClient
                         break;
                     case PauseMenu.Item.HowToPlay:
                         _pauseHowTo = true;
-                        if (GuidedAttempt("T-G06")) GuidedObserve(GuidedAction.BookOpened);
+                        GuidedObserve("T-G06", GuidedAction.BookOpened);
                         _pausePage = 0;
                         _menuX.Catch(_pausePad.MenuAxisX);
                         break;
                     case PauseMenu.Item.ResetStick:
-                        OpenStickReset();
+                        if (_seatStick.OpenReset()) _t = 0;
                         break;
                     case PauseMenu.Item.ArrangeDefense:
                         OpenDefenseSetup();
@@ -594,7 +596,7 @@ namespace GrandSluggers.UnityClient
             _hlPath = null;
             BeginSet();
             _match.SetPaused(false);
-            if (GuidedAttempt("T-G06")) GuidedObserve(GuidedAction.MatchRestarted);
+            GuidedObserve("T-G06", GuidedAction.MatchRestarted);
         }
 
         void PauseToTitle()
@@ -642,7 +644,7 @@ namespace GrandSluggers.UnityClient
             {
                 _deviceRecovery.WaitFor(missing, _match.Paused);
                 _match.SetPaused(true);
-                GuidedSeatLost(missing);
+                _guidedLessons.SeatLost(missing);
                 Controls.TryRecoverMatchSeat(missing);
                 return true;
             }
