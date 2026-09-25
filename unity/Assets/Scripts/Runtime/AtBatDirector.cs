@@ -16,7 +16,7 @@ namespace GrandSluggers.UnityClient
         public void Tick(float dt) { _play.TickAtBat(dt); }
     }
 
-    public sealed partial class MatchDirector : IInPlayHost
+    public sealed partial class MatchDirector : IInPlayHost, IActorHost
     {
         internal ChargeButtonState _pitchButton;
 
@@ -54,7 +54,7 @@ namespace GrandSluggers.UnityClient
         /// a hand walks, so its location verb reads as a walk rather than a teleport on the release
         /// frame. Drawn only: the delivery is built from <c>Match.PitcherOffsetX</c>.
         /// </summary>
-        float _moundX;
+        float _moundX { get => Play.MoundX; set => Play.MoundX = value; }
 
         /// <summary>
         /// Each seat's held special modifier (spec §12, PH-16-R10, R11, R17), by pad index: LT on either controller. The state is the leak guard; the step that moves it is the sim's (<see cref="StarModifier"/>).
@@ -198,7 +198,7 @@ namespace GrandSluggers.UnityClient
             _coverPos = "";
             _recoilT = 0;
             _bobbling = false;
-            _owed = FielderTells.Owed.None;
+            Live.Owed = FielderTells.Owed.None;
             _diveT = _jumpT = _swapLock = 0;
             _gloveAt.Clear();
             _resultBodies = null;
@@ -980,5 +980,51 @@ namespace GrandSluggers.UnityClient
         float IInPlayHost.Smash { get => _smash; set => _smash = value; }
         string IInPlayHost.Sub { set => _sub = value; }
         void IInPlayHost.RestartClock() => _t = 0;
+
+        // The bodies (#1042): ActorDirector draws them; the swing clocks it and the at-bat share live in PlayState.
+        internal float _committedSwingT { get => Play.CommittedSwingT; set => Play.CommittedSwingT = value; }
+        /// <summary>Seconds from the press to the committed take's Contact mark (D13); NaN until a swing commits.</summary>
+        float _swingContactSec { get => Play.SwingContactSec; set => Play.SwingContactSec = value; }
+        /// <summary>A frame of the bodies, for the editor gates that draw them.</summary>
+        internal void DrawActors(float dt) => _actors.Draw(dt);
+
+        /// <summary>
+        /// The offense pad before the pitch (spec §9.2, §11.1): D-pad selects, stick toward the next
+        /// bag or L3 starts the steal, stick back returns, RB returns, LB + RB halts. LB is not
+        /// all-advance here: during SET and the flight it is the held special modifier (PH-16-R17), and
+        /// all-advance (tag-and-go on a fly included) is a live-ball verb, read through the sim's Tick
+        /// (RunInput) once the ball is in play.
+        /// </summary>
+        void TickBaserunning(float dt)
+        {
+            if (_match == null || _match.LeadBag == 0) return;
+            if (!HumanBats || _phase is not (Phase.Set or Phase.Flight)) return;
+            // Tutorial UI owns input and evidence before advancing its pre-contact clock.
+            if (TutorialOn && _coach.Tutorial.IsStealLesson) return;
+            _match.PitchSetup.RunnerInput(RunInput());
+            if (TrainingOn) _coach.OnRun(_match);
+        }
+
+        bool IActorHost.TutorialModal => TutorialModal;
+        bool IActorHost.Turntable => _turntable;
+        bool IActorHost.Replaying => _replaying;
+        bool IActorHost.HumanBats => HumanBats;
+        bool IActorHost.HumanPitches => HumanPitches;
+        bool IActorHost.HumanOwnsThrow => HumanOwnsThrow;
+        bool IActorHost.SquaredNow => SquaredNow;
+        bool IActorHost.PlateSwingArmed => _plate.Swing.Armed;
+        float IActorHost.PitchCharge => _pitchCharge;
+        string IActorHost.ShownPitchType => ShownPitchType;
+        bool IActorHost.ItemOffered => ItemOffered;
+        Vector3 IActorHost.ItemTargetWorld() => ItemTargetWorld();
+        float IActorHost.SwingContactSec(SwingCommand swing) => SwingContactSec(swing);
+        void IActorHost.ShowCursor() => ShowCursor();
+        void IActorHost.HoldBallInGlove() => HoldBallInGlove();
+        void IActorHost.OnRun() { if (TrainingOn) _coach.OnRun(_match); }
+        StealDirector IActorHost.Steal => Steal;
+        JuiceDirector IActorHost.Juice => _juice;
+        LineupScreens IActorHost.Lineup => _lineup;
+        ExhibitionPick IActorHost.CurrentPick() => CurrentPick();
+        Vector2 IActorHost.FieldStick => new Vector2(FieldPad.StickX, FieldPad.StickY);
     }
 }
