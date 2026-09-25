@@ -36,7 +36,7 @@ namespace GrandSluggers.UnityClient
         ExhibitionSettings _settings { get => Choices.Settings; set => Choices.Settings = value; }
         internal enum PlayMode { Exhibition, Challenge, Training }
         PlayMode _mode { get => Choices.Mode; set => Choices.Mode = value; }
-        Challenge _campaign;
+        Challenge _campaign { get => Choices.Campaign; set => Choices.Campaign = value; }
         internal TrainingDirector _coach;
         // The scene and the play in flight live in two objects every director is handed (#1042); these names forward to them.
         internal readonly MatchScene Scene = new MatchScene();
@@ -50,7 +50,6 @@ namespace GrandSluggers.UnityClient
         internal CameraRig _rig { get => Scene.Rig; set => Scene.Rig = value; }
         CameraDirector _cam { get => Scene.Cam; set => Scene.Cam = value; }
         internal FeelTable _feel { get => Scene.Feel; set => Scene.Feel = value; }
-        FlowDirector _flow;
         InPlayDirector _inPlay;
         ActorDirector _actors;
         SpecialFx _spec { get => Scene.Fx; set => Scene.Fx = value; }
@@ -189,7 +188,6 @@ namespace GrandSluggers.UnityClient
             _cam = gameObject.AddComponent<CameraDirector>();
             _cam.Bind(_rig, _content.Shots, _feel, _park.Kit);
             _cam.Cut("title");
-            _flow = new FlowDirector(this);
             _inPlay = new InPlayDirector(Scene, Play, Live, this, transform);
             _actors = new ActorDirector(Scene, Play, Live, _inPlay, this, transform);
         }
@@ -258,7 +256,7 @@ namespace GrandSluggers.UnityClient
             if (held && !_gateHold && _match.LivePlay.Active) _juice.Latch(FieldInput(), RunInput());
             else if (!_gateHold && !held)
             {
-                _flow.Tick();
+                Flow.Tick();
                 TickAtBat(dt);
                 _inPlay.Tick(dt);
             }
