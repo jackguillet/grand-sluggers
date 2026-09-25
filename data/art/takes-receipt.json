@@ -78,6 +78,28 @@
       ]
     },
     {
+      "file": "catcherThrow-L.fbx",
+      "sha256": "b8233078587e1924545cd448157bd6e943bf96d78b10e2a7060f84e6ce0ca96f",
+      "frames": 37,
+      "contracts": [
+        "feet",
+        "reflection",
+        "release",
+        "sockets"
+      ]
+    },
+    {
+      "file": "catcherThrow.fbx",
+      "sha256": "a4f6190067133467548b270b861c76aa8589fca149e27eae0391a2f65e6e153b",
+      "frames": 37,
+      "contracts": [
+        "feet",
+        "reflection",
+        "release",
+        "sockets"
+      ]
+    },
+    {
       "file": "charm.fbx",
       "sha256": "f559a3dd883a617ccf469ba18168d2436b62a58f7b6c9f875516c461dc2d98c3",
       "frames": 72,
@@ -254,6 +276,15 @@
       ]
     },
     {
+      "file": "slideHeadFirst.fbx",
+      "sha256": "69dfcd2523bc6dc60eec25c0ac84a7fa9fdf72eabd53ca97c62bae2b2834257c",
+      "frames": 25,
+      "contracts": [
+        "feet",
+        "sockets"
+      ]
+    },
+    {
       "file": "spin.fbx",
       "sha256": "595939d4debe3d152c9f267526805c9ccec83dc87b8a6824753a67f815d2f2dd",
       "frames": 13,
@@ -344,6 +375,28 @@
       "contracts": [
         "catch",
         "feet",
+        "sockets"
+      ]
+    },
+    {
+      "file": "styles/ape/catcherThrow-L.fbx",
+      "sha256": "98c98ca6dba6478bf81d6edd09dc0d4385167abe452fc7f4feed5027a5e57035",
+      "frames": 37,
+      "contracts": [
+        "feet",
+        "reflection",
+        "release",
+        "sockets"
+      ]
+    },
+    {
+      "file": "styles/ape/catcherThrow.fbx",
+      "sha256": "d0cebe351632c9549628c3032fee68003e719a5ed44998675f58f8d49f9c2e32",
+      "frames": 37,
+      "contracts": [
+        "feet",
+        "reflection",
+        "release",
         "sockets"
       ]
     },
@@ -524,6 +577,15 @@
       ]
     },
     {
+      "file": "styles/ape/slideHeadFirst.fbx",
+      "sha256": "8e938e2ff8f6ebb66fc75e42933924e42ef554141b9a80ef823e704b18d7d9e1",
+      "frames": 25,
+      "contracts": [
+        "feet",
+        "sockets"
+      ]
+    },
+    {
       "file": "styles/ape/spin.fbx",
       "sha256": "4704fd688f9f23ef4afbe609cf4ec80bed2c8d4ff4b2b380d9d6424190cb5902",
       "frames": 13,
@@ -608,6 +670,26 @@
       ]
     },
     {
+      "file": "styles/ape/tag-L.fbx",
+      "sha256": "14c9945400899a1a348fc55da17c31594e8fe398e83cd2fb0f9e161dcb6c9403",
+      "frames": 13,
+      "contracts": [
+        "feet",
+        "reflection",
+        "sockets"
+      ]
+    },
+    {
+      "file": "styles/ape/tag.fbx",
+      "sha256": "8bd9f9f26ebc3b65fe7923d4340ab35c31da31a22136e3a8b9b4c19d7cbbb418",
+      "frames": 13,
+      "contracts": [
+        "feet",
+        "reflection",
+        "sockets"
+      ]
+    },
+    {
       "file": "styles/ape/throw-L.fbx",
       "sha256": "28c4904922c9291cf73da8f9e323b26f3decbf0848dd1a571c1036ce998ab4c0",
       "frames": 25,
@@ -626,6 +708,15 @@
         "feet",
         "reflection",
         "release",
+        "sockets"
+      ]
+    },
+    {
+      "file": "styles/ape/turnBack.fbx",
+      "sha256": "9b6ef8d6bd49b822651b280e3157641589c8090b0310c9d5585d6b593840547a",
+      "frames": 19,
+      "contracts": [
+        "feet",
         "sockets"
       ]
     },
@@ -1821,6 +1912,26 @@
       ]
     },
     {
+      "file": "tag-L.fbx",
+      "sha256": "4cccb81e58bbe8bdd6876c9d3481a735461eb7c62f60a4420e525daab21dcd20",
+      "frames": 13,
+      "contracts": [
+        "feet",
+        "reflection",
+        "sockets"
+      ]
+    },
+    {
+      "file": "tag.fbx",
+      "sha256": "224c44fa225068cee6214999f74862a2aff0fed0247ce8046e5c999d6fa5b0b5",
+      "frames": 13,
+      "contracts": [
+        "feet",
+        "reflection",
+        "sockets"
+      ]
+    },
+    {
       "file": "throw-L.fbx",
       "sha256": "e61484bc5ef888e4abd51a70ffebff30017b01df5a925ac970317ec96fecbec2",
       "frames": 25,
@@ -1839,6 +1950,15 @@
         "feet",
         "reflection",
         "release",
+        "sockets"
+      ]
+    },
+    {
+      "file": "turnBack.fbx",
+      "sha256": "3ac290d4b1a9a0b34c0ea829f6dcba53898c5bdc16a5ee8718aa478faf4dd83a",
+      "frames": 19,
+      "contracts": [
+        "feet",
         "sockets"
       ]
     },

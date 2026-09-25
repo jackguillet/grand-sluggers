@@ -628,6 +628,37 @@ SLIDE = [
              lThigh=limb(42, 6), rThigh=limb(30, -4), lShin=limb(38), rShin=limb(42), lift=-0.30)),
 ]
 
+# The steal race (#966). The sweep tag: the glove hand (the catch hand of a right-handed thrower) comes down in front of
+# the bag and sweeps low while the bare hand stays back; handed, so a left-handed thrower plays the baked reflection.
+TAG = [
+    (0.00, K(torso=spine(35, -8), head=spine(-15, 10), lUpper=limb(95, 8), rUpper=limb(10, 30), lFore=limb(10), rFore=limb(40),
+             lThigh=limb(80, 18), rThigh=limb(70, 14), lShin=limb(95), rShin=limb(85))),
+    (HOLD, K(torso=spine(45, -16), head=spine(-22, 12), lUpper=limb(112, -10), rUpper=limb(4, 34), lFore=limb(6), rFore=limb(40),
+             lThigh=limb(88, 20), rThigh=limb(76, 14), lShin=limb(104), rShin=limb(92))),
+]
+
+# The runner's reversal (#966): the heels dig in and the body leans back to brake, drops into a low pivot, then pushes off
+# into the first stride back toward the bag it left (the body's heading has already turned to it).
+TURN_BACK = [
+    (0.00, K(torso=spine(-25), head=spine(15), lUpper=limb(-30, 45), rUpper=limb(50, 45), lFore=limb(40), rFore=limb(40),
+             lThigh=limb(55, 6), rThigh=limb(-5, 6), lShin=limb(0), rShin=limb(60))),
+    (0.12, K(torso=spine(15, 30), head=spine(0, 40), lUpper=limb(10, 50), rUpper=limb(10, 50), lFore=limb(50), rFore=limb(50),
+             lThigh=limb(65, 10), rThigh=limb(45, 10), lShin=limb(80), rShin=limb(60))),
+    (0.30, K(torso=spine(30), head=spine(-6), lUpper=limb(-40, 12), rUpper=limb(55, 12), lFore=limb(80), rFore=limb(80),
+             lThigh=limb(-15), rThigh=limb(60), lShin=limb(30), rShin=limb(70))),
+]
+
+# The head-first slide (#966): a launch, then flat on the belly with both hands reaching for the bag at the feet-first
+# slide's plant (0.18), held to its end (0.40): the same clock, so a style of slide is never a faster one.
+SLIDE_HEAD_FIRST = [
+    (0.00, K(pelvis=spine(20), torso=spine(25), head=spine(-10), lUpper=limb(90, 20), rUpper=limb(90, 20), lFore=limb(20), rFore=limb(20),
+             lThigh=limb(45), rThigh=limb(-25), lShin=limb(50), rShin=limb(30), lift=0.0)),
+    (0.18, K(pelvis=spine(75), torso=spine(10), head=spine(-55), lUpper=limb(150, 12), rUpper=limb(150, 12), lFore=limb(5), rFore=limb(5),
+             lThigh=limb(-5, 6), rThigh=limb(-5, 6), lShin=limb(25), rShin=limb(30), lift=-1.30)),
+    (0.40, K(pelvis=spine(78), torso=spine(10), head=spine(-58), lUpper=limb(152, 12), rUpper=limb(152, 12), lFore=limb(5), rFore=limb(5),
+             lThigh=limb(-6, 6), rThigh=limb(-6, 6), lShin=limb(28), rShin=limb(32), lift=-1.35)),
+]
+
 CATCH = [
     (0.00, K(torso=spine(6), head=spine(-6), lUpper=limb(40, 24), rUpper=limb(40, 24), lFore=limb(30), rFore=limb(30),
              lThigh=limb(12, 6), rThigh=limb(12, 6), lShin=limb(14), rShin=limb(14))),
@@ -1482,6 +1513,10 @@ def all_takes(style: str | None = None):
         Take("spin", SPIN, duration=HOLD),
         Take("scoop", SCOOP, duration=0.50, mark=0.22, sink=0.9, ground=True, validate=scoop_validate, contracts=("scoop",)),
         Take("slide", SLIDE, duration=0.40, mark=0.18, sink=1.2),
+        # The steal race (#966); catcherThrow is a baseball-takes row above.
+        Take("tag", TAG, duration=HOLD, handed=True, sink=0.8, ground=True),
+        Take("turnBack", TURN_BACK, duration=0.30, sink=0.4, ground=True),
+        Take("slideHeadFirst", SLIDE_HEAD_FIRST, duration=0.40, mark=0.18, sink=1.2),
     ]
 
 
