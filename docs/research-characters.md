@@ -85,7 +85,7 @@ Each row was a choice for Jack. **Rec** was the recommendation. **Pick** is Jack
 | CH-04 | Build channels | A apply Head, Arms, Torso to the rig per captain (bone scale in data) · B height and width only · C unique meshes (banned now) | A | A | Art |
 | CH-05 | Size in play | A authored per body class in data (reach, catch radii, contact width) · B visual only · C derived from the mesh | A | A | Gameplay |
 | CH-06 | Strike zone | A fixed for every batter · B scaled to the batter | A | **B** (see note) | Gameplay |
-| CH-07 | Visible stats | A four bars plus a class label · B four bars · C five bars | A | **C** (see note) | Presentation |
+| CH-07 | Visible stats | A four bars plus a class label · B four bars · C five bars | A | **B** (see note) | Presentation |
 | CH-08 | Stat budget | A equal total per captain · B loose total, max one 9+ · C no rule | B | B | Gameplay |
 | CH-09 | Hidden stats | A author the eight slots per captain now · B keep the fallback | A | A (see note) | Gameplay |
 | CH-10 | Top-speed gap | A tight, about 1.25× · B keep 1.34–1.54× · C wide, 2× | A | A | Gameplay |
@@ -96,21 +96,19 @@ Each row was a choice for Jack. **Rec** was the recommendation. **Pick** is Jack
 
 Jack's notes on the picks:
 
-- **CH-06, the strike zone scales vertically only.** "It should vertically scale, but horizontally the same." The zone's top and bottom follow the batter's body. Its width over the plate stays fixed. Open: which landmarks set the top and bottom (for example, a knee and a chest mark on the rig), and the clamp that keeps Zig and Ashlord pitchable.
-- **CH-07, five bars, built from sub-stats.** Settled with Jack on September 24. Each bar is the rounded mean of its sub-stats. The sub-stats are the hidden numbers that CH-09 authors per captain.
+- **CH-06, the strike zone scales vertically only.** "It should vertically scale, but horizontally the same." Jack set the landmarks on September 24: the zone runs from the batter's **knee** to the batter's **chest**. Its width over the plate stays fixed. The worked numbers and the aim rule are in [plan-characters.md](plan-characters.md).
+- **CH-07, four bars, built from sub-stats.** Settled with Jack on September 24. He first chose five bars with a separate Arm bar, then took it back: "pitching is very different than fielding." Each bar is the rounded mean of its sub-stats. The sub-stats are the hidden numbers that CH-09 authors per character. Every sub-stat already exists as a code slot, so no new stat is needed.
 
-  | Bar | Sub-stats | Hidden slot today |
+  | Bar | Sub-stats | Code slot today |
   | --- | --- | --- |
-  | **Bat** | contact, power | Contact, Power |
-  | **Pitch** | stamina, control, break | Endurance, Control, Movement |
-  | **Arm** | power, accuracy | Arm (and Velocity), accuracy is new |
-  | **Run** | speed | Run |
-  | **Field** | hands, range | Hands, range is new |
+  | **Bat** | contact, power | `Contact`, `Power` |
+  | **Pitch** | power, stamina, control, break | `Velocity`, `Endurance`, `Control`, `Movement` |
+  | **Field** | hands, throw speed | `Hands`, `Arm` |
+  | **Run** | speed | `Run` |
 
-  - **Arm power is one arm.** It sets throw speed from any position and fastball speed from the mound. Pitch is the craft: how long, how well placed, how much break. A strong-armed pitcher with a weak Pitch bar throws hard, tires early, misses spots and breaks flat.
-  - **Accuracy is geometry, not a roll.** A low-accuracy throw arrives off target by a seeded spread. The receiver's glove must reach it, or the ball gets past. No roll awards or cancels an out.
-  - **Range** is first-step reaction and dive reach. It pairs with the per-body-class catch reach from CH-05. Field means "gets to the ball and holds it".
-  - **The Bowser guard.** Bat power and Arm power can stack on one slugger. The CH-08 cap (at most one bar at 9+) is the guard. Test it in the balance pass.
+  - **Pitching power and throwing speed are separate.** A pitcher's fastball comes from Pitch power. A fielder's throw comes from Field throw speed. A strong-armed outfielder is not automatically a hard-throwing pitcher.
+  - **No accuracy and no range sub-stats.** Throws keep today's chemistry slant. Reach comes from the body class (CH-05).
+  - **The Bowser guard.** The CH-08 cap (at most one bar at 9+) still applies. Test it in the balance pass.
 - **CH-09, ten captains.** "I want 10 captains." The roster grows from seven captains to ten. Three new captains need factions, body classes and palettes. This is a roster decision; it does not unblock new captains before the rail work lands.
 - **CH-12, plan for about fifteen motion styles.** "At least 7. We should plan for more including non-captains. So maybe 15?" The style layer is sized for about fifteen body classes, so role players can get their own class instead of always copying the captain.
 
@@ -125,6 +123,5 @@ Rationale for the recommendations:
 
 ## 5. Next steps
 
-1. Settle the zone landmarks and clamp (CH-06).
-2. Write `docs/plan-characters.md` from the accepted rows, with scenario ids and epics (the Phase P shape in `docs/playbook.md`).
-3. First look sitting: dual stills of the seven captains at the new head ratio and ladder, in flat black and in palette.
+1. The plan is [plan-characters.md](plan-characters.md): epics CF-1 … CF-7 with scenarios SC-01 … SC-25.
+2. First look sitting: dual stills of the seven captains at the new head ratio and ladder, in flat black and in palette.
