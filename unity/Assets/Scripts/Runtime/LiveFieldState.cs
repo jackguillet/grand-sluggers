@@ -50,6 +50,10 @@ namespace GrandSluggers.UnityClient
         public StampAnchor BagStampAnchor { get; set; } = StampAnchor.Dirt;
         public float BagStampT { get; set; }
         public float BagStampHold { get; set; }
+        /// <summary>The live dash (0..1) of the body the ring wears.</summary>
+        public float Dash01 { get; set; }
+        /// <summary>What each body owes (dive recovery, recoil, the fumble's stun) while the ball is live; the result beat ages it out.</summary>
+        public FielderTells.Owed Owed { get; set; } = FielderTells.Owed.None;
         /// <summary>The CPU's fielding result for a play no human fields.</summary>
         public FieldingResult CpuField { get; set; }
         /// <summary>The typed outcome's bodies at Time (§10.6): the result beat draws these, not the position table.</summary>

@@ -12,7 +12,7 @@ public sealed class DirectorRailTests
 {
     static readonly string[] StillPartial =
     [
-        "ActorDirector.cs", "AtBatDirector.cs", "FlowDirector.cs", "InPlayDirector.cs",
+        "ActorDirector.cs", "AtBatDirector.cs", "FlowDirector.cs",
         "MatchDirector.cs",
     ];
 
@@ -48,6 +48,7 @@ public sealed class DirectorRailTests
     [InlineData("GuidedTutorialDirector")]
     [InlineData("TutorialDirector")]
     [InlineData("StillStaging")]
+    [InlineData("InPlayDirector")]
     public void TheDirectorIsARealClass(string director)
     {
         var text = File.ReadAllText(Path.Combine(Scripts, "Runtime", director + ".cs"));
