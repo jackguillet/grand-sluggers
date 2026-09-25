@@ -43,9 +43,9 @@ namespace GrandSluggers.EditorTools
             // The director's catalog declares the parks, so the gate waits the
             // frame it takes to load: a park id the catalog does not have is
             // refused by name, not captured at the default park.
-            if (_play == null || _play.GateContent == null) return;
+            if (_play == null || _play.Stills.Content == null) return;
             _temp = TempDir();
-            if (!StillRequest.TryLoad(_temp, _play.GateContent, out _req, out var loadError))
+            if (!StillRequest.TryLoad(_temp, _play.Stills.Content, out _req, out var loadError))
             {
                 // No request is the idle state; a request the parser refuses — an
                 // unknown shot, an unknown park — says so once instead of waiting.
@@ -56,13 +56,13 @@ namespace GrandSluggers.EditorTools
                 }
                 return;
             }
-            _play.CaptureMuteHud = _req.HudOff;
+            _play.Stills.MuteHud = _req.HudOff;
             _host.StartCoroutine(Run());
         }
 
         void OnDisable()
         {
-            if (_play != null) _play.CaptureMuteHud = false;
+            if (_play != null) _play.Stills.MuteHud = false;
         }
 
         IEnumerator Run()
@@ -79,9 +79,9 @@ namespace GrandSluggers.EditorTools
             var park = ExhibitionPick.DefaultPark;
             try
             {
-                park = _req.ResolvedPark(_play.GateContent);
+                park = _req.ResolvedPark(_play.Stills.Content);
                 shots = _req.ResolvedShots();
-                swingCaptains = _req.ResolvedSwingCaptains(_play.GateContent);
+                swingCaptains = _req.ResolvedSwingCaptains(_play.Stills.Content);
             }
             catch (Exception ex)
             {
@@ -91,40 +91,40 @@ namespace GrandSluggers.EditorTools
             }
 
             Directory.CreateDirectory(outDir);
-            var cam = _play.GateCam;
+            var cam = _play.Stills.Cam;
             var w = _req.ResolvedWidth();
             var h = _req.ResolvedHeight();
             // The scene's park and night are Jack's pick. Capture at the park the
             // request names, then hand the pick back so Play is where he left it.
             var prevPark = _play.ParkId;
             var prevNight = _play.Night;
-            _play.GateUsePark(park, _req.Night);
+            _play.Stills.UsePark(park, _req.Night);
             try
             {
                 foreach (var shot in shots)
                 {
-                    _play.GateStage(shot, _req);
+                    _play.Stills.Stage(shot, _req);
                     if (StillRequest.IsSwingMatrixShot(shot))
                     {
                         foreach (var captain in swingCaptains)
                         foreach (var hand in new[] { Hand.R, Hand.L })
                         {
-                            _play.GateStageSwingCaptain(captain, _req, hand);
+                            _play.Stills.StageSwingCaptain(captain, _req, hand);
                             for (var i = 0; i < 24; i++) yield return null;
                             foreach (var power in new[] { (Id: "normal", Charge: 0f), (Id: "max", Charge: 1f) })
                             foreach (var beat in new[] { "ready", "load", "contact", "follow", "finish" })
                             {
-                                _play.GatePoseSwing(beat, power.Charge);
+                                _play.Stills.PoseSwing(beat, power.Charge);
                                 for (var i = 0; i < 4; i++) yield return null;
                                 // ActorDirector continues drawing SET while simulation is held.
                                 // Reapply the exact pose on the capture frame, after those draws.
-                                var hero = _play.GatePoseSwing(beat, power.Charge);
+                                var hero = _play.Stills.PoseSwing(beat, power.Charge);
                                 var matrixPng = StillRequest.SwingPngPath(outDir, captain + "-" + hand, power.Id, beat);
                                 try
                                 {
-                                    Capture(_play.GateCam != null ? _play.GateCam : cam, matrixPng, w, h);
+                                    Capture(_play.Stills.Cam != null ? _play.Stills.Cam : cam, matrixPng, w, h);
                                     files.Add(matrixPng);
-                                    swingMetrics.Add(_play.GateMeasureSwing(
+                                    swingMetrics.Add(_play.Stills.MeasureSwing(
                                         hero, beat, captain + "-" + hand, power.Id, out var metricError));
                                     if (!string.IsNullOrEmpty(metricError)) swingErrors.Add(metricError);
                                 }
@@ -140,15 +140,15 @@ namespace GrandSluggers.EditorTools
                         continue;
                     }
                     for (var i = 0; i < 24; i++) yield return null;
-                    _play.GatePose(shot, _req);
+                    _play.Stills.Pose(shot, _req);
                     for (var i = 0; i < 4; i++) yield return null;
                     // ActorDirector draws SET every frame. Reapply the requested
                     // authored pose in the capture frame, as the swing matrix does.
-                    _play.GatePose(shot, _req);
+                    _play.Stills.Pose(shot, _req);
                     var png = StillRequest.PngPath(outDir, shot, _req.ResolvedHome(), park, _req.Night);
                     try
                     {
-                        Capture(_play.GateCam != null ? _play.GateCam : cam, png, w, h);
+                        Capture(_play.Stills.Cam != null ? _play.Stills.Cam : cam, png, w, h);
                         files.Add(png);
                     }
                     catch (Exception ex)
@@ -160,7 +160,7 @@ namespace GrandSluggers.EditorTools
             }
             finally
             {
-                _play.GateRestorePark(prevPark, prevNight);
+                _play.Stills.RestorePark(prevPark, prevNight);
             }
 
             var doneError = error ?? string.Join("; ", swingErrors);
