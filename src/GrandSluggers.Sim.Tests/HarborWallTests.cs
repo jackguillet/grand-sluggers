@@ -300,9 +300,9 @@ public sealed class HarborWallTests
         Assert.False(HarborWall.LoopIsSymmetric(lopsided),
             "a lopsided park must not draw one side's wall on the other (FD-06)");
         // Everything else the kit asks of a wall still holds; only the mirror is gone.
-        Assert.True(HarborWall.WrapsTheDiamond(lopsided));
+        Assert.True(HarborWall.WrapsTheDiamond(lopsided, DiamondGeometry.Of(Rules.Default)));
         Assert.True(HarborWall.OutfieldIsTheFence(lopsided));
-        Assert.True(HarborWall.WrapStaysInFoul(lopsided));
+        Assert.True(HarborWall.WrapStaysInFoul(lopsided, DiamondGeometry.Of(Rules.Default)));
         Assert.True(HarborWall.HomeWrapIsRound(lopsided));
         Assert.True(HarborDugout.WallMeetsTheRail(lopsided));
     }

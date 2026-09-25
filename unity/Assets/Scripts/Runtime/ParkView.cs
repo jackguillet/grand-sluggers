@@ -89,7 +89,7 @@ namespace GrandSluggers.UnityClient
                 kit = _kit = go.AddComponent<HarborKit>();
                 kit.EnsureAnchors();
             }
-            if (kit != null) kit.Bind(park, night);
+            if (kit != null) kit.Bind(park, _rules, night);
             var placed = kit != null && kit.OwnsDiamond;
             // Harbor owns the lawn and cuts dugout pits. A 620-ft sheet here
             // capped the wells. Water stays past the infield so the pit floor shows.
@@ -101,7 +101,7 @@ namespace GrandSluggers.UnityClient
                 Quad("Outfield", new Vector3(0, -0.12f, 190), new Vector3(620, 0.35f, 620), grassMat);
                 // The one field kit (FD-16, #859): the diamond, rail and wall Harbor draws, from the same
                 // geometry owner, in this park's dirt and wall. HarborKit draws it for Harbor.
-                new FieldKit(_root).Build(park, FieldSkin(palette, dirtMat));
+                new FieldKit(_root, DiamondGeometry.Of(_rules)).Build(park, FieldSkin(palette, dirtMat));
             }
             // The dress stands beside the kit, never in it: no dress piece stands inside the kit's
             // backstop or in the dugout span along either foul line (F6-a2 #881, FieldKitSourceTests).
@@ -112,7 +112,7 @@ namespace GrandSluggers.UnityClient
 
             _ball = gameObject.GetComponent<BallView>();
             if (_ball == null) _ball = gameObject.AddComponent<BallView>();
-            _ball.Build(_root, _feel.BallShadow);
+            _ball.Build(_root, _feel.BallShadow, DiamondGeometry.Of(_rules));
         }
 
         /// <summary>

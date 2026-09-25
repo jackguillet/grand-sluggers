@@ -55,7 +55,7 @@ public static class HarborPostcard
         return ((p0.X + p1.X) * 0.5, (p0.Z + p1.Z) * 0.5, chord + WallOverlapFt, i0, i1);
     }
 
-    public static bool WallPiecesConnect(Park park)
+    public static bool WallPiecesConnect(Park park, DiamondGeometry d)
     {
         var n = HarborWall.Loop(park).Length;
         if (n != HarborWall.WrapSegs) return false;
@@ -71,7 +71,7 @@ public static class HarborPostcard
         var cf = WallPoint(park, 0);
         var dist = Math.Sqrt(cf.X * cf.X + cf.Z * cf.Z);
         return Math.Abs(dist - park.CenterFenceFt) < WallThickFt * 2
-            && HarborWall.WrapsTheDiamond(park);
+            && HarborWall.WrapsTheDiamond(park, d);
     }
 
     public static bool SegOn(int value, int bit)

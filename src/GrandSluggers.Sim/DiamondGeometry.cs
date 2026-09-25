@@ -16,6 +16,8 @@ public sealed class DiamondGeometry
     DiamondGeometry(InfieldRules infield, FielderRules starts)
     {
         Baseline = infield.BaselineFt;
+        InnerHalfFt = infield.InnerHalfFt;
+        BackArcFt = infield.BackArcFt;
         Mound = infield.MoundFt;
         First = (infield.CornerFt, infield.CornerFt);
         Second = (0, infield.SecondFt);
@@ -39,6 +41,12 @@ public sealed class DiamondGeometry
     }
 
     public double Baseline { get; }
+
+    /// <summary>Half the infield grass diamond (L1, around second and the mound), measured from the bags (§16 infield).</summary>
+    public double InnerHalfFt { get; }
+
+    /// <summary>The 1B–2B–3B dirt's outer arc, from the mound (§16 infield).</summary>
+    public double BackArcFt { get; }
     public double Mound { get; }
     public (double X, double Z) Home => (0, 0);
     public (double X, double Z) First { get; }

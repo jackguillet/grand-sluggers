@@ -15,10 +15,10 @@ public sealed class RulesPlumbingTests
 {
     /// <summary>
     /// The one diamond every park shares, read as process-wide statics (<see cref="Diamond"/>,
-    /// <see cref="ParkDiamond"/>'s dress, <see cref="ParkBoundary.Default"/>). Moving them onto the
+    /// <see cref="ParkBoundary.Default"/>). Moving them onto the
     /// match's table is its own change; nothing else in the sim may join this list.
     /// </summary>
-    static readonly string[] ProcessGeometry = ["Rules.cs", "Diamond.cs", "ParkDiamond.cs", "ParkBoundary.cs"];
+    static readonly string[] ProcessGeometry = ["Rules.cs", "Diamond.cs", "ParkBoundary.cs"];
 
     static readonly string Sim = Path.GetFullPath(Path.Combine(Shipped.Content.Root.Shipped, "..", "src", "GrandSluggers.Sim"));
 
@@ -60,7 +60,7 @@ public sealed class RulesPlumbingTests
     /// Readers of the process diamond (<see cref="Diamond"/>'s bags, rubber and starts; home is the origin on every table) left in the sim. A reader that holds a
     /// table reads <see cref="DiamondGeometry.Of"/> of it (#1067); this ceiling only goes down, so no new reader joins them.
     /// </summary>
-    const int ProcessDiamondReaders = 55;
+    const int ProcessDiamondReaders = 17;
 
     [Fact]
     public void NoNewReaderTakesTheProcessDiamond()

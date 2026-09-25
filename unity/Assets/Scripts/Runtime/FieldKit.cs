@@ -120,9 +120,13 @@ namespace GrandSluggers.UnityClient
         Material _chalk;
         Material _kitWood, _kitRoof, _kitGold, _kitPad, _kitPost, _kitFlesh, _kitChalk, _kitNavy, _kitDirt, _kitHill;
 
-        public FieldKit(Transform root)
+        /// <summary>The diamond this kit draws: the match table's bags, rubber and dirt (#1190).</summary>
+        readonly DiamondGeometry _diamond;
+
+        public FieldKit(Transform root, DiamondGeometry diamond)
         {
             _root = root;
+            _diamond = diamond;
         }
 
         public Transform Root => _root;
@@ -260,12 +264,12 @@ namespace GrandSluggers.UnityClient
             Look.Prim(PrimitiveType.Cube, "W", parent, new Vector3(-w * 0.5f, 0f, 0f), new Vector3(t, h, d), chalk);
         }
 
-        /// <summary>The kit's <c>mound</c> mesh on <see cref="Diamond.Mound"/>, or one smooth hill; the rubber on its table.</summary>
+        /// <summary>The kit's <c>mound</c> mesh on <see cref="DiamondGeometry.Mound"/>, or one smooth hill; the rubber on its table.</summary>
         public void Mound()
         {
             var mound = Anchor(MoundName);
             var rubber = Anchor(RubberName);
-            var z = (float)Diamond.Mound;
+            var z = (float)_diamond.Mound;
             Place(mound, new Vector3(0f, 0f, z), Vector3.one, Quaternion.identity);
             Wipe(mound);
             if (DropMesh("mound", mound, "Mesh", new Vector3(0f, 0f, z), Quaternion.identity, Vector3.one, paint: true) == null)
@@ -283,7 +287,7 @@ namespace GrandSluggers.UnityClient
         public void Bags()
         {
             for (var bag = 1; bag <= 3; bag++)
-                Bag(Anchor(BagName(bag)), ParkDiamond.BagVisual(bag));
+                Bag(Anchor(BagName(bag)), ParkDiamond.BagVisual(bag, _diamond));
         }
 
         void Bag(Transform anchor, (double X, double Z) at)
@@ -355,7 +359,7 @@ namespace GrandSluggers.UnityClient
             if (_root == null) return;
             var old = _root.Find(InfieldDirtName);
             if (old != null) UnityEngine.Object.DestroyImmediate(old.gameObject);
-            var outer = ParkDiamond.OuterVerts();
+            var outer = ParkDiamond.OuterVerts(_diamond);
             var nPts = outer.Length;
             if (nPts < 8) return;
             var yTop = ParkDiamond.PathTop;
@@ -364,7 +368,7 @@ namespace GrandSluggers.UnityClient
             for (var i = 0; i < nPts; i++)
             {
                 var o = outer[i];
-                var inn = ParkDiamond.InnerOnRay(o.X, o.Z);
+                var inn = ParkDiamond.InnerOnRay(o.X, o.Z, _diamond);
                 verts[i] = new Vector3((float)inn.X, yTop, (float)inn.Z);
                 verts[nPts + i] = new Vector3((float)o.X, yTop, (float)o.Z);
                 verts[nPts * 2 + i] = new Vector3((float)inn.X, yBot, (float)inn.Z);

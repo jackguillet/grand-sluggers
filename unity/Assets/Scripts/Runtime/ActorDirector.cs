@@ -215,7 +215,7 @@ namespace GrandSluggers.UnityClient
                     x += _play.MoundX * HomeSet.PitcherWalk;
                 // The normal jump's root rise is the sim's (#719): two feet over the airtime, the ring left on the dirt.
                 var rise = (float)FielderTells.RiseFt(_live.Owed, kv.Key);
-                hero.Place(new Vector3((float)x, ParkDiamond.StandY(x, z) + rise, (float)z),
+                hero.Place(new Vector3((float)x, ParkDiamond.StandY(x, z, DiamondGeometry.Of(_play.Match.Rules)) + rise, (float)z),
                     DefenseFacing(kv.Key, x, z, highlighted && !buddyPartner));
                 if (pose == Motion.Verb.ThrowPitch && _play.Phase == MatchDirector.Phase.Flight)
                     hero.SampleMotion((float)Motion.PitchRelease + _play.Flight, dt);

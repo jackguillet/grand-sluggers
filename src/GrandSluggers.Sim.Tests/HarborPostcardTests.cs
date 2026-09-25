@@ -25,7 +25,7 @@ public class HarborPostcardTests
         Assert.True(HarborPostcard.TownPastFenceFt > 20);
         Assert.False(HarborPostcard.CenterFieldHasBleachers);
         Assert.False(HarborWall.HasNet, "chain-link net is gone; the padded wall wraps home");
-        Assert.True(HarborWall.WrapsTheDiamond(harbor));
+        Assert.True(HarborWall.WrapsTheDiamond(harbor, DiamondGeometry.Of(Rules.Default)));
         Assert.True(HarborWall.OutfieldIsTheFence(harbor));
         // Re-authored by F2-b2 (#873, FD-06-R2): it read "taper is a ramp, not stairs". The drawn
         // rail now stays hip-high to each pole, as the ball's does, and steps up to the fence there.
@@ -42,9 +42,9 @@ public class HarborPostcardTests
         Assert.Equal(HarborStands.PersonFt, HarborPostcard.CrowdPersonFt);
         Assert.True(HarborPostcard.WallSegs >= 36);
         Assert.True(HarborPostcard.WallOverlapFt >= 0.6f);
-        Assert.True(HarborPostcard.WallPiecesConnect(harbor),
+        Assert.True(HarborPostcard.WallPiecesConnect(harbor, DiamondGeometry.Of(Rules.Default)),
             "wall pieces must overlap along the ground loop, not sit as gapped slabs");
-        Assert.True(HarborWall.WrapStaysInFoul(harbor),
+        Assert.True(HarborWall.WrapStaysInFoul(harbor, DiamondGeometry.Of(Rules.Default)),
             "wrap must follow foul territory, not cut the infield");
         // Re-authored by #845 (FD-06). It used to read "the home wrap is mirrored, not two different
         // polylines", which held for every park because the builder copied the right-field half onto
@@ -87,7 +87,7 @@ public class HarborPostcardTests
         Assert.True(HarborDugout.X < 96, "dugout must sit in front of the side bleachers (~102)");
         Assert.True(HarborDugout.X - HarborDugout.HalfDeep > 42, "old pavilion was at 42");
         Assert.True(HarborDugout.StartsAfterHome(), "starts just after home, not on the plate");
-        Assert.True(HarborDugout.EndsBeforeTheBag(), "ends before 1B/3B, not on the bag");
+        Assert.True(HarborDugout.EndsBeforeTheBag(DiamondGeometry.Of(Rules.Default)), "ends before 1B/3B, not on the bag");
         Assert.True(HarborDugout.HalfAlong >= 16f && HarborDugout.HalfAlong <= 24f,
             "dugout is two-thirds the old home-to-bag shed");
         Assert.True(HarborDugout.FieldStairRun < 3f, "stairs stay in the pit, not a runway on the grass");
@@ -120,11 +120,11 @@ public class HarborPostcardTests
     [Fact]
     public void InfieldIsPathsAndBagsNotADirtLake()
     {
-        Assert.True(HarborInfield.PathIsNotALake());
+        Assert.True(HarborInfield.PathIsNotALake(DiamondGeometry.Of(Rules.Default)));
         Assert.True(HarborInfield.BagIsABag());
         Assert.True(HarborInfield.HomePackedIsAPad());
-        Assert.True(HarborInfield.LawnRespectsPits());
-        Assert.True(HarborInfield.PathIsNotALake());
+        Assert.True(HarborInfield.LawnRespectsPits(DiamondGeometry.Of(Rules.Default)));
+        Assert.True(HarborInfield.PathIsNotALake(DiamondGeometry.Of(Rules.Default)));
         Assert.True(HarborInfield.BagIsABag());
     }
 

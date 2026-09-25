@@ -52,8 +52,12 @@ namespace GrandSluggers.UnityClient
 
         public void ContactPuff(Vector3 p) => BurstPuff(p);
 
-        public void Build(Transform parent, BallShadowFeel shadowFeel)
+        /// <summary>The diamond the shadow climbs the mound of (the park's table).</summary>
+        DiamondGeometry _diamond;
+
+        public void Build(Transform parent, BallShadowFeel shadowFeel, DiamondGeometry diamond)
         {
+            _diamond = diamond;
             if (_root != null) Destroy(_root.gameObject);
             if (_shadow != null) Destroy(_shadow.gameObject);
             if (_puff != null) Destroy(_puff.gameObject);
@@ -405,7 +409,7 @@ namespace GrandSluggers.UnityClient
                 var angle = (i - 1) * Mathf.PI * 2 / ShadowSegments;
                 var x = p.x + (i == 0 ? 0 : System.Math.Cos(angle) * radius);
                 var z = p.z + (i == 0 ? 0 : System.Math.Sin(angle) * radius);
-                var ground = BallShadow.Project(x, z, _shadowFeel);
+                var ground = BallShadow.Project(x, z, _shadowFeel, _diamond);
                 _shadowVertices[i] = _shadow.InverseTransformPoint(
                     new Vector3((float)ground.X, (float)ground.Y, (float)ground.Z));
             }

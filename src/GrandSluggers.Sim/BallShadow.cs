@@ -29,7 +29,7 @@ public static class BallShadow
     /// Clear the field's highest flat skin and follow the mound. The small gap above grass
     /// also prevents the disk from slicing into dirt when it straddles the apron edge.
     /// </summary>
-    public static Vec3 Project(double x, double z, BallShadowFeel feel) =>
+    public static Vec3 Project(double x, double z, BallShadowFeel feel, DiamondGeometry diamond) =>
         new(x, Math.Max(Math.Max(ParkDiamond.GrassTop, ParkDiamond.PathTop),
-            ParkDiamond.StandY(x, z)) + feel.SurfaceLiftFt, z);
+            ParkDiamond.StandY(x, z, diamond)) + feel.SurfaceLiftFt, z);
 }

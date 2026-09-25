@@ -70,7 +70,7 @@ public sealed class CompactFieldTests
 
         // The dirt's far edge.
         Assert.Equal(135.56, infield.MoundFt + infield.BackArcFt, 2);
-        Assert.Equal(ParkDiamond.DirtMaxZ, infield.MoundFt + infield.BackArcFt, 2);
+        Assert.Equal(ParkDiamond.DirtMaxZ(DiamondGeometry.Of(Rules.Default)), infield.MoundFt + infield.BackArcFt, 2);
 
         // The vertex-to-bag gap, and the pad clearance it leaves.
         Assert.Equal(12.13, infield.CornerFt - infield.InnerHalfFt, 2);

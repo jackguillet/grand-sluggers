@@ -77,9 +77,11 @@ namespace GrandSluggers.UnityClient
             EnsureAnchors();
         }
 
-        public void Bind(Park park, bool night = false)
+        public void Bind(Park park, RulesTable rules, bool night = false)
         {
             _park = park;
+            _diamond = DiamondGeometry.Of(rules);
+            _field = null;
             _night = night;
             // The Harbor kit draws a park whose lawn slot it fills (FD-16, FR-13), never a park chosen by its id.
             _slots = ArtBinder.ParkKit(park != null ? park.Id : null);
@@ -130,10 +132,13 @@ namespace GrandSluggers.UnityClient
         }
 
         /// <summary>The one field kit, built under this component's placed anchors.</summary>
-        FieldKit Field => _field ??= new FieldKit(transform);
+        FieldKit Field => _field ??= new FieldKit(transform, _diamond);
 
-        /// <summary>The middle of the square, halfway to second, from the sim's infield table (<see cref="Diamond.Second"/>).</summary>
-        static float DiamondCentreZ => (float)(Diamond.Second.Z * 0.5);
+        /// <summary>The bound table's diamond (<see cref="Bind"/>); null until a park is bound.</summary>
+        DiamondGeometry _diamond;
+
+        /// <summary>The middle of the square, halfway to second, on the bound table (0 before a park is bound: the slabs are placeholders until <see cref="Dress"/> places them).</summary>
+        float DiamondCentreZ => _diamond != null ? ParkDiamond.CenterZ(_diamond) : 0f;
 
         public void EnsureAnchors()
         {
