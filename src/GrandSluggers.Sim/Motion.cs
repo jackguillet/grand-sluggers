@@ -14,7 +14,7 @@ public static class Motion
         Walk, Run, Jump, Clamber,
         ChargePitch, ThrowPitch, Throw,
         ChargeSwing, Swing, CheckSwing, Bunt, Miss, LetGo,
-        Catch, Dive, Crouch, StealLead, Spin,
+        Catch, Dive, DiveAir, Crouch, StealLead, Spin,
         Scoop, Slide,
         // The steal race (#966): the catcher's receive-to-release, the sweep tag, the head-first slide, the runner's reversal.
         CatcherThrow, Tag, SlideHeadFirst, TurnBack
@@ -47,6 +47,11 @@ public static class Motion
     public const double ScoopContact = 0.22;
     public const double SlidePlant = 0.18;
     public const double HoldDur = 0.20;
+    /// <summary>
+    /// The dive in flight: laid out off the dirt while the lunge carries the body (<c>DiveT</c>). The sim lifts no diver, so
+    /// the take bakes its own rise; the body lands in the ground <c>dive</c> for the recovery and the knockback.
+    /// </summary>
+    public const string DiveAirClip = "dive-air";
     /// <summary>The squared bunt toward the batter's pull side and toward the other field (PH-14-R3): the barrel shows the held side.</summary>
     public const string BuntPullClip = "bunt-pull";
     public const string BuntPushClip = "bunt-push";
@@ -102,6 +107,7 @@ public static class Motion
         new("miss", false, true, HoldDur),
         new("catch", false, false, HoldDur),
         new("dive", false, false, HoldDur),
+        new(DiveAirClip, false, false, HoldDur),
         new("crouch", false, false, HoldDur),
         new("stealLead", false, false, HoldDur),
         new("spin", false, false, HoldDur),
@@ -169,6 +175,7 @@ public static class Motion
         Verb.Miss => new("miss", Clock.Verb),
         Verb.Catch => new("catch", Clock.Verb),
         Verb.Dive => new("dive", Clock.Verb),
+        Verb.DiveAir => new(DiveAirClip, Clock.Verb),
         Verb.Crouch => new("crouch", Clock.Verb),
         Verb.StealLead => new("stealLead", Clock.Verb),
         Verb.Spin => new("spin", Clock.Verb),

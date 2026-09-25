@@ -66,6 +66,18 @@ public class MotionTests
     }
 
     [Fact]
+    public void TheDiveInFlightIsItsOwnHeldTake()
+    {
+        // The lunge plays the layout off the dirt; the ground dive stays the recovery and the knockback's.
+        var air = Motion.CueFor(Motion.Verb.DiveAir);
+        Assert.Equal(Motion.DiveAirClip, air.Clip);
+        Assert.Equal(Motion.Clock.Verb, air.Clock);
+        Assert.True(Motion.Holds(Motion.Verb.DiveAir));
+        Assert.NotEqual(Motion.CueFor(Motion.Verb.Dive).Clip, air.Clip);
+        Assert.False(Motion.IsHanded(Motion.DiveAirClip));
+    }
+
+    [Fact]
     public void HandedTakesAreExactlyTheHittingAndThrowingOnes()
     {
         var handed = Motion.Clips.Where(c => c.Handed).Select(c => c.Id).ToHashSet();

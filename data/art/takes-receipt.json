@@ -148,6 +148,16 @@
       ]
     },
     {
+      "file": "dive-air.fbx",
+      "sha256": "f863846beaf39ded1073d42a75f240e89e2e63136d675668d8d4128fade2fb01",
+      "frames": 13,
+      "contracts": [
+        "dive",
+        "feet",
+        "sockets"
+      ]
+    },
+    {
       "file": "dive.fbx",
       "sha256": "d4e859cd720c823f5c5a86fbf2914ce360fd1449798231bafe91a5d1ab2b0388",
       "frames": 13,
@@ -448,6 +458,16 @@
       "frames": 13,
       "contracts": [
         "crouch",
+        "feet",
+        "sockets"
+      ]
+    },
+    {
+      "file": "styles/ape/dive-air.fbx",
+      "sha256": "08c40bdbe8b30044806051bffcd432966cc751d1e3a97685aa568835c9878587",
+      "frames": 13,
+      "contracts": [
+        "dive",
         "feet",
         "sockets"
       ]

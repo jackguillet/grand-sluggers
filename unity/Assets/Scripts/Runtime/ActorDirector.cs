@@ -138,7 +138,7 @@ namespace GrandSluggers.UnityClient
                         pose = Motion.Verb.Tag;
                     else if (_live.Caught && _play.Preview != null && _play.Preview.Grounder) pose = Motion.Verb.Scoop;
                     else if (_live.Caught || _live.Buddy) pose = Motion.Verb.Catch;
-                    else if (_live.DiveT > 0) pose = Motion.Verb.Dive;
+                    else if (_live.DiveT > 0) pose = Motion.Verb.DiveAir;
                     else if (_play.Preview != null && _play.Path != null)
                     {
                         var fromX = x;
@@ -430,7 +430,7 @@ namespace GrandSluggers.UnityClient
         {
             if (caught) return pre.Grounder ? Motion.Verb.Scoop : Motion.Verb.Catch;
             var a = who.FieldAbility;
-            if (a == FieldAbilityId.Dive && pre.Grounder) return Motion.Verb.Dive;
+            if (a == FieldAbilityId.Dive && pre.Grounder) return Motion.Verb.DiveAir;
             if (a == FieldAbilityId.Burrow && pre.Grounder) return Motion.Verb.Dive;
             if (a == FieldAbilityId.SuperJump && pre.HomeRunLikely) return Motion.Verb.Jump;
             if (a == FieldAbilityId.Clamber && pre.HomeRunLikely) return Motion.Verb.Clamber;

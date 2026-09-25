@@ -675,6 +675,16 @@ DIVE = [
              rFore=limb(14), lThigh=limb(-6, 6), rThigh=limb(-2, 8), lShin=limb(18), rShin=limb(26))),
 ]
 
+# The dive in flight: the same layout off the dirt while the lunge carries the body, the head a little higher than the seat
+# and the legs trailing up. The sim lifts no diver, so the take bakes its rise (DIVE_AIR_RISE, the lowest body point).
+DIVE_AIR = [
+    (0.00, K(pelvis=spine(78), torso=spine(6), head=spine(-36), lUpper=limb(176, 8), rUpper=limb(150, 14), lFore=limb(4),
+             rFore=limb(14), lThigh=limb(-12, 6), rThigh=limb(-8, 8), lShin=limb(30), rShin=limb(38))),
+    (HOLD, K(pelvis=spine(79), torso=spine(6), head=spine(-38), lUpper=limb(178, 8), rUpper=limb(152, 14), lFore=limb(4),
+             rFore=limb(14), lThigh=limb(-12, 6), rThigh=limb(-8, 8), lShin=limb(30), rShin=limb(38))),
+]
+DIVE_AIR_RISE = 0.9
+
 # The catcher's squat (#558), also the get-up and the wall crouch: feet wider than the shoulders and flat, the seat down to
 # the knees, the chest up, the glove out in front at chest height as the target, the bare hand tucked behind the back.
 CROUCH = [
@@ -1089,30 +1099,45 @@ def sole_height(arm) -> float:
     return lowest(("lShoe", "rShoe"))
 
 
-def dive_frame(arm, t):
-    """The dive lies on its lowest point: the pose, then the root dropped until the body touches the dirt."""
-    apply_pose(arm, pose_at(DIVE, t, True, False, HOLD))
+def _lay(arm, keys, t, rise):
+    """A laid-out body: the pose, then the root moved until its lowest point is `rise` above the dirt."""
+    apply_pose(arm, pose_at(keys, t, True, False, HOLD))
     root = arm.pose.bones["root"]
     matrix = root.matrix.copy()
-    matrix.translation.z -= lowest(BODY_MESHES)
+    matrix.translation.z += rise - lowest(BODY_MESHES)
     root.matrix = matrix
     bpy.context.view_layer.update()
+
+
+def dive_frame(arm, t):
+    """The dive lies on its lowest point, on the dirt."""
+    _lay(arm, DIVE, t, 0.0)
+
+
+def dive_air_frame(arm, t):
+    """The dive in flight: the layout with its lowest point DIVE_AIR_RISE off the dirt."""
+    _lay(arm, DIVE_AIR, t, DIVE_AIR_RISE)
 
 
 def _width(arm, a, b):
     return (arm.matrix_world @ arm.pose.bones[a].head - arm.matrix_world @ arm.pose.bones[b].head).length
 
 
-def dive_validate(arm, t, bats):
-    """Laid out: on the dirt, near flat (head and seat level), the glove stretched out past the head and low."""
+def dive_validate(arm, t, bats, rise=0.0, label="dive"):
+    """Laid out: on the dirt (in flight: `rise` off it), near flat (head and seat level), the glove stretched out past the
+    head and low."""
     head, glove = center("headMesh"), center("lHand")
     seat = arm.matrix_world @ arm.pose.bones["pelvis"].head
-    if abs(lowest(BODY_MESHES)) > 0.02:
-        raise RuntimeError(f"dive: the body is {lowest(BODY_MESHES):.2f} off the dirt at {t:.3f}")
+    if abs(lowest(BODY_MESHES) - rise) > 0.02:
+        raise RuntimeError(f"{label}: the body is {lowest(BODY_MESHES):.2f} off the dirt at {t:.3f}; it lies {rise}")
     if abs(head.z - seat.z) > 0.8:
-        raise RuntimeError(f"dive: not laid out; head {head.z:.2f} and seat {seat.z:.2f} at {t:.3f}")
+        raise RuntimeError(f"{label}: not laid out; head {head.z:.2f} and seat {seat.z:.2f} at {t:.3f}")
     if glove.y > head.y - 0.8 or glove.z > head.z + 0.3:
-        raise RuntimeError(f"dive: the glove ({glove.y:.2f}, {glove.z:.2f}) does not stretch out past the head ({head.y:.2f}, {head.z:.2f})")
+        raise RuntimeError(f"{label}: the glove ({glove.y:.2f}, {glove.z:.2f}) does not stretch out past the head ({head.y:.2f}, {head.z:.2f})")
+
+
+def dive_air_validate(arm, t, bats):
+    dive_validate(arm, t, bats, DIVE_AIR_RISE, "dive-air")
 
 
 def crouch_validate(arm, t, bats):
@@ -1596,6 +1621,8 @@ def all_takes(style: str | None = None):
         Take("catch", CATCH, duration=HOLD, validate=catch_validate, contracts=("catch",)),
         Take("dive", None, duration=HOLD, sink=1.0, custom=dive_frame, validate=dive_validate, contracts=("dive",),
              sheet_times=[0.0, HOLD]),
+        Take("dive-air", None, duration=HOLD, sink=1.0, custom=dive_air_frame, validate=dive_air_validate,
+             contracts=("dive",), sheet_times=[0.0, HOLD]),
         Take("crouch", CROUCH, duration=HOLD, sink=0.8, ground=True, validate=crouch_validate, contracts=("crouch",)),
         Take("stealLead", STEAL_LEAD, duration=HOLD, sink=0.8, ground=True, validate=steal_lead_validate, contracts=("lead",)),
         Take("spin", SPIN, duration=HOLD, validate=spin_validate, contracts=("spin",)),

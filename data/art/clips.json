@@ -187,6 +187,14 @@
       "playerSlot": "Assets/Resources/Art/Animation/Clips/dive"
     },
     {
+      "id": "dive-air",
+      "loop": false,
+      "handed": false,
+      "events": [],
+      "slot": "Assets/Art/Animation/Clips/dive-air",
+      "playerSlot": "Assets/Resources/Art/Animation/Clips/dive-air"
+    },
+    {
       "id": "crouch",
       "loop": false,
       "handed": false,

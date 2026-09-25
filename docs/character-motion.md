@@ -85,6 +85,7 @@ Mesh landmarks remain `torsoMesh`, `Stripe`, `headMesh`, `EyeL`, `EyeR`, `lHand`
 | CheckSwing, Bunt, Miss | checkSwing / bunt (bunt-pull, bunt-push by the held side) / miss | verb (hold) | yes | |
 | LetGo | swing-letgo | verb, from `LetGoStartAt(charge)` | yes | |
 | Catch, Dive, Crouch, StealLead, Spin | catch / dive / crouch / stealLead / spin | verb (hold) | no | |
+| DiveAir | dive-air (the lunge in flight; the ground `dive` is the recovery and the knockback) | verb (hold) | no | |
 | Scoop | scoop | verb | no | Contact 0.22 |
 | Slide | slide | verb | no | FootPlant 0.18 |
 | CatcherThrow | catcherThrow: receive in the crouch, transfer, plant, release, follow-through | verb, release warped to the sim's preparation | yes | Release 0.30 |
@@ -95,7 +96,8 @@ Mesh landmarks remain `torsoMesh`, `Stripe`, `headMesh`, `EyeL`, `EyeR`, `lHand`
 **Catalog first, then the take.** A clip row may name a `standIn`: an authored clip it plays until its own take lands. The row still states the contract its take must meet (length, marker, hand); until then every file, marker and hold is the stand-in's (`Motion.Played`). `cli art` refuses a stand-in that is not an authored clip, a row whose `standIn` differs from `Motion.Clips`, and a stand-in slot that already has files. The take that fills a slot drops its `standIn` in the same change. No motion style owns a stand-in slot.
 
 The fielding takes carry the reference's relationships as bake contracts (#558). The scoop at Contact has the glove within 0.45 of the dirt and 0.6 ahead of the feet, a base wider than the shoulders and the bare hand over the glove. The jump stands on the dirt at take-off and landing, its soles rise `Motion.JumpPeak` at the top key, and the glove reaches over the head and the bare hand. The catch hold has both hands above the head.
-The other holds do too. The crouch (the catcher, the get-up, the wall) has flat feet, the seat at the knees, a base wider than the shoulders, the glove out in front at chest height and the bare hand tucked. The dive lies laid out on its lowest point, head and seat level, the glove stretched past the head. The lead has a base wider than the shoulders, the seat down and the hands loose in front. The stun throws both arms out level.
+The other holds do too. The crouch (the catcher, the get-up, the wall) has flat feet, the seat at the knees, a base wider than the shoulders, the glove out in front at chest height and the bare hand tucked. The dive lies laid out on its lowest point, head and seat level, the glove stretched past the head.
+The dive in flight (`dive-air`, the lunge) is the same layout with its lowest point `DIVE_AIR_RISE` (0.9) off the dirt, since the sim lifts no diver. The lead has a base wider than the shoulders, the seat down and the hands loose in front. The stun throws both arms out level.
 
 A held load samples the one-shot at `LoadSampleAt(charge) = NormalLoadAt · (1 − charge)`: MAX holds the full coil at 0, a tap starts from the half load. The committed verb then samples `LoadedClipTime(poseT, loadAt, eventAt)`, which is monotonic and lands the marker exactly at `eventAt`. One function for pitch and swing.
 
