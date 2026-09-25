@@ -797,8 +797,7 @@ namespace GrandSluggers.UnityClient
 
         void HideBackstop()
         {
-            var kit = HarborKit.Instance != null ? HarborKit.Instance : FindAnyObjectByType<HarborKit>();
-            kit?.ShowBackstop(false);
+            _park?.Kit?.ShowBackstop(false);
         }
 
         HeroActor EnsureHero(Character who)

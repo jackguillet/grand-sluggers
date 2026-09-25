@@ -14,7 +14,6 @@ namespace GrandSluggers.UnityClient
     /// </summary>
     public sealed class HarborKit : MonoBehaviour
     {
-        public static HarborKit Instance { get; private set; }
 
         public Transform DirtPad;
         public Transform HomeDirt;
@@ -75,13 +74,7 @@ namespace GrandSluggers.UnityClient
 
         void Awake()
         {
-            Instance = this;
             EnsureAnchors();
-        }
-
-        void OnDestroy()
-        {
-            if (Instance == this) Instance = null;
         }
 
         public void Bind(Park park, bool night = false)

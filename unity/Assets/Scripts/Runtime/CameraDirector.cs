@@ -11,13 +11,12 @@ namespace GrandSluggers.UnityClient
 
         public string Shot { get; private set; } = "title";
 
-        public void Bind(CameraRig rig, CameraShots shots, FeelTable feel)
+        public void Bind(CameraRig rig, CameraShots shots, FeelTable feel, HarborKit kit)
         {
             _rig = rig;
             _shots = shots;
             if (_rig != null)
                 _rig.UseFeel(feel);
-            var kit = HarborKit.Instance;
             if (kit != null) kit.SyncShots(shots);
         }
 
