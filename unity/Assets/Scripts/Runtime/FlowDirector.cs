@@ -14,7 +14,7 @@ namespace GrandSluggers.UnityClient
         public void Tick() { _play.TickFlow(); }
     }
 
-    public sealed partial class MatchDirector : IStillHost, ISeatHost, IAtBatHost, IInPlayHost, IActorHost, IItemHost, IDefenseSwapHost, IRunnerPlayHost
+    public sealed partial class MatchDirector : IStillHost, ISeatHost, ILineupHost, IAtBatHost, IInPlayHost, IActorHost, IItemHost, IDefenseSwapHost, IRunnerPlayHost
     {
         internal void TickFlow()
         {
@@ -321,24 +321,8 @@ namespace GrandSluggers.UnityClient
 
         internal void OpenLineup()
         {
-            if (_mode == PlayMode.Exhibition)
-            {
-                var seats = LiveSeats;
-                if (_lineup == null || _lineup.HomeCaptain.Id != HomeCaptain || _lineup.AwayCaptain.Id != AwayCaptain)
-                    _lineup = LineupScreens.Open(_content, HomeCaptain, AwayCaptain, seats.Home, seats.Away);
-                else
-                {
-                    _lineup.Sit(seats.Home, seats.Away);
-                    if (_lineup.Step == LineupStep.MatchSettings) _lineup.BackToDefense();
-                    if (_lineup.Step == LineupStep.DefenseSetup) _lineup.BackToTeam();
-                }
-                _lineupX.Catch(Controls.Pad1.MenuAxisX);
-                _lineupX2.Catch(Controls.Pad2.MenuAxisX);
-                _lineupY.Catch(Controls.Pad1.MenuAxisY);
-                _lineupY2.Catch(Controls.Pad2.MenuAxisY);
-            }
-            else
-                _lineup = null;
+            if (_mode == PlayMode.Exhibition) Lineup.Open(HomeCaptain, AwayCaptain);
+            else _lineup = null;
             _phase = Phase.Lineup;
             _t = 0;
             _clip = null;
@@ -347,166 +331,7 @@ namespace GrandSluggers.UnityClient
             _cam.Play("lineup");
         }
 
-        internal void TickLineup()
-        {
-            if (_lineup == null)
-            {
-                if (Controls.SouthDown || _t > (float)_feel.LineupAutoStartSec) BeginSet();
-                return;
-            }
-
-            SyncLineupSeats();
-            if (_lineup.Step == LineupStep.MatchSettings) { TickMatchSettings(); return; }
-            TickLineupPad(Controls.Pad1, LineupSeat.Pad1, ref _lineupX, ref _lineupY);
-            if (_phase != Phase.Lineup || _lineup.Step == LineupStep.MatchSettings) return;
-            if (_lineup.HomeSeat == LineupSeat.Pad2 || _lineup.AwaySeat == LineupSeat.Pad2)
-                TickLineupPad(Controls.Pad2, LineupSeat.Pad2, ref _lineupX2, ref _lineupY2);
-        }
-
-        void SyncLineupSeats()
-        {
-            if (_lineup == null) return;
-            var seats = LiveSeats;
-            if (_lineup.HomeSeat != seats.Home || _lineup.AwaySeat != seats.Away)
-                _lineup.Sit(seats.Home, seats.Away);
-        }
-
-        void PickLineup(LineupSeat seat)
-        {
-            var focus = _lineup.FocusOf(seat);
-            if (!_lineup.PickOrSwap(seat) || seat != LineupSeat.Pad1) return;
-            GuidedObserve("T-G01", focus is LineupFocus.HomeOrder or LineupFocus.AwayOrder
-                ? GuidedAction.BattingOrderChanged : GuidedAction.GlovePositionChanged);
-        }
-
-        void DropLineup(LineupSeat seat)
-        {
-            var pool = _lineup.Pool;
-            var who = pool.Count == 0 ? null : pool[Mathf.Clamp(_lineup.PoolOf(seat), 0, pool.Count - 1)];
-            var dropped = _lineup.South(seat);
-            if (_lessons.Guided.LineupDrop(seat, who, dropped && _lineup.Step == LineupStep.TeamSetup)) GuidedFeedbackOpened();
-        }
-
-        void TickLineupPad(Controls.Pad pad, LineupSeat seat, ref MenuNav.Gate armedX, ref MenuNav.Gate armedY)
-        {
-            TickLineupStick(pad, seat, ref armedX, ref armedY);
-            if (pad.PageNext && _lineup.Step == LineupStep.TeamSetup)
-                _lineup.RandomFill(seat);
-            if (pad.WestDown && _lineup.Step == LineupStep.TeamSetup
-                && _lineup.FocusOf(seat) != LineupFocus.Pool)
-                _lineup.Remove(seat);
-            if (pad.EastDown)
-            {
-                if (_lineup.Step == LineupStep.TeamSetup) { if (seat == LineupSeat.Pad1) OpenSelect(); }
-                else _lineup.West(seat); // cancel pick, withdraw ready, then back; never change panels
-                return;
-            }
-            if ((pad.PagePrevious || pad.PageNext) && _lineup.Step == LineupStep.DefenseSetup)
-                _lineup.ToggleArea(seat);
-            if (pad.NorthDown && _lineup.CanPlay)
-            {
-                ReadyLineup(seat);
-                return;
-            }
-            if (pad.SouthDown)
-            {
-                if (_lineup.Step == LineupStep.TeamSetup) DropLineup(seat);
-                else PickLineup(seat);
-            }
-        }
-
-        void TickLineupStick(Controls.Pad pad, LineupSeat seat, ref MenuNav.Gate armedX, ref MenuNav.Gate armedY)
-        {
-            var dt = Time.unscaledDeltaTime;
-            var dx = armedX.Tick(pad.MenuAxisX, pad.MenuTapX, dt);
-            var dy = armedY.Tick(pad.MenuAxisY, pad.MenuTapY, dt);
-            if (dx == 0 && dy == 0) return;
-            if (dx != 0 && Mathf.Abs(pad.MenuAxisX) >= Mathf.Abs(pad.MenuAxisY)) dy = 0;
-            else if (dy != 0) dx = 0;
-            _lineup.Stick(seat, dx, dy);
-        }
-
-        void ReadyLineup(LineupSeat seat)
-        {
-            if (_lineup.ToggleReady(seat)) GuidedReadyChanged(seat);
-            if (!_lineup.BothReady) return;
-            if (_lineup.Step == LineupStep.DefenseSetup)
-            {
-                _lineup.OpenSettings();
-                _lineupX.Catch(Controls.Pad1.MenuAxisX);
-                _lineupY.Catch(Controls.Pad1.MenuAxisY);
-            }
-            else ConfirmDraft();
-        }
-
-        void TickMatchSettings()
-        {
-            var pad = Controls.Pad1;
-            var dy = _lineupY.Tick(pad.MenuAxisY, pad.MenuTapY, Time.unscaledDeltaTime);
-            var dx = _lineupX.Tick(pad.MenuAxisX, pad.MenuTapX, Time.unscaledDeltaTime);
-            if (dy != 0) _settings.Move(dy > 0 ? -1 : 1);
-            if (dx != 0 || pad.SouthDown)
-            {
-                var direction = dx == 0 ? 1 : dx;
-                var refusal = _settings.Refusal(LineupSeat.Pad1, direction);
-                var wasReady = HumanReady(LineupSeat.Pad1) || HumanReady(LineupSeat.Pad2);
-                var changed = _settings.Change(LineupSeat.Pad1, direction);
-                if (changed) _lineup.ResetReady();
-                _lessons.Guided.RuleEdit(_settings.Selected, LineupSeat.Pad1, refusal, changed && wasReady);
-                Innings = _settings.Innings;
-                Difficulty = _settings.Difficulty;
-            }
-            if (pad.EastDown)
-            {
-                _lineup.West(LineupSeat.Pad1);
-                GuidedReadyChanged(LineupSeat.Pad1);
-                return;
-            }
-            if (pad.NorthDown) ReadyLineup(LineupSeat.Pad1);
-            if (_phase != Phase.Lineup || _lineup.Step != LineupStep.MatchSettings) return;
-            if (_lineup.HomeSeat == LineupSeat.Pad2 || _lineup.AwaySeat == LineupSeat.Pad2)
-            {
-                if (Controls.Pad2.EastDown) { _lineup.West(LineupSeat.Pad2); GuidedReadyChanged(LineupSeat.Pad2); }
-                else if (Controls.Pad2.NorthDown) ReadyLineup(LineupSeat.Pad2);
-            }
-        }
-
-        bool HumanReady(LineupSeat seat) =>
-            (_lineup.HomeSeat == seat || _lineup.AwaySeat == seat) && seat != LineupSeat.Cpu && _lineup.IsReady(seat);
-
-        void ConfirmDraft()
-        {
-            if (_lineup != null)
-            {
-                if (_lineup.Step == LineupStep.TeamSetup)
-                {
-                    _lineup.RandomFill();
-                    _lineup.ConfirmTeam();
-                }
-                GuidedSettingsStart();
-                if (_lineup.Home != null)
-                {
-                    var homeBat = _match.HomeBat;
-                    var homeGlove = _match.HomeGlove;
-                    var awayBat = _match.AwayBat;
-                    var awayGlove = _match.AwayGlove;
-                    var away = _lineup.Away != null
-                        ? _lineup.Away.ToTeam()
-                        : PresetTeams.ForCaptain(_content, AwayCaptain);
-                    _match = Match.Exhibition(_content, _lineup.Home.ToTeam(), away, Innings, Seed, ParkId, Night, Difficulty, Hazards, mercy: _settings.Mercy, stars: _settings.Stars);
-                    RestoreGear(homeBat, homeGlove, awayBat, awayGlove);
-                }
-            }
-            BeginSet();
-        }
-
-        void RestoreGear(BatItem homeBat, GloveItem homeGlove, BatItem awayBat, GloveItem awayGlove)
-        {
-            for (var i = 0; i < 12 && _match.HomeBat.Id != homeBat.Id; i++) _match.CycleBat(true);
-            for (var i = 0; i < 12 && _match.HomeGlove.Id != homeGlove.Id; i++) _match.CycleGlove(true);
-            for (var i = 0; i < 12 && _match.AwayBat.Id != awayBat.Id; i++) _match.CycleBat(false);
-            for (var i = 0; i < 12 && _match.AwayGlove.Id != awayGlove.Id; i++) _match.CycleGlove(false);
-        }
+        internal void TickLineup() => Lineup.Tick();
 
         // The Tutorials section's flow. The menu, progress and card state are TutorialDirector's; building a lesson's match
         // and scene, and routing the card's pad, are the flow's.
@@ -715,21 +540,6 @@ namespace GrandSluggers.UnityClient
             if (_lessons.Guided.Observe(lesson, action)) GuidedFeedbackOpened();
         }
 
-        void GuidedReadyChanged(LineupSeat seat)
-        {
-            var onSettings = _lineup != null && _lineup.Step == LineupStep.MatchSettings;
-            _lessons.Guided.ReadyChanged(seat, onSettings, onSettings && _lineup.IsReady(seat));
-        }
-
-        void GuidedSettingsStart()
-        {
-            var onSettings = _lineup != null && _lineup.Step == LineupStep.MatchSettings;
-            var humans = new List<LineupSeat>();
-            if (onSettings && _lineup.HomeSeat != LineupSeat.Cpu) humans.Add(_lineup.HomeSeat);
-            if (onSettings && _lineup.AwaySeat != LineupSeat.Cpu) humans.Add(_lineup.AwaySeat);
-            if (_lessons.Guided.SettingsStart(onSettings, humans)) _lessons.FeedbackOpened();
-        }
-
         /// <summary>Call time's Reset stick card closed (<see cref="PursuitSeatDirector"/>); a recalibrated close is T-G06-C's action.</summary>
         void StickResetClosed(bool recalibrated)
         {
@@ -775,6 +585,21 @@ namespace GrandSluggers.UnityClient
         void IStillHost.HoldPitchInHand() => HoldPitchInHand();
         void IStillHost.CaptureReleaseFromHand() => CaptureReleaseFromHand();
         Vector3 IStillHost.Ball { get => _ball; set => _ball = value; }
+
+        // The lineup screens (#1042): LineupFlow owns the screens and their pads; the flow owns the settings and the match they build.
+        LineupFlow _lineupFlow;
+        internal LineupFlow Lineup => _lineupFlow ??= new LineupFlow(Play, Scene, Pads, this);
+        internal LineupScreens _lineup { get => Lineup.Screens; set => Lineup.Screens = value; }
+        TutorialDirector ILineupHost.Lessons => _lessons;
+        void ILineupHost.GuidedObserve(string lesson, GuidedAction action) => GuidedObserve(lesson, action);
+        void ILineupHost.GuidedFeedbackOpened() => GuidedFeedbackOpened();
+        ExhibitionSettings ILineupHost.Settings => _settings;
+        void ILineupHost.SettingsChanged() { Innings = _settings.Innings; Difficulty = _settings.Difficulty; }
+        string ILineupHost.AwayCaptain => AwayCaptain;
+        Match ILineupHost.NewExhibition(Team home, Team away) =>
+            Match.Exhibition(_content, home, away, Innings, Seed, ParkId, Night, Difficulty, Hazards, mercy: _settings.Mercy, stars: _settings.Stars);
+        void ILineupHost.OpenSelect() => OpenSelect();
+        void ILineupHost.BeginSet() => BeginSet();
 
         TrainingDirector ISeatHost.Coach => _coach;
         bool ISeatHost.Exhibition => _mode == PlayMode.Exhibition;
