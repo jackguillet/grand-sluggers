@@ -26,6 +26,8 @@ public sealed class ContentCatalog
     /// <summary>The star skills as data (data/abilities/star-skills.json, spec §13).</summary>
     public StarSkillTable StarSkills { get; }
     public ArtCatalog Art { get; }
+    /// <summary>The continent and the region each park stands in (data/world/regions.json; WD-05).</summary>
+    public WorldMap World { get; private init; } = null!;
 
     /// <summary>Where this catalog was read from: the data root, and the trial overlay laid over it.</summary>
     public DataRoot Root { get; }
@@ -167,8 +169,13 @@ public sealed class ContentCatalog
         if (juiceGaps.Count > 0)
             throw new InvalidDataException("Invalid weight juice:" + Environment.NewLine
                 + string.Join(Environment.NewLine, juiceGaps.Select(e => "  - " + e)));
+        var world = new WorldMap(
+            data.World.Continent,
+            data.World.Regions!.Select(r => new Region(r!.Id, r.Name, r.X!.Value, r.Y!.Value, r.Island!.Value)).ToList(),
+            data.Parks.ToDictionary(row => row.Value.Id, row => row.Value.Region, StringComparer.OrdinalIgnoreCase));
         return new ContentCatalog(root, characters, parks, parkPickOrder, bats, gloves, chemistry, shots, feel, rules, starSkills, art)
         {
+            World = world,
             CaptainIds = captainIds,
             _presets = presets
         };

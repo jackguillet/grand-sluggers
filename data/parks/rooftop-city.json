@@ -3,6 +3,7 @@
   "name": "Rooftop City",
   "faction": "goldrush",
   "pickOrder": 4,
+  "region": "eastern-capital",
   "surface": "dirt",
   "leftFenceFt": 223,
   "centerFenceFt": 272,

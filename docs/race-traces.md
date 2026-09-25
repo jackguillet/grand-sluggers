@@ -62,7 +62,7 @@ dotnet run --project src/GrandSluggers.Cli -- match --cohort harbor-calibration 
 dotnet run --project src/GrandSluggers.Cli -- match --cohort harbor-validation > /tmp/gs702-harbor-validation.json
 ```
 
-The fixture export includes S-31/S-32 at **Crystal Rink**, S-33 with one/versus human defense, a scripted two-leg relay, a Harbor fly, and both fixed-exit and fixed-tactical Harbor grounders. The fixed-input grounder stays **84 mph / 8° / −12°**. The tactical fixture asks `FlightFixtures.Landing` for **118 ft / 4° / −18°** and reports the solved exit velocity. Preserve both; the inverse solver must not conceal flight changes.
+The fixture export includes S-31/S-32 at **Aurora Rink**, S-33 with one/versus human defense, a scripted two-leg relay, a Harbor fly, and both fixed-exit and fixed-tactical Harbor grounders. The fixed-input grounder stays **84 mph / 8° / −12°**. The tactical fixture asks `FlightFixtures.Landing` for **118 ft / 4° / −18°** and reports the solved exit velocity. Preserve both; the inverse solver must not conceal flight changes.
 
 The `fault-uncovered-*` fixtures change cover start only in a temporary catalog copy to exercise waiting/reception and dropped-lob branches. Their effective identities disclose the perturbation. **They are validator fault fixtures, not calibration candidates or production measurements.** Production `data/rules/` is unchanged.
 

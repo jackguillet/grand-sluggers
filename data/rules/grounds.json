@@ -4,7 +4,7 @@
   // the overthrow's roll and the local bobble each read the row of the zone the ball is in. Every
   // row is today's number - what flight.json's roll / bounce / skid and fielding.json's
   // overthrow.decelFtPerSec2 and handling.bobble* carried - so the ground under the ball changes no
-  // play - except `ice`, Crystal Rink's own row since F9-a (Jack: numbers straight into the shipped game).
+  // play - except `ice`, Aurora Rink's own row since F9-a (Jack: numbers straight into the shipped game).
   //
   // `body` is what the ground does to a body standing on it (spec §8, §9; FD-04 B, F3-d). Each
   // multiplier scales a TIME or a LENGTH, never a speed, so above 1 always reads "more slippery":
@@ -80,7 +80,7 @@
       "overrunMul": 1.0
     }
   },
-  // Crystal Rink (F9-a): the ball runs and skids farther, the body is slower to start, stop and turn. Proposed
+  // Aurora Rink (F9-a): the ball runs and skids farther, the body is slower to start, stop and turn. Proposed
   // numbers, not tuned; Jack judges them in play (FD-13-R2).
   "ice": {
     "roll": {

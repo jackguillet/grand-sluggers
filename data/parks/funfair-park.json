@@ -3,6 +3,7 @@
   "name": "Funfair Park",
   "faction": "carnival",
   "pickOrder": 3,
+  "region": "central-plains",
   "surface": "grass",
   "leftFenceFt": 220,
   "centerFenceFt": 273,

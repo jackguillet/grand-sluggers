@@ -2,7 +2,7 @@
 
 One park, one primary gimmick. Harbor Diamond has none — it is the control map and the vertical-slice park.
 
-**Read this first (September 21, 2026).** The park entries below are **design intent**. They are not what the sim does. What a park changes today, what each hazard does today, and what is still missing are in [gameplay-spec.md](gameplay-spec.md) §14, checked against the code at `d0c6e12c`. The contract the parks are being rebuilt to is spec §0.3 (D21), decided in [plan-fields.md](decisions/plan-fields.md) ([#814](https://github.com/jackguillet/grand-sluggers/issues/814)): a park is Harbor plus the differences it names; rails and greyboxes first; Crystal Rink first; no park art before a park's greybox sitting. Where an entry below disagrees with a D21 decision, the decision wins and the entry carries a note.
+**Read this first (September 21, 2026).** The park entries below are **design intent**. They are not what the sim does. What a park changes today, what each hazard does today, and what is still missing are in [gameplay-spec.md](gameplay-spec.md) §14, checked against the code at `d0c6e12c`. The contract the parks are being rebuilt to is spec §0.3 (D21), decided in [plan-fields.md](decisions/plan-fields.md) ([#814](https://github.com/jackguillet/grand-sluggers/issues/814)): a park is Harbor plus the differences it names; rails and greyboxes first; Aurora Rink first; no park art before a park's greybox sitting. Where an entry below disagrees with a D21 decision, the decision wins and the entry carries a note.
 
 Dimensions are feet, approximate, MLB-ish but cartoon-short in the corners so homers happen.
 
@@ -15,7 +15,10 @@ Dimensions are feet, approximate, MLB-ish but cartoon-short in the corners so ho
 - Fence: 330 / 400 / 330
 - Why it exists: teach baseball before we teach gimmicks. Control park **and** trailer still: afternoon light, warning track, **sunken dugouts with stairs** set back off the dirt, backstop, bleachers with crowd in the seats. Town sits beyond the fence, not in other parks. Dirt is **paths and pads** (`HarborInfield`), not a lake. Bags are diamond-aligned squares. Lawn holes stay on `HarborDugout`.
 
-## Crystal Rink
+## Aurora Rink
+
+The park file is `crystal-rink` (its id); the name a player reads is Aurora Rink.
+
 
 - Faction: Royal Rink
 - Intent and numbers (F9-a, in the shipped game): an **ice outfield** where grounders run and skid farther (a 95-mph grounder stops at 229 ft against 187 on grass) and fielders are slower to start, stop and turn (rest to speed 0.26 s against 0.20; stop 0.16 against 0.10; turn 0.28 against 0.20) but always go where the stick points; **glass boards** from pole to pole with a livelier carom (a roll into the wall at 40 ft/s comes back 12 ft against 8 off the pad); and **cold air** that carries a little less (`dragMul` 1.06: a 105-mph fly at 32° lands 260 ft against 269). The infield and the warning track stay dirt. The numbers are a proposal for Jack to judge in play, not tuned; the park's night keeps its old look for now.
@@ -80,7 +83,9 @@ Optional later: a point-space minigame park like Sluggers’ Toy Field. Out of s
 
 ## Authoring a park
 
-`data/parks/*.json` — id, name, faction, pickOrder, dimensions, surface, wind, fence height, hazards[], notes, and the optional blocks `environment` (the park's air), `zones` (the ground of its four zones), `fence` (a polyline) and `night` (what the park is at night). A hazard is `{ "type": "freeze_volume", "x": ..., "z": ..., "radius": ... }` etc. The types are a closed library and each one has an authored row in `data/rules/hazards.json` naming the pattern it plays (F4-a, #847); a type outside the library and a type with no row are different errors and neither loads. **A hazard stays off the base paths** (FD-19, `SF-23`, F4-e #862): `cli art` refuses a disc that crosses a running lane (10 ft wide, bag to bag), the mound-to-plate lane, a bag's 12-ft pad, the mound or the 18-ft plate area, on the root's own diamond, and names the file, the hazard's index and type, and what it crosses by how many feet. The disc is the hazard's own `radius`; a warp can's or barrel's `reachPadFt` is not counted. `faction` says whose park it is: the captain of that faction plays here at home, and no two parks may name one faction. `pickOrder` is this park's place in the pregame field-pick cycle — required, an integer, and no two parks may share one, because a directory listing is alphabetical and the cycle is authored. `notes` is prose for whoever opens the file; no rule reads it.
+`data/parks/*.json` — id, name, faction, pickOrder, region, dimensions, surface, wind, fence height, hazards[], notes, and the optional blocks `environment` (the park's air), `zones` (the ground of its four zones), `fence` (a polyline) and `night` (what the park is at night). A hazard is `{ "type": "freeze_volume", "x": ..., "z": ..., "radius": ... }` etc. The types are a closed library and each one has an authored row in `data/rules/hazards.json` naming the pattern it plays (F4-a, #847); a type outside the library and a type with no row are different errors and neither loads. **A hazard stays off the base paths** (FD-19, `SF-23`, F4-e #862): `cli art` refuses a disc that crosses a running lane (10 ft wide, bag to bag), the mound-to-plate lane, a bag's 12-ft pad, the mound or the 18-ft plate area, on the root's own diamond, and names the file, the hazard's index and type, and what it crosses by how many feet. The disc is the hazard's own `radius`; a warp can's or barrel's `reachPadFt` is not counted. `faction` says whose park it is: the captain of that faction plays here at home, and no two parks may name one faction. `pickOrder` is this park's place in the pregame field-pick cycle — required, an integer, and no two parks may share one, because a directory listing is alphabetical and the cycle is authored. `notes` is prose for whoever opens the file; no rule reads it.
+
+**Where a park stands (WD-05).** Every park names its `region`, a row of `data/world/regions.json`: the continent (the Grand Reach), and its regions, each with an id, the name a player reads, a place on a unit map (x from the west coast, y from the north) and whether it is the island. A park with no region, a region the file does not have, and two parks in one region are refused by name. A region with no park waits for its park file. No rule of play reads it; the map and the menus do (`ContentCatalog.World`).
 
 **As built (F1-a, #820).** An unknown hazard *type* stops the load, and so does an unknown *key*, in the park object and in a hazard row: the error names the file and the key, the way a rule table's does (spec §16). The dead fields are resolved — `nightOnly`, `dayOnly` and the train's `periodSec` are gone from all twelve files, and FD-11's night block and F4-f's mover row will bring back what a park needs. The park list, its cycle order and the home-park map are data, not lists in code, and a park id the catalog does not have is a stop rather than a silent Harbor. Nothing is ticked; each hazard is still tested once against the ball's landing point (spec §14). Unity draws Harbor from `HarborKit` and every other park from an older primitive diamond plus one `ParkView` method per park id, so "same diamond kit" in the entries above is intent, not fact. A trial root (`trials/c80`) carries its own copy of every park file, key for key.
 
@@ -127,7 +132,7 @@ Shipped values:
 | Park | Fence | Height | Wind |
 | --- | --- | --- | --- |
 | Harbor Diamond | 330 / 400 / 330 | 12 ft (the padded wall) | 4 mph toward 20° (a harbor breeze out to right-center) |
-| Crystal Rink | 320 / 385 / 320 | 8 ft | 2 mph toward 180° (in) |
+| Aurora Rink | 320 / 385 / 320 | 8 ft | 2 mph toward 180° (in) |
 | Funfair Park | 315 / 390 / 340 | 8 ft | 6 mph toward 0° (out) |
 | Rooftop City | 318 / 388 / 322 | 12 ft (billboards) | 9 mph toward 90° (crosswind to right) |
 | Canopy Yard | 312 / 378 / 318 | 12 ft (the climb wall) | 3 mph toward 200° (in, slightly left) |

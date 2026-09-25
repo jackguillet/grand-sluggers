@@ -3,6 +3,7 @@
   "name": "Harbor Diamond",
   "faction": "spark",
   "pickOrder": 1,
+  "region": "south-coast",
   "surface": "grass",
   "leftFenceFt": 232,
   "centerFenceFt": 280,

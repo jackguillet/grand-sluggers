@@ -1,0 +1,20 @@
+// The continent the parks stand on (WD-05, WD-19; docs/decisions/plan-world.md). One land and one island.
+// Each region is one place on the map: its id, the name a player reads, and where it sits on a unit map
+// (x 0 is the west coast, 1 the east; y 0 is the north, 1 the south). `island` marks the one region off
+// the coast. A park names its region; no two parks share one, and a region with no park yet is waiting
+// for its park file.
+{
+  "continent": "The Grand Reach",
+  "regions": [
+    { "id": "frozen-north",    "name": "The Frozen North",  "x": 0.50, "y": 0.08, "island": false },
+    { "id": "high-peaks",      "name": "The High Peaks",    "x": 0.28, "y": 0.22, "island": false },
+    { "id": "eastern-capital", "name": "The Capital",       "x": 0.82, "y": 0.24, "island": false },
+    { "id": "rainforest",      "name": "The Rainforest",    "x": 0.14, "y": 0.42, "island": false },
+    { "id": "central-plains",  "name": "The Plains",        "x": 0.50, "y": 0.42, "island": false },
+    { "id": "river-delta",     "name": "The River Delta",   "x": 0.20, "y": 0.62, "island": false },
+    { "id": "south-coast",     "name": "The South Coast",   "x": 0.72, "y": 0.62, "island": false },
+    { "id": "volcano",         "name": "The Volcano",       "x": 0.20, "y": 0.82, "island": false },
+    { "id": "desert-canyon",   "name": "The Desert Canyon", "x": 0.50, "y": 0.80, "island": false },
+    { "id": "tropical-island", "name": "The Island",        "x": 0.80, "y": 0.92, "island": true }
+  ]
+}
