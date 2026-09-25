@@ -428,7 +428,7 @@ public sealed partial class TutorialSession
     {
         var rules = Match.Rules;
         var t = rules.Fielding.Throw;
-        var at = Diamond.Bag(flight.Bag);
+        var at = DiamondGeometry.Of(rules).Bag(flight.Bag);
         var distance = Diamond.Dist(flight.FromX, flight.FromZ, at.X, at.Z);
         var ordinaryRange = t.ComfortableRangeFt + t.RangePerArmFt * (thrower.Stats.Arm - InPlay.NeutralArm);
         if (distance <= ordinaryRange) return false;
