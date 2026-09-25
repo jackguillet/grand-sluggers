@@ -875,22 +875,23 @@ namespace GrandSluggers.UnityClient
                 Controls.RumbleContact(hit.Quality);
             if (CartoonJuice.DirtPuff(hit.Quality))
                 _park.Ball.ContactPuff(_ball);
+            // The batter's own contact (CH-13): the quality's freeze × its body class, and its settle.
             // The smash beat (§15): a perfect, a star swing, or a home run — smashFreeze + smashHold, the smash cam on the body.
             if (hit.Quality == ContactQuality.Perfect || hit.StarSwingUsed != null || hit.HomeRun)
             {
-                _freeze = (float)_feel.SmashFreeze;
+                _juice.Contact(_match.Batter, _feel.SmashFreeze, _feel);
                 _smash = (float)_feel.SmashHold;
                 _rig.Punch(CartoonJuice.Punch(hit.Quality));
                 _audio?.Swell();
             }
             else if (hit.Quality == ContactQuality.Nice)
             {
-                _freeze = (float)_feel.SolidFreeze;
+                _juice.Contact(_match.Batter, _feel.SolidFreeze, _feel);
                 _rig.Punch(CartoonJuice.Punch(hit.Quality));
             }
             else if (hit.Quality == ContactQuality.Sour)
             {
-                _freeze = (float)CartoonJuice.SourFreeze;
+                _juice.Contact(_match.Batter, CartoonJuice.SourFreeze, _feel);
                 _rig.Punch(CartoonJuice.Punch(hit.Quality));
             }
             AimLive();

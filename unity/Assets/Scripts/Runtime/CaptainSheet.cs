@@ -7,7 +7,7 @@ namespace GrandSluggers.UnityClient
     /// <summary>One board owns both team cards, the shared portrait rail and its controller help.</summary>
     public static class CaptainSheet
     {
-        static GUIStyle _title, _name, _body, _small, _tile, _badge, _tileBadge;
+        static GUIStyle _title, _name, _body, _small, _tile, _badge, _tileBadge, _barLabel, _barValue;
         static readonly Color Ink = FrontBoardStyle.Ink;
         static readonly Color Panel = FrontBoardStyle.Panel;
         static readonly Color One = FrontBoardStyle.Gold;
@@ -59,19 +59,27 @@ namespace GrandSluggers.UnityClient
             Text(new Rect(r.x + 18, r.y + 58, r.width - 36, 39), who.Name.ToUpperInvariant(), _name);
             Portrait(who, new Rect(r.x + 18, r.y + 108, 274, 274));
             var card = CharacterCard.Of(who);
-            var values = new[] { card.Stats.Bat, card.Stats.Pitch, card.Stats.Field, card.Stats.Run };
-            for (var i = 0; i < 4; i++)
+            Bars(r, card.Stats, accent);
+            var verbs = r.y + CarnivalFront.CaptainCardVerbsTop;
+            const float step = CarnivalFront.CaptainCardVerbPitch;
+            Text(new Rect(r.x + 314, verbs, 276, 26), card.StarPitch, _body);
+            Text(new Rect(r.x + 314, verbs + step, 276, 26), card.StarSwing, _body);
+            Text(new Rect(r.x + 314, verbs + 2 * step, 276, 24), card.FieldVerb, _small);
+            Text(new Rect(r.x + 314, verbs + 3 * step, 276, 24), HowToPlay.CardBatHand(card.Bats), _small);
+        }
+        // The four derived bars (StatBars), laid out by CarnivalFront.CaptainCardBars. Either seat draws the same rows.
+        static void Bars(Rect r, Stats stats, Color accent)
+        {
+            var bars = CarnivalFront.CaptainCardBars;
+            for (var i = 0; i < StatBars.Count; i++)
             {
-                var y = r.y + 110 + i * 34;
-                Text(new Rect(r.x + 314, y, 94, 26), CarnivalFront.CaptainStats[i], _small);
-                Fill(new Rect(r.x + 413, y + 8, 142, 10), new Color(.15f, .22f, .27f));
-                Fill(new Rect(r.x + 413, y + 8, 142 * (float)CharacterCard.BarFill(values[i]), 10), accent);
-                Text(new Rect(r.x + 566, y, 26, 26), values[i].ToString(), _small);
+                var y = r.y + bars.RowY(i);
+                var barY = r.y + bars.BarY(i);
+                Text(new Rect(r.x + bars.LabelX, y, bars.LabelW, bars.Pitch), StatBars.Labels[i], _barLabel);
+                Fill(new Rect(r.x + bars.BarX, barY, bars.BarW, bars.BarH), new Color(.15f, .22f, .27f));
+                Fill(new Rect(r.x + bars.BarX, barY, bars.BarW * (float)StatBars.Fill(stats, i), bars.BarH), accent);
+                Text(new Rect(r.x + bars.ValueX, y, bars.ValueW, bars.Pitch), StatBars.ValueText(stats, i), _barValue);
             }
-            Text(new Rect(r.x + 314, r.y + 255, 276, 26), card.StarPitch, _body);
-            Text(new Rect(r.x + 314, r.y + 285, 276, 26), card.StarSwing, _body);
-            Text(new Rect(r.x + 314, r.y + 319, 276, 26), card.FieldVerb, _small);
-            Text(new Rect(r.x + 314, r.y + 351, 276, 24), HowToPlay.CardBatHand(card.Bats), _small);
         }
         static Rect RectOf(CaptainPanelRect r) => new Rect(r.X, r.Y, r.W, r.H);
         static void Portrait(Character who, Rect r)
@@ -103,6 +111,8 @@ namespace GrandSluggers.UnityClient
             if (_title != null) return;
             _title = Style(34); _name = Style(30); _body = Style(21); _small = Style(17);
             _tile = Style(16); _tile.alignment = TextAnchor.MiddleCenter;
+            _barLabel = Style(CarnivalFront.CaptainCardBars.LabelFont);
+            _barValue = Style(CarnivalFront.CaptainCardBars.ValueFont); _barValue.alignment = TextAnchor.MiddleRight;
             _badge = Style(21); _badge.normal.textColor = Ink;
             _tileBadge = Style(16); _tileBadge.normal.textColor = Ink;
             _tileBadge.alignment = TextAnchor.MiddleCenter;

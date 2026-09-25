@@ -82,7 +82,7 @@ namespace GrandSluggers.UnityClient
             _preview = null;
             _path = null;
             _smash = 0;
-            _freeze = 0;
+            _juice.Clear();
             _turntable = false;
 
             if (StillRequest.IsSwingMatrixShot(shot))

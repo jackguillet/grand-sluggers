@@ -168,6 +168,9 @@ public sealed record FeelTable
     /// <summary>How a fielding body shows what the ball cost it (#719–#721): the dive's get-up and the impact brace.</summary>
     public FieldTellsFeel FieldTells { get; init; } = new();
 
+    /// <summary>Juice by weight (CH-13): anticipation, hit-stop, squash and settle per body class, and the hit-stop's drawn creep.</summary>
+    public WeightJuiceFeel WeightJuice { get; init; } = new();
+
     public static FeelTable Load(DataRoot dataRoot)
     {
         var path = dataRoot.Resolve("feel", "table.json");
@@ -191,7 +194,7 @@ public sealed record FeelTable
         if (errors.Count == 0)
         {
             RulesValidation.Ranges(table!, path, "feel", errors);
-            foreach (var check in new Action[] { table!.BallShadow.Validate, table.FieldTells.Validate, table.RaceCamera.Validate })
+            foreach (var check in new Action[] { table!.BallShadow.Validate, table.FieldTells.Validate, table.RaceCamera.Validate, table.WeightJuice.Validate })
             {
                 try { check(); }
                 catch (InvalidDataException ex) { errors.Add($"{path}: {ex.Message}"); }

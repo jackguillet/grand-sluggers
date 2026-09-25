@@ -182,7 +182,7 @@ public sealed class ParkLooks
         return new LookColor(n[0], n[1], n[2]);
     }
 
-    static double[] Nums(JsonNode? node, string at, int count)
+    internal static double[] Nums(JsonNode? node, string at, int count)
     {
         if (node is not JsonArray a || a.Count != count) throw Bad(at, "must be " + count + " numbers");
         var n = new double[count];
@@ -190,14 +190,14 @@ public sealed class ParkLooks
         return n;
     }
 
-    static double Num(JsonNode? node, string at) =>
+    internal static double Num(JsonNode? node, string at) =>
         node is JsonValue v && v.TryGetValue<double>(out var d) ? d : throw Bad(at, "must be a number");
 
     static string Str(JsonNode? node, string at) =>
         node is JsonValue v && v.TryGetValue<string>(out var s) && s.Length > 0 ? s : throw Bad(at, "must be a name");
 
     /// <summary>An object with exactly these keys; a key ending in <c>?</c> may be left out, and a key may be null only where the caller allows it.</summary>
-    static JsonObject Obj(JsonNode? node, string at, params string[] keys)
+    internal static JsonObject Obj(JsonNode? node, string at, params string[] keys)
     {
         if (node is not JsonObject o) throw Bad(at, "must be an object");
         var names = keys.Select(k => k.TrimEnd('?')).ToHashSet(StringComparer.Ordinal);
@@ -214,5 +214,5 @@ public sealed class ParkLooks
         for (var i = 0; i < a.Count; i++) yield return (a[i], at + "[" + i + "]");
     }
 
-    static InvalidDataException Bad(string at, string what) => new(at + " " + what);
+    internal static InvalidDataException Bad(string at, string what) => new(at + " " + what);
 }

@@ -1,0 +1,32 @@
+// The character toon (CF-7, CH-14; ToonLook): the numbers the ToonRim shader draws a body with. Characters only: the
+// jersey, trim and flesh roles. Kit props and the field keep their own materials.
+// "fill": the palette color made toy-bright: lerp toward white by "whiten", then times "gain" per channel (capped at 1).
+// "light": warped diffuse from the park's sun. "wrap" 0 is Lambert, 1 half-Lambert. The fill is lit above "bandAt" (0-1 on
+//   the warped term) and times "shade" below it; "bandSoft" is the width of the step. "shadow" is how far a received
+//   shadow pushes toward the shade band. The fill is full at a sun luminance of "sunFull" and dims below it (night);
+//   "sunTint" is how much of the sun's hue it takes. "ambient" adds the sky's light probe times the fill.
+// "rim": a band where the surface turns from the camera (1 - N.V above "at", step width "soft") that blends toward
+//   "color" by "strength". "up" 0 rims every edge, 1 only the sky-facing edges.
+{
+  "fill": {
+    "whiten": 0.08,
+    "gain": [1.18, 1.12, 1.08]
+  },
+  "light": {
+    "wrap": 0.5,
+    "bandAt": 0.5,
+    "bandSoft": 0.03,
+    "shade": [0.62, 0.56, 0.74],
+    "shadow": 0.85,
+    "sunFull": 1.1,
+    "sunTint": 0.2,
+    "ambient": 0.18
+  },
+  "rim": {
+    "color": [1.0, 0.97, 0.88],
+    "at": 0.6,
+    "soft": 0.05,
+    "strength": 0.55,
+    "up": 0.35
+  }
+}

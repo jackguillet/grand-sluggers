@@ -46,40 +46,38 @@ namespace GrandSluggers.UnityClient
         PlayMode _mode;
         Challenge _campaign;
         internal TrainingDirector _coach;
-        internal ContentCatalog _content;
-        internal Match _match;
+        // The scene and the play in flight live in two objects every director is handed (#1042); these names forward to them.
+        internal readonly MatchScene Scene = new MatchScene();
+        internal readonly PlayState Play = new PlayState();
+        internal ContentCatalog _content { get => Scene.Content; set => Scene.Content = value; }
+        internal Match _match { get => Play.Match; set => Play.Match = value; }
 
-        /// <summary>
-        /// The table this match plays on (spec §0.3): the catalog's tables at the match's difficulty rung and
-        /// in the match's park (<c>RulesTable.AtLevel(...).AtPark(...)</c>). Every reader that asks the sim
-        /// about the ball is handed this, never the catalog's global table, so a park that names an
-        /// environment is read the same here as in the sim (FD-03). Before a match exists it is the catalog's.
-        /// </summary>
-        RulesTable MatchRules => _match != null ? _match.Rules : _content != null ? _content.Rules : null;
-        internal ParkView _park;
-        internal CameraRig _rig;
-        CameraDirector _cam;
-        internal FeelTable _feel;
+        /// <summary>The table this match plays on (<see cref="PlayState.Rules"/>).</summary>
+        RulesTable MatchRules => Play.Rules(_content);
+        internal ParkView _park { get => Scene.Park; set => Scene.Park = value; }
+        internal CameraRig _rig { get => Scene.Rig; set => Scene.Rig = value; }
+        CameraDirector _cam { get => Scene.Cam; set => Scene.Cam = value; }
+        internal FeelTable _feel { get => Scene.Feel; set => Scene.Feel = value; }
         FlowDirector _flow;
         AtBatDirector _atBat;
         InPlayDirector _inPlay;
         ActorDirector _actors;
-        SpecialFx _spec;
-        ItemView _items;
-        LandingRing _ring;
-        internal StrikeZone _zone;
-        AudioBus _audio;
-        StarMeter _stars;
+        SpecialFx _spec { get => Scene.Fx; set => Scene.Fx = value; }
+        ItemView _items { get => Scene.Items; set => Scene.Items = value; }
+        LandingRing _ring { get => Scene.Ring; set => Scene.Ring = value; }
+        internal StrikeZone _zone { get => Scene.Zone; set => Scene.Zone = value; }
+        AudioBus _audio { get => Scene.Audio; set => Scene.Audio = value; }
+        StarMeter _stars { get => Scene.Stars; set => Scene.Stars = value; }
         HighlightClip _clip;
         Vector3 _hlAt;
         Sample[] _hlPath;
         bool _replaying;
         bool _turntable;
-        internal readonly Dictionary<string, HeroActor> _heroes = new Dictionary<string, HeroActor>();
+        internal Dictionary<string, HeroActor> _heroes => Scene.Heroes;
         readonly HashSet<string> _used = new HashSet<string>();
 
         internal enum Phase { Title, Select, Field, Lineup, Set, Flight, InPlay, StealThrow, Result, GameOver }
-        internal Phase _phase = Phase.Title;
+        internal Phase _phase { get => Play.Phase; set => Play.Phase = value; }
         /// <summary>The SET defense arrangement window while open; null otherwise.</summary>
         internal DefenseSetupPick _swapPick;
         MenuNav.Gate _swapX, _swapY;
@@ -104,39 +102,39 @@ namespace GrandSluggers.UnityClient
         BuntSide ShowingSide => HumanBats ? _buntSide : _match != null ? _match.CpuBatter.BuntSide : BuntSide.None;
         /// <summary>The batter is squared right now: a bunt trigger held (a human), or the CPU batter's square read at SET.</summary>
         bool SquaredNow => HumanBats ? _buntSide != BuntSide.None : _match != null && _match.CpuBatter.Squared;
-        internal float _charge;
+        internal float _charge { get => Play.Charge; set => Play.Charge = value; }
         float _chargePast;
         float _pitchCharge;
         float _pitchPast;
-        internal float _breakX;
+        internal float _breakX { get => Play.BreakX; set => Play.BreakX = value; }
         float _dash01;
         internal float _t;
         float _pip;
-        internal PitchCommand _pitch;
-        internal SwingCommand _swing;
-        internal PlayEvent _last;
-        internal AtBatResult _pending;
-        internal FieldingPreview _preview;
+        internal PitchCommand _pitch { get => Play.Pitch; set => Play.Pitch = value; }
+        internal SwingCommand _swing { get => Play.Swing; set => Play.Swing = value; }
+        internal PlayEvent _last { get => Play.Last; set => Play.Last = value; }
+        internal AtBatResult _pending { get => Play.Pending; set => Play.Pending = value; }
+        internal FieldingPreview _preview { get => Play.Preview; set => Play.Preview = value; }
         internal bool _playerFielding;
         internal bool _swung;
-        internal float _flight;
-        internal float _pitchDur = 0.5f;
-        internal bool _pitchAir;
-        internal Vector3 _relFrom;
+        internal float _flight { get => Play.Flight; set => Play.Flight = value; }
+        internal float _pitchDur { get => Play.PitchDur; set => Play.PitchDur = value; }
+        internal bool _pitchAir { get => Play.PitchAir; set => Play.PitchAir = value; }
+        internal Vector3 _relFrom { get => Play.ReleaseFrom; set => Play.ReleaseFrom = value; }
         float LiveTime => _match != null ? (float)_match.LivePlay.ElapsedSeconds : 0f;
-        float _freeze;
+        internal readonly JuiceDirector _juice = new JuiceDirector();
         float _smash;
         bool _showTiming;
         bool _feelDebug;
         bool _forceMuteHud;
         internal bool _gateHold;
-        CardToy _card;
-        LogoToy _logo;
+        CardToy _card { get => Scene.Card; set => Scene.Card = value; }
+        LogoToy _logo { get => Scene.Logo; set => Scene.Logo = value; }
         ChemToy _chem;
         float _feelSlow = 1f;
         bool _freezeCam;
         float _aimX, _aimY;
-        internal Sample[] _path;
+        internal Sample[] _path { get => Play.Path; set => Play.Path = value; }
         internal Vector3 _ball;
         internal double _fx, _fz;
         internal bool _caught, _buddy;
@@ -268,11 +266,7 @@ namespace GrandSluggers.UnityClient
                 _feelSlow = _feelSlow > 0.9f ? 0.35f : _feelSlow > 0.2f ? 0.12f : 1f;
             if (_feelDebug && Controls.FreezeCam) _freezeCam = !_freezeCam;
             if (_feelDebug && _feelSlow < 0.99f) dt *= _feelSlow;
-            if (_freeze > 0)
-            {
-                _freeze -= Time.unscaledDeltaTime;
-                dt *= 0.12f;
-            }
+            var held = _juice.Frame(Time.unscaledDeltaTime, _feel, ref dt); // the hit-stop (CH-13): the sim does not step
             _t += dt;
             if (!string.IsNullOrEmpty(_bagStamp))
             {
@@ -313,7 +307,8 @@ namespace GrandSluggers.UnityClient
                 if (!_freezeCam) _rig.Tick(dt);
                 return;
             }
-            if (!_gateHold)
+            if (held && !_gateHold && _match.LivePlay.Active) _juice.Latch(FieldInput(), RunInput());
+            else if (!_gateHold && !held)
             {
                 _flow.Tick();
                 _atBat.Tick(dt);
