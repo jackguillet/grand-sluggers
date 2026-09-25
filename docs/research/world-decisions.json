@@ -30,7 +30,7 @@
     "WD-17",
     "WD-18"
   ],
-  "next_decision": "WD-02",
+  "next_decision": "WD-03",
   "brief": "Jack, 2026-09-24: expand to 10 stadiums that make up a continent, each in the region that fits it (ice in a cold place, one in a volcano, one on a tropical island), selectable from the menu; define hazards, night lights and other defining features per stadium; grow to 10 captains, each assigned a field; one field is a tropical beach.",
   "decisions": [
     {
@@ -76,7 +76,7 @@
       "id": "WD-02",
       "area": "Gating",
       "question": "In what order does park art come?",
-      "status": "open",
+      "status": "accepted",
       "depends_on": [
         "WD-01"
       ],
@@ -98,11 +98,15 @@
       "blocks": [
         "Art children"
       ],
-      "selected_option": null,
-      "accepted_scope": null,
-      "decided_by": null,
-      "decided_at": null,
-      "decision_evidence": null
+      "selected_option": "A",
+      "accepted_scope": "Keep FD-17: all ten parks are greyboxes first; Jack sits each greybox; then art one park at a time.",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-24",
+      "decision_evidence": {
+        "kind": "conversation",
+        "question": "WD-02: A Keep FD-17 / B Art as each new park is built",
+        "answer_quote": "a"
+      }
     },
     {
       "id": "WD-03",
@@ -673,6 +677,12 @@
       "who": "Jack",
       "quote": "B",
       "effect": "WD-01 accepted: B. AGENTS.md gains the world scope line."
+    },
+    {
+      "date": "2026-09-24",
+      "who": "Jack",
+      "quote": "a",
+      "effect": "WD-02 accepted: A."
     }
   ]
 }
