@@ -117,18 +117,20 @@
     },
     {
       "file": "crouch.fbx",
-      "sha256": "5c7b36770bba075684eb5aa166ae135b6905f563ccb6b4dbf56b05bdf8c0522b",
+      "sha256": "f4fb143584284837fcf897a17590e586f9d493fd9c145e449f15768521cd6f3e",
       "frames": 13,
       "contracts": [
+        "crouch",
         "feet",
         "sockets"
       ]
     },
     {
       "file": "dive.fbx",
-      "sha256": "5990d4a911123a7818ac013d1a313ff3edd25f6b3200a3456acd8322bd95154e",
+      "sha256": "d4e859cd720c823f5c5a86fbf2914ce360fd1449798231bafe91a5d1ab2b0388",
       "frames": 13,
       "contracts": [
+        "dive",
         "feet",
         "sockets"
       ]
@@ -255,19 +257,21 @@
     },
     {
       "file": "spin.fbx",
-      "sha256": "595939d4debe3d152c9f267526805c9ccec83dc87b8a6824753a67f815d2f2dd",
+      "sha256": "6eb17e4454789bc37264b230fe36b8e9b86ba0556bb5e5169380d77dd6dd8f1f",
       "frames": 13,
       "contracts": [
         "feet",
-        "sockets"
+        "sockets",
+        "spin"
       ]
     },
     {
       "file": "stealLead.fbx",
-      "sha256": "b5d150696fbd0e559f6b8b9198d50d10ff8895c169b2c59d092fdb70ce9055a0",
+      "sha256": "0661fcefe2ab20905e0c05ac9c9b013ca829d4cababa9c3f08c6ae9249c400f6",
       "frames": 13,
       "contracts": [
         "feet",
+        "lead",
         "sockets"
       ]
     },
@@ -387,18 +391,20 @@
     },
     {
       "file": "styles/ape/crouch.fbx",
-      "sha256": "e99a7f21a0c43815f83b6a73aa31b7921c4d70271f27ec3c60eed9d36fcb2620",
+      "sha256": "3d98a066d65e4338a08b8a086a87b9d61db4a55f60469997947da114fc7b514c",
       "frames": 13,
       "contracts": [
+        "crouch",
         "feet",
         "sockets"
       ]
     },
     {
       "file": "styles/ape/dive.fbx",
-      "sha256": "0cd410ed2d7c94afcf1d4a861cea48f41e5820e109166b08e5867848f06e13dc",
+      "sha256": "0eb36da2823c59ca766146d498e8a2de945d4d738d9317fa3dde66512366e99c",
       "frames": 13,
       "contracts": [
+        "dive",
         "feet",
         "sockets"
       ]
@@ -525,19 +531,21 @@
     },
     {
       "file": "styles/ape/spin.fbx",
-      "sha256": "4704fd688f9f23ef4afbe609cf4ec80bed2c8d4ff4b2b380d9d6424190cb5902",
+      "sha256": "8a4acbe85b7b14067688d828925e64a22cd9de32ccbfbf58c87b811b2e47a09a",
       "frames": 13,
       "contracts": [
         "feet",
-        "sockets"
+        "sockets",
+        "spin"
       ]
     },
     {
       "file": "styles/ape/stealLead.fbx",
-      "sha256": "d01db140da2640c8f8b309c555ff20f360bb55944ebd3d3bb8a335bcef12f4d1",
+      "sha256": "e8395c828a44ce9c5ec842969d2f5841e4c81421fd3d5a3f87900e71c5db1c32",
       "frames": 13,
       "contracts": [
         "feet",
+        "lead",
         "sockets"
       ]
     },
