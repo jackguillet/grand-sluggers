@@ -336,7 +336,7 @@
     "repertoire": ["changeup", "curveball"],
     "starPitch": "changeup",
     "starSwing": "line",
-    "fieldAbility": "ball-dash",
+    "fieldAbility": "dive",
     "bio": "Rolls into every base. Nobody has seen the brakes."
   },
   {
@@ -404,7 +404,7 @@
     "repertoire": ["changeup", "slider"],
     "starPitch": "changeup",
     "starSwing": "line",
-    "fieldAbility": "ball-dash",
+    "fieldAbility": "super-jump",
     "bio": "Comes down the slope at full speed and never slips."
   },
   {
