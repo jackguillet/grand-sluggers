@@ -218,10 +218,10 @@ public sealed class ArtCatalog
     /// <summary>The clips every style bakes its own take of (<c>styles.clips</c>).</summary>
     public IReadOnlyList<string> StyledClips { get; init; } = [];
     /// <summary>
-    /// Body type → style id (<c>styles.byBody</c>): the stand-in until CF-3's body-class row names <c>motionStyle</c>.
-    /// Role players wear their captain's body, so they move in its style.
+    /// The body-class table (<c>data/rules/body-classes.json</c>): a body moves in the style its class's <c>motionStyle</c>
+    /// names. <see cref="ContentCatalog.Load"/> sets it from the rules; a role player plays its captain's class.
     /// </summary>
-    public IReadOnlyDictionary<string, string> StyleByBody { get; init; } = new Dictionary<string, string>();
+    public BodyClassLibrary? Classes { get; set; }
     public string StyleSlot { get; init; } = "";
     public string StylePlayerSlot { get; init; } = "";
     /// <summary>The bake's receipt (<c>data/art/takes-receipt.json</c>): per take file, its SHA-256 and the contracts it passed.</summary>
@@ -237,9 +237,13 @@ public sealed class ArtCatalog
         return style is not null;
     }
 
-    /// <summary>The motion style this character moves in, by the body it wears; null when none is named.</summary>
+    /// <summary>
+    /// The motion style this character moves in: its body class's <c>motionStyle</c>. Null for a character with no class
+    /// (a hand-built fixture) or before the class table is bound; it then plays the shared takes.
+    /// </summary>
     public MotionStyle? StyleOf(Character who) =>
-        StyleByBody.TryGetValue(Silhouette.BodyType(who), out var id) && TryStyle(id, out var style) ? style : null;
+        Classes is { } classes && !string.IsNullOrEmpty(who.BodyClass) && classes.Has(who.BodyClass)
+        && TryStyle(classes.Of(who.BodyClass).MotionStyle, out var style) ? style : null;
 
     /// <summary>
     /// Authoring and player FBX paths for a clip, hand and style: the style's own take when it has one
@@ -575,10 +579,36 @@ public sealed class ArtCatalog
                 }
             }
         }
-        foreach (var (body, styleId) in StyleByBody)
-            if (!TryStyle(styleId, out _)) errors.Add("styles.byBody " + body + " names unknown style " + styleId);
-        foreach (var id in content.CaptainIds)
-            if (StyleOf(content.Must(id)) is null) errors.Add("captain " + id + " has no motion style (styles.byBody)");
+        // The link CF-3 deferred: every class names a style that exists, and every style is some class's or reserved.
+        errors.AddRange(StyleLinkErrors(Styles, Classes ?? content.Rules.BodyClasses));
+        foreach (var who in content.Characters.Values)
+            if (!string.IsNullOrEmpty(who.BodyClass) && StyleOf(who) is null)
+                errors.Add($"character {who.Id} (class {who.BodyClass}) resolves to no motion style");
+    }
+
+    /// <summary>
+    /// The class ↔ style link (CF-3 deferred it to CF-5): every body class's <c>motionStyle</c> is a style row, and every
+    /// style is some class's or marked <c>reserved</c> (authored ahead of its class).
+    /// </summary>
+    public static IReadOnlyList<string> StyleLinkErrors(IReadOnlyList<MotionStyle> styles, BodyClassLibrary classes)
+    {
+        var errors = new List<string>();
+        var ids = new HashSet<string>(styles.Select(s => s.Id), StringComparer.OrdinalIgnoreCase);
+        var used = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var row in classes.Classes)
+        {
+            used.Add(row.MotionStyle);
+            if (!ids.Contains(row.MotionStyle))
+                errors.Add($"body class {row.Id} motionStyle '{row.MotionStyle}' is not a style in data/art/clips.json styles.rows");
+        }
+        foreach (var style in styles)
+        {
+            if (!used.Contains(style.Id) && !style.Reserved)
+                errors.Add($"motion style {style.Id} is no body class's motionStyle; name it in data/rules/body-classes.json or mark it reserved");
+            if (used.Contains(style.Id) && style.Reserved)
+                errors.Add($"motion style {style.Id} is marked reserved but a body class plays it");
+        }
+        return errors;
     }
 
     static bool SameBytes(string a, string b)
@@ -635,7 +665,7 @@ public sealed class ArtCatalog
         {
             var owned = Math.Abs(s.ReachScale - 1) > 1e-9 ? motionIds : (IReadOnlyList<string>)styled;
             return new MotionStyle(s.Id, s.Signature, s.RunCycle, s.WalkCycle, s.ReachScale, s.BootsScale,
-                new HashSet<string>(owned, StringComparer.OrdinalIgnoreCase));
+                new HashSet<string>(owned, StringComparer.OrdinalIgnoreCase)) { Reserved = s.Reserved };
         }).ToList();
         var receiptPath = Art("takes-receipt.json");
         var receipt = new Dictionary<string, (string Sha, IReadOnlyList<string> Contracts)>(StringComparer.Ordinal);
@@ -647,7 +677,6 @@ public sealed class ArtCatalog
             ExtrasSlot = extrasFile.Slot,
             Styles = styles,
             StyledClips = styled,
-            StyleByBody = new Dictionary<string, string>(styleDto.ByBody ?? [], StringComparer.OrdinalIgnoreCase),
             StyleSlot = styleDto.Slot,
             StylePlayerSlot = styleDto.PlayerSlot,
             Receipt = receipt,
@@ -683,7 +712,6 @@ public sealed class ArtCatalog
         public string PlayerSlot { get; set; } = "";
         public List<string>? Clips { get; set; }
         public List<StyleDto>? Rows { get; set; }
-        public Dictionary<string, string>? ByBody { get; set; }
     }
     sealed class StyleDto
     {
@@ -693,6 +721,8 @@ public sealed class ArtCatalog
         public double WalkCycle { get; set; }
         public double ReachScale { get; set; }
         public double BootsScale { get; set; }
+        /// <summary>A style authored ahead of the body class that will play it.</summary>
+        public bool Reserved { get; set; }
     }
     sealed class ReceiptFile
     {

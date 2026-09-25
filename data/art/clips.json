@@ -210,7 +210,7 @@
     }
   ],
   "styles": {
-    "notes": "Motion styles (CH-12, CF-5): one per body class, room for about fifteen. A style owns its own take of each clip in `clips` (run, walk, idle, the batting stance in the two swings, the windup in the two pitches, and cheer, which is the captain's signature beat), baked by tools/blender/hero_shared_takes.py for both hands into `{slot}/{id}/{clip}`. Every other clip is the shared take, except for a style whose reach is not 1: its takes move the elbow and wrist, so it owns every clip. runCycle and walkCycle are rig units of ground per loop (two steps); the loop's phase advances with the distance the body covers (Gait). `byBody` maps a body type to its style until CF-3's body-class row names it (`motionStyle`).",
+    "notes": "Motion styles (CH-12, CF-5): one per body class, room for about fifteen. A style owns its own take of each clip in `clips` (run, walk, idle, the batting stance in the two swings, the windup in the two pitches, and cheer, which is the captain's signature beat), baked by tools/blender/hero_shared_takes.py for both hands into `{slot}/{id}/{clip}`. Every other clip is the shared take, except for a style whose reach is not 1: its takes move the elbow and wrist, so it owns every clip. runCycle and walkCycle are rig units of ground per loop (two steps); the loop's phase advances with the distance the body covers (Gait). A body wears the style its body class names (data/rules/body-classes.json `motionStyle`); every style is some class's, or marks itself `reserved` for a class still to come.",
     "slot": "Assets/Art/Animation/Clips/styles",
     "playerSlot": "Assets/Resources/Art/Animation/Clips/styles",
     "clips": [
@@ -280,15 +280,6 @@
         "reachScale": 1.0,
         "bootsScale": 1.0
       }
-    ],
-    "byBody": {
-      "rio": "harbor-kid",
-      "vale": "pageant",
-      "zig": "speed",
-      "brondo": "brick",
-      "konga": "ape",
-      "ashlord": "villain",
-      "fenn": "turtle"
-    }
+    ]
   }
 }

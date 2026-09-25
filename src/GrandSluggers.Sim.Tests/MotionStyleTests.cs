@@ -71,9 +71,25 @@ public class MotionStyleTests
                 Assert.StartsWith(style.Id + "/", file);
             }
         }
-        // Role players wear their captain's body, so they move in its style.
-        foreach (var who in _content.Characters.Values.Where(c => !c.Captain))
-            Assert.Equal(Art.StyleOf(_content.Must(who.BodyType))!.Id, Art.StyleOf(who)!.Id);
+        // The style comes from the body class (data/rules/body-classes.json motionStyle); a role player plays its class's.
+        foreach (var who in _content.Characters.Values)
+            Assert.Equal(_content.Rules.BodyClasses.Of(who.BodyClass).MotionStyle, Art.StyleOf(who)!.Id);
+        // A hand-built body with no class plays the shared takes.
+        Assert.Null(Art.StyleOf(_content.Must("rio") with { BodyClass = "" }));
+    }
+
+    [Fact]
+    public void EveryClassNamesAStyleAndEveryStyleIsAClassesOrReserved()
+    {
+        Assert.Empty(ArtCatalog.StyleLinkErrors(Art.Styles, _content.Rules.BodyClasses));
+        var classes = _content.Rules.BodyClasses;
+        var rows = classes.Classes.ToList();
+        var typo = classes with { Classes = [rows[0] with { MotionStyle = "harbour-kid" }, .. rows.Skip(1)] };
+        Assert.Contains(ArtCatalog.StyleLinkErrors(Art.Styles, typo), e => e.Contains("harbour-kid"));
+        var orphan = classes with { Classes = rows.Where(r => r.MotionStyle != "turtle").ToList() };
+        Assert.Contains(ArtCatalog.StyleLinkErrors(Art.Styles, orphan), e => e.Contains("turtle"));
+        var reserved = Art.Styles.Select(s => s.Id == "turtle" ? s with { Reserved = true } : s).ToList();
+        Assert.Empty(ArtCatalog.StyleLinkErrors(reserved, orphan));
     }
 
     [Fact]

@@ -153,6 +153,8 @@ public sealed class ContentCatalog
         var art = ArtCatalog.Load(root);
         // The walk / run take reads the body's own pursuit profile (#1111): the rules' chase speeds and the feel share.
         art.Gait = new GaitProfile(rules, feel.GaitRunOfPursuit);
+        // A body moves in the style its body class names (data/rules/body-classes.json motionStyle).
+        art.Classes = rules.BodyClasses;
         var starPitches = new Dictionary<string, StarPitchSkill>(StringComparer.OrdinalIgnoreCase);
         foreach (var (id, dto) in data.StarSkills.Pitches ?? [])
             if (dto is not null) starPitches[id] = dto.ToPitch();

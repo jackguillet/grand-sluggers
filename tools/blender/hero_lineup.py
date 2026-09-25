@@ -110,7 +110,7 @@ def read_captains(repo: Path, jsonc):
         doc = jsonc.load(path)
         if isinstance(doc, dict) and doc.get("captain") and doc.get("proportions"):
             captains.append({"id": doc["id"], "name": doc.get("name", doc["id"]), "faction": doc["faction"],
-                             "proportions": doc["proportions"]})
+                             "proportions": doc["proportions"], "bodyClass": doc.get("bodyClass", "")})
     return captains
 
 
@@ -232,7 +232,10 @@ def main(argv):
     has_build = hasattr(body, "set_build")
 
     styles = getattr(takes, "STYLE_POSES", None)
-    by_body = getattr(takes, "STYLE_DOC", {}).get("byBody", {}) if styles else {}
+    # A captain moves in its body class's style (data/rules/body-classes.json motionStyle).
+    class_file = repo / "data/rules/body-classes.json"
+    class_style = {r["id"]: r["motionStyle"] for r in jsonc.load(class_file)["classes"]} if class_file.exists() else {}
+    by_body = {c["id"]: class_style.get(c.get("bodyClass", "")) for c in captains} if styles else {}
 
     def place(c, beat):
         """Pose the captain in its motion style's beat (the shared take on a tree without styles), at unit scale."""

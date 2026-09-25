@@ -15,6 +15,9 @@ public sealed record MotionStyle(
     string Id, string Signature, double RunCycle, double WalkCycle, double Reach, double Boots,
     IReadOnlyCollection<string> Clips)
 {
+    /// <summary>A style authored ahead of the body class that will play it (<c>reserved</c>); cli art lets it go unused.</summary>
+    public bool Reserved { get; init; }
+
     /// <summary>A style whose reach moves the elbow and wrist bakes every clip; the shared takes would not reach its hands.</summary>
     public bool OwnsEveryClip => Math.Abs(Reach - 1) > 1e-9;
 
