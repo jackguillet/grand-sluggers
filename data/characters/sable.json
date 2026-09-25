@@ -17,9 +17,9 @@
   "bats": "R",
   "throws": "R",
   "repertoire": ["sinker", "changeup"],
-  // Generic library abilities until this captain's own three land (WD-15 A; #1149); never another captain's.
-  "starPitch": "breaker",
-  "starSwing": "line",
-  "fieldAbility": "dive",
+  // His own three (WD-15 A): the Mirage Ball's twin, the Sidewinder's first-hop kick, the Sand Scoop's low reach.
+  "starPitch": "mirageball",
+  "starSwing": "sidewinder",
+  "fieldAbility": "sand-scoop",
   "bio": "A desert trickster from the canyon rim. The sinker drops out of the heat haze; nobody reads where it went."
 }

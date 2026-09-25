@@ -9,7 +9,7 @@ public class BodyScaleTests
     readonly ContentCatalog _content = Shipped.Content;
 
     static readonly string[] NotGrow =
-        ["lick-catch", "super-jump", "dive", "laser", "clamber", "snap-throw", ""];
+        ["lick-catch", "super-jump", "dive", "laser", "clamber", "snap-throw", "sand-scoop", ""];
 
     [Fact]
     public void AGloveWithTheBallIsRestScaleForEveryCaptain()

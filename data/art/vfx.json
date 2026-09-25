@@ -14,6 +14,8 @@
     { "id": "furnace", "slot": "Assets/Art/VFX/furnace", "kind": "field" },
     { "id": "fogball", "slot": "Assets/Art/VFX/fogball", "kind": "ball" },
     { "id": "staff-swing", "slot": "Assets/Art/VFX/staff-swing", "kind": "field" },
+    { "id": "mirageball", "slot": "Assets/Art/VFX/mirageball", "kind": "ball" },
+    { "id": "sidewinder", "slot": "Assets/Art/VFX/sidewinder", "kind": "field" },
     { "id": "fastball", "slot": "Assets/Art/VFX/fastball", "kind": "ball" },
     { "id": "changeup", "slot": "Assets/Art/VFX/changeup", "kind": "ball" },
     { "id": "breaker", "slot": "Assets/Art/VFX/breaker", "kind": "ball" },

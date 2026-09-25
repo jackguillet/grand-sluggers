@@ -2011,6 +2011,34 @@
       "tests": []
     },
     {
+      "id": "T-A-sand-scoop",
+      "revision": 3,
+      "mechanics": [
+        "ability.sand-scoop"
+      ],
+      "title": "Ability reach: sand-scoop",
+      "category": "fielding",
+      "status": "implemented",
+      "issue": 1149,
+      "reason": "Headless authored ability-reach exercise; standalone learning gate pending",
+      "profiles": [
+        "shipped"
+      ],
+      "requires": [
+        "sand-scoop"
+      ],
+      "prerequisites": [],
+      "setup": "T-A-sand-scoop",
+      "objective": "human-ability-reach",
+      "controls": [
+        "control:fielding/Take the glove",
+        "control:fielding/Dive"
+      ],
+      "tests": [
+        "TutorialAbilityTests"
+      ]
+    },
+    {
       "id": "T-A-withdraw",
       "revision": 3,
       "mechanics": [
@@ -2289,6 +2317,31 @@
       ]
     },
     {
+      "id": "T-SP-mirageball",
+      "revision": 4,
+      "mechanics": [
+        "star-pitch.mirageball"
+      ],
+      "title": "Star pitch: mirageball",
+      "category": "special",
+      "status": "implemented",
+      "issue": 1149,
+      "reason": "Headless authored star exercise; standalone learning gate pending",
+      "profiles": [
+        "shipped"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-SP-mirageball",
+      "objective": "star-pitch",
+      "controls": [
+        "control:pitching/Star pitch"
+      ],
+      "tests": [
+        "TutorialSpecialTests"
+      ]
+    },
+    {
       "id": "T-SS-heat-swing",
       "revision": 4,
       "mechanics": [
@@ -2530,6 +2583,31 @@
       "requires": [],
       "prerequisites": [],
       "setup": "T-SS-line",
+      "objective": "star-swing",
+      "controls": [
+        "control:batting/Star swing"
+      ],
+      "tests": [
+        "TutorialSpecialTests"
+      ]
+    },
+    {
+      "id": "T-SS-sidewinder",
+      "revision": 4,
+      "mechanics": [
+        "star-swing.sidewinder"
+      ],
+      "title": "Star swing: sidewinder",
+      "category": "special",
+      "status": "implemented",
+      "issue": 1149,
+      "reason": "Headless authored star exercise; standalone learning gate pending",
+      "profiles": [
+        "shipped"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-SS-sidewinder",
       "objective": "star-swing",
       "controls": [
         "control:batting/Star swing"
@@ -5148,6 +5226,39 @@
       "pitcherId": "marlow"
     },
     {
+      "id": "T-SP-mirageball",
+      "policy": "cpu-take",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "sable"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {},
+      "startingStars": 3,
+      "skill": "mirageball",
+      "pitcherId": "sable"
+    },
+    {
       "id": "T-SS-heat-swing",
       "policy": "cpu-strike",
       "seed": 1,
@@ -5485,6 +5596,40 @@
       "startingStars": 3,
       "skill": "line",
       "batterId": "grit",
+      "seat": "offense"
+    },
+    {
+      "id": "T-SS-sidewinder",
+      "policy": "cpu-strike",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "sable"
+      ],
+      "runners": [],
+      "balls": {},
+      "startingStars": 3,
+      "skill": "sidewinder",
+      "batterId": "sable",
       "seat": "offense"
     },
     {
@@ -6175,6 +6320,44 @@
         }
       },
       "skill": "burrow"
+    },
+    {
+      "id": "T-A-sand-scoop",
+      "policy": "grounder",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "sable",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {
+        "shipped": {
+          "carryFt": 0,
+          "exitMph": 85,
+          "launchDeg": -12,
+          "sprayDeg": -18
+        }
+      },
+      "skill": "sand-scoop"
     },
     {
       "id": "T-D06",
