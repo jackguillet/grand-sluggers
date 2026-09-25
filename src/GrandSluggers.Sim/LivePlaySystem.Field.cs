@@ -271,16 +271,19 @@ public sealed partial class LivePlaySystem
     public bool PlayerFielding { get; private set; }
     public bool Caught { get; private set; }
     public bool Buddy { get; private set; }
-    public double ThrowT { get; private set; }
-    public double ThrowDur { get; private set; }
-    /// <summary>Command-to-release preparation, part of ThrowDur, never part of ball flight.</summary>
-    public double ThrowReleaseSec { get; private set; }
-    bool _throwReleased;
-    public bool ThrowPreparing => Throwing && !_throwReleased;
-    public bool ThrowInFlight => Throwing && _throwReleased;
-    public double ThrowFlight01 => Math.Clamp((ThrowT - ThrowReleaseSec) / Math.Max(1e-9, ThrowDur - ThrowReleaseSec), 0, 1);
-    public (double X, double Y, double Z) ThrowFrom { get; private set; }
-    public (double X, double Y, double Z) ThrowTo { get; private set; }
+    /// <summary>The throw's clock and line (§8.5).</summary>
+    readonly ThrowFlight _flight = new();
+    /// <summary>Seconds since the throw's command (<see cref="ThrowFlight.T"/>).</summary>
+    public double ThrowT => _flight.T;
+    /// <summary>Command to landing (<see cref="ThrowFlight.Duration"/>).</summary>
+    public double ThrowDur => _flight.Duration;
+    /// <summary>Command-to-release preparation, part of ThrowDur, never part of ball flight (<see cref="ThrowFlight.ReleaseSec"/>).</summary>
+    public double ThrowReleaseSec => _flight.ReleaseSec;
+    public bool ThrowPreparing => Throwing && !_flight.Released;
+    public bool ThrowInFlight => Throwing && _flight.Released;
+    public double ThrowFlight01 => _flight.Flight01;
+    public (double X, double Y, double Z) ThrowFrom => _flight.From;
+    public (double X, double Y, double Z) ThrowTo => _flight.To;
     public int ThrowBag { get; private set; }
     public ThrowResult? ArmedThrow { get; private set; }
     public Character? ArmedCut { get; private set; }
@@ -587,10 +590,7 @@ public sealed partial class LivePlaySystem
         PlayerFielding = false;
         Caught = false;
         Buddy = false;
-        ThrowT = 0;
-        ThrowDur = 0;
-        ThrowReleaseSec = 0;
-        _throwReleased = false;
+        _flight.Reset();
         ThrowBag = 0;
         ArmedThrow = null;
         ArmedCut = null;
@@ -767,16 +767,12 @@ public sealed partial class LivePlaySystem
 
         if (Throwing)
         {
-            var traceBeforeFlightT = ThrowT;
-            ThrowT += dt;
-            if (!_throwReleased && ThrowT >= ThrowReleaseSec) ReleaseThrow();
-            var u = ThrowFlight01;
-            BallX = ThrowFrom.X + (ThrowTo.X - ThrowFrom.X) * u;
-            BallY = ThrowFrom.Y + (ThrowTo.Y - ThrowFrom.Y) * u;
-            BallZ = ThrowFrom.Z + (ThrowTo.Z - ThrowFrom.Z) * u;
-            if (traceBeforeFlightT < ThrowDur && ThrowT >= ThrowDur)
+            var reached = _flight.Advance(dt);
+            if (_flight.ReleaseDue) ReleaseThrow();
+            (BallX, BallY, BallZ) = _flight.Ball;
+            if (reached)
                 _trace?.Mark(PlayTraceMarkKind.ThrowTargetReached, ElapsedSeconds, CoverPos, ThrowBag);
-            if (ThrowT >= ThrowDur && !command.EffectInFlight)
+            if (_flight.Landed && !command.EffectInFlight)
             {
                 if (OnThrowLanded(dt, out var arrived)) return arrived;
                 if (!Throwing && !LooseBall && IsTime()) return Commit();
@@ -2793,21 +2789,18 @@ public sealed partial class LivePlaySystem
     void BeginThrow(ThrowResult thr, int bag, double targetX, double targetZ, string receiverPos)
     {
         Throwing = true;
-        ThrowT = 0;
         _lobT = 0;
         ThrowBag = bag;
         CoverPos = receiverPos;
         _throwerPos = GlovePos;
         ThrowFromPos = GlovePos;
         var throwRules = R.Fielding.Throw;
-        ThrowFrom = (GloveX, throwRules.HandHeightFt, GloveZ);
+        var from = (X: GloveX, Y: throwRules.HandHeightFt, Z: GloveZ);
         var landing = InPlay.ThrowLanding(GloveX, GloveZ, targetX, targetZ, thr.LateralFt);
-        ThrowTo = (landing.X, throwRules.BagHeightFt, landing.Z);
         // One clock (§8.5): the ball flies on the same seconds the bag is judged on, the catcher's gun included (§11.3).
-        var dist = Diamond.Dist(ThrowFrom.X, ThrowFrom.Z, targetX, targetZ);
-        ThrowDur = InPlay.ThrowSec(dist, thr, R);
-        ThrowReleaseSec = thr.ReleaseSec ?? throwRules.ReleaseSec;
-        _throwReleased = false;
+        var dist = Diamond.Dist(from.X, from.Z, targetX, targetZ);
+        _flight.Begin(from, (landing.X, throwRules.BagHeightFt, landing.Z), InPlay.ThrowSec(dist, thr, R),
+            thr.ReleaseSec ?? throwRules.ReleaseSec);
         BallX = ThrowFrom.X;
         BallY = ThrowFrom.Y;
         BallZ = ThrowFrom.Z;
@@ -2826,12 +2819,12 @@ public sealed partial class LivePlaySystem
         // Preparation holds possession at the thrower. The ring, sound and trace move on release.
         _fielders[_throwerPos] = (GloveX, GloveZ);
         _events.Add(LiveEvent.ThrowCommitted);
-        if (ThrowReleaseSec <= 0) ReleaseThrow();
+        if (_flight.ReleaseDue) ReleaseThrow();
     }
 
     void ReleaseThrow()
     {
-        _throwReleased = true;
+        _flight.Release();
         if (!string.IsNullOrEmpty(CoverPos) && CoverPos != GlovePos)
             HandGloveTo(CoverPos, coast: false);
         _trace?.Mark(PlayTraceMarkKind.ThrowRelease, ElapsedSeconds - Math.Max(0, ThrowT - ThrowReleaseSec), _throwerPos, ThrowBag,
