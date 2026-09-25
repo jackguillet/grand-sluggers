@@ -9,11 +9,12 @@ namespace GrandSluggers.UnityClient
 {
     public sealed partial class MatchDirector : MonoBehaviour
     {
-        public int Seed = 7;
-        public int Innings = 3;
-        /// <summary>The CPU difficulty rung (cpu.json easy / normal / hard), picked on the title next to the innings.</summary>
-        public string Difficulty = "normal";
-        public PracticeLesson PracticePick = PracticeLesson.Pitching;
+        // What the menus chose lives in one object the menu directors are handed (FlowChoices, #1042); these names forward to it.
+        internal readonly FlowChoices Choices = new FlowChoices();
+        public int Seed { get => Choices.Seed; set => Choices.Seed = value; }
+        public int Innings { get => Choices.Innings; set => Choices.Innings = value; }
+        public string Difficulty { get => Choices.Difficulty; set => Choices.Difficulty = value; }
+        public PracticeLesson PracticePick { get => Choices.PracticePick; set => Choices.PracticePick = value; }
         int _pauseItem;
         Controls.Pad _pausePad = Controls.Pad1;
         bool _pauseHowTo;
@@ -22,20 +23,19 @@ namespace GrandSluggers.UnityClient
         float _pauseStick;
         MenuNav.Gate _menuX;
         MenuNav.Gate _pauseY;
-        [System.NonSerialized] public string ParkId = ExhibitionPick.DefaultPark;
-        [System.NonSerialized] public string HomeCaptain = ExhibitionPick.Default.Home;
-        [System.NonSerialized] public string AwayCaptain = ExhibitionPick.Default.Away;
-        public bool Night;
-        /// <summary>The hazards switch (FD-10): on by default; the title and the field toggle it for an exhibition.</summary>
-        public bool Hazards = true;
-        [System.NonSerialized] public bool Pad1Home = true;
-        internal bool _versusWanted;
+        public string ParkId { get => Choices.ParkId; set => Choices.ParkId = value; }
+        public string HomeCaptain { get => Choices.HomeCaptain; set => Choices.HomeCaptain = value; }
+        public string AwayCaptain { get => Choices.AwayCaptain; set => Choices.AwayCaptain = value; }
+        public bool Night { get => Choices.Night; set => Choices.Night = value; }
+        public bool Hazards { get => Choices.Hazards; set => Choices.Hazards = value; }
+        public bool Pad1Home { get => Choices.Pad1Home; set => Choices.Pad1Home = value; }
+        internal bool _versusWanted { get => Choices.VersusWanted; set => Choices.VersusWanted = value; }
         internal readonly MatchSeatLifecycle _matchSeats = new MatchSeatLifecycle();
         readonly PursuitSeatDirector _seatStick = new PursuitSeatDirector();
         readonly DeviceSeatRecovery _deviceRecovery = new DeviceSeatRecovery();
-        ExhibitionSettings _settings = new ExhibitionSettings();
-        enum PlayMode { Exhibition, Challenge, Training }
-        PlayMode _mode;
+        ExhibitionSettings _settings { get => Choices.Settings; set => Choices.Settings = value; }
+        internal enum PlayMode { Exhibition, Challenge, Training }
+        PlayMode _mode { get => Choices.Mode; set => Choices.Mode = value; }
         Challenge _campaign;
         internal TrainingDirector _coach;
         // The scene and the play in flight live in two objects every director is handed (#1042); these names forward to them.

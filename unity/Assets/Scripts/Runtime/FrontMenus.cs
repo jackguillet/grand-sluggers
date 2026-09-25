@@ -9,21 +9,22 @@ namespace GrandSluggers.UnityClient
     /// The front of house before the lineup (its own class since #1042): the title menu, the stadium screen with its
     /// continent map (WD-17 A), and the captain board. The choices are the sim's (<see cref="CaptainSelection"/>,
     /// <see cref="MapPicker"/>, <see cref="ExhibitionPick"/>); this class turns the pads into them, keeps the title park
-    /// in step with the pick, and draws the stadium screen. The pick itself, the match it builds, the seats and the
-    /// screens on either side are the flow's (<see cref="IFrontMenusHost"/>).
+    /// in step with the pick, and draws the stadium screen. The pick is <see cref="FlowChoices"/>; the match it builds, the
+    /// seats and the screens on either side are the flow's (<see cref="IFrontMenusHost"/>).
     /// </summary>
     internal sealed class FrontMenus
     {
         readonly MatchScene _scene;
         readonly PlayState _play;
+        readonly FlowChoices _choices;
         readonly IFrontMenusHost _host;
         MenuNav.Gate _x, _y, _x2;
         /// <summary>The continent map on the stadium row (WD-17 A).</summary>
         readonly MapPicker _map = new MapPicker();
 
-        public FrontMenus(MatchScene scene, PlayState play, IFrontMenusHost host)
+        public FrontMenus(MatchScene scene, PlayState play, FlowChoices choices, IFrontMenusHost host)
         {
-            _scene = scene; _play = play; _host = host;
+            _scene = scene; _play = play; _choices = choices; _host = host;
         }
 
         /// <summary>The title menu's row, the stadium screen's row, and the captain board while it is up.</summary>
@@ -32,7 +33,7 @@ namespace GrandSluggers.UnityClient
         public CaptainSelection Captains { get; private set; }
 
         ContentCatalog Content => _scene.Content;
-        string ParkId => _host.CurrentPick().Park;
+        string ParkId => _choices.ParkId;
 
         public void TickTitle()
         {
@@ -67,8 +68,8 @@ namespace GrandSluggers.UnityClient
         {
             if (_scene.Park == null || Content == null) return;
             if (!Content.Parks.TryGetValue(ParkId, out var park)) return;
-            var hazards = _host.Hazards || !_host.ExhibitionMode;
-            _scene.Park.Build(PlayedPark.Of(park, _host.Night, hazards, Content.Rules.Hazards), _host.Night, Content.Rules, Content.Feel);
+            var hazards = _choices.Hazards || !_choices.Exhibition;
+            _scene.Park.Build(PlayedPark.Of(park, _choices.Night, hazards, Content.Rules.Hazards), _choices.Night, Content.Rules, Content.Feel);
             if (_play.Phase == MatchDirector.Phase.Title)
                 _scene.Cam?.Cut("title");
         }
@@ -78,7 +79,7 @@ namespace GrandSluggers.UnityClient
             _host.ReleaseMatchSeats();
             _play.Match = _host.NewMatch();
             _play.Phase = MatchDirector.Phase.Select;
-            Captains = new CaptainSelection(Content, _host.CurrentPick(), _host.VersusWanted);
+            Captains = new CaptainSelection(Content, _choices.Pick(), _choices.VersusWanted);
             _play.T = 0;
             _x.Catch(Controls.Pad1.MenuAxisX);
             _y.Catch(Controls.Pad1.MenuAxisY);
@@ -108,15 +109,15 @@ namespace GrandSluggers.UnityClient
             if (p1.SouthDown) Captains.Confirm(Captains.ActiveOne);
             if (Captains.Versus && p2.Present && p2.SouthDown) Captains.Confirm(1);
             if (!Captains.Complete || (Captains.Versus && !p2.Present)) return;
-            _host.ApplyPick(Captains.ApplyTo(_host.CurrentPick()));
+            _host.ApplyPick(Captains.ApplyTo(_choices.Pick()));
             _host.SeatsChosen();
             if (_host.Guided?.Phase != TutorialPhase.Feedback) _host.OpenLineup();
         }
 
         void WantVersus(bool versus)
         {
-            if (_host.VersusWanted == versus) return;
-            _host.VersusWanted = versus;
+            if (_choices.VersusWanted == versus) return;
+            _choices.VersusWanted = versus;
             if (versus)
                 _x2.Catch(Controls.Pad2.MenuAxisX);
         }
@@ -147,11 +148,11 @@ namespace GrandSluggers.UnityClient
             if (FieldFocus == 0 && (dx != 0 || Controls.SouthDown)) { _map.Open(ParkId); _play.T = 0; return; }
             if (dx != 0 || Controls.SouthDown)
             {
-                if (FieldFocus == 1) _host.Night = !_host.Night;
+                if (FieldFocus == 1) _choices.Night = !_choices.Night;
                 if (FieldFocus is 0 or 1) _host.GuidedObserve("T-G07", GuidedAction.StadiumChosen);
-                if (FieldFocus == 2) _host.Hazards = !_host.Hazards;
-                if (FieldFocus == 3) WantVersus(!_host.VersusWanted);
-                if (FieldFocus == 4) _host.ApplyPick(ExhibitionPick.ToggleSeat(_host.CurrentPick()));
+                if (FieldFocus == 2) _choices.Hazards = !_choices.Hazards;
+                if (FieldFocus == 3) WantVersus(!_choices.VersusWanted);
+                if (FieldFocus == 4) _host.ApplyPick(ExhibitionPick.ToggleSeat(_choices.Pick()));
                 if (FieldFocus == 5 && Controls.SouthDown) { OpenSelect(); return; }
                 RebuildTitlePark();
             }
@@ -161,16 +162,16 @@ namespace GrandSluggers.UnityClient
         /// <summary>The map is up: the stick moves the cursor and the postcard follows; South plays the park, East keeps yours.</summary>
         void TickMap(int dx, int dy)
         {
-            if (_map.Move(Content.World, dx, dy) is { } park) { _host.ApplyPick(_host.CurrentPick() with { Park = park }); RebuildTitlePark(); }
+            if (_map.Move(Content.World, dx, dy) is { } park) { _host.ApplyPick(_choices.Pick() with { Park = park }); RebuildTitlePark(); }
             if (_play.T > .15f && Controls.SouthDown)
             {
-                _host.ApplyPick(_host.CurrentPick() with { Park = _map.Confirm() });
+                _host.ApplyPick(_choices.Pick() with { Park = _map.Confirm() });
                 _host.GuidedObserve("T-G07", GuidedAction.StadiumChosen);
                 RebuildTitlePark();
             }
             else if (_play.T > .15f && Controls.EastDown)
             {
-                _host.ApplyPick(_host.CurrentPick() with { Park = _map.Cancel() });
+                _host.ApplyPick(_choices.Pick() with { Park = _map.Cancel() });
                 RebuildTitlePark();
             }
             _scene.Cam.Play("field");
@@ -179,22 +180,22 @@ namespace GrandSluggers.UnityClient
         /// <summary>The stadium screen: the map while it is up, else the postcard's HUD and the setup rows.</summary>
         public void DrawField()
         {
-            var night = _host.Night;
-            var hazards = _host.Hazards;
+            var night = _choices.Night;
+            var hazards = _choices.Hazards;
             if (_map.IsOpen) { SetupSheet.Map(Content, _map.Park, night, hazards); return; }
             HudView.Field(ParkId, ParkName(ParkId), night, hazards, FieldHazardsLine(), FieldCardLines());
-            SetupSheet.FieldFocus(FieldFocus, ParkName(ParkId), night, hazards, _host.VersusWanted, _host.CurrentPick().Pad1Home);
+            SetupSheet.FieldFocus(FieldFocus, ParkName(ParkId), night, hazards, _choices.VersusWanted, _choices.Pad1Home);
         }
 
         /// <summary>The field card of the park as this exhibition will play it (F8-a): tonight's instances, the hazards switch applied.</summary>
         IReadOnlyList<string> FieldCardLines() =>
             Content != null && Content.Parks.TryGetValue(ParkId, out var park)
-                ? CarnivalFront.FieldCard(PlayedPark.Of(park, _host.Night, _host.Hazards, Content.Rules.Hazards), Content.Rules)
+                ? CarnivalFront.FieldCard(PlayedPark.Of(park, _choices.Night, _choices.Hazards, Content.Rules.Hazards), Content.Rules)
                 : null;
 
         string FieldHazardsLine() =>
             Content != null && Content.Parks.TryGetValue(ParkId, out var park)
-                ? CarnivalFront.HazardsOffLine(park, _host.Night, _host.Hazards, Content.Rules.Hazards)
+                ? CarnivalFront.HazardsOffLine(park, _choices.Night, _choices.Hazards, Content.Rules.Hazards)
                 : null;
 
         /// <summary>A park's name on the card, or its id when the catalog does not know it.</summary>
@@ -202,17 +203,11 @@ namespace GrandSluggers.UnityClient
             Content != null && Content.Parks.TryGetValue(parkId, out var park) ? park.Name : parkId;
     }
 
-    /// <summary>What <see cref="FrontMenus"/> reads from the flow: the pick and its switches, the match, the seats, and the screens on either side.</summary>
+    /// <summary>What <see cref="FrontMenus"/> asks of the flow: building the pick's match, the seats, the guided lesson, and the screens on either side.</summary>
     internal interface IFrontMenusHost
     {
-        ExhibitionPick CurrentPick();
         /// <summary>Take this pick (captains, park, seats) and build its match.</summary>
         void ApplyPick(ExhibitionPick pick);
-        bool Night { get; set; }
-        bool Hazards { get; set; }
-        bool VersusWanted { get; set; }
-        /// <summary>The flow is in an exhibition (a practice's park keeps its hazards).</summary>
-        bool ExhibitionMode { get; }
         /// <summary>Play from the title: an exhibition's match and its park, specials and items built.</summary>
         void BeginExhibition();
         Match NewMatch();
