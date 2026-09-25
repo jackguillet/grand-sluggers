@@ -1,12 +1,14 @@
 # Wii / GameCube comparison — first observation packet
 
+> **Historical.** A finished report, kept for its evidence and reasoning; the contract is [gameplay-spec §0.2 (D19)](../../spec/00-decisions.md) and [the decision plan](../../decisions/plan-game-feel-693.md). Where they disagree, the contract is right.
+
 Research child [#701](https://github.com/jackguillet/grand-sluggers/issues/701) of [#693](https://github.com/jackguillet/grand-sluggers/issues/693). September 14, 2026. Session: **gameplay research/documentation**. Depends on the foundation in [PR #704](https://github.com/jackguillet/grand-sluggers/pull/704), revision `67dac68`. No runtime values change.
 
 ## What this packet supports
 
 Both inspected games make possession, a throw, and the receiving play legible as separate actions. The first Wii example is a direct grounder-to-first out; the GameCube example is a grounder with a force at second and an unsuccessful second throw to first. These are useful side-by-side examples of action vocabulary. They are **not matched experiments** from which to declare one game faster, more forgiving, or correctly scaled.
 
-Jack accepted the packet's **provisional visual-lead recommendation** on September 14, 2026: Wii for on-screen readability, GameCube as a mechanics cross-check. It does not complete #701 or supply the full numerical contract required by F693-01/02. The [decision register](plan-game-feel-693.md) retains the five earlier accepted directions and this provisional visual lead; numerical reference selection and exact playable geometry remain open. The [annotation dataset](research/game-feel-701-observations.json) preserves event brackets, source identities, exclusions, and explicit unknowns.
+Jack accepted the packet's **provisional visual-lead recommendation** on September 14, 2026: Wii for on-screen readability, GameCube as a mechanics cross-check. It does not complete #701 or supply the full numerical contract required by F693-01/02. The [decision register](../../decisions/plan-game-feel-693.md) retains the five earlier accepted directions and this provisional visual lead; numerical reference selection and exact playable geometry remain open. The [annotation dataset](../../research/game-feel-701-observations.json) preserves event brackets, source identities, exclusions, and explicit unknowns.
 
 ## Watch these two plays
 

@@ -1,6 +1,8 @@
 # Research: Unity characters and AI 3D (2026)
 
-Dated **2026-09**. Citations, not product policy. The living contract is [character-package.md](character-package.md).
+> **Historical.** A finished report, kept for its evidence and reasoning; the contract is [character-motion.md](../../character-motion.md), [character-package.md](../../character-package.md) and [the decision plan](../../decisions/plan-characters.md). Where they disagree, the contract is right.
+
+Dated **2026-09**. Citations, not product policy. The living contract is [character-package.md](../../character-package.md).
 
 This is why posed-GLB drops shredded Fenn, and why `dotnet test` is not look.
 
@@ -51,7 +53,7 @@ GLB → URP: glTF packs roughness in G / metalness in B; URP Lit packed maps use
 
 Unity Test Framework Play Mode can run in a [standalone Player](https://docs.unity3d.com/6000.5/Documentation/Manual/test-framework/workflow-run-playmode-test-standalone.html). [Recorder](https://docs.unity3d.com/Packages/com.unity.recorder@5.1/manual/index.html) captures Editor Play only — **not** the shipped `.app`. A passing screenshot test does not prove weights or Avatar mapping.
 
-This repo’s gate is [screenshot-gate.md](screenshot-gate.md). Agents do not pass it. A rebuilt Mac player is not a still.
+This repo’s gate is [screenshot-gate.md](../../screenshot-gate.md). Agents do not pass it. A rebuilt Mac player is not a still.
 
 ## What this means here
 

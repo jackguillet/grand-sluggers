@@ -24,17 +24,17 @@
     {
       "id": "F693-06",
       "state": "accepted",
-      "locator": "docs/plan-game-feel-693.md#decision-register"
+      "locator": "docs/decisions/plan-game-feel-693.md#decision-register"
     },
     {
       "id": "F693-03-numeric",
       "state": "pending",
-      "locator": "docs/plan-game-feel-693.md"
+      "locator": "docs/decisions/plan-game-feel-693.md"
     },
     {
       "id": "F693-06-H",
       "state": "accepted",
-      "locator": "docs/research-game-feel-702.md#accepted-human-decision--f693-06-h-harbor-scoring-scope"
+      "locator": "docs/archive/game-feel/research-game-feel-702.md#accepted-human-decision--f693-06-h-harbor-scoring-scope"
     }
   ],
   "fixtures": [
