@@ -1,3 +1,4 @@
+using System.Linq;
 using Xunit;
 using GrandSluggers.Sim;
 
@@ -68,7 +69,9 @@ public class MotionTests
     public void HandedTakesAreExactlyTheHittingAndThrowingOnes()
     {
         var handed = Motion.Clips.Where(c => c.Handed).Select(c => c.Id).ToHashSet();
-        Assert.Equal(new HashSet<string> { "swing-slap", "swing-charge", "pitch", "pitch-charge", "throw", "checkSwing", "bunt", "bunt-pull", "bunt-push", "swing-letgo", "miss" }, handed);
+        // The catcher's throw and the sweep tag are the throwing hand's too (#966).
+        Assert.Equal(new HashSet<string> { "swing-slap", "swing-charge", "pitch", "pitch-charge", "throw", "checkSwing", "bunt", "bunt-pull", "bunt-push", "swing-letgo", "miss",
+            "catcherThrow", "tag" }, handed);
         foreach (var verb in Motion.Verbs)
         {
             var clip = Motion.CueFor(verb).Clip;
@@ -132,5 +135,37 @@ public class MotionTests
         Assert.Equal(1 / Motion.RunHz, run.Duration, 8);
         Assert.True(Motion.TryClip("walk", out var walk));
         Assert.True(walk.Duration > run.Duration, "a walk cycle is slower than a run cycle");
+    }
+
+    /// <summary>
+    /// Catalog first, then the take (#966): a stand-in slot plays an authored clip until its own lands, every file, marker and
+    /// hold the stand-in's, and the stand-in is never itself a stand-in.
+    /// </summary>
+    [Fact]
+    public void AStandInSlotPlaysAnAuthoredClipUntilItsOwnTakeLands()
+    {
+        foreach (var clip in Motion.Clips.Where(c => c.StandIn != null))
+        {
+            Assert.True(Motion.TryClip(clip.StandIn!, out var played), clip.Id + " stands in with an unknown clip");
+            Assert.Null(played.StandIn);
+            Assert.Equal(played.Id, Motion.PlayedId(clip.Id));
+        }
+        Assert.Equal("throw-L", Motion.ClipFile(Motion.Verb.CatcherThrow, Hand.R, Hand.L));
+        Assert.Equal("catch", Motion.ClipFile(Motion.Verb.Tag, Hand.R, Hand.L));
+        Assert.Equal("slide", Motion.ClipFile(Motion.Verb.SlideHeadFirst, Hand.R, Hand.R));
+        Assert.Equal("run", Motion.ClipFile(Motion.Verb.TurnBack, Hand.R, Hand.R));
+        Assert.Equal(Motion.ThrowRelease, Motion.Mark(Motion.Verb.CatcherThrow, Motion.ClipEvent.Release));
+        Assert.Equal("idle", Motion.PlayedId("idle"));
+    }
+
+    /// <summary>The head-first slide is a style of slide, never a faster one: its slot's length and plant are the feet-first slide's.</summary>
+    [Fact]
+    public void TheHeadFirstSlideKeepsTheFeetFirstSlidesClock()
+    {
+        Assert.True(Motion.TryClip("slide", out var feetFirst));
+        Assert.True(Motion.TryClip("slideHeadFirst", out var headFirst));
+        Assert.Equal(feetFirst.Duration, headFirst.Duration);
+        Assert.Equal(feetFirst.Mark, headFirst.Mark);
+        Assert.Equal(feetFirst.MarkAt, headFirst.MarkAt);
     }
 }

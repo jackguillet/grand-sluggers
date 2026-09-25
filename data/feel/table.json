@@ -28,6 +28,10 @@
   "faceBallMinFt": 3,
   "swingFinishStepFt": 2.5,
   "runnerShareStepFt": 6,
+  // The sweep tag (#966): the ball-holder within tagStandFt of a bag sweeps while a runner bound for it is inside
+  // tagWindowFt of the bag. Presentation only; the tag is the sim's reach.
+  "tagStandFt": 3,
+  "tagWindowFt": 8,
   "ballShadow": {
     "nearDiameterFt": 5.0,
     "farDiameterFt": 3.0,

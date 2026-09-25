@@ -161,6 +161,13 @@ public sealed record FeelTable
     /// from (or, forced off it, toward the next), so the two bodies never merge (<see cref="Runner.DrawPosition"/>).
     /// </summary>
     [Positive] public double RunnerShareStepFt { get; init; }
+    /// <summary>
+    /// The sweep tag (#966): the ball-holder standing within <see cref="TagStandFt"/> of a bag sweeps while a live runner bound
+    /// for that bag is within <see cref="TagWindowFt"/> of it (<see cref="Front.StealPresentation.Tagging"/>). Presentation
+    /// only: the tag itself is the sim's reach (§10.3).
+    /// </summary>
+    [Positive] public double TagStandFt { get; init; }
+    [Positive] public double TagWindowFt { get; init; }
 
     public RaceCameraFeel RaceCamera { get; init; } = new();
     public BallShadowFeel BallShadow { get; init; } = new();

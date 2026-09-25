@@ -15,7 +15,9 @@ public static class Motion
         ChargePitch, ThrowPitch, Throw,
         ChargeSwing, Swing, CheckSwing, Bunt, Miss, LetGo,
         Catch, Dive, Crouch, StealLead, Spin,
-        Scoop, Slide
+        Scoop, Slide,
+        // The steal race (#966): the catcher's receive-to-release, the sweep tag, the head-first slide, the runner's reversal.
+        CatcherThrow, Tag, SlideHeadFirst, TurnBack
     }
 
     public enum ClipEvent { Contact, Release, FootPlant }
@@ -55,6 +57,11 @@ public static class Motion
     public const string LetGoClip = "swing-letgo";
     public const double LetGoDur = 0.36;
     public const double LetGoReturnAt = 0.20;
+    /// <summary>The catcher's take (#966): receive in the crouch, transfer, rise and plant, release here, follow through.</summary>
+    public const double CatcherThrowDur = 0.60;
+    public const double CatcherThrowRelease = 0.30;
+    /// <summary>The runner's plant-and-turn back toward the bag it left (#966), before the run takes over.</summary>
+    public const double TurnBackDur = 0.30;
 
     /// <summary>
     /// A held load samples the first part of its one-shot take. MAX holds the
@@ -64,9 +71,13 @@ public static class Motion
     public const double PitchNormalLoadAt = 0.09;
 
     /// <param name="FinishAt">A held finish: the second of the take's last key, which the batter holds after the take (0 = none).</param>
+    /// <param name="StandIn">
+    /// Catalog first, then the take (#966): a slot with no take of its own yet plays this authored clip. Its row states the
+    /// contract its take must meet (length, marker, hand); until the take lands every file, marker and hold is the stand-in's.
+    /// </param>
     public readonly record struct Clip(
         string Id, bool Loop, bool Handed, double Duration, ClipEvent? Mark = null, double MarkAt = 0,
-        double FinishAt = 0);
+        double FinishAt = 0, string? StandIn = null);
 
     /// <summary>The file list. data/art/clips.json must match it row for row.</summary>
     public static readonly IReadOnlyList<Clip> Clips =
@@ -95,10 +106,22 @@ public static class Motion
         new("stealLead", false, false, HoldDur),
         new("spin", false, false, HoldDur),
         new("scoop", false, false, 0.50, ClipEvent.Contact, ScoopContact),
-        new("slide", false, false, 0.40, ClipEvent.FootPlant, SlidePlant)
+        new("slide", false, false, 0.40, ClipEvent.FootPlant, SlidePlant),
+        new("catcherThrow", false, true, CatcherThrowDur, ClipEvent.Release, CatcherThrowRelease, StandIn: "throw"),
+        new("tag", false, true, HoldDur, StandIn: "catch"),
+        // The same length and plant as the feet-first slide: a style of slide is never a faster one.
+        new("slideHeadFirst", false, false, 0.40, ClipEvent.FootPlant, SlidePlant, StandIn: "slide"),
+        new("turnBack", false, false, TurnBackDur, StandIn: "run")
     ];
 
     public static IReadOnlyList<string> ClipIds { get; } = Clips.Select(c => c.Id).ToArray();
+
+    /// <summary>The clip a slot plays today: its own take, or its stand-in's while it has none.</summary>
+    public static Clip Played(string id) =>
+        TryClip(id, out var clip) && clip.StandIn is { } standIn && TryClip(standIn, out var played) ? played : clip;
+
+    /// <summary>The id of <see cref="Played"/>; an id Motion does not know is itself.</summary>
+    public static string PlayedId(string id) => Played(id).Id ?? id;
 
     public static bool TryClip(string id, out Clip clip)
     {
@@ -151,6 +174,10 @@ public static class Motion
         Verb.Spin => new("spin", Clock.Verb),
         Verb.Scoop => new("scoop", Clock.Verb),
         Verb.Slide => new("slide", Clock.Verb),
+        Verb.CatcherThrow => new("catcherThrow", Clock.Verb),
+        Verb.Tag => new("tag", Clock.Verb),
+        Verb.SlideHeadFirst => new("slideHeadFirst", Clock.Verb),
+        Verb.TurnBack => new("turnBack", Clock.Verb),
         _ => new("idle", Clock.World)
     };
 
@@ -163,9 +190,15 @@ public static class Motion
 
     public static bool IsHanded(string clipId) => TryClip(clipId, out var clip) && clip.Handed;
 
-    /// <summary>File name for a clip and hand. Left-handed takes are baked as <c>{clip}-L</c>.</summary>
-    public static string ClipFile(string clipId, Hand hand) =>
-        IsHanded(clipId) && hand == Hand.L ? clipId + "-L" : clipId;
+    /// <summary>
+    /// File name for a clip and hand: the played take (a slot's stand-in until its own lands). Left-handed takes are baked
+    /// as <c>{clip}-L</c>.
+    /// </summary>
+    public static string ClipFile(string clipId, Hand hand)
+    {
+        var played = PlayedId(clipId);
+        return IsHanded(played) && hand == Hand.L ? played + "-L" : played;
+    }
 
     public static string ClipFile(Verb verb, Hand bats, Hand throws) =>
         ClipFile(CueFor(verb).Clip, UsesBattingHand(verb) ? bats : throws);
@@ -203,14 +236,16 @@ public static class Motion
     /// <summary>A clip's file for a hand and a style, falling back to the shared take.</summary>
     public static string StyledFile(string clipId, Hand hand, MotionStyle? style)
     {
-        var file = ClipFile(clipId, hand);
-        return style is not null && style.Owns(clipId) ? style.Id + "/" + file : file;
+        var played = PlayedId(clipId);
+        var file = ClipFile(played, hand);
+        return style is not null && style.Owns(played) ? style.Id + "/" + file : file;
     }
 
+    /// <summary>The second of a verb's marker in the take it plays (a stand-in's while its own is missing), or 0.</summary>
     public static double Mark(Verb verb, ClipEvent ev)
     {
-        if (!TryClip(CueFor(verb).Clip, out var clip) || clip.Mark != ev) return 0;
-        return clip.MarkAt;
+        var clip = Played(CueFor(verb).Clip);
+        return clip.Id != null && clip.Mark == ev ? clip.MarkAt : 0;
     }
 
     /// <summary>Held load: MAX holds the full coil at 0, a tap starts from the half load.</summary>
@@ -229,6 +264,9 @@ public static class Motion
         _ => 0
     };
 
-    public static bool Holds(Verb verb) =>
-        TryClip(CueFor(verb).Clip, out var clip) && !clip.Loop && clip.Mark == null;
+    public static bool Holds(Verb verb)
+    {
+        var clip = Played(CueFor(verb).Clip);
+        return clip.Id != null && !clip.Loop && clip.Mark == null;
+    }
 }
