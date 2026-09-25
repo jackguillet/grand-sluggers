@@ -673,7 +673,7 @@ namespace GrandSluggers.UnityClient
                 }
                 _park.Ball.Release();
                 var p = PitchFlight.Point("fastball", StillPose.PitchBallU, _match.Rules, 0, 0, 0, 0,
-                    ((double)_relFrom.x, (double)_relFrom.y, (double)_relFrom.z));
+                    ((double)_relFrom.x, (double)_relFrom.y, (double)_relFrom.z), zone: _match.BatterZone);
                 _ball = new Vector3((float)p.X, (float)p.Y, (float)p.Z);
                 _park.Ball.Place(_ball, "", "fastball", false, true);
                 _cam.CutRaw("pitch",

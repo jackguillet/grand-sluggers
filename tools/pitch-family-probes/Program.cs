@@ -93,16 +93,16 @@ foreach (var family in library)
                 dropBelowFastballCrossingFt = R(fastball.Y - crossY),
                 sweepAtPlateFt = R(PitchFlight.SweepShiftFt(1, row, throws)),
                 sweepStartsAtU = R(row.SweepFrom),
-                inZone = StrikeZoneGeometry.Contains(crossX, crossY),
+                inZone = StrikeZoneGeometry.Reference.Contains(crossX, crossY),
                 zoneMarginXFt = R(StrikeZoneGeometry.HalfWidth - Math.Abs(crossX)),
-                zoneMarginYFt = R(Math.Min(crossY - StrikeZoneGeometry.Bottom, StrikeZoneGeometry.Top - crossY)),
+                zoneMarginYFt = R(Math.Min(crossY - StrikeZoneGeometry.Reference.Bottom, StrikeZoneGeometry.Reference.Top - crossY)),
                 keepsABallInsideTheZone = Math.Abs(crossX) + BallRadiusFt <= StrikeZoneGeometry.HalfWidth
-                    && crossY - BallRadiusFt >= StrikeZoneGeometry.Bottom
-                    && crossY + BallRadiusFt <= StrikeZoneGeometry.Top,
+                    && crossY - BallRadiusFt >= StrikeZoneGeometry.Reference.Bottom
+                    && crossY + BallRadiusFt <= StrikeZoneGeometry.Reference.Top,
                 cursorReach = hands.Select(bats => new
                 {
                     bats = bats.ToString(),
-                    ovalDistanceAtCrossing = R(SweetSpot.Distance(0, bats, crossX, crossY, rules, 1))
+                    ovalDistanceAtCrossing = R(SweetSpot.Distance(0, bats, crossX, crossY, rules, StrikeZoneGeometry.Reference, 1))
                 }).ToArray()
             });
         }
@@ -151,8 +151,8 @@ foreach (var family in library.Where(f => families.Of(f).SweepFt != 0))
             var (crossX, crossY) = PitchFlight.Crossing(pitch, rules: rules);
             var shows = row.SweepFrom + (1 - row.SweepFrom) * Math.Sqrt(BallRadiusFt / Math.Abs(row.SweepFt));
             var window = Math.Max(0, 1 - shows) * air;
-            var dy = crossY - StrikeZoneGeometry.CenterY;
-            var squash = Math.Sqrt(Math.Max(0, 1 - dy * dy / (SweetSpot.HalfHeightFt * SweetSpot.HalfHeightFt)));
+            var dy = crossY - StrikeZoneGeometry.Reference.CenterY;
+            var squash = Math.Sqrt(Math.Max(0, 1 - dy * dy / (SweetSpot.HalfHeightFt(StrikeZoneGeometry.Reference) * SweetSpot.HalfHeightFt(StrikeZoneGeometry.Reference))));
 
             coverage.Add(new
             {
@@ -227,9 +227,9 @@ var report = new
     zone = new
     {
         halfWidthFt = StrikeZoneGeometry.HalfWidth,
-        bottomFt = StrikeZoneGeometry.Bottom,
-        topFt = StrikeZoneGeometry.Top,
-        centerFt = StrikeZoneGeometry.CenterY
+        bottomFt = StrikeZoneGeometry.Reference.Bottom,
+        topFt = StrikeZoneGeometry.Reference.Top,
+        centerFt = StrikeZoneGeometry.Reference.CenterY
     },
     gloveSideSign = hands.ToDictionary(h => h.ToString(), h => PitchFlight.GloveSideSign(h)),
     sourceSha256 = sources.ToDictionary(p => p, p => Sha(Path.Combine(root, p))),
@@ -334,8 +334,8 @@ string Svg(Hand throws, bool side)
         + $"{(side ? "height above the ground, feet" : "world X, feet (+ is toward first base)")}</text>\n");
 
     // The strike zone at the plate: its height in the side view, its width in the top view.
-    var zoneLo = side ? StrikeZoneGeometry.Bottom : -StrikeZoneGeometry.HalfWidth;
-    var zoneHi = side ? StrikeZoneGeometry.Top : StrikeZoneGeometry.HalfWidth;
+    var zoneLo = side ? StrikeZoneGeometry.Reference.Bottom : -StrikeZoneGeometry.HalfWidth;
+    var zoneHi = side ? StrikeZoneGeometry.Reference.Top : StrikeZoneGeometry.HalfWidth;
     svg.Append(CultureInfo.InvariantCulture, $"<rect x=\"{Px(far) - 9:F1}\" y=\"{Py(zoneHi):F1}\" width=\"9\" height=\"{Py(zoneLo) - Py(zoneHi):F1}\""
         + $" fill=\"#000000\" fill-opacity=\"0.06\" stroke=\"#333333\" stroke-width=\"1.5\"/>\n");
     svg.Append(CultureInfo.InvariantCulture, $"<text x=\"{Px(far) - 12:F1}\" y=\"{Py(zoneHi) - 6:F1}\" font-size=\"10\" fill=\"#333333\" text-anchor=\"end\">strike zone at the plate</text>\n");

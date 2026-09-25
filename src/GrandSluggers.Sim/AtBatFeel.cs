@@ -427,12 +427,12 @@ public static class SweetSpot
     /// <summary>World X direction of the bat tip: away from the body (batting.cursor).</summary>
     public static double TipSign(Hand bats) => bats == Hand.L ? -1 : 1;
 
-    /// <summary>Center of the cursor in world feet: the box walk in X, the zone center in Y.</summary>
-    public static (double X, double Y) WorldCenter(double boxOffsetX) =>
-        (boxOffsetX * HomeSet.BatterWalk, StrikeZoneGeometry.CenterY);
+    /// <summary>Center of the cursor in world feet: the box walk in X, the middle of this batter's zone in Y (§4.4).</summary>
+    public static (double X, double Y) WorldCenter(double boxOffsetX, BatterZone zone) =>
+        (boxOffsetX * HomeSet.BatterWalk, zone.CenterY);
 
-    /// <summary>Half the zone height: the nice half-axis up and down. Never scaled, so every strike stays hittable.</summary>
-    public static double HalfHeightFt => StrikeZoneGeometry.Height / 2;
+    /// <summary>Half this batter's zone height: the nice half-axis up and down. A charge or Contact never scales it, so every strike stays hittable.</summary>
+    public static double HalfHeightFt(BatterZone zone) => zone.HalfHeight;
 
     /// <summary>Bat (contact) scales the barrel around 5.</summary>
     public static double ContactScale(int contact, RulesTable rules) =>
@@ -469,21 +469,22 @@ public static class SweetSpot
 
     /// <summary>
     /// The oval the client draws for one swing, which is the nice boundary the resolver judges
-    /// (spec §5.2, S-134): the center from the box walk, the half-extents from
+    /// (spec §5.2, S-134): the center from the box walk and this batter's zone, the half-extents from
     /// <see cref="SwingBarrel"/>. A charge and Contact move the two barrel half-extents only; the
-    /// height is the zone's and never scales (PH-11-R1, PH-15-R7, S-135, S-136).
+    /// height is the batter's zone's and a charge or Contact never scales it (PH-11-R1, PH-15-R7, S-135, S-136).
     /// </summary>
     public static CursorOval Oval(Character batter, BatItem? bat, double charge01, double boxOffsetX,
         RulesTable rules)
     {
         var scale = SwingBarrel(batter, bat, charge01, rules);
+        var zone = StrikeZoneGeometry.For(batter, rules);
         var bats = batter.Bats;
-        var (x, y) = WorldCenter(boxOffsetX);
+        var (x, y) = WorldCenter(boxOffsetX, zone);
         var tip = TipSign(bats);
         return new CursorOval(bats, x, y,
             NiceHalfWidthFt(bats, tip, scale, rules),
             NiceHalfWidthFt(bats, -tip, scale, rules),
-            HalfHeightFt, scale);
+            HalfHeightFt(zone), scale);
     }
 
     /// <summary>Nice half-axis along the barrel on the side of <paramref name="dx"/> (world feet from the center).</summary>
@@ -498,14 +499,14 @@ public static class SweetSpot
     /// Normalized distance of a crossing from the cursor center: 1 on the drawn (nice) boundary.
     /// </summary>
     public static double Distance(double boxOffsetX, Hand bats, double crossingX, double crossingY,
-        RulesTable rules,
+        RulesTable rules, BatterZone zone,
         double barrelScale = 1)
     {
-        var (cx, cy) = WorldCenter(boxOffsetX);
+        var (cx, cy) = WorldCenter(boxOffsetX, zone);
         var dx = crossingX - cx;
         var dy = crossingY - cy;
         var nx = NiceHalfWidthFt(bats, dx, barrelScale, rules);
-        var ny = HalfHeightFt;
+        var ny = HalfHeightFt(zone);
         return Math.Sqrt(dx * dx / (nx * nx) + dy * dy / (ny * ny));
     }
 
@@ -516,16 +517,16 @@ public static class SweetSpot
     /// zone are on the bat with the box centered.
     /// </summary>
     public static ContactQuality Zone(double boxOffsetX, Hand bats, double crossingX, double crossingY,
-        RulesTable rules,
+        RulesTable rules, BatterZone zone,
         double barrelScale = 1)
     {
         var c = rules.Batting.Cursor;
-        var (cx, cy) = WorldCenter(boxOffsetX);
+        var (cx, cy) = WorldCenter(boxOffsetX, zone);
         var dx = crossingX - cx;
         var dy = crossingY - cy;
         if (!double.IsFinite(dx) || !double.IsFinite(dy)) return ContactQuality.Miss;
         var nx = NiceHalfWidthFt(bats, dx, barrelScale, rules);
-        var ny = HalfHeightFt;
+        var ny = HalfHeightFt(zone);
         var d = Math.Sqrt(dx * dx / (nx * nx) + dy * dy / (ny * ny));
         if (d <= c.PerfectFraction) return ContactQuality.Perfect;
         if (d <= 1) return ContactQuality.Nice;
@@ -538,8 +539,8 @@ public static class SweetSpot
     /// The drawn oval: the nice boundary, local to the cursor center, in world feet. The client
     /// draws exactly the hitbox the sim judges; the tip half is longer than the handle half.
     /// </summary>
-    public static IReadOnlyList<(double X, double Y)> Outline(Hand bats, RulesTable rules, double barrelScale = 1,
-        int segments = 40)
+    public static IReadOnlyList<(double X, double Y)> Outline(Hand bats, RulesTable rules, BatterZone zone,
+        double barrelScale = 1, int segments = 40)
     {
         var pts = new List<(double X, double Y)>(segments);
         for (var i = 0; i < segments; i++)
@@ -547,7 +548,7 @@ public static class SweetSpot
             var a = i * Math.PI * 2 / segments;
             var ux = Math.Cos(a);
             var nx = NiceHalfWidthFt(bats, ux, barrelScale, rules);
-            pts.Add((ux * nx, Math.Sin(a) * HalfHeightFt));
+            pts.Add((ux * nx, Math.Sin(a) * HalfHeightFt(zone)));
         }
         return pts;
     }
@@ -555,7 +556,7 @@ public static class SweetSpot
     /// <summary>
     /// The drawn outline of <paramref name="oval"/>, local to its center: the tip half-extent on the
     /// tip side, the handle half-extent on the other, the zone's half height up and down. The same
-    /// points as <see cref="Outline(Hand, double, int, RulesTable?)"/> for the oval's own barrel.
+    /// points as <see cref="Outline(Hand, RulesTable, BatterZone, double, int)"/> for the oval's own barrel and zone.
     /// </summary>
     public static IReadOnlyList<(double X, double Y)> Outline(CursorOval oval, int segments = 40)
     {
@@ -571,12 +572,12 @@ public static class SweetSpot
         return pts;
     }
 
-    /// <summary>Every strike is hittable with the box centered: no zone corner is off the bat (spec §5.2).</summary>
-    public static bool CoversTheZone(Hand bats, RulesTable rules, double barrelScale = 1)
+    /// <summary>Every strike in this batter's zone is hittable with the box centered: no zone corner is off the bat (spec §5.2).</summary>
+    public static bool CoversTheZone(Hand bats, RulesTable rules, BatterZone zone, double barrelScale = 1)
     {
-        foreach (var x in new[] { -StrikeZoneGeometry.HalfWidth, 0, StrikeZoneGeometry.HalfWidth })
-        foreach (var y in new[] { StrikeZoneGeometry.Bottom, StrikeZoneGeometry.CenterY, StrikeZoneGeometry.Top })
-            if (Zone(0, bats, x, y, rules, barrelScale) == ContactQuality.Miss)
+        foreach (var x in new[] { -zone.HalfWidth, 0, zone.HalfWidth })
+        foreach (var y in new[] { zone.Bottom, zone.CenterY, zone.Top })
+            if (Zone(0, bats, x, y, rules, zone, barrelScale) == ContactQuality.Miss)
                 return false;
         return true;
     }

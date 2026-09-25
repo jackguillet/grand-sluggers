@@ -23,7 +23,8 @@
         "control:pitching/Normal pitch"
       ],
       "tests": [
-        "TutorialSessionTests"
+        "TutorialSessionTests",
+        "BatterZoneScenarioTests"
       ]
     },
     {

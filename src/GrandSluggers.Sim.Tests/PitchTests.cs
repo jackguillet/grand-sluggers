@@ -33,15 +33,15 @@ public class PitchTests
     [Fact]
     public void InsideTakeCanPlunkTheBatter()
     {
-        const double y = PitchFlight.PlateY;
+        var y = StrikeZoneGeometry.Reference.CenterY;
         var body = AtBatResolver.BatterBodyX(0, Hand.R);
         var walked = AtBatResolver.BatterBodyX(0.5, Hand.R);
-        Assert.False(AtBatResolver.HitsBatter(0, 0, y, rules: Rules.Default));
-        Assert.False(AtBatResolver.HitsBatter(0, 1.7, y, rules: Rules.Default));
-        Assert.False(AtBatResolver.HitsBatter(0, 0, y - 1.2, rules: Rules.Default));
-        Assert.True(AtBatResolver.HitsBatter(0, body, y, rules: Rules.Default));
-        Assert.True(AtBatResolver.HitsBatter(0.5, walked, y + 0.1, rules: Rules.Default));
-        Assert.False(AtBatResolver.HitsBatter(0, body, y + 0.5, rules: Rules.Default), "the body circle is 0.45 ft (spec §4.6)");
+        Assert.False(AtBatResolver.HitsBatter(0, 0, y, Rules.Default, StrikeZoneGeometry.Reference));
+        Assert.False(AtBatResolver.HitsBatter(0, 1.7, y, Rules.Default, StrikeZoneGeometry.Reference));
+        Assert.False(AtBatResolver.HitsBatter(0, 0, y - 1.2, Rules.Default, StrikeZoneGeometry.Reference));
+        Assert.True(AtBatResolver.HitsBatter(0, body, y, Rules.Default, StrikeZoneGeometry.Reference));
+        Assert.True(AtBatResolver.HitsBatter(0.5, walked, y + 0.1, Rules.Default, StrikeZoneGeometry.Reference));
+        Assert.False(AtBatResolver.HitsBatter(0, body, y + 0.5, Rules.Default, StrikeZoneGeometry.Reference), "the body circle is 0.45 ft (spec §4.6)");
     }
 
     [Fact]
@@ -191,14 +191,14 @@ public class PitchTests
     {
         // Spec §4.2: a normal / charged pitch crosses mid-zone; a changeup crosses lower by a pitch number.
         var fb = PitchFlight.Point("fastball", 1, rules: Rules.Default);
-        Assert.Equal(StrikeZoneGeometry.CenterY, fb.Y, 6);
+        Assert.Equal(StrikeZoneGeometry.Reference.CenterY, fb.Y, 6);
         Assert.Equal(0, fb.X, 6);
         var charged = PitchFlight.Point("fastball", 1, charged: true, rules: Rules.Default);
         Assert.Equal(fb.Y, charged.Y, 6);
         var change = PitchFlight.Point(PitchFamily.Changeup, 1, rules: Rules.Default);
-        Assert.Equal(StrikeZoneGeometry.CenterY - Rules.Default.Pitching.Families.Changeup.DropFt, change.Y, 6);
-        Assert.True(change.Y > StrikeZoneGeometry.Bottom, "the changeup dumps inside the zone by default");
-        Assert.True(change.Y < StrikeZoneGeometry.CenterY - StrikeZoneGeometry.Height / 4);
+        Assert.Equal(StrikeZoneGeometry.Reference.CenterY - Rules.Default.Pitching.Families.Changeup.DropFt, change.Y, 6);
+        Assert.True(change.Y > StrikeZoneGeometry.Reference.Bottom, "the changeup dumps inside the zone by default");
+        Assert.True(change.Y < StrikeZoneGeometry.Reference.CenterY - StrikeZoneGeometry.Reference.Height / 4);
     }
 
     [Fact]
@@ -245,7 +245,7 @@ public class PitchTests
         var fbPlate = PitchFlight.Point(fb, 1, rules: Rules.Default);
         var chPlate = PitchFlight.Point(ch, 1, rules: Rules.Default);
         Assert.Equal(sh.DropFt, fbPlate.Y - chPlate.Y, 6);
-        Assert.True(chPlate.Y > StrikeZoneGeometry.Bottom);
+        Assert.True(chPlate.Y > StrikeZoneGeometry.Reference.Bottom);
 
         var hangU = sh.HangUntil;
         var chRel = PitchFlight.Point(ch, 0, rules: Rules.Default).Y;

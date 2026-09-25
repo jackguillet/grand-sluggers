@@ -685,7 +685,7 @@ namespace GrandSluggers.EditorTools
             Tick(play, play.TickFlight, State(stickX: 1), State());
             var after = target.localPosition.x;
             var breakX = play._breakX;
-            var expected = SweetSpot.WorldCenter(match.BatterOffsetX).X;
+            var expected = SweetSpot.WorldCenter(match.BatterOffsetX, match.BatterZone).X;
             Require(breakX > 0, "Plate-view screen-right did not curve screen-right.");
             Require(Math.Abs(after - before) < 0.0001f && Math.Abs(after - expected) < 0.0001,
                 $"Curve moved batter cursor: before {before}, after {after}, expected {expected}.");

@@ -92,7 +92,9 @@ public sealed class CpuPitcher
         // (4) The stick, held one way from release for as long as this delivery is in the air. The
         // speed is read off the delivery as it stands, which is every term AtBatResolver.PitchSpeedMph
         // looks at (family, charge, Nice!, Star, fatigue); the stick is lateral and does not reach it.
-        var delivery = new PitchCommand(family, charge, star, RubberX: 0, Nice: nice, Throws: Pitcher.Throws);
+        // At this batter's zone (§4.4), the one Match.PreparePitch stamps: the solve reads the delivery that flies.
+        var delivery = new PitchCommand(family, charge, star, RubberX: 0, Nice: nice, Throws: Pitcher.Throws,
+            Zone: _match.BatterZone);
         var airSec = PitchFlight.AirSeconds(PitchSpeedMph(delivery), Rules);
         var reach = PitchFlight.BreakReach(Pitcher.Stats.Control, airSec, Rules);
         var steerDir = Rng.NextDouble() < row.SteerChance ? (Rng.NextDouble() < 0.5 ? -1 : 1) : 0;

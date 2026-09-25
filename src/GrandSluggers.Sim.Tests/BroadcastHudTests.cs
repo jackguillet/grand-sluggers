@@ -86,7 +86,7 @@ public class BroadcastHudTests
                 Assert.True(match.SwapPitcher(match.Defense.Captain));
             Assert.Equal(stars, BroadcastHud.From(match).StarsEnabled);
             // Each captain's own top-tier pitch spends the reserve without completing a plate appearance.
-            match.Play(Scenario.PitchAt(2.5, StrikeZoneGeometry.CenterY) with { Star = true }, Scenario.Take);
+            match.Play(Scenario.PitchAt(2.5, StrikeZoneGeometry.Reference.CenterY) with { Star = true }, Scenario.Take);
             var bug = BroadcastHud.From(match);
             Assert.Equal(0, bug.DefenseStars);
             Assert.Equal(stars, bug.StarsEnabled);

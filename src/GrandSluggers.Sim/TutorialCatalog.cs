@@ -75,6 +75,10 @@ public sealed class TutorialCatalog
     }
 
     /// <summary>Enumerated independently of lesson data. Adding a control, ability, item or star exposes missing coverage.</summary>
+    /// <summary>Every distinct batter zone the roster can bring to the plate (§4.4): what a scripted pitch is judged against.</summary>
+    static IEnumerable<BatterZone> Zones(ContentCatalog content) =>
+        content.Characters.Values.Select(c => StrikeZoneGeometry.For(c, content.Rules)).Distinct();
+
     public static IEnumerable<string> RuntimeSources(ContentCatalog content) =>
         RoleTables.Pad.SelectMany(b => b.Rows.Select(r => $"control:{b.Id}/{r.Verb}")).Distinct()
         .Concat(ContentDataValidator.TutorialFieldAbilities.Select(a => "ability:" + a))
@@ -181,7 +185,7 @@ public sealed class TutorialCatalog
             if (l.Objective is "pull-fair" or "push-fair")
                 Require(setup.MinTimingFrames > 0, l.Id + " needs a meaningful timing threshold");
             if (l.Objective == "box-perfect-fair")
-                Require(setup.Pitch is not null && Math.Abs(PitchFlight.Crossing(setup.Pitch, rules: content.Rules).X) >= setup.MinMovement01 * HomeSet.BatterWalk,
+                Require(setup.Pitch is not null && Zones(content).All(z => Math.Abs(PitchFlight.Crossing(setup.Pitch with { Zone = z }, rules: content.Rules).X) >= setup.MinMovement01 * HomeSet.BatterWalk),
                     l.Id + " needs an offset pitch for box movement");
             if (l.Objective == "bunt-fair") Require(setup.Strikes == 2, l.Id + " must teach the two-strike bunt risk");
             if (l.Objective == "star-resource") Require(l.Id == "T-G03" && setup.Strikes == 2
@@ -256,11 +260,13 @@ public sealed class TutorialCatalog
                     && Math.Abs(pitch.AimX) <= 4 && Math.Abs(pitch.AimY) <= 4 && pitch.BreakMul == 1,
                     s.Id + " has invalid CPU pitch");
                 if (authored)
-                {
-                    var crossing = PitchFlight.Crossing(pitch, rules: content.Rules);
-                    Require(StrikeZoneGeometry.Contains(crossing.X, crossing.Y) == (s.Policy is "cpu-strike" or "cpu-item" or "game-contact"), s.Id + " CPU pitch disagrees with strike/ball policy");
-                    Require(new[] { Hand.L, Hand.R }.All(hand => !AtBatResolver.HitsBatter(0, crossing.X, crossing.Y, content.Rules, hand)), s.Id + " CPU pitch hits the batter");
-                }
+                    // Against every body that can bat (§4.4): a lesson's strike is a strike, and misses the body, in every zone.
+                    foreach (var zone in Zones(content))
+                    {
+                        var crossing = PitchFlight.Crossing(pitch with { Zone = zone }, rules: content.Rules);
+                        Require(zone.Contains(crossing.X, crossing.Y) == (s.Policy is "cpu-strike" or "cpu-item" or "game-contact"), s.Id + " CPU pitch disagrees with strike/ball policy");
+                        Require(new[] { Hand.L, Hand.R }.All(hand => !AtBatResolver.HitsBatter(0, crossing.X, crossing.Y, content.Rules, zone, hand)), s.Id + " CPU pitch hits the batter");
+                    }
             }
             else if (s.Policy is "steal-offense" or "steal-defense")
                 Require(s.Pitch is null || (content.Rules.Pitching.Families.IsAuthored(s.Pitch.Type) && !s.Pitch.Star

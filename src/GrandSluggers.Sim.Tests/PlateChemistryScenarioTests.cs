@@ -81,7 +81,7 @@ public sealed class PlateChemistryScenarioTests
         var rio = _content.Must("rio");
         var buddies = new[] { _content.Must("nico"), _content.Must("pip"), _content.Must("vale") };
         Assert.All(buddies, b => Assert.Equal(Chemistry.Good, _content.Chemistry.Between(rio, b)));
-        var (cx, cy) = SweetSpot.WorldCenter(0);
+        var (cx, cy) = SweetSpot.WorldCenter(0, StrikeZoneGeometry.For(_content.Must("rio"), R));
         var none = resolver.Resolve(Swing(_content.Must("ashlord"), rio, null, [], 1, 0, cx, cy), Harbor, new Random(3));
         var with = resolver.Resolve(Swing(_content.Must("ashlord"), rio, null, buddies, 1, 0, cx, cy), Harbor, new Random(3));
         Assert.Equal(ContactQuality.Perfect, with.Quality);
@@ -111,7 +111,7 @@ public sealed class PlateChemistryScenarioTests
 
         // Through the resolver: a fair ball with a good-chemistry hitter on deck carries no offer.
         var resolver = new AtBatResolver(_content.Chemistry, R, _content.StarSkills);
-        var (cx, cy) = SweetSpot.WorldCenter(0);
+        var (cx, cy) = SweetSpot.WorldCenter(0, StrikeZoneGeometry.For(_content.Must("rio"), R));
         var hit = resolver.Resolve(Swing(_content.Must("ashlord"), _content.Must("rio"), null, [], 0, 0, cx, cy)
             with { OnDeck = _content.Must("nico") }, Harbor, new Random(1));
         Assert.NotEqual(ContactQuality.Miss, hit.Quality);

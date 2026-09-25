@@ -15,17 +15,15 @@ namespace GrandSluggers.UnityClient
             _root.SetParent(parent, false);
 
             var frame = Look.Unlit(new Color(0.95f, 0.96f, 0.9f, 1f));
-            // The frame and umpire use the same world-space plate-crossing bounds.
-            var half = (float)StrikeZoneGeometry.HalfWidth;
-            var bottom = (float)StrikeZoneGeometry.Bottom;
-            var top = (float)StrikeZoneGeometry.Top;
-            var center = (float)StrikeZoneGeometry.CenterY;
-            var height = (float)StrikeZoneGeometry.Height;
-            var z = (float)StrikeZoneGeometry.PlateZ;
-            Look.Prim(PrimitiveType.Cube, "Left", _root, new Vector3(-half, center, z), new Vector3(0.06f, height, 0.06f), frame);
-            Look.Prim(PrimitiveType.Cube, "Right", _root, new Vector3(half, center, z), new Vector3(0.06f, height, 0.06f), frame);
-            Look.Prim(PrimitiveType.Cube, "Top", _root, new Vector3(0, top, z), new Vector3(half * 2, 0.05f, 0.05f), frame);
-            Look.Prim(PrimitiveType.Cube, "Bot", _root, new Vector3(0, bottom, z), new Vector3(half * 2, 0.05f, 0.05f), frame);
+            // The frame and the umpire use the same world-space plate-crossing bounds: the batter's zone, set per
+            // batter by Frame (spec §4.4). The bars are built once here and moved there; nothing here is a number.
+            var zero = Vector3.zero;
+            _left = Look.Prim(PrimitiveType.Cube, "Left", _root, zero, Vector3.one, frame).transform;
+            _right = Look.Prim(PrimitiveType.Cube, "Right", _root, zero, Vector3.one, frame).transform;
+            _top = Look.Prim(PrimitiveType.Cube, "Top", _root, zero, Vector3.one, frame).transform;
+            _bottom = Look.Prim(PrimitiveType.Cube, "Bot", _root, zero, Vector3.one, frame).transform;
+            _framed = null;
+            Frame(StrikeZoneGeometry.Reference);
 
             var cursor = new GameObject("BatterCursor");
             cursor.transform.SetParent(_root, false);
@@ -70,6 +68,35 @@ namespace GrandSluggers.UnityClient
             _root.gameObject.SetActive(false);
         }
 
+        Transform _left, _right, _top, _bottom;
+        BatterZone? _framed;
+
+        /// <summary>
+        /// Draw the white frame at <paramref name="zone"/>: the batter's knee-to-chest zone the sim judges (spec §4.4).
+        /// Moved only when the batter changes; the width never does.
+        /// </summary>
+        public void Frame(BatterZone zone)
+        {
+            if (_left == null || _framed == zone) return;
+            _framed = zone;
+            var half = (float)zone.HalfWidth;
+            var bottom = (float)zone.Bottom;
+            var top = (float)zone.Top;
+            var center = (float)zone.CenterY;
+            var height = (float)zone.Height;
+            var z = (float)StrikeZoneGeometry.PlateZ;
+            Place(_left, new Vector3(-half, center, z), new Vector3(0.06f, height, 0.06f));
+            Place(_right, new Vector3(half, center, z), new Vector3(0.06f, height, 0.06f));
+            Place(_top, new Vector3(0, top, z), new Vector3(half * 2, 0.05f, 0.05f));
+            Place(_bottom, new Vector3(0, bottom, z), new Vector3(half * 2, 0.05f, 0.05f));
+        }
+
+        static void Place(Transform bar, Vector3 at, Vector3 size)
+        {
+            bar.localPosition = at;
+            bar.localScale = size;
+        }
+
         const float AimTellRadius = 0.2f;
         internal Transform _aim;
 
@@ -109,12 +136,14 @@ namespace GrandSluggers.UnityClient
 
         /// <summary>
         /// Follow the batter, never the pitch: draw <paramref name="oval"/> — the sim's
-        /// <see cref="SweetSpot.Oval"/> for this swing — at its own center and half-extents.
+        /// <see cref="SweetSpot.Oval"/> for this swing — at its own center and half-extents, inside the frame of
+        /// <paramref name="zone"/>, the batter's zone (<see cref="Match.BatterZone"/>).
         /// </summary>
-        public void Show(CursorOval oval)
+        public void Show(CursorOval oval, BatterZone zone)
         {
             if (_root == null) return;
             _root.gameObject.SetActive(true);
+            Frame(zone);
             if (_target == null) return;
             Outline(oval);
             _target.localPosition = new Vector3((float)oval.CenterX, (float)oval.CenterY, (float)StrikeZoneGeometry.PlateZ);

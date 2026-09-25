@@ -16,7 +16,7 @@ namespace GrandSluggers.Sim.Tests;
 public sealed class StarResourceScenarioTests
 {
     static readonly ContentCatalog Shipped = ContentCatalog.Load(new DataRoot(global::GrandSluggers.Sim.Tests.Shipped.Content.Root.Shipped));
-    static double CenterY => StrikeZoneGeometry.CenterY;
+    static double CenterY => StrikeZoneGeometry.Reference.CenterY;
 
     /// <summary>Spend the defense down with paid Star Pitches thrown as takes well outside, until it cannot pay.</summary>
     static void DrainDefense(Match m)
@@ -357,7 +357,7 @@ public sealed class StarResourceScenarioTests
             foreach (var offset in new[] { 0.0, 0.3, 0.6, 0.9, 1.2 })
             {
                 var input = new AtBatInput(pitcher, batter, null, [], false, false, 0, false, false, bat, 80,
-                    PitchInZone: true, Charge01: charge, CrossingX: offset, CrossingY: StrikeZoneGeometry.CenterY);
+                    PitchInZone: true, Charge01: charge, CrossingX: offset);
                 var plain = resolver.Resolve(input, park, new Random(5));
                 var star = resolver.Resolve(input with { UseStarSwing = true }, park, new Random(5));
                 // Placement: the special meets the ball exactly where the ordinary swing at that charge does.

@@ -373,14 +373,15 @@ public class BodyClassScenarioTests
         var oval = SweetSpot.Oval(rio with { BodyClass = wide.Id }, null, 0, 0, R);
         Assert.Equal(w, oval.BarrelScale, 9);
         // The height is the zone's, never the class's.
-        Assert.Equal(SweetSpot.HalfHeightFt, oval.HalfHeightFt, 9);
+        Assert.Equal(SweetSpot.HalfHeightFt(StrikeZoneGeometry.For(rio, R)), oval.HalfHeightFt, 9);
 
         // The class never takes a batter who reaches every strike with the box centered out of it (§5.2).
         foreach (var c in _content.Characters.Values)
         {
             var plain = SweetSpot.SwingBarrel(c with { BodyClass = "" }, null, 0, R);
-            if (SweetSpot.CoversTheZone(c.Bats, R, plain))
-                Assert.True(SweetSpot.CoversTheZone(c.Bats, R, SweetSpot.SwingBarrel(c, null, 0, R)), $"{c.Id}'s class takes a strike off the bat");
+            var zone = StrikeZoneGeometry.For(c, R);
+            if (SweetSpot.CoversTheZone(c.Bats, R, zone, plain))
+                Assert.True(SweetSpot.CoversTheZone(c.Bats, R, zone, SweetSpot.SwingBarrel(c, null, 0, R)), $"{c.Id}'s class takes a strike off the bat");
         }
     }
 }

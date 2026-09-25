@@ -252,8 +252,8 @@ public sealed class BuntScenarioTests
             Assert.Equal(squared, match.CpuBatter.Squared);
             if (!squared) continue;
             squaredOnce = true;
-            var pitch = match.PreparePitch(Scenario.PitchAt(0, StrikeZoneGeometry.CenterY));
-            var ball = match.CpuBatter.Swing(match.PreparePitch(Scenario.PitchAt(2.5, StrikeZoneGeometry.CenterY)));
+            var pitch = match.PreparePitch(Scenario.PitchAt(0, StrikeZoneGeometry.Reference.CenterY));
+            var ball = match.CpuBatter.Swing(match.PreparePitch(Scenario.PitchAt(2.5, StrikeZoneGeometry.Reference.CenterY)));
             Assert.False(ball.Swing);
             Assert.True(ball.SquareSec > 0);
             var swing = match.CpuBatter.Swing(pitch);

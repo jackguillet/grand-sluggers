@@ -24,7 +24,10 @@ public sealed class BuntHoldScenarioTests
 
     const double Dt = 1.0 / 60;
     static double ToFull => Shipped.Feel.SwingChargeSeconds;
-    static double CenterY => StrikeZoneGeometry.CenterY;
+    /// <summary>The middle of the zone in the reference frame: where <see cref="Scenario.PitchAt"/> aims a pitch at any batter's middle.</summary>
+    static double CenterY => StrikeZoneGeometry.Reference.CenterY;
+    /// <summary>The middle of Rio's own zone in world feet (§4.4): where a crossing handed to the resolver sits for Rio.</summary>
+    static double RioY => StrikeZoneGeometry.For(Shipped.Must("rio"), Shipped.Rules).CenterY;
 
     /// <summary>The two bunt triggers and the swing button on one frame.</summary>
     readonly record struct Pad(
@@ -147,11 +150,11 @@ public sealed class BuntHoldScenarioTests
         foreach (var bats in new[] { Hand.R, Hand.L })
         foreach (var seed in new[] { 1, 7, 42 })
         {
-            var square = resolver.Resolve(Input(Shipped, Rio(bats), BuntSide.Third, 0, 0, CenterY), park, new Random(seed));
+            var square = resolver.Resolve(Input(Shipped, Rio(bats), BuntSide.Third, 0, 0, RioY), park, new Random(seed));
             Assert.NotEqual(ContactQuality.Miss, square.Quality);
             // Whatever a caller writes as the error, the held bat is on the plane: the same ball.
             foreach (var err in new[] { -40.0, -4, 4, 40 })
-                Assert.Equal(square, resolver.Resolve(Input(Shipped, Rio(bats), BuntSide.Third, err, 0, CenterY), park, new Random(seed)));
+                Assert.Equal(square, resolver.Resolve(Input(Shipped, Rio(bats), BuntSide.Third, err, 0, RioY), park, new Random(seed)));
         }
     }
 
@@ -193,10 +196,10 @@ public sealed class BuntHoldScenarioTests
             var sour = CrossingFor(Shipped, Rio(bats), ContactQuality.Sour, -0.3);
             for (var seed = 1; seed <= 200; seed++)
             {
-                third.Add(resolver.Resolve(Input(Shipped, Rio(bats), BuntSide.Third, 0, 0, CenterY), park, new Random(seed)).SprayDeg);
-                first.Add(resolver.Resolve(Input(Shipped, Rio(bats), BuntSide.First, 0, 0, CenterY), park, new Random(seed)).SprayDeg);
-                sourThird.Add(resolver.Resolve(Input(Shipped, Rio(bats), BuntSide.Third, 0, sour, CenterY - 0.3), park, new Random(seed)).SprayDeg);
-                sourFirst.Add(resolver.Resolve(Input(Shipped, Rio(bats), BuntSide.First, 0, sour, CenterY - 0.3), park, new Random(seed)).SprayDeg);
+                third.Add(resolver.Resolve(Input(Shipped, Rio(bats), BuntSide.Third, 0, 0, RioY), park, new Random(seed)).SprayDeg);
+                first.Add(resolver.Resolve(Input(Shipped, Rio(bats), BuntSide.First, 0, 0, RioY), park, new Random(seed)).SprayDeg);
+                sourThird.Add(resolver.Resolve(Input(Shipped, Rio(bats), BuntSide.Third, 0, sour, RioY - 0.3), park, new Random(seed)).SprayDeg);
+                sourFirst.Add(resolver.Resolve(Input(Shipped, Rio(bats), BuntSide.First, 0, sour, RioY - 0.3), park, new Random(seed)).SprayDeg);
             }
             Assert.True(third.Average() < 0 && first.Average() > 0, $"{bats}: {third.Average()} / {first.Average()}");
             // A bias, not a landing point: the ball spreads around the lean (by quality, §5.8), and a poorly met bunt
@@ -505,7 +508,7 @@ public sealed class BuntHoldScenarioTests
         foreach (var seed in new[] { 1, 7, 42 })
         {
             var x = CrossingFor(Shipped, rio, zone, 0);
-            var input = Input(Shipped, rio, BuntSide.None, 0, x, CenterY);
+            var input = Input(Shipped, rio, BuntSide.None, 0, x, RioY);
             var swing = resolver.Resolve(input with { Bunt = false }, park, new Random(seed));
             // The swing's charged pitch, the tired arm and the swing's own exit move nothing on the held bat.
             foreach (var bunt in new[]
@@ -564,7 +567,7 @@ public sealed class BuntHoldScenarioTests
                 var x = CrossingFor(Shipped, batter, zone, 0);
                 for (var seed = 1; seed <= 100; seed++)
                 {
-                    var hit = resolver.Resolve(Input(Shipped, batter, BuntSide.First, 0, x, CenterY), park, new Random(seed));
+                    var hit = resolver.Resolve(Input(Shipped, batter, BuntSide.First, 0, x, RioY), park, new Random(seed));
                     Assert.Equal(zone, hit.Quality);
                     Assert.Equal(r.ExitMph.For(zone), hit.ExitVeloMph);
                     widest = Math.Max(widest, Math.Abs(hit.SprayDeg - lean));
@@ -588,18 +591,18 @@ public sealed class BuntHoldScenarioTests
         foreach (var seed in new[] { 1, 7, 42 })
         {
             var above = CrossingFor(Shipped, rio, ContactQuality.Sour, 0.3);
-            var pop = resolver.Resolve(Input(Shipped, rio, BuntSide.Third, 0, above, CenterY + 0.3), park, new Random(seed));
+            var pop = resolver.Resolve(Input(Shipped, rio, BuntSide.Third, 0, above, RioY + 0.3), park, new Random(seed));
             Assert.Equal(ContactQuality.Sour, pop.Quality);
             Assert.True(pop.LaunchDeg >= b.Launch.PopMinDeg, $"above: {pop.LaunchDeg}");
 
             var below = CrossingFor(Shipped, rio, ContactQuality.Sour, -0.3);
-            var chop = resolver.Resolve(Input(Shipped, rio, BuntSide.Third, 0, below, CenterY - 0.3), park, new Random(seed));
+            var chop = resolver.Resolve(Input(Shipped, rio, BuntSide.Third, 0, below, RioY - 0.3), park, new Random(seed));
             Assert.Equal(ContactQuality.Sour, chop.Quality);
             Assert.InRange(chop.LaunchDeg, b.Bunt.LaunchMinDeg, b.Bunt.LaunchMinDeg + b.Bunt.LaunchSpanDeg);
             Assert.Equal(b.Bunt.Response.ExitMph.Sour, chop.ExitVeloMph);
         }
         // A crossing high over the zone still pops whatever the quality.
-        var high = resolver.Resolve(Input(Shipped, rio, BuntSide.Third, 0, 0, CenterY + b.Bunt.PopAboveCenterFt + 0.1), park, new Random(1));
+        var high = resolver.Resolve(Input(Shipped, rio, BuntSide.Third, 0, 0, RioY + b.Bunt.PopAboveCenterFt + 0.1), park, new Random(1));
         Assert.True(high.LaunchDeg >= b.Launch.PopMinDeg);
     }
 
@@ -633,7 +636,8 @@ public sealed class BuntHoldScenarioTests
         for (var i = 0; i <= 400; i++)
         {
             var x = tip * i * 0.01;
-            if (SweetSpot.Zone(0, batter.Bats, x, CenterY + dy, content.Rules, barrel) == zone) return x;
+            var strikeZone = StrikeZoneGeometry.For(batter, content.Rules);
+            if (SweetSpot.Zone(0, batter.Bats, x, strikeZone.CenterY + dy, content.Rules, strikeZone, barrel) == zone) return x;
         }
         throw new InvalidOperationException($"no {zone} crossing at dy {dy}");
     }

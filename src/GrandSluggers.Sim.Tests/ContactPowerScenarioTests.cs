@@ -144,8 +144,8 @@ public class ContactPowerScenarioTests
     {
         var c = _content.Rules.Batting.Cpu;
         // Just outside the frame, inside nearFt: the §5.9 chase row.
-        var near = Scenario.PitchAt(StrikeZoneGeometry.HalfWidth + c.NearFt / 2, StrikeZoneGeometry.CenterY);
-        var middle = Scenario.PitchAt(0, StrikeZoneGeometry.CenterY);
+        var near = Scenario.PitchAt(StrikeZoneGeometry.HalfWidth + c.NearFt / 2, StrikeZoneGeometry.Reference.CenterY);
+        var middle = Scenario.PitchAt(0, StrikeZoneGeometry.Reference.CenterY);
 
         var sureChases = 0;
         var sluggerChases = 0;
@@ -179,7 +179,7 @@ public class ContactPowerScenarioTests
         // Runner in scoring position, fewer than two outs, a middle-middle strike: §5.9's forced
         // charge. Its gate is rispChargeBatMin against Power, so the slugger charges on every seed
         // while the contact hitter is left to the archetype roll.
-        var middle = Scenario.PitchAt(0, StrikeZoneGeometry.CenterY);
+        var middle = Scenario.PitchAt(0, StrikeZoneGeometry.Reference.CenterY);
         var sluggerCharges = 0;
         var sureCharges = 0;
         for (var seed = 1; seed <= 40; seed++)
@@ -309,7 +309,7 @@ public class ContactPowerScenarioTests
         _content.Must("vale"), batter, null, [],
         ChargePitch: false, ChangeupPitch: false, TimingErrorFrames: 0,
         UseStarPitch: false, UseStarSwing: false, Bat: null, PitcherStamina: 100,
-        CrossingX: crossingX, CrossingY: StrikeZoneGeometry.CenterY);
+        CrossingX: crossingX);
 
     /// <summary>A match whose first batter is the fixture hitter, on the away side (the CPU's half).</summary>
     Match MatchWith(Character batter, int seed)

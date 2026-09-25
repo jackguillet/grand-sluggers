@@ -139,7 +139,8 @@ public sealed class ContactFlightTests
         var swing = new AtBatInput(game.Must("vale"), game.Must("rio"), null, [],
             false, false, 0, false, false, Bat: game.Bats["harbor-lumber"], PitcherStamina: 80);
         var angles = new List<double>();
-        for (var y = StrikeZoneGeometry.Bottom; y <= StrikeZoneGeometry.Top; y += .025)
+        var zone = StrikeZoneGeometry.For(swing.Batter, game.Rules);
+        for (var y = zone.Bottom; y <= zone.Top; y += .025)
         {
             var hit = resolver.Resolve(swing with { CrossingX = 0, CrossingY = y }, Park, new Random(7));
             Assert.NotEqual(ContactQuality.Miss, hit.Quality);
