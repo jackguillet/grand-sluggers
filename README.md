@@ -33,7 +33,7 @@ unity/    Unity 6 URP client — this is how you play
 
 ![Rio Sparks goes deep](docs/images/harbor-diamond.png)
 
-![Crystal Rink](docs/images/crystal-rink.png)
+![Aurora Rink](docs/images/crystal-rink.png)
 
 ## Play
 

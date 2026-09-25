@@ -14,7 +14,7 @@ namespace GrandSluggers.UnityClient
         public void Tick() { _play.TickFlow(); }
     }
 
-    public sealed partial class MatchDirector
+    public sealed partial class MatchDirector : IStillHost
     {
         internal void TickFlow()
         {
@@ -716,5 +716,33 @@ namespace GrandSluggers.UnityClient
             if (_lessons.Guided.SeatsBound(_matchSeats.Bound, LiveSeats.BothHuman, Controls.SeatDeviceId(0), Controls.SeatDeviceId(1)))
                 GuidedFeedbackOpened();
         }
+
+        // The still gate's host (#1042): StillStaging owns the staging; the flow owns the match it stages and the switches.
+        StillStaging _stills;
+        internal StillStaging Stills => _stills ??= new StillStaging(Scene, Play, this);
+        /// <summary>A HUD-off still is being captured: the play HUD draws nothing.</summary>
+        bool CaptureMuteHud => _stills != null && _stills.MuteHud;
+        string IStillHost.HomeCaptain => HomeCaptain;
+        void IStillHost.Pick(string home, string away) { HomeCaptain = home; AwayCaptain = away; }
+        void IStillHost.UsePark(string parkId, bool night) { ParkId = parkId; Night = night; }
+        void IStillHost.ResetForStill(bool muteHud, bool feelDebug)
+        {
+            _mode = PlayMode.Exhibition;
+            _forceMuteHud = muteHud; _feelDebug = feelDebug; _showTiming = false;
+            _freezeCam = true; _gateHold = false; _turntable = false;
+            _caught = false; _smash = 0; _juice.Clear();
+        }
+        void IStillHost.HoldStill(bool turntable)
+        {
+            _gateHold = true; _freezeCam = true;
+            if (turntable) _turntable = true;
+        }
+        Match IStillHost.NewMatch() => NewMatch();
+        void IStillHost.BeginSet() => BeginSet();
+        bool IStillHost.HasLineup => _lineup != null;
+        void IStillHost.OpenLineup() => OpenLineup();
+        void IStillHost.HoldPitchInHand() => HoldPitchInHand();
+        void IStillHost.CaptureReleaseFromHand() => CaptureReleaseFromHand();
+        Vector3 IStillHost.Ball { get => _ball; set => _ball = value; }
     }
 }

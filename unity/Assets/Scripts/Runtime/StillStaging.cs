@@ -17,15 +17,31 @@ namespace GrandSluggers.UnityClient
     /// The still gate's staging surface (#1043): what the editor-only <c>StillCapture</c> asks the director to pose. Nothing
     /// in a player calls it; the capture lives in the editor assembly, which sees these internals.
     /// </summary>
-    public sealed partial class MatchDirector
+    /// <summary>
+    /// The still gate's staging surface (#1043; a real class since #1042): what the editor-only <c>StillCapture</c> asks
+    /// for — a park, a matchup, a shot staged and posed, a swing beat measured. Nothing in a player calls it. It reads the
+    /// scene and the play through <see cref="MatchScene"/> and <see cref="PlayState"/>, and asks the flow for the rest
+    /// (building the match, the presentation switches) through <see cref="IStillHost"/>.
+    /// </summary>
+    internal sealed class StillStaging
     {
-        /// <summary>A HUD-off still is being captured: the play HUD draws nothing.</summary>
-        internal bool CaptureMuteHud { get; set; }
+        readonly MatchScene _scene;
+        readonly PlayState _play;
+        readonly IStillHost _host;
+        Hand? _gateSwingHand;
 
-        internal Camera GateCam => _rig != null ? _rig.Cam : Camera.main;
+        public StillStaging(MatchScene scene, PlayState play, IStillHost host)
+        {
+            _scene = scene; _play = play; _host = host;
+        }
+
+        /// <summary>A HUD-off still is being captured: the play HUD draws nothing.</summary>
+        public bool MuteHud { get; set; }
+
+        public Camera Cam => _scene.Rig != null ? _scene.Rig.Cam : Camera.main;
 
         /// <summary>The loaded catalog, so the still gate validates a park id against the park files (#820).</summary>
-        internal ContentCatalog GateContent => _content;
+        public ContentCatalog Content => _scene.Content;
 
         /// <summary>
         /// The batch's park and night, set before the first <c>NewMatch()</c>.
@@ -34,18 +50,16 @@ namespace GrandSluggers.UnityClient
         /// match — resolve the requested park; each GateStage branch then
         /// rebuilds the view from it the way the field pick does.
         /// </summary>
-        internal void GateUsePark(string parkId, bool night)
+        public void UsePark(string parkId, bool night)
         {
-            ParkId = parkId;
-            Night = night;
-            _match = null;
+            _host.UsePark(parkId, night);
+            _play.Match = null;
         }
 
         /// <summary>Hands the pick back after a batch. The drawn park stays on the last still.</summary>
-        internal void GateRestorePark(string parkId, bool night)
+        public void RestorePark(string parkId, bool night)
         {
-            ParkId = parkId;
-            Night = night;
+            _host.UsePark(parkId, night);
         }
 
         /// <summary>
@@ -56,158 +70,143 @@ namespace GrandSluggers.UnityClient
         /// </summary>
         void CutParkShot(ParkShot row)
         {
-            var pose = StillShots.Frame(row, _match.Park, ParkBoundary.Default);
-            _cam.CutRaw(pose.Id,
+            var pose = StillShots.Frame(row, _play.Match.Park, ParkBoundary.Default);
+            _scene.Cam.CutRaw(pose.Id,
                 new Vector3((float)pose.Pos.X, (float)pose.Pos.Y, (float)pose.Pos.Z),
                 new Vector3((float)pose.Target.X, (float)pose.Target.Y, (float)pose.Target.Z),
                 (float)pose.Fov);
         }
 
-        internal void GateStage(string shot, StillRequest req)
+        public void Stage(string shot, StillRequest req)
         {
             _gateSwingHand = null;
-            foreach (var hero in _heroes.Values)
-                if (hero != null) hero.GateBattingHand(_content.Must(hero.Id).Bats);
-            _mode = PlayMode.Exhibition;
-            HomeCaptain = req.ResolvedHome();
-            AwayCaptain = req.ResolvedAway();
-            _forceMuteHud = req.HudOff;
-            _feelDebug = req.FeelDebug;
-            _showTiming = false;
-            _freezeCam = true;
-            _gateHold = false;
-            _charge = Mathf.Clamp01((float)req.Charge01);
-            _caught = false;
-            _pending = null;
-            _preview = null;
-            _path = null;
-            _smash = 0;
-            _juice.Clear();
-            _turntable = false;
+            foreach (var hero in _scene.Heroes.Values)
+                if (hero != null) hero.GateBattingHand(_scene.Content.Must(hero.Id).Bats);
+            _host.Pick(req.ResolvedHome(), req.ResolvedAway());
+            _host.ResetForStill(req.HudOff, req.FeelDebug);
+            _play.Charge = Mathf.Clamp01((float)req.Charge01);
+            _play.Pending = null;
+            _play.Preview = null;
+            _play.Path = null;
 
             if (StillRequest.IsSwingMatrixShot(shot))
             {
-                GateStageSwingCaptain(req.ResolvedSwingCaptains(_content)[0], req);
+                StageSwingCaptain(req.ResolvedSwingCaptains(_scene.Content)[0], req);
                 return;
             }
 
             if (shot == "char-rest" || shot == "char-pose")
             {
-                if (_match == null) _match = NewMatch();
-                _park.Build(_match.Park, _match.Night, _content.Rules, _content.Feel);
-                _phase = Phase.Field;
-                _gateHold = true;
-                _turntable = true;
-                _logo?.Hide();
-                _card?.Hide();
+                if (_play.Match == null) _play.Match = _host.NewMatch();
+                _scene.Park.Build(_play.Match.Park, _play.Match.Night, _scene.Content.Rules, _scene.Content.Feel);
+                _play.Phase = MatchDirector.Phase.Field;
+                _host.HoldStill(turntable: true);
+                _scene.Logo?.Hide();
+                _scene.Card?.Hide();
                 return;
             }
 
-            if (_content.Shots.TryGetPark(shot, out var parkShot))
+            if (_scene.Content.Shots.TryGetPark(shot, out var parkShot))
             {
                 // A named park shot (F7-b): the field view the `field` cut stages, with no
                 // bodies or ball in the way, and a pose computed from the park being captured.
-                if (_match == null) _match = NewMatch();
-                _park.Build(_match.Park, _match.Night, _content.Rules, _content.Feel);
-                _phase = Phase.Field;
+                if (_play.Match == null) _play.Match = _host.NewMatch();
+                _scene.Park.Build(_play.Match.Park, _play.Match.Night, _scene.Content.Rules, _scene.Content.Feel);
+                _play.Phase = MatchDirector.Phase.Field;
                 CutParkShot(parkShot);
-                _gateHold = true;
+                _host.HoldStill();
                 return;
             }
 
             if (shot == "title" || shot == "select" || shot == "field" || shot == "lineup")
             {
-                if (_match == null) _match = NewMatch();
-                _park.Build(_match.Park, _match.Night, _content.Rules, _content.Feel);
+                if (_play.Match == null) _play.Match = _host.NewMatch();
+                _scene.Park.Build(_play.Match.Park, _play.Match.Night, _scene.Content.Rules, _scene.Content.Feel);
                 if (shot == "lineup")
-                    OpenLineup();
+                    _host.OpenLineup();
                 else
-                    _phase = shot == "select" ? Phase.Select : shot == "field" ? Phase.Field : Phase.Title;
-                _cam.Cut(shot);
-                _gateHold = true;
+                    _play.Phase = shot == "select" ? MatchDirector.Phase.Select : shot == "field" ? MatchDirector.Phase.Field : MatchDirector.Phase.Title;
+                _scene.Cam.Cut(shot);
+                _host.HoldStill();
                 return;
             }
 
-            _match = NewMatch();
-            _park.Build(_match.Park, _match.Night, _content.Rules, _content.Feel);
+            _play.Match = _host.NewMatch();
+            _scene.Park.Build(_play.Match.Park, _play.Match.Night, _scene.Content.Rules, _scene.Content.Feel);
 
             if (shot == "mound")
             {
-                BeginSet();
-                _gateHold = true;
-                _cam.Cut("mound");
+                _host.BeginSet();
+                _host.HoldStill();
+                _scene.Cam.Cut("mound");
                 return;
             }
 
-            _match.SkipToHomeCaptainAtBat();
-            _match.GiveOffenseStars(5);
-            BeginSet();
-            _gateHold = true;
+            _play.Match.SkipToHomeCaptainAtBat();
+            _play.Match.GiveOffenseStars(5);
+            _host.BeginSet();
+            _host.HoldStill();
 
             if (shot == "plate")
             {
-                _cam.Cut("plate");
+                _scene.Cam.Cut("plate");
                 return;
             }
 
             if (shot == "pitch")
             {
-                _pitch = new PitchCommand("fastball", 1, false);
-                _phase = Phase.Flight;
-                _cam.Cut("pitch");
+                _play.Pitch = new PitchCommand("fastball", 1, false);
+                _play.Phase = MatchDirector.Phase.Flight;
+                _scene.Cam.Cut("pitch");
                 return;
             }
 
             if (shot == "diamond-grounder")
             {
-                _phase = Phase.InPlay;
+                _play.Phase = MatchDirector.Phase.InPlay;
                 return;
             }
 
             if (shot == "smash")
             {
-                var id = _match.Batter.StarSwing;
-                _pending = new AtBatResult(ContactQuality.Perfect, true, false, 100, 28, 320, false, false, null, id);
-                _swing = new SwingCommand(true, 1, 0, true);
+                var id = _play.Match.Batter.StarSwing;
+                _play.Pending = new AtBatResult(ContactQuality.Perfect, true, false, 100, 28, 320, false, false, null, id);
+                _play.Swing = new SwingCommand(true, 1, 0, true);
                 return;
             }
 
-            _cam.Cut(shot);
+            _scene.Cam.Cut(shot);
         }
 
-        Hand? _gateSwingHand;
-
-        internal void GateStageSwingCaptain(string captain, StillRequest req, Hand? hand = null)
+        public void StageSwingCaptain(string captain, StillRequest req, Hand? hand = null)
         {
             _gateSwingHand = hand;
-            HomeCaptain = captain;
-            AwayCaptain = req.OpponentFor(captain);
-            _match = NewMatch();
-            _park.Build(_match.Park, _match.Night, _content.Rules, _content.Feel);
-            _match.SkipToHomeCaptainAtBat();
-            BeginSet();
-            _phase = Phase.Set;
-            _gateHold = true;
-            _freezeCam = true;
-            _logo?.Hide();
-            _card?.Hide();
+            _host.Pick(captain, req.OpponentFor(captain));
+            _play.Match = _host.NewMatch();
+            _scene.Park.Build(_play.Match.Park, _play.Match.Night, _scene.Content.Rules, _scene.Content.Feel);
+            _play.Match.SkipToHomeCaptainAtBat();
+            _host.BeginSet();
+            _play.Phase = MatchDirector.Phase.Set;
+            _host.HoldStill();
+            _scene.Logo?.Hide();
+            _scene.Card?.Hide();
             HideCatcher();
             HideBackstop();
         }
 
-        internal HeroActor GatePoseSwing(string beat, float charge)
+        public HeroActor PoseSwing(string beat, float charge)
         {
-            if (_match?.Batter == null) return null;
-            foreach (var kv in _heroes)
+            if (_play.Match?.Batter == null) return null;
+            foreach (var kv in _scene.Heroes)
                 if (kv.Value != null) kv.Value.gameObject.SetActive(false);
-            var hero = EnsureHero(_match.Batter);
+            var hero = EnsureHero(_play.Match.Batter);
             if (hero == null) return null;
             hero.gameObject.SetActive(true);
             hero.SetChargeRing(0);
-            hero.GateBattingHand(_gateSwingHand ?? _match.Batter.Bats);
+            hero.GateBattingHand(_gateSwingHand ?? _play.Match.Batter.Bats);
             hero.SetHeld(true, false);
             var box = new Vector3(
-                (float)HomeSet.BatterBodyX((_gateSwingHand ?? _match.Batter.Bats)),
+                (float)HomeSet.BatterBodyX((_gateSwingHand ?? _play.Match.Batter.Bats)),
                 0f,
                 (float)HomeSet.BatterZ);
             hero.PlaceStill(box, box + Vector3.forward);
@@ -236,16 +235,16 @@ namespace GrandSluggers.UnityClient
                     : (float)Motion.SwingFinish);
             }
 
-            _cam.SmashCut(hero.transform.position + Vector3.up * (float)HomeSet.BatterChestY);
+            _scene.Cam.SmashCut(hero.transform.position + Vector3.up * (float)HomeSet.BatterChestY);
             return hero;
         }
 
-        internal string GateMeasureSwing(
+        public string MeasureSwing(
             HeroActor hero, string beat, string captain, string power, out string gateError)
         {
             gateError = "";
             var sharedRigMetrics = System.Linq.Enumerable.Any(
-                _content.CaptainIds,
+                _scene.Content.CaptainIds,
                 id => id.Equals(captain, StringComparison.OrdinalIgnoreCase));
             if (hero == null)
             {
@@ -291,7 +290,7 @@ namespace GrandSluggers.UnityClient
             var failures = new List<string>();
             var stanceMeasured = hero.TryRenderedBattingStance(
                 out var chestForward, out var eyeForward, out var feetLine);
-            var towardPlate = (_gateSwingHand ?? _match.Batter.Bats) == Hand.L ? Vector3.left : Vector3.right;
+            var towardPlate = (_gateSwingHand ?? _play.Match.Batter.Bats) == Hand.L ? Vector3.left : Vector3.right;
             var chestTowardPlate = Vector3.Dot(chestForward, towardPlate);
             var eyesTowardPitcher = Vector3.Dot(eyeForward, Vector3.forward);
             // Signed on purpose. feetLine runs from the back foot to the lead
@@ -327,13 +326,13 @@ namespace GrandSluggers.UnityClient
                     // key (a check anchored to the key agreed with its own bug).
                     if (renderedHands)
                     {
-                        var lead = BattingStance.LeadSide((_gateSwingHand ?? _match.Batter.Bats));
+                        var lead = BattingStance.LeadSide((_gateSwingHand ?? _play.Match.Batter.Bats));
                         var leadY = lead == Hand.L ? left.y : right.y;
                         var topY = lead == Hand.L ? right.y : left.y;
                         if (leadY >= topY)
                             failures.Add($"{captain} {power} {beat}: {(lead == Hand.L ? "left" : "right")} hand "
                                 + $"must ride under the {(lead == Hand.L ? "right" : "left")} on the handle for a "
-                                + $"{(_gateSwingHand ?? _match.Batter.Bats)} batter (lead y {leadY:0.000}, top y {topY:0.000})");
+                                + $"{(_gateSwingHand ?? _play.Match.Batter.Bats)} batter (lead y {leadY:0.000}, top y {topY:0.000})");
                     }
                 }
             }
@@ -589,10 +588,9 @@ namespace GrandSluggers.UnityClient
             return true;
         }
 
-        internal void GatePose(string shot, StillRequest req)
+        public void Pose(string shot, StillRequest req)
         {
-            _freezeCam = true;
-            _gateHold = true;
+            _host.HoldStill();
             var charge = Mathf.Clamp01((float)req.Charge01);
             if (shot == "char-rest" || shot == "char-pose")
             {
@@ -602,11 +600,11 @@ namespace GrandSluggers.UnityClient
 
             if (shot == "field")
             {
-                _cam.Cut("field");
+                _scene.Cam.Cut("field");
                 return;
             }
 
-            if (_content.Shots.TryGetPark(shot, out var parkShot))
+            if (_scene.Content.Shots.TryGetPark(shot, out var parkShot))
             {
                 CutParkShot(parkShot);
                 return;
@@ -614,8 +612,8 @@ namespace GrandSluggers.UnityClient
 
             if (shot == "lineup")
             {
-                if (_lineup == null) OpenLineup();
-                _cam.Cut("lineup");
+                if (!_host.HasLineup) _host.OpenLineup();
+                _scene.Cam.Cut("lineup");
                 return;
             }
 
@@ -623,16 +621,16 @@ namespace GrandSluggers.UnityClient
             {
                 if (shot == "select")
                 {
-                    var ids = _content.CaptainIds;
+                    var ids = _scene.Content.CaptainIds;
                     var i = 0;
                     for (; i < ids.Count; i++)
-                        if (ids[i] == HomeCaptain) break;
+                        if (ids[i] == _host.HomeCaptain) break;
                     if (i >= ids.Count) i = 0;
                     var look = CarnivalFront.SelectLook(i, ids.Count);
-                    _cam.CutLook("select", new Vector3(look.X, look.Y, look.Z));
+                    _scene.Cam.CutLook("select", new Vector3(look.X, look.Y, look.Z));
                 }
                 else
-                    _cam.Cut("title");
+                    _scene.Cam.Cut("title");
                 return;
             }
 
@@ -640,7 +638,7 @@ namespace GrandSluggers.UnityClient
             {
                 PosePitcher(Motion.Verb.ChargePitch, charge, true);
                 PoseBatter(Motion.Verb.Idle, 0, false);
-                _cam.Cut("mound");
+                _scene.Cam.Cut("mound");
                 return;
             }
 
@@ -649,8 +647,8 @@ namespace GrandSluggers.UnityClient
                 HideCatcher();
                 PoseBatter(Motion.Verb.ChargeSwing, charge, true);
                 PosePitcher(Motion.Verb.ChargePitch, 1, false);
-                HoldPitchInHand();
-                _cam.CutRaw("plate",
+                _host.HoldPitchInHand();
+                _scene.Cam.CutRaw("plate",
                     new Vector3((float)StillPose.PlateCamX, (float)StillPose.PlateCamY, (float)StillPose.PlateCamZ),
                     new Vector3((float)StillPose.PlateLookX, (float)StillPose.PlateLookY, (float)StillPose.PlateLookZ),
                     (float)StillPose.PlateFov);
@@ -662,21 +660,21 @@ namespace GrandSluggers.UnityClient
                 HideCatcher();
                 PoseBatter(Motion.Verb.ChargeSwing, charge, true);
                 PosePitcher(Motion.Verb.ThrowPitch, 1, false);
-                if (_match.Pitcher != null && _heroes.TryGetValue(_match.Pitcher.Id, out var ph) && ph != null)
+                if (_play.Match.Pitcher != null && _scene.Heroes.TryGetValue(_play.Match.Pitcher.Id, out var ph) && ph != null)
                     ph.SnapTick((float)Motion.PitchRelease);
-                _pitch ??= new PitchCommand("fastball", 1, false);
-                CaptureReleaseFromHand();
-                if (!StillPose.PitchReleaseIsOnTheMound(_relFrom.z))
+                _play.Pitch ??= new PitchCommand("fastball", 1, false);
+                _host.CaptureReleaseFromHand();
+                if (!StillPose.PitchReleaseIsOnTheMound(_play.ReleaseFrom.z))
                 {
-                    var rel = PitchFlight.Release(_match.Rules, _pitch.RubberX);
-                    _relFrom = new Vector3((float)rel.X, (float)rel.Y, (float)rel.Z);
+                    var rel = PitchFlight.Release(_play.Match.Rules, _play.Pitch.RubberX);
+                    _play.ReleaseFrom = new Vector3((float)rel.X, (float)rel.Y, (float)rel.Z);
                 }
-                _park.Ball.Release();
-                var p = PitchFlight.Point("fastball", StillPose.PitchBallU, _match.Rules, 0, 0, 0, 0,
-                    ((double)_relFrom.x, (double)_relFrom.y, (double)_relFrom.z), zone: _match.BatterZone);
-                _ball = new Vector3((float)p.X, (float)p.Y, (float)p.Z);
-                _park.Ball.Place(_ball, "", "fastball", false, true);
-                _cam.CutRaw("pitch",
+                _scene.Park.Ball.Release();
+                var p = PitchFlight.Point("fastball", StillPose.PitchBallU, _play.Match.Rules, 0, 0, 0, 0,
+                    ((double)_play.ReleaseFrom.x, (double)_play.ReleaseFrom.y, (double)_play.ReleaseFrom.z), zone: _play.Match.BatterZone);
+                _host.Ball = new Vector3((float)p.X, (float)p.Y, (float)p.Z);
+                _scene.Park.Ball.Place(_host.Ball, "", "fastball", false, true);
+                _scene.Cam.CutRaw("pitch",
                     new Vector3((float)StillPose.PitchCamX, (float)StillPose.PitchCamY, (float)StillPose.PitchCamZ),
                     new Vector3((float)StillPose.PitchLookX, (float)StillPose.PitchLookY, (float)StillPose.PitchLookZ),
                     (float)StillPose.PitchFov);
@@ -687,16 +685,16 @@ namespace GrandSluggers.UnityClient
             {
                 var gx = (float)StillPose.ScoopX;
                 var gz = (float)StillPose.ScoopZ;
-                foreach (var kv in _heroes)
+                foreach (var kv in _scene.Heroes)
                     if (kv.Value != null) kv.Value.gameObject.SetActive(false);
                 PoseBatter(Motion.Verb.Run, 0, false);
-                if (_match.Batter != null && _heroes.TryGetValue(_match.Batter.Id, out var run) && run != null)
+                if (_play.Match.Batter != null && _scene.Heroes.TryGetValue(_play.Match.Batter.Id, out var run) && run != null)
                 {
                     run.gameObject.SetActive(true);
                     var runAt = new Vector3((float)StillPose.RunnerX, 0f, (float)StillPose.RunnerZ);
                     run.PlaceStill(runAt, runAt + new Vector3((float)Diamond.First.X, 0f, (float)Diamond.First.Z));
                 }
-                var defense = _match.DefenseMap;
+                var defense = _play.Match.DefenseMap;
                 Character scoopWho = null;
                 if (!defense.TryGetValue(StillPose.ScoopGlove, out scoopWho) || scoopWho == null)
                 {
@@ -714,13 +712,13 @@ namespace GrandSluggers.UnityClient
                     fh.SetHeld(false, true);
                     fh.PlaceStill(new Vector3(gx, 0f, gz), new Vector3(gx + 1f, 0f, gz + 1f));
                     fh.SnapTick((float)StillPose.ScoopPoseT);
-                    _ball = new Vector3(gx, (float)StillPose.ScoopBallY, gz);
-                    _park.Ball.Place(_ball, "", "fastball", false);
-                    if (fh.CatchHand != null) _park.Ball.Hold(fh.CatchHand);
+                    _host.Ball = new Vector3(gx, (float)StillPose.ScoopBallY, gz);
+                    _scene.Park.Ball.Place(_host.Ball, "", "fastball", false);
+                    if (fh.CatchHand != null) _scene.Park.Ball.Hold(fh.CatchHand);
                 }
                 // Side 3/4. Looking down the path hid the glove; looking at the scoop
                 // only put the runner behind the camera.
-                _cam.CutRaw("diamond-grounder",
+                _scene.Cam.CutRaw("diamond-grounder",
                     new Vector3((float)StillPose.CamX, (float)StillPose.CamY, (float)StillPose.CamZ),
                     new Vector3((float)StillPose.ScoopLookX, (float)StillPose.ScoopLookY, (float)StillPose.ScoopLookZ),
                     50f);
@@ -731,42 +729,42 @@ namespace GrandSluggers.UnityClient
             {
                 HideCatcher();
                 HideBackstop();
-                foreach (var kv in _heroes)
+                foreach (var kv in _scene.Heroes)
                     if (kv.Value != null) kv.Value.gameObject.SetActive(false);
                 PoseBatter(Motion.Verb.Swing, 1, false);
                 var chest = new Vector3(
-                    (float)HomeSet.BatterXFor(_match.Batter.Bats),
+                    (float)HomeSet.BatterXFor(_play.Match.Batter.Bats),
                     (float)HomeSet.BatterChestY,
                     (float)HomeSet.BatterZ);
-                if (_match.Batter != null && _heroes.TryGetValue(_match.Batter.Id, out var sw) && sw != null)
+                if (_play.Match.Batter != null && _scene.Heroes.TryGetValue(_play.Match.Batter.Id, out var sw) && sw != null)
                 {
                     sw.gameObject.SetActive(true);
                     sw.SnapTick((float)Motion.SwingContact);
                     chest = sw.transform.position + Vector3.up * 3.2f;
                 }
-                var star = _pending != null ? _pending.StarSwingUsed : _match.Batter.StarSwing;
-                _spec.Tick(0, chest, false, true, false, "", star ?? "", false, false, chest);
-                _cam.SmashCut(chest);
+                var star = _play.Pending != null ? _play.Pending.StarSwingUsed : _play.Match.Batter.StarSwing;
+                _scene.Fx.Tick(0, chest, false, true, false, "", star ?? "", false, false, chest);
+                _scene.Cam.SmashCut(chest);
             }
         }
 
         void PoseCharacterTurntable(bool pose)
         {
             HideBackstop();
-            _logo?.Hide();
-            _card?.Hide();
-            foreach (var kv in _heroes)
+            _scene.Logo?.Hide();
+            _scene.Card?.Hide();
+            foreach (var kv in _scene.Heroes)
             {
                 if (kv.Value == null) continue;
-                kv.Value.gameObject.SetActive(kv.Key.Equals(HomeCaptain, StringComparison.OrdinalIgnoreCase));
+                kv.Value.gameObject.SetActive(kv.Key.Equals(_host.HomeCaptain, StringComparison.OrdinalIgnoreCase));
             }
-            var who = _content.Must(HomeCaptain);
+            var who = _scene.Content.Must(_host.HomeCaptain);
             var hero = EnsureHero(who);
             if (hero == null) return;
             hero.gameObject.SetActive(true);
             hero.SetHeld(false, false);
             hero.SetChargeRing(0);
-            var shot = StillPose.CharFraming(_content, HomeCaptain);
+            var shot = StillPose.CharFraming(_scene.Content, _host.HomeCaptain);
             hero.PlaceStill(
                 new Vector3((float)StillPose.CharX, 0f, (float)StillPose.CharZ),
                 new Vector3((float)shot.Pos.X, (float)shot.Pos.Y, (float)shot.Pos.Z));
@@ -780,7 +778,7 @@ namespace GrandSluggers.UnityClient
                 hero.SetPose(Motion.Verb.Idle, 0);
                 hero.SnapTick(0f);
             }
-            _cam.CutRaw("select",
+            _scene.Cam.CutRaw("select",
                 new Vector3((float)shot.Pos.X, (float)shot.Pos.Y, (float)shot.Pos.Z),
                 new Vector3((float)shot.Target.X, (float)shot.Target.Y, (float)shot.Target.Z),
                 (float)shot.Fov);
@@ -788,26 +786,26 @@ namespace GrandSluggers.UnityClient
 
         void HideCatcher()
         {
-            if (_match == null) return;
-            var defense = _match.DefenseMap;
+            if (_play.Match == null) return;
+            var defense = _play.Match.DefenseMap;
             if (defense.TryGetValue("C", out var catcher) && catcher != null
-                && _heroes.TryGetValue(catcher.Id, out var ch) && ch != null)
+                && _scene.Heroes.TryGetValue(catcher.Id, out var ch) && ch != null)
                 ch.gameObject.SetActive(false);
         }
 
         void HideBackstop()
         {
-            _park?.Kit?.ShowBackstop(false);
+            _scene.Park?.Kit?.ShowBackstop(false);
         }
 
         HeroActor EnsureHero(Character who)
         {
             if (who == null) return null;
-            if (!_heroes.TryGetValue(who.Id, out var h) || h == null)
+            if (!_scene.Heroes.TryGetValue(who.Id, out var h) || h == null)
             {
                 var go = new GameObject("Hero-" + who.Id);
                 h = go.AddComponent<HeroActor>();
-                _heroes[who.Id] = h;
+                _scene.Heroes[who.Id] = h;
             }
             h.gameObject.SetActive(true);
             h.Bind(who);
@@ -816,13 +814,13 @@ namespace GrandSluggers.UnityClient
 
         void PoseBatter(Motion.Verb pose, float charge, bool ring)
         {
-            if (_match?.Batter == null) return;
-            if (!_heroes.TryGetValue(_match.Batter.Id, out var b) || b == null) return;
+            if (_play.Match?.Batter == null) return;
+            if (!_scene.Heroes.TryGetValue(_play.Match.Batter.Id, out var b) || b == null) return;
             b.SetPose(pose, charge);
             b.SetChargeRing(ring ? charge : 0);
             b.SetHeld(pose is Motion.Verb.ChargeSwing or Motion.Verb.Swing, false);
             b.Place(new Vector3(
-                (float)HomeSet.BatterBodyX(_match.Batter.Bats, _match.BatterOffsetX),
+                (float)HomeSet.BatterBodyX(_play.Match.Batter.Bats, _play.Match.BatterOffsetX),
                 0f,
                 (float)HomeSet.BatterZ), new Vector3(0f, 0f, 1f));
             b.SnapTick(0.08f);
@@ -830,8 +828,8 @@ namespace GrandSluggers.UnityClient
 
         void PosePitcher(Motion.Verb pose, float charge, bool ring)
         {
-            if (_match?.Pitcher == null) return;
-            var p = EnsureHero(_match.Pitcher);
+            if (_play.Match?.Pitcher == null) return;
+            var p = EnsureHero(_play.Match.Pitcher);
             if (p == null) return;
             p.SetPose(pose, charge, "fastball");
             p.SetChargeRing(ring ? charge : 0);
@@ -841,5 +839,24 @@ namespace GrandSluggers.UnityClient
                 new Vector3(0f, 0f, -1f));
             p.SnapTick(pose == Motion.Verb.ThrowPitch ? (float)Motion.PitchRelease : 0.08f);
         }
+    }
+
+    /// <summary>What the still staging asks of the match flow: the matchup and park, the match and its SET, and the presentation switches.</summary>
+    internal interface IStillHost
+    {
+        string HomeCaptain { get; }
+        void Pick(string home, string away);
+        void UsePark(string parkId, bool night);
+        /// <summary>A still starts clean: Exhibition, the capture's HUD and feel switches, the camera frozen, nothing held, no juice, no turntable.</summary>
+        void ResetForStill(bool muteHud, bool feelDebug);
+        /// <summary>Hold the staged frame: the flow stops ticking play and the camera stays where the still put it.</summary>
+        void HoldStill(bool turntable = false);
+        Match NewMatch();
+        void BeginSet();
+        bool HasLineup { get; }
+        void OpenLineup();
+        void HoldPitchInHand();
+        void CaptureReleaseFromHand();
+        Vector3 Ball { get; set; }
     }
 }

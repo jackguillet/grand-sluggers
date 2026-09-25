@@ -3,6 +3,7 @@
   "name": "Ember Keep",
   "faction": "ember",
   "pickOrder": 6,
+  "region": "volcano",
   "surface": "ash",
   "leftFenceFt": 237,
   "centerFenceFt": 286,

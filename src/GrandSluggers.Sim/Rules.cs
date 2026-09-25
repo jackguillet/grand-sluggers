@@ -1441,7 +1441,7 @@ public sealed record GroundLibrary
     public GroundRules Dirt { get; init; } = new();
 
     /// <summary>
-    /// Crystal Rink's surface (F9-a): the ball runs and skids farther and a body is slower to start, stop and turn, never
+    /// Aurora Rink's surface (F9-a): the ball runs and skids farther and a body is slower to start, stop and turn, never
     /// faster and never off its heading (FD-04 B). Proposed numbers, not tuned; Jack judges them in play (FD-13-R2).
     /// </summary>
     public GroundRules Ice { get; init; } = new();
@@ -1654,7 +1654,7 @@ public sealed record WallMaterialLibrary
     /// <summary>The padded outfield wall every park has today, at what <c>flight.wall</c> carried.</summary>
     public WallRules Padded { get; init; } = new();
 
-    /// <summary>Crystal Rink's glass boards (F9-a): a livelier carom than the pad. Proposed, not tuned.</summary>
+    /// <summary>Aurora Rink's glass boards (F9-a): a livelier carom than the pad. Proposed, not tuned.</summary>
     public WallRules Glass { get; init; } = new();
 
     WallRules? Named(string id) => id switch
