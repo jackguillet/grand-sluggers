@@ -93,14 +93,6 @@ namespace GrandSluggers.UnityClient
 
         public void Punch(float amount = 10f) => _punch = amount;
 
-        public void Smash(Vector3 at)
-        {
-            _pos = at + new Vector3(2.6f, 2.4f, -7.2f);
-            _look = at + new Vector3(0f, 0.4f, 1.2f);
-            _fov = 26f;
-            _punch = 16f;
-        }
-
         public void FramePitch() =>
             Cut(
                 new Vector3((float)StillPose.MoundCamX, (float)StillPose.MoundCamY, (float)StillPose.MoundCamZ),
@@ -113,16 +105,6 @@ namespace GrandSluggers.UnityClient
                 new Vector3((float)StillPose.PlateCamX, (float)StillPose.PlateCamY, (float)StillPose.PlateCamZ),
                 new Vector3((float)StillPose.PlateLookX, (float)StillPose.PlateLookY, (float)StillPose.PlateLookZ),
                 (float)StillPose.PlateFov);
-
-        public void FrameThrow(Vector3 from, Vector3 to)
-        {
-            var dir = to - from;
-            dir.y = 0f;
-            if (dir.sqrMagnitude < 1f) dir = Vector3.forward;
-            dir.Normalize();
-            var side = Vector3.Cross(Vector3.up, dir);
-            Aim(from - dir * 12f + Vector3.up * 6.2f + side * 4.2f, to + Vector3.up * 1.6f, 40f);
-        }
 
         public void Tick(float dt)
         {

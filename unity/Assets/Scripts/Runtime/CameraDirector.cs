@@ -114,12 +114,15 @@ namespace GrandSluggers.UnityClient
             _rig.Cut(pos, look, fov);
         }
 
+        /// <summary>Where the smash looks when the play left no moment to center on (<c>shots.json</c> smash <c>fallback</c>).</summary>
+        public Vector3 SmashFallback => Must("smash").Fallback is { } f ? V(f) : Vector3.zero;
+
         public void SmashAt(Vector3 at)
         {
             var s = Must("smash");
             Shot = s.Id;
             _rig.Aim(at + V(s.Pos), at + V(s.Target), (float)s.Fov);
-            _rig.Punch(16f);
+            _rig.Punch(CartoonJuice.PerfectPunch);
         }
 
         public void SmashCut(Vector3 at)

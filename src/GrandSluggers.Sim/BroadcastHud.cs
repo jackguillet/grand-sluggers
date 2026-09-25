@@ -167,6 +167,42 @@ public static class BroadcastHud
         public double Bottom => Y + H;
     }
 
+    /// <summary>A rect authored in pixels of the 1280×800 reference window, normalized so it scales with the screen.</summary>
+    static HudRect At1280(double x, double y, double w, double h) => new(x / 1280, y / 800, w / 1280, h / 800);
+
+    /// <summary>The final card (§12): the score, the highlight, the MVP and how to go on.</summary>
+    public sealed record FinalCardLayout(
+        HudRect Panel, HudRect Title, HudRect Away, HudRect Home, HudRect HighlightLabel, HudRect Highlight,
+        HudRect Mvp, HudRect MvpWhy, HudRect Continue);
+
+    /// <summary>The final card, authored at 1280×800 and scaled with the screen like the play HUD.</summary>
+    public static readonly FinalCardLayout FinalCard = new(
+        Panel: At1280(48, 48, 640, 320),
+        Title: At1280(68, 62, 400, 28),
+        Away: At1280(68, 100, 600, 40),
+        Home: At1280(68, 148, 600, 40),
+        HighlightLabel: At1280(68, 200, 600, 22),
+        Highlight: At1280(68, 222, 600, 24),
+        Mvp: At1280(68, 258, 600, 28),
+        MvpWhy: At1280(68, 290, 600, 22),
+        Continue: At1280(68, 330, 600, 22));
+
+    /// <summary>The replay card over the game-over highlight: its label, the play and the score under it.</summary>
+    public sealed record ReplayCardLayout(HudRect Panel, HudRect Label, HudRect Highlight, HudRect Score);
+
+    public static readonly ReplayCardLayout ReplayCard = new(
+        Panel: At1280(40, 36, 520, 92),
+        Label: At1280(56, 44, 500, 24),
+        Highlight: At1280(56, 70, 490, 40),
+        Score: At1280(56, 140, 400, 22));
+
+    public const string FinalTitle = "FINAL";
+    public const string HighlightLabel = "HIGHLIGHT";
+    public const string HighlightDefault = "The play of the game.";
+    public const string MvpPrefix = "MVP  ";
+    /// <summary>The final card's way on: the pad's confirm, as the title says it (the game is gamepad only).</summary>
+    public const string FinalContinue = "South  ·  continue";
+
     public sealed record PlayLayout(
         HudRect Score,
         HudRect Count,

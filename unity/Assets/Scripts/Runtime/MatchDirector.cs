@@ -903,12 +903,12 @@ namespace GrandSluggers.UnityClient
                 if (_clip != null && _clip.Beat is HighlightBeat.BuddyJump or HighlightBeat.RobbedHomer)
                     _cam.SmashAt(_hlAt.sqrMagnitude > 0.4f ? _hlAt : _ball);
                 else if (_clip != null && _clip.Beat == HighlightBeat.StarK)
-                    _cam.SmashAt(new Vector3(0.4f, 3.2f, 2f));
+                    _cam.SmashAt(_cam.SmashFallback);
                 else
                     _cam.SmashAt(_ball);
                 return;
             }
-            _cam.SmashAt(_hlAt.sqrMagnitude > 0.4f ? _hlAt : new Vector3(0.4f, 3.2f, 2f));
+            _cam.SmashAt(_hlAt.sqrMagnitude > 0.4f ? _hlAt : _cam.SmashFallback);
         }
 
         void OnDisable() => Controls.Silence();

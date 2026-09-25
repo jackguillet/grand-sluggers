@@ -29,6 +29,9 @@ namespace GrandSluggers.UnityClient
 
         public static void Bind(ArtCatalog art) => _art = art;
 
+        /// <summary>The extras FBX <c>data/art/extras.json</c> names; empty until the catalog is bound, which keeps primitives.</summary>
+        static string ExtrasSlot => _art?.ExtrasSlot ?? "";
+
         /// <summary>
         /// The park's kit row and its slots (FD-16, FR-13; <c>data/art/parks.json</c>). A park with no row, or no catalog
         /// bound, fills no slot: it draws the greybox.
@@ -46,7 +49,8 @@ namespace GrandSluggers.UnityClient
         {
             if (_extrasKit != null) return _extrasKit;
             if (_extrasMiss) return null;
-            const string slot = "Assets/Art/Characters/SharedRig/extras.fbx";
+            var slot = ExtrasSlot;
+            if (string.IsNullOrEmpty(slot)) return null; // not bound yet: the primitives stand in
             var key = SlotToResources(slot);
             if (key.EndsWith(".fbx", StringComparison.OrdinalIgnoreCase))
                 key = key.Substring(0, key.Length - 4);
@@ -223,7 +227,8 @@ namespace GrandSluggers.UnityClient
         public static GameObject LoadExtraMesh(string meshName)
         {
             if (string.IsNullOrWhiteSpace(meshName)) return null;
-            const string slot = "Assets/Art/Characters/SharedRig/extras.fbx";
+            var slot = ExtrasSlot;
+            if (string.IsNullOrEmpty(slot)) return null; // not bound yet: the primitives stand in
             if (EditorLoadNamedMesh != null)
             {
                 var named = EditorLoadNamedMesh(slot, meshName);

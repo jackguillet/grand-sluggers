@@ -196,6 +196,8 @@ public sealed class ArtCatalog
     public IReadOnlyList<ClipSlot> Clips { get; }
     public IReadOnlyDictionary<string, SkinSlot> Skins { get; }
     public IReadOnlyDictionary<string, ExtraSlot> Extras { get; }
+    /// <summary>The accessory FBX the extras are named meshes of (<c>data/art/extras.json</c> <c>slot</c>).</summary>
+    public string ExtrasSlot { get; init; } = "";
     public IReadOnlyList<NamedSlot> Vfx { get; }
     public IReadOnlyList<NamedSlot> Audio { get; }
     public IReadOnlyList<NamedSlot> Materials { get; }
@@ -258,6 +260,8 @@ public sealed class ArtCatalog
     public IReadOnlyList<string> Validate(ContentCatalog content)
     {
         var errors = new List<string>();
+        if (string.IsNullOrWhiteSpace(ExtrasSlot) || !ExtrasSlot.EndsWith(".fbx", StringComparison.OrdinalIgnoreCase))
+            errors.Add("extras.json slot must name the extras FBX; got '" + ExtrasSlot + "'");
         foreach (var bone in new[] { "root", "pelvis", "spine", "torso", "neck", "head", "lClavicle", "rClavicle", "lUpper", "lFore", "lWrist", "rUpper", "rFore", "rWrist", "lThigh", "lShin", "lFoot", "rThigh", "rShin", "rFoot", "lGlove", "rGlove", "lRelease", "rRelease", "bat", "glove" })
         {
             if (!Rig.Bones.Any(b => b.Equals(bone, StringComparison.OrdinalIgnoreCase)))
@@ -458,7 +462,8 @@ public sealed class ArtCatalog
             skins[s.Id] = new SkinSlot(s.Id, s.BodyType, s.Captain, s.Extras ?? [], s.Portrait, s.Palette);
 
         var extras = new Dictionary<string, ExtraSlot>(StringComparer.OrdinalIgnoreCase);
-        foreach (var e in DataJson.Require<ExtrasFile>(Art("extras.json")).Extras ?? [])
+        var extrasFile = DataJson.Require<ExtrasFile>(Art("extras.json"));
+        foreach (var e in extrasFile.Extras ?? [])
             extras[e.Id] = new ExtraSlot(e.Id, e.Bone, e.Hides ?? []);
 
         var vfx = (DataJson.Require<EventsFile>(Art("vfx.json")).Events ?? [])
@@ -478,7 +483,10 @@ public sealed class ArtCatalog
         var folders = DataJson.Require<FoldersFile>(Art("folders.json")).Folders ?? [];
 
         var actors = HazardActors.Parse(JsonNode.Parse(File.ReadAllText(Art("hazard-actors.json")), documentOptions: nodeOptions), "hazard-actors.json");
-        return new ArtCatalog(rig, clips, skins, extras, vfx, audio, mats, parks, folders, looks, actors);
+        return new ArtCatalog(rig, clips, skins, extras, vfx, audio, mats, parks, folders, looks, actors)
+        {
+            ExtrasSlot = extrasFile.Slot,
+        };
     }
 
     sealed class RigFile
@@ -523,6 +531,8 @@ public sealed class ArtCatalog
 
     sealed class ExtrasFile
     {
+        /// <summary>The accessory FBX every extra's mesh is named in (the shared rig's extras).</summary>
+        public string Slot { get; set; } = "";
         public List<ExtraDto>? Extras { get; set; }
         /// <summary>Authoring notes: Blender reads plain JSON, so they are a key, not a comment.</summary>
         public string? Notes { get; set; }
