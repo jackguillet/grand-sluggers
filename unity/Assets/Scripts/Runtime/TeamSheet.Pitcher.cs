@@ -40,7 +40,7 @@ namespace GrandSluggers.UnityClient
             Label(746, 492, 350, 28, BroadcastHud.ArmLine(match.StaminaOf(chosen.Who), match.Rules), _heading);
             Label(746, 524, 350, 26, CarnivalFront.ThrowsLine(chosen.Who.Throws,
                 BroadcastHud.PitcherPitches(chosen.Who.Repertoire, match.Rules.Pitching.Families)), _body);
-            var note = new GUIStyle(_body) { wordWrap = true };
+            var note = _note ??= new GUIStyle(_body) { wordWrap = true };
             Label(746, 556, 350, 50, pick.Notice, note);
             Label(138, 650, 550, 24, CarnivalFront.ChemistryKey, _small);
             Label(138, 677, 550, 24, CarnivalFront.DefenseHelp, _body);

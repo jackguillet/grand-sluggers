@@ -696,7 +696,7 @@ namespace GrandSluggers.UnityClient
                     var runAt = new Vector3((float)StillPose.RunnerX, 0f, (float)StillPose.RunnerZ);
                     run.PlaceStill(runAt, runAt + new Vector3((float)Diamond.First.X, 0f, (float)Diamond.First.Z));
                 }
-                var defense = FieldingResolver.Assign(_match.DefenseRoster, _match.Pitcher, _match.Defense.Gloves);
+                var defense = _match.DefenseMap;
                 Character scoopWho = null;
                 if (!defense.TryGetValue(StillPose.ScoopGlove, out scoopWho) || scoopWho == null)
                 {
@@ -789,7 +789,7 @@ namespace GrandSluggers.UnityClient
         void HideCatcher()
         {
             if (_match == null) return;
-            var defense = FieldingResolver.Assign(_match.DefenseRoster, _match.Pitcher, _match.Defense.Gloves);
+            var defense = _match.DefenseMap;
             if (defense.TryGetValue("C", out var catcher) && catcher != null
                 && _heroes.TryGetValue(catcher.Id, out var ch) && ch != null)
                 ch.gameObject.SetActive(false);

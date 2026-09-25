@@ -351,10 +351,13 @@ namespace GrandSluggers.UnityClient
 
         static void DrawPageBadges(HowToPlay.Page page)
         {
-            var labels = new System.Collections.Generic.List<string>();
+            var labels = BadgeLabels;
+            labels.Clear();
             var pageBadge = HowToPlay.PageBadge(page.Id);
             if (!string.IsNullOrEmpty(pageBadge)) labels.Add(pageBadge);
-            var widths = labels.Select(label => MeasureWidth(_bookBadge, label)).ToArray();
+            var widths = Widths;
+            widths.Clear();
+            foreach (var label in labels) widths.Add(MeasureWidth(_bookBadge, label));
             var boxes = BookletLayout.Badges(
                 Screen.width, Screen.height, MeasureWidth(_gold, HowToPlay.BookLabel), widths);
             for (var i = 0; i < labels.Count; i++)
@@ -383,12 +386,12 @@ namespace GrandSluggers.UnityClient
             var calls = ControlDiagram.PageCallouts(pageId);
             var stackBand = new BookletLayout.Box(b.X, b.Y + 40f, b.W, b.H - 40f);
             var actionStyle = _bookLine;
-            var heights = calls.Select(call => 44f + HardwareActionsHeight(call, actionStyle, b.W - 24f)).ToArray();
+            var heights = CalloutHeights(calls, actionStyle, b.W - 24f);
             var cells = BookletLayout.MeasuredStack(stackBand, heights);
             if (!BookletLayout.Fits(cells, stackBand))
             {
                 actionStyle = _bookLineCompact;
-                heights = calls.Select(call => 44f + HardwareActionsHeight(call, actionStyle, b.W - 24f)).ToArray();
+                heights = CalloutHeights(calls, actionStyle, b.W - 24f);
                 cells = BookletLayout.MeasuredStack(stackBand, heights);
             }
             if (!BookletLayout.Fits(cells, stackBand))
@@ -424,7 +427,9 @@ namespace GrandSluggers.UnityClient
         static void DrawHardwareActions(ControlDiagram.Callout callout, Rect band, GUIStyle style)
         {
             var lines = HardwareActionLines(callout);
-            var texts = lines.Select(line => line.Text).ToArray();
+            var texts = Texts;
+            texts.Clear();
+            foreach (var line in lines) texts.Add(line.Text);
             var box = new BookletLayout.Box(band.x, band.y, band.width, band.height);
             var blocks = BookletLayout.Flow(texts, box,
                 (text, width) => MeasureHeight(style, text, width), 0f, 0f);
@@ -602,15 +607,24 @@ namespace GrandSluggers.UnityClient
             DrawBookLines(page, GettingStarted.LineBand(Screen.width, Screen.height));
         }
 
-        static float[] ModeHeights((float X, float Y, float W, float H) table, GUIStyle bodyStyle)
+        static IReadOnlyList<float> ModeHeights((float X, float Y, float W, float H) table, GUIStyle bodyStyle)
         {
-            return GettingStarted.Modes.Select(mode =>
+            Heights.Clear();
+            foreach (var mode in GettingStarted.Modes)
             {
                 var columns = BookletLayout.LabeledRow(table, MeasureWidth(_h1, mode.Title));
                 var labelH = MeasureHeight(_h1, mode.Title, columns.Label.W - 12f) + 12f;
                 var bodyH = MeasureHeight(bodyStyle, mode.Line, columns.Body.W) + 8f;
-                return Mathf.Max(labelH, bodyH);
-            }).ToArray();
+                Heights.Add(Mathf.Max(labelH, bodyH));
+            }
+            return Heights;
+        }
+
+        static IReadOnlyList<float> CalloutHeights(IReadOnlyList<ControlDiagram.Callout> calls, GUIStyle style, float width)
+        {
+            Heights.Clear();
+            foreach (var call in calls) Heights.Add(44f + HardwareActionsHeight(call, style, width));
+            return Heights;
         }
 
         static void DrawContentsToc(HowToPlay.Page page)
@@ -696,11 +710,26 @@ namespace GrandSluggers.UnityClient
                 Sticker(block.Text, block.Box.X, block.Box.Y, block.Box.W, block.Box.H, style);
         }
 
-        static float MeasureWidth(GUIStyle style, string text) =>
-            Mathf.Ceil(style.CalcSize(new GUIContent(text)).x);
+        // OnGUI runs at least twice a frame (#1049): measurements and the book's layouts reuse these instead of allocating.
+        static readonly GUIContent Measure = new();
+        static readonly List<string> BadgeLabels = new();
+        static readonly List<float> Widths = new();
+        static readonly List<float> Heights = new();
+        static readonly List<string> Texts = new();
 
-        static float MeasureHeight(GUIStyle style, string text, float width) =>
-            Mathf.Ceil(style.CalcHeight(new GUIContent(text), width));
+        static GUIStyle _goldWrap;
+
+        static float MeasureWidth(GUIStyle style, string text)
+        {
+            Measure.text = text;
+            return Mathf.Ceil(style.CalcSize(Measure).x);
+        }
+
+        static float MeasureHeight(GUIStyle style, string text, float width)
+        {
+            Measure.text = text;
+            return Mathf.Ceil(style.CalcHeight(Measure, width));
+        }
 
         static void DrawFittingBookText(Rect rect, string text, string context)
         {
@@ -861,7 +890,7 @@ namespace GrandSluggers.UnityClient
             GUI.DrawTexture(r, _panel);
             GUI.Label(new Rect(r.x + 16, r.y + 8, r.width - 32, 40), banner ?? "", _h1);
             GUI.Label(new Rect(r.x + 16, r.y + 52, r.width - 32, r.height - 60),
-                string.IsNullOrEmpty(sub) ? progress ?? "" : sub, new GUIStyle(_gold) { wordWrap = true });
+                string.IsNullOrEmpty(sub) ? progress ?? "" : sub, _goldWrap ??= new GUIStyle(_gold) { wordWrap = true });
         }
 
         static void Lineup(Match match)
