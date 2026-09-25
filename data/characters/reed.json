@@ -1,0 +1,25 @@
+{
+  "id": "reed",
+  "name": "Reed",
+  "faction": "marsh",
+  "captain": true,
+  // The body class (data/rules/body-classes.json, spec §8.1): reach, contact width, ramp, knockback, motion style.
+  "bodyClass": "hopper",
+  "teamName": "Marsh Hoppers",
+  "signatureBat": "reed-switch",
+  // Body proportions on the shared rig (docs/silhouette-bible.md): root multipliers, height ladder vs the research stills.
+  "proportions": { "height": 0.7, "width": 1.3, "head": 1.6, "arms": 1.24, "torso": 0.78 },
+  // Nine sub-stats (spec §2); the bars are derived, the rounded mean of each group: Bat (contact, power), Pitch (velocity = power, endurance = stamina, control, movement = break), Field (hands, arm = throw speed), Run.
+  "contact": 7, "power": 5,
+  "velocity": 4, "endurance": 4, "control": 4, "movement": 4,
+  "hands": 7, "arm": 7,
+  "run": 8,
+  "bats": "L",
+  "throws": "L",
+  "repertoire": ["changeup", "curveball"],
+  // Generic library abilities until this captain's own three land (WD-15 A; #1151); never another captain's.
+  "starPitch": "changeup",
+  "starSwing": "ground",
+  "fieldAbility": "super-jump",
+  "bio": "A frog from the river delta. One leap covers half the outfield; the landing is optional."
+}

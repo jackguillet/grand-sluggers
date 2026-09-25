@@ -22,7 +22,7 @@ namespace GrandSluggers.UnityClient
         /// What the live ball owes each body this frame (#719–#721): the stun, the dive's recovery, the brace, the jump's
         /// airtime. Mirrored while the ball is live and aged through the result beat, since the completing frame resets the field.
         /// </summary>
-        FielderTells.Owed _owed = FielderTells.Owed.None;
+        FielderTells.Owed _owed { get => Live.Owed; set => Live.Owed = value; }
         /// <summary>Seconds from the press to the committed take's Contact mark (D13); NaN until a swing commits.</summary>
         float _swingContactSec = float.NaN;
 

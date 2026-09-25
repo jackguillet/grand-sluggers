@@ -55,6 +55,30 @@
       "extras": [],
       "portrait": "Resources/Art/fenn-hero",
       "palette": "fen"
+    },
+    {
+      "id": "sable",
+      "bodyType": "sable",
+      "captain": true,
+      "extras": [],
+      "portrait": "Resources/Art/sable-hero",
+      "palette": "dune"
+    },
+    {
+      "id": "hollis",
+      "bodyType": "hollis",
+      "captain": true,
+      "extras": [],
+      "portrait": "Resources/Art/hollis-hero",
+      "palette": "peak"
+    },
+    {
+      "id": "reed",
+      "bodyType": "reed",
+      "captain": true,
+      "extras": [],
+      "portrait": "Resources/Art/reed-hero",
+      "palette": "marsh"
     }
   ]
 }

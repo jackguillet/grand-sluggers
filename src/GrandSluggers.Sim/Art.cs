@@ -603,6 +603,9 @@ public sealed class ArtCatalog
             used.Add(row.MotionStyle);
             if (!ids.Contains(row.MotionStyle))
                 errors.Add($"body class {row.Id} motionStyle '{row.MotionStyle}' is not a style in data/art/clips.json styles.rows");
+            // A borrow ends when the owed style exists: the class must then play it (CH-12).
+            if (row.BorrowsStyle && ids.Contains(row.OwedStyle!))
+                errors.Add($"body class {row.Id} owes style '{row.OwedStyle}', which now exists; set motionStyle to it and drop owedStyle");
         }
         foreach (var style in styles)
         {

@@ -2,7 +2,7 @@
 
 Original characters. Factions exist so chemistry has a graph that a player can learn in one sitting.
 
-Launch fantasy: **6 factions × 1 captain + ~3 role players = ~24**, then grow toward 40. Now in data: **6 captains + 18 role players**. Exhibition auto-fills a 9 from the captain, faction mates, then chemistry, and the lineup is a draft: swap the eight, assign gloves (P, C, IF, OF), and hearts and scribbles show chemistry vs the captain (it pays off in the field; both teams start on the same Stars).
+Launch fantasy: **6 factions × 1 captain + ~3 role players = ~24**, then grow toward 40. Now in data: **10 captains + 27 role players** (ten factions, one home park each). Exhibition auto-fills a 9 from the captain, faction mates, then chemistry, and the lineup is a draft: swap the eight, assign gloves (P, C, IF, OF), and hearts and scribbles show chemistry vs the captain (it pays off in the field; both teams start on the same Stars).
 
 Stats are 1–10. Each character authors nine sub-stats; the four bars on the card are derived, the mean of each group rounded half up (spec §2):
 
@@ -23,7 +23,10 @@ The bars below are what the derived numbers are today; the sub-stats are in "Sub
 | **Goldrush** | Yellow | Schemers, rooftop industrial | Power + stamina, bad gloves | Rooftop City |
 | **Canopy Clan** | Brown | Jungle family, climbers | Power + wall climbs, slow | Canopy Yard |
 | **Ember Keep** | Black / purple | Villain castle, lava | Pure slug, laser throws, no legs | Ember Keep |
-| **Stillwater** | Sage / cream | Harbor turtle elders | Glove + slow fog, no legs | Harbor Diamond |
+| **Stillwater** | Sage / cream | Turtle elders | Glove + slow fog, no legs | Coconut Cove (Harbor until its park file lands) |
+| **Dune Nomads** | Sand / rust | Desert tricksters, canyon rim | Pitching (a heavy sinker), sure hands | Sunscorch Mesa (Harbor until its park file lands) |
+| **Peak Guard** | Navy / white | Mountain climbers | Power and a big arm, slow feet | Summit Park (Harbor until its park file lands) |
+| **Marsh Hoppers** | Green / lotus pink | Frog jumpers of the river delta | Speed and range, huge leaps | Stillwater Marsh (Harbor until its park file lands) |
 
 Cross-faction buddy examples (authored, not generated): a Spark pitcher who grew up with a Carnival runner; a Royal and a Goldrush who date and therefore *hate* fielding together some days — no: keep bad chem as rivalry, good as buddy. Royals buddy with Spark. Goldrush buddy only with each other plus one traitor. Ember hates Spark and Royals. Canopy hates Ember’s mercenary lizards (a sub-rival).
 
@@ -88,6 +91,25 @@ Names are working titles. Replace freely; keep the *roles*.
 - Star Swing: **Staff Swing** — cane hop that randomizes infield bounces.
 - Field: **Withdraw** — shell catch, bigger glove window, still slow.
 - Bats/throws: R/R
+
+
+### Sable — Dune Nomads
+
+- Bars: Pitch 8 / Bat 5 / Field 6 / Run 5. Body class `trickster` (borrows Vale's takes until its own style exists).
+- Star abilities: owed (#1149); until then the generic Star Breaker, Star Line and Dive.
+- Signature bat: Mirage Bat. Bats/throws: R/R. Role players: Sirocco, Tumble, Adobe.
+
+### Hollis — Peak Guard
+
+- Bars: Pitch 6 / Bat 8 / Field 5 / Run 4. Body class `climber` (borrows Brondo's takes until its own style exists).
+- Star abilities: owed (#1150); until then the generic Star Fastball, Star Fly and Dive.
+- Signature bat: Summit Axe. Bats/throws: L/R. Role players: Flint, Cairn, Scree.
+
+### Reed — Marsh Hoppers
+
+- Bars: Pitch 4 / Bat 6 / Field 7 / Run 8. Body class `hopper` (borrows Zig's takes until its own style exists).
+- Star abilities: owed (#1151); until then the generic Star Change, Star Grounder and Super Jump.
+- Signature bat: Reed Switch. Bats/throws: L/L. Role players: Cattail, Bog, Tad.
 
 ## Role players (slice set)
 

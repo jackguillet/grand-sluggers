@@ -42,9 +42,15 @@ public class BodyClassScenarioTests
             // A role player that names no class wears its captain's.
             if (!c.Captain) Assert.Equal(captains[c.Faction].BodyClass, c.BodyClass);
         }
-        // Seven ship, one per captain cut, each with its own motion style; the table has room for about fifteen.
+        // One class per captain, each with its own motion style, except a class that names the style it owes (CH-12 owed):
+        // it plays another class's until its takes exist. The borrowers are named, so a new borrow is a visible decision.
         Assert.Equal(captains.Count, captains.Values.Select(c => c.BodyClass).Distinct(StringComparer.OrdinalIgnoreCase).Count());
-        Assert.Equal(R.BodyClasses.Classes.Count, R.BodyClasses.Classes.Select(k => k.MotionStyle).Distinct().Count());
+        var own = R.BodyClasses.Classes.Where(k => !k.BorrowsStyle).ToList();
+        Assert.Equal(own.Count, own.Select(k => k.MotionStyle).Distinct().Count());
+        var borrowers = R.BodyClasses.Classes.Where(k => k.BorrowsStyle).ToList();
+        Assert.Equal(["trickster", "climber", "hopper"], borrowers.Select(k => k.Id));
+        Assert.Equal(borrowers.Count, borrowers.Select(k => k.OwedStyle).Distinct().Count());
+        Assert.All(borrowers, k => Assert.DoesNotContain(own, o => o.MotionStyle == k.OwedStyle));
         Assert.InRange(BodyClassLibrary.Capacity, 15, 15);
     }
 
