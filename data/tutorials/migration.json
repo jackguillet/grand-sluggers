@@ -93,6 +93,7 @@
     "running.09": 794,
     "fields.mover": 814,
     "fields.reward": 814,
-    "fields.wall-trait": 814
+    "fields.wall-trait": 814,
+    "fields.sand": 1133
   }
 }

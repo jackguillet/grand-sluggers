@@ -42,6 +42,9 @@ namespace GrandSluggers.UnityClient
         public bool ItemFlying { get; set; }
         public float ItemFly { get; set; }
         public string ItemId { get; set; } = "";
+        /// <summary>The plate's held buttons (charge, bunt, the special modifier), and the pad index holding the plate, or -1.</summary>
+        public PlateButtonsState Plate { get; set; }
+        public int PlateSeat { get; set; } = -1;
         /// <summary>Where the ball is drawn this frame.</summary>
         public Vector3 Ball { get; set; }
         /// <summary>Where the ball left the pitcher's hand.</summary>

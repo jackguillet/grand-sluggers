@@ -18,7 +18,7 @@ public class MatchOptionsTests
         asked.GiveDefenseStars(5); asked.GiveOffenseStars(5);
         Assert.Equal(0, asked.HomeStars); Assert.Equal(0, asked.AwayStars);
         Assert.False(asked.CanStarPitch); Assert.False(asked.CanStarSwing);
-        var pitch = Scenario.PitchAt(0, StrikeZoneGeometry.CenterY);
+        var pitch = Scenario.PitchAt(0, StrikeZoneGeometry.Reference.CenterY);
         var swing = Scenario.SwingAt(0);
         var a = asked.Play(pitch with { Star = true }, swing with { Star = true });
         var b = ordinary.Play(pitch, swing);

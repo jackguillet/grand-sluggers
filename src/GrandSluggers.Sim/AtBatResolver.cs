@@ -70,10 +70,12 @@ public sealed class AtBatResolver
         var err = input.Bunt ? 0 : input.TimingErrorFrames;
         var onPlane = InWindow(err, window);
 
-        // Cursor (§5.2): where the crossing meets the bat — the oval the client draws (S-134).
+        // Cursor (§5.2): where the crossing meets the bat — the oval the client draws (S-134), in this batter's zone (§4.4).
+        var zone = StrikeZoneGeometry.For(input.Batter, _rules);
+        var crossingY = input.CrossingY ?? zone.CenterY;
         var barrel = SweetSpot.SwingBarrel(input.Batter, input.Bat, input.Charge01, _rules);
         var quality = onPlane
-            ? SweetSpot.Zone(input.BoxOffsetX, bats, input.CrossingX, input.CrossingY, _rules, barrel)
+            ? SweetSpot.Zone(input.BoxOffsetX, bats, input.CrossingX, crossingY, _rules, zone, barrel)
             : ContactQuality.Miss;
         // The rim of the window is not square: one tier down, never two (§5.3).
         if (quality > ContactQuality.Sour && Math.Abs(err) > half * b.Window.SquareFraction)
@@ -107,11 +109,12 @@ public sealed class AtBatResolver
             exit *= b.Exit.TiredPitcherMul;
 
         // Launch (§5.4): power and charge lift, the pitch height, the stick (up = grounder) while it
-        // shapes this swing, noise.
-        var height = input.CrossingY - StrikeZoneGeometry.CenterY;
+        // shapes this swing, noise. The height is the pitch's place in this batter's zone, in the reference
+        // frame's feet (§4.4): a pitch at the top of a short zone lifts like one at the top of a tall zone.
+        var height = (crossingY - zone.CenterY) / zone.VerticalScale;
         var loft = b.Launch.LoftBaseDeg + (power - 5) * b.Launch.LoftPerPower
                    + (charged ? b.Charge.LoftDeg : 0) + height * b.Launch.PerFtOfHeight;
-        var launch = loft + UnderTheBallDeg(input.BoxOffsetX, input.CrossingY, _rules)
+        var launch = loft + UnderTheBallDeg(input.BoxOffsetX, crossingY, _rules, zone)
                      - launchAim * b.Launch.StickDeg + (rng.NextDouble() - 0.5) * b.Launch.NoiseDeg;
         if (quality == ContactQuality.Sour && input.UseStarSwing && !input.Bunt)
         {
@@ -131,7 +134,7 @@ public sealed class AtBatResolver
             // star, pitch or tired-arm term, so a square bunt is the dead one. A sour bunt pops only when the ball
             // crossed above the bat's center; below it the bat chops it down at the sour pace.
             exit = response.ExitMph.For(quality);
-            var sourPops = quality == ContactQuality.Sour && input.CrossingY > SweetSpot.WorldCenter(input.BoxOffsetX).Y;
+            var sourPops = quality == ContactQuality.Sour && crossingY > SweetSpot.WorldCenter(input.BoxOffsetX, zone).Y;
             var pop = sourPops || height > b.Bunt.PopAboveCenterFt;
             launch = pop
                 ? b.Launch.PopMinDeg + rng.NextDouble() * b.Launch.PopSpanDeg
@@ -185,11 +188,12 @@ public sealed class AtBatResolver
     /// Under the ball (spec §5.4): the crossing above the barrel's nice top — the upper sour rim, where the
     /// bat meets the bottom of the ball — lifts the launch by <c>batting.launch.underBallDegPerFt</c> per foot,
     /// on top of the pitch-height term. Near the rim's top it passes 90°: a foul pop behind the plate. Zero
-    /// anywhere at or below the nice top. A bunt reads its own band instead (§5.8).
+    /// anywhere at or below the nice top. A bunt reads its own band instead (§5.8). The feet over are this batter's
+    /// zone's, read in the reference frame (§4.4), like the pitch-height term.
     /// </summary>
-    public static double UnderTheBallDeg(double boxOffsetX, double crossingY, RulesTable rules)
+    public static double UnderTheBallDeg(double boxOffsetX, double crossingY, RulesTable rules, BatterZone zone)
     {
-        var over = crossingY - (SweetSpot.WorldCenter(boxOffsetX).Y + SweetSpot.HalfHeightFt);
+        var over = (crossingY - (SweetSpot.WorldCenter(boxOffsetX, zone).Y + SweetSpot.HalfHeightFt(zone))) / zone.VerticalScale;
         return over > 0 ? over * rules.Batting.Launch.UnderBallDegPerFt : 0;
     }
 
@@ -437,14 +441,16 @@ public sealed class AtBatResolver
 
     /// <summary>
     /// Hit by pitch (spec §4.6): the crossing lies inside the body circle (batting.hbp.bodyRadiusFt)
-    /// centered where the body actually is, at the natural crossing height. World feet, the same
-    /// point the umpire and the cursor read; body and cursor move the same distance per box unit.
+    /// centered where the body actually is, at the natural crossing height: the middle of this batter's zone. World
+    /// feet across, the same point the umpire and the cursor read; body and cursor move the same distance per box
+    /// unit. Up and down the circle stretches with the zone (§4.4), so a pitch that hits one body hits every body.
     /// </summary>
-    public static bool HitsBatter(double boxOffsetX, double crossingX, double crossingY, RulesTable rules, Hand bats = Hand.R)
+    public static bool HitsBatter(double boxOffsetX, double crossingX, double crossingY, RulesTable rules, BatterZone zone,
+        Hand bats = Hand.R)
     {
         var bodyR = rules.Batting.Hbp.BodyRadiusFt;
         var dx = crossingX - BatterBodyX(boxOffsetX, bats);
-        var dy = crossingY - PitchFlight.PlateY;
+        var dy = (crossingY - zone.CenterY) / zone.VerticalScale;
         return dx * dx + dy * dy <= bodyR * bodyR;
     }
 

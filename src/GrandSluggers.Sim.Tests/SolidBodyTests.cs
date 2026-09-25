@@ -31,6 +31,37 @@ public sealed class SolidBodyTests
         Assert.True(glance.Vx > 0);
     }
 
+    /// <summary>
+    /// Stillwater Marsh's lily pads: low timed movers. A roller into one caroms at the pad's restitution; a ball above the pad
+    /// (a hop or a fly) passes over; the pad drifts along the fence on the play clock and is back at its spot each period.
+    /// </summary>
+    [Fact]
+    public void TheMarshsLilyPadsAreLowDriftingBodies()
+    {
+        var marsh = Catalog.MustPark(ParkId.Stillwater);
+        var pads = SolidBodies.Of(marsh, Rules);
+        Assert.Equal(3, pads.Count);
+        Assert.All(pads, p => Assert.Equal(HazardType.LilyPad, p.Type));
+        Assert.All(pads, p => Assert.True(p.Moves));
+        var pad = pads[1];
+        var row = pad.Row;
+        Assert.True(row.HeightFt < 2, "a pad lies on the water: only a low ball meets it");
+        // A roller straight at the pad, at the pad's own second 0.
+        var roll = SolidBodies.Carom([pad], 0, pad.X, 0.2, pad.Z - pad.RadiusFt + 0.5, 0, 40);
+        Assert.NotNull(roll);
+        Assert.Equal(-40 * row.Restitution!.Value, roll!.Value.Vz, 6);
+        // A ball above the pad passes over it.
+        Assert.Null(SolidBodies.Carom([pad], 0, pad.X, row.HeightFt!.Value + 0.5, pad.Z - pad.RadiusFt + 0.5, 0, 40));
+        // It drifts travelFt along the fence and is home each period.
+        var q = pad.At(row.PeriodSec!.Value / 4);
+        Assert.Equal(row.TravelFt!.Value, Diamond.Dist(pad.X, pad.Z, q.X, q.Z), 9);
+        Assert.Equal(pad.X, pad.At(row.PeriodSec.Value).X, 9);
+        // Hazards off removes them; the park is otherwise the same park.
+        var off = PlayedPark.Of(marsh, night: false, hazards: false, Rules.Hazards);
+        Assert.Empty(SolidBodies.Of(off, Rules));
+        Assert.Equal(marsh.CenterFenceFt, off.CenterFenceFt);
+    }
+
     /// <summary><c>SF-28</c>: a point inside a body is pushed to the rim; one outside is left where it is.</summary>
     [Fact]
     public void SF28_NobodyStandsInABody()

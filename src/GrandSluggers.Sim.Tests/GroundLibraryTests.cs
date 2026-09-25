@@ -40,9 +40,29 @@ public sealed class GroundLibraryTests
     {
         var catalog = Game;
         var grounds = catalog.Rules.Grounds;
-        Assert.Equal(["grass", "dirt", "ice", "ash"], grounds.Ids);
-        foreach (var id in grounds.Ids.Where(id => id != Ground.Ice))
+        Assert.Equal(["grass", "dirt", "ice", "ash", "sand"], grounds.Ids);
+        foreach (var id in grounds.Ids.Where(id => id is not Ground.Ice and not Ground.Sand))
             AssertTodaysGround($"grounds.{id}", grounds.Of(id));
+    }
+
+    /// <summary>
+    /// Coconut Cove's beach: a roll dies sooner and a bounce is lower and softer than on grass, and a body runs as on grass.
+    /// Its bobble is grass's, so the beach changes the ball, never the error rules. Written here so a tune fails by name.
+    /// Proposed, not tuned.
+    /// </summary>
+    [Fact]
+    public void TheSandRowIsTheBeachsNumbersFieldForField()
+    {
+        var sand = Game.Rules.Grounds.Of(Ground.Sand);
+        var grass = Game.Rules.Grounds.Of(Ground.Grass);
+        Assert.Equal((32.0, 2.0), (sand.Roll.Friction, sand.Roll.RestSpeed));
+        Assert.Equal((0.34, 0.72, 3.6), (sand.Bounce.Restitution, sand.Bounce.Horizontal, sand.Bounce.MinVy));
+        Assert.Equal((14.0, 22.0, 2.2, 0.2, 0.85), (sand.Skid.ImpactMinDeg, sand.Skid.ImpactMaxDeg, sand.Skid.MinVy, sand.Skid.Restitution, sand.Skid.Horizontal));
+        Assert.Equal(26.0, sand.Overthrow.DecelFtPerSec2);
+        Assert.Equal(grass.Bobble, sand.Bobble);
+        Assert.Equal(grass.Body, sand.Body);
+        Assert.True(sand.Roll.Friction > grass.Roll.Friction && sand.Bounce.Restitution < grass.Bounce.Restitution,
+            "sand rolls shorter and bounces lower than grass");
     }
 
     /// <summary>
@@ -79,8 +99,9 @@ public sealed class GroundLibraryTests
         var catalog = Game;
         var grounds = catalog.Rules.Grounds;
         var grass = grounds.Of(Ground.Grass);
-        // Ice is Crystal's own row since F9-a (F9A_TheIceRowIsCrystalsNumbersFieldForField); every other row is still one ground.
-        foreach (var id in grounds.Ids.Where(id => id != Ground.Ice))
+        // Ice (F9A_TheIceRowIsCrystalsNumbersFieldForField) and sand (TheSandRowIsTheBeachsNumbersFieldForField) are their
+        // parks' own rows; every other row is still one ground.
+        foreach (var id in grounds.Ids.Where(id => id is not Ground.Ice and not Ground.Sand))
         {
             SameNumbers($"grounds.{id}.roll", grass.Roll, grounds.Of(id).Roll);
             SameNumbers($"grounds.{id}.bounce", grass.Bounce, grounds.Of(id).Bounce);
@@ -153,7 +174,7 @@ public sealed class GroundLibraryTests
     /// initializer is a literal hiding from the table (§16).
     /// </summary>
     [Theory]
-    [InlineData("grounds", new[] { "grass", "dirt", "ice", "ash" })]
+    [InlineData("grounds", new[] { "grass", "dirt", "ice", "ash", "sand" })]
     [InlineData("walls", new[] { "padded", "glass" })]
     public void TheFileNamesEveryRowAndEveryRuleInIt(string file, string[] rows)
     {
@@ -273,7 +294,7 @@ public sealed class GroundLibraryTests
         Assert.StartsWith(fixture.Path("parks/harbor-diamond.json"), error, StringComparison.Ordinal);
         Assert.Contains("must be a ground with a row in", error, StringComparison.Ordinal);
         Assert.Contains(Path.Combine(fixture.Root, "rules", "grounds.json"), error, StringComparison.Ordinal);
-        Assert.Contains("[grass, dirt, ice, ash]", error, StringComparison.Ordinal);
+        Assert.Contains("[grass, dirt, ice, ash, sand]", error, StringComparison.Ordinal);
         Assert.Contains("got 'mud'", error, StringComparison.Ordinal);
 
         var thrown = Assert.Throws<InvalidDataException>(() => ContentCatalog.Load(new DataRoot(fixture.Root)));
@@ -351,7 +372,7 @@ public sealed class GroundLibraryTests
         var catalog = Game;
         var thrown = Assert.Throws<ArgumentException>(() => catalog.Rules.Grounds.Of("mud"));
         Assert.Contains("'mud' is not a ground with a row in rules/grounds.json", thrown.Message, StringComparison.Ordinal);
-        Assert.Contains("[grass, dirt, ice, ash]", thrown.Message, StringComparison.Ordinal);
+        Assert.Contains("[grass, dirt, ice, ash, sand]", thrown.Message, StringComparison.Ordinal);
         Assert.False(catalog.Rules.Grounds.Has("mud"));
         Assert.False(catalog.Rules.Grounds.Has(null));
         // Case is part of the id: the library spells them lowercase and so does a park file.
@@ -386,7 +407,7 @@ public sealed class GroundLibraryTests
     public void TheDefaultZoneMapOfEveryParkIsItsSurfacePlusDirt()
     {
         var catalog = Game;
-        Assert.Equal(6, catalog.Parks.Count);
+        Assert.Equal(ParkId.All.Count, catalog.Parks.Count);
         foreach (var park in catalog.Parks.Values)
         {
             Assert.Null(park.Zones);

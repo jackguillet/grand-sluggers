@@ -25,8 +25,10 @@ public static class Silhouette
     /// <summary>The neutral head: a sphere this wide, centered at <see cref="HeadCenterAtRest"/>.</summary>
     public const double HeadDiameter = 1.20;
     public static readonly Vec3 HeadCenterAtRest = new(0, 4.20, 0.05);
-    /// <summary>The knee (thigh → shin joint): the strike zone's bottom landmark.</summary>
+    /// <summary>The knee (thigh → shin joint).</summary>
     public const double KneeY = 0.90;
+    /// <summary>The middle of the thigh bone, halfway from the hip joint to the knee: the strike zone's bottom landmark.</summary>
+    public const double ThighMidY = 1.25;
     /// <summary>The chest mark on the torso bone: the strike zone's top landmark.</summary>
     public const double ChestY = 2.99;
 
@@ -157,10 +159,20 @@ public static class Silhouette
     /// <summary>The chest landmark in world feet, at rest. The torso build widens the body; it does not move this.</summary>
     public static double ChestFt(Spec spec) => ChestY * SharedRootScale(spec).Y;
 
-    /// <summary>The rest landmarks of the body this character wears, in world feet (CF-4 builds the zone on these).</summary>
+    /// <summary>The mid-thigh landmark in world feet, at rest: the strike zone's bottom.</summary>
+    public static double ThighMidFt(Spec spec) => ThighMidY * SharedRootScale(spec).Y;
+
+    /// <summary>The rest landmarks of the body this character wears, in world feet (the zone is thigh-mid to chest, §4.4).</summary>
     public static (double KneeFt, double ChestFt, double HeadTopFt) Landmarks(Character who)
     {
         var spec = Proportions(who);
         return (KneeFt(spec), ChestFt(spec), HeadTopFt(spec));
+    }
+
+    /// <summary>The strike zone's two rest landmarks of the body this character wears, in world feet: mid-thigh and chest.</summary>
+    public static (double ThighMidFt, double ChestFt) ZoneLandmarks(Character who)
+    {
+        var spec = Proportions(who);
+        return (ThighMidFt(spec), ChestFt(spec));
     }
 }

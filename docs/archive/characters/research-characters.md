@@ -98,7 +98,7 @@ Each row was a choice for Jack. **Rec** was the recommendation. **Pick** is Jack
 
 Jack's notes on the picks:
 
-- **CH-06, the strike zone scales vertically only.** "It should vertically scale, but horizontally the same." Jack set the landmarks on September 24: the zone runs from the batter's **knee** to the batter's **chest**. Its width over the plate stays fixed. The worked numbers and the aim rule are in [plan-characters.md](../../decisions/plan-characters.md).
+- **CH-06, the strike zone scales vertically only.** "It should vertically scale, but horizontally the same." Jack set the landmarks on September 24: the zone runs from the batter's **knee** to the batter's **chest**. On September 25 he moved the bottom up to the batter's **mid-thigh** ("way too low" at the knee); the top stays at the chest. Its width over the plate stays fixed. The worked numbers and the aim rule are in [plan-characters.md](../../decisions/plan-characters.md).
 - **CH-07, four bars, built from sub-stats.** Settled with Jack on September 24. He first chose five bars with a separate Arm bar, then took it back: "pitching is very different than fielding." Each bar is the rounded mean of its sub-stats. The sub-stats are the hidden numbers that CH-09 authors per character. Every sub-stat already exists as a code slot, so no new stat is needed.
 
   | Bar | Sub-stats | Code slot today |

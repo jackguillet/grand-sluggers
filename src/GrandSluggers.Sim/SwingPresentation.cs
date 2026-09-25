@@ -23,7 +23,7 @@ public static class SwingPresentation
     public const double ContactAt = Motion.SwingContact;
     /// <summary>
     /// Center of the authored swing's contact band (±1.2 ft): the DCC take contract, measured by
-    /// the still gate. Not the pitch's crossing height (<see cref="PitchFlight.PlateY"/>).
+    /// the still gate. Not the pitch's crossing height (the middle of the batter's zone, <see cref="StrikeZoneGeometry.For"/>).
     /// </summary>
     public const double PlateBandY = 2.4;
     public const double FollowThroughAt = Motion.SwingDur;

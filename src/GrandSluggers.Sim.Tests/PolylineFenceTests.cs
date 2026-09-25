@@ -118,7 +118,7 @@ public sealed class PolylineFenceTests
             var identity = PlayTraceIdentity.Capture(new Match(catalog, away, home, park, innings: 3, seed: 7));
             Assert.DoesNotContain("\"fence\"", identity.InputsJson, StringComparison.Ordinal);
         }
-        Assert.Equal(5, parks); // six parks, less Crystal, which names its glass boards (F9-a)
+        Assert.Equal(ParkId.All.Count - 1, parks); // every park less Aurora Rink, which names its glass boards (F9-a)
     }
 
     // ---------------------------------------------------------------------------------

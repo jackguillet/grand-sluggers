@@ -86,8 +86,6 @@ namespace GrandSluggers.UnityClient
         internal bool _itemFlying { get => Play.ItemFlying; set => Play.ItemFlying = value; }
         float _itemFly { get => Play.ItemFly; set => Play.ItemFly = value; }
         string _itemId { get => Play.ItemId; set => Play.ItemId = value; }
-        internal bool _starPitch;
-        bool _starSwing;
         /// <summary>The human batter's held bunt side on this tick (§5.8): the plate's side while squared, else none.</summary>
         internal BuntSide _buntSide;
         /// <summary>The square clock (§7.3): up while the batter is squared (a bunt trigger held, or the CPU batter's square read at SET), back down when released — the bunt tell the defense reads.</summary>
@@ -166,37 +164,20 @@ namespace GrandSluggers.UnityClient
         string _banner, _sub;
 
         bool TrainingOn => _coach != null && _coach.Session != null;
-        Seats SelectedSeats =>
-            TutorialOn ? (_coach.PlayerBats || _coach.PlayerRuns || _coach.Tutorial.DefendsAsAway ? Seats.AwayOne : Seats.One) : TrainingOn || _mode != PlayMode.Exhibition
-                ? Seats.One
-                : Seats.FromPads(Controls.PadCount, Pad1Home, versus: _versusWanted);
-        Seats LiveSeats => _matchSeats.Current(SelectedSeats);
-        internal bool HumanPitches => TrainingOn
-            ? _coach.PlayerPitches
-            : _match != null && LiveSeats.HumanPitches(_match.Top);
-        bool HumanBats => TrainingOn
-            ? (_coach.PlayerBats || _coach.PlayerRuns)
-            : _match != null && LiveSeats.HumanBats(_match.Top);
-        bool PlayerMustField => TrainingOn && _coach.PlayerFields;
+        // Who sits which seat, and which pad speaks for it (SeatPads, #1042); these names forward to it.
+        SeatPads _seatPads;
+        SeatPads Pads => _seatPads ??= new SeatPads(Play, _matchSeats, this);
+        Seats LiveSeats => Pads.Live;
+        internal bool HumanPitches => Pads.HumanPitches;
+        bool HumanBats => Pads.HumanBats;
+        bool PlayerMustField => Pads.PlayerMustField;
         bool PlayerFields => _playerFielding || PlayerMustField;
-        /// <summary>A human sits the defense this half (spec §0.4). Mirrors <see cref="GrandSluggers.Sim.LiveSeats.HumanFields"/>.</summary>
-        bool HumanFields => LiveSeatsNow().HumanFields;
-        bool HumanOwnsThrow => LiveSeatsNow().HumanOwnsThrow;
-        Controls.Pad PitchPad => HumanPitches && _match != null
-            ? Controls.Of(LiveSeats.Pitching(_match.Top))
-            : Controls.Pad1;
-        Controls.Pad BatPad => HumanBats && _match != null
-            ? Controls.Of(LiveSeats.Batting(_match.Top))
-            : Controls.None;
-        // The glove pad is the controller seated on defense this half; the runner pad is the one
-        // on offense. A seat the CPU holds is a dead pad, so the batting human's stick never
-        // takes a glove and their South never gates a CPU throw (#579, #209).
-        Controls.Pad FieldPad => !HumanFields ? Controls.None
-            : TrainingOn ? Controls.Pad1
-            : Controls.Of(LiveSeats.Fielding(_match.Top));
-        Controls.Pad RunPad => !HumanBats ? Controls.None
-            : TrainingOn ? Controls.Pad1
-            : Controls.Of(LiveSeats.Running(_match.Top));
+        bool HumanFields => Pads.HumanFields;
+        bool HumanOwnsThrow => Pads.HumanOwnsThrow;
+        Controls.Pad PitchPad => Pads.PitchPad;
+        Controls.Pad BatPad => Pads.BatPad;
+        Controls.Pad FieldPad => Pads.FieldPad;
+        Controls.Pad RunPad => Pads.RunPad;
         bool ItemOffered =>
             HumanBats && _pending != null && _pending.ChemistryItemOffered && !_itemThrown
             && _phase == Phase.InPlay && !_throwing;
@@ -249,7 +230,7 @@ namespace GrandSluggers.UnityClient
         void Update()
         {
             Controls.Tick(Time.unscaledDeltaTime, _content.Rules);
-            TickStarModifiers();
+            StarAsks.Tick();
             if (_match == null) return;
             // The pursuit stick's seats (#718) bind every frame, recovery and Call time included, on the input clock.
             _seatStick.Tick(_match, _matchSeats.Bound, _phase is Phase.Set or Phase.Result, LiveSeats, TrainingOn);
@@ -401,14 +382,14 @@ namespace GrandSluggers.UnityClient
                 return;
             }
             HudView.Draw(_match, ui, parkName, home.Name, away.Name, _mode == PlayMode.Challenge, PitcherExtra(),
-                _starPitch || _starSwing, _match.StealOn, ItemHud(), _charge, timing,
+                StarAsks.PitchShown || StarAsks.SwingShown, _match.StealOn, ItemHud(), _charge, timing,
                 _showTiming && _phase is Phase.Set or Phase.Flight && !TrainingOn, banner, sub, Look.Portrait(HomeCaptain),
                 _mode == PlayMode.Training, TutorialOn ? HowToPlay.TutorialGoal(_coach.Tutorial.Lesson.Id) : TrainingOn ? _coach.Session.Progress : null,
                 _phase == Phase.Title ? Night : _match.Night,
                 HighlightCaption(), _replaying && _phase == Phase.GameOver, mutePlay,
-                LiveSeats.Count, HumanPitches, HumanBats, _starPitch, _starSwing, Pad1Home, ShowingSide,
+                LiveSeats.Count, HumanPitches, HumanBats, StarAsks.PitchShown, StarAsks.SwingShown, Pad1Home, ShowingSide,
                 CarnivalFront.ExhibitionTitle,
-                _starNo, Time.unscaledTime - _starNoAt,
+                StarAsks.Unavailable, Time.unscaledTime - StarAsks.UnavailableAt,
                 inPlay: _phase is Phase.InPlay or Phase.StealThrow);
             if (_phase == Phase.Title && !_match.Paused) SetupSheet.TitleMenu(_titleFocus);
             if (!_match.Paused && _phase is Phase.Set or Phase.Flight or Phase.InPlay or Phase.StealThrow)
@@ -616,7 +597,7 @@ namespace GrandSluggers.UnityClient
         void BindMatchSeats()
         {
             if (_matchSeats.Bound) return;
-            var seats = _matchSeats.Bind(SelectedSeats);
+            var seats = _matchSeats.Bind(Pads.Selected);
             Controls.BeginMatch(seats.BothHuman);
         }
 

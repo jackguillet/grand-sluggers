@@ -12,7 +12,8 @@ namespace GrandSluggers.Sim.Tests;
 public sealed class AtBatScenarioTests
 {
     readonly ContentCatalog _content = Shipped.Content;
-    static double CenterY => StrikeZoneGeometry.CenterY;
+    /// <summary>The middle in the reference frame: <see cref="Scenario.PitchAt"/> lays it on the batter's own middle (§4.4).</summary>
+    static double CenterY => StrikeZoneGeometry.Reference.CenterY;
 
     // ---------------------------------------------------------------------------------
     // S-01 … S-03  The frame never lies: strike / ball / swing-and-miss at the crossing
@@ -22,7 +23,7 @@ public sealed class AtBatScenarioTests
     public void S01_TakeInsideTheFrameIsACalledStrike()
     {
         var s = new Scenario(_content);
-        var ev = s.Match.Play(Scenario.PitchAt(StrikeZoneGeometry.HalfWidth - 0.01, StrikeZoneGeometry.Top - 0.01), Scenario.Take);
+        var ev = s.Match.Play(Scenario.PitchAt(StrikeZoneGeometry.HalfWidth - 0.01, StrikeZoneGeometry.Reference.Top - 0.01), Scenario.Take);
         Assert.Equal(PlayKind.TakeStrike, ev.Kind);
         Assert.True(ev.AtBat.InZone);
         Assert.Equal(1, s.Match.Strikes);
@@ -113,7 +114,7 @@ public sealed class AtBatScenarioTests
         var resolver = new AtBatResolver(_content.Chemistry, rules: Rules.Default);
         var park = _content.Parks[ParkId.Harbor];
         var low = Input(bat: 5, err: 0, crossingY: 1.6, changeup: true);
-        var mid = low with { CrossingY = CenterY, ChangeupPitch = false };
+        var mid = low with { CrossingY = null, ChangeupPitch = false }; // the batter's own middle
         for (var seed = 0; seed < 12; seed++)
         {
             var dumped = resolver.Resolve(low, park, new Random(seed));
@@ -370,7 +371,7 @@ public sealed class AtBatScenarioTests
         Assert.Equal(1.0, match.BatterOffsetX);
         var body = AtBatResolver.BatterBodyX(1.0, batter.Bats);
         Assert.NotEqual(body, AtBatResolver.BatterBodyX(0, batter.Bats));
-        var ev = match.Play(Scenario.PitchAt(body, PitchFlight.PlateY), Scenario.Take);
+        var ev = match.Play(Scenario.PitchAt(body, CenterY), Scenario.Take);
         Assert.Equal(PlayKind.HitByPitch, ev.Kind);
         Assert.Equal(batter.Id, match.First?.Id);
         Assert.Equal((0, 0), (match.Balls, match.Strikes));
@@ -388,8 +389,8 @@ public sealed class AtBatScenarioTests
         var toward = -SweetSpot.TipSign(bats);
         Assert.True(match.WalkPitcher(toward * 1.0));
         var pitch = new PitchCommand("fastball", 0, false, RubberX: match.PitcherOffsetX, BreakX: toward);
-        var (x, y) = PitchFlight.Crossing(pitch, rules: Rules.Default);
-        Assert.True(AtBatResolver.HitsBatter(0, x, y, Rules.Default, bats), $"crossing {x:0.00} vs body {AtBatResolver.BatterBodyX(0, bats):0.00}");
+        var (x, y) = PitchFlight.Crossing(pitch with { Zone = match.BatterZone }, rules: Rules.Default);
+        Assert.True(AtBatResolver.HitsBatter(0, x, y, Rules.Default, match.BatterZone, bats), $"crossing {x:0.00} vs body {AtBatResolver.BatterBodyX(0, bats):0.00}");
         var ev = match.Play(pitch, Scenario.Take);
         Assert.Equal(PlayKind.HitByPitch, ev.Kind);
         // Without the break the same walk is a ball, not a plunk.
@@ -437,7 +438,7 @@ public sealed class AtBatScenarioTests
         var batter = match.Batter;
         Assert.True(match.WalkBatter(0.8));
         // A ball met on the cursor where the walked box put it.
-        var sweet = SweetSpot.WorldCenter(match.BatterOffsetX);
+        var sweet = SweetSpot.WorldCenter(match.BatterOffsetX, match.BatterZone);
         var ev = match.Play(Scenario.PitchAt(sweet.X, CenterY), Scenario.SwingAt(0));
         Assert.NotEqual(PlayKind.SwingMiss, ev.Kind);
         Assert.NotEqual(PlayKind.TakeBall, ev.Kind);
@@ -453,7 +454,7 @@ public sealed class AtBatScenarioTests
         var match = s.Match;
         match.WalkBatter(1.0);
         var body = AtBatResolver.BatterBodyX(1.0, match.Batter.Bats);
-        var ev = match.Play(Scenario.PitchAt(body, PitchFlight.PlateY), Scenario.SwingAt(0));
+        var ev = match.Play(Scenario.PitchAt(body, CenterY), Scenario.SwingAt(0));
         Assert.Equal(PlayKind.SwingMiss, ev.Kind);
         Assert.Null(match.First);
         Assert.Equal(1, match.Strikes);
@@ -509,7 +510,7 @@ public sealed class AtBatScenarioTests
         var b = _content.Rules.Batting;
         var high = Input(bat: 5, err: 0, crossingY: CenterY + b.Bunt.PopAboveCenterFt + 0.1)
             with { Bunt = true, BuntSide = BuntSide.First };
-        var low = high with { CrossingY = CenterY };
+        var low = high with { CrossingY = null }; // the batter's own middle
         for (var seed = 0; seed < 10; seed++)
         {
             var pop = resolver.Resolve(high, park, new Random(seed));
@@ -795,7 +796,7 @@ public sealed class AtBatScenarioTests
         if (!swing.Swing) return 0;
         // A failed re-read leaves the box at the last crossing (1.2 ft away); a fixed offset alone is under 0.5 ft.
         var (cx, _) = PitchFlight.Crossing(pitch, rules: Rules.Default);
-        return Math.Abs(SweetSpot.WorldCenter(swing.BoxOffsetX).X - cx) > 0.5 ? 1 : 0;
+        return Math.Abs(SweetSpot.WorldCenter(swing.BoxOffsetX, match.BatterZone).X - cx) > 0.5 ? 1 : 0;
     }
 
     [Fact]
@@ -896,6 +897,14 @@ public sealed class AtBatScenarioTests
 
     // ---------------------------------------------------------------------------------
 
+    /// <summary>A reference-frame height laid on this batter's zone (§4.4): the same place in the zone, in world feet.</summary>
+    double OnZone(Character batter, double referenceY)
+    {
+        var zone = StrikeZoneGeometry.For(batter, _content.Rules);
+        return zone.CenterY + (referenceY - StrikeZoneGeometry.Reference.CenterY) * zone.VerticalScale;
+    }
+
+    /// <remarks><paramref name="crossingY"/> is in the reference frame (<see cref="OnZone"/>).</remarks>
     AtBatInput Input(int bat, double err, double charge = 0, double crossingY = double.NaN,
         bool changeup = false, Character? pitcher = null, string batId = "harbor-lumber")
     {
@@ -908,6 +917,6 @@ public sealed class AtBatScenarioTests
             arm, batter, null, [],
             ChargePitch: false, ChangeupPitch: changeup, TimingErrorFrames: err,
             UseStarPitch: false, UseStarSwing: false, Bat: _content.Bats[batId], PitcherStamina: 80,
-            Charge01: charge, CrossingX: 0, CrossingY: double.IsNaN(crossingY) ? CenterY : crossingY);
+            Charge01: charge, CrossingX: 0, CrossingY: OnZone(batter, double.IsNaN(crossingY) ? CenterY : crossingY));
     }
 }

@@ -27,8 +27,11 @@ public static class Ground
     /// <summary>Ember Keep's surface.</summary>
     public const string Ash = "ash";
 
+    /// <summary>Coconut Cove's surface: a beach outfield where a ball rolls shorter and bounces lower.</summary>
+    public const string Sand = "sand";
+
     /// <summary>Every ground, in library order. Grass leads because it is what a park is unless it says otherwise.</summary>
-    public static IReadOnlyList<string> All { get; } = [Grass, Dirt, Ice, Ash];
+    public static IReadOnlyList<string> All { get; } = [Grass, Dirt, Ice, Ash, Sand];
 
     static readonly HashSet<string> KnownIds = new(All, StringComparer.Ordinal);
 

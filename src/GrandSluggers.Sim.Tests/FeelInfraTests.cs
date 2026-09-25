@@ -328,14 +328,15 @@ public class FeelInfraTests
         Assert.True(SetTells.TrailOn(true));
         Assert.False(SetTells.TrailOn(false));
         Assert.True(SetTells.TrailStartFt(Baseball.FlightDiameterFt) > SetTells.TrailEndFt(Baseball.FlightDiameterFt));
-        var mid = SetTells.Locator(new PitchCommand("fastball", 0, false), rules: Rules.Default);
-        var inRight = SetTells.Locator(new PitchCommand("fastball", 0, false, RubberX: 0.4), rules: Rules.Default);
+        var z = StrikeZoneGeometry.Reference;
+        var mid = SetTells.Locator(new PitchCommand("fastball", 0, false), z, Rules.Default);
+        var inRight = SetTells.Locator(new PitchCommand("fastball", 0, false, RubberX: 0.4), z, Rules.Default);
         Assert.True(inRight.X > mid.X);
         Assert.Equal(PitchFlight.Crossing(new PitchCommand("fastball", 0, false, 0.4, -0.2), rules: Rules.Default),
-            SetTells.Locator(new PitchCommand("fastball", 0, false, 0.4, -0.2), rules: Rules.Default));
-        Assert.True(SetTells.InZone(new PitchCommand("fastball", 0, false), rules: Rules.Default));
-        Assert.True(SetTells.InZone(new PitchCommand("fastball", 0, false, 0.4, 0.2), rules: Rules.Default));
-        Assert.False(SetTells.InZone(new PitchCommand("fastball", 0, false, 1, 1), rules: Rules.Default));
+            SetTells.Locator(new PitchCommand("fastball", 0, false, 0.4, -0.2), z, Rules.Default));
+        Assert.True(SetTells.InZone(new PitchCommand("fastball", 0, false), z, Rules.Default));
+        Assert.True(SetTells.InZone(new PitchCommand("fastball", 0, false, 0.4, 0.2), z, Rules.Default));
+        Assert.False(SetTells.InZone(new PitchCommand("fastball", 0, false, 1, 1), z, Rules.Default));
     }
 
     [Fact]

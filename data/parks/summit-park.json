@@ -1,0 +1,19 @@
+{
+  "id": "summit-park",
+  "name": "Summit Park",
+  "faction": "peak",
+  "pickOrder": 10,
+  "region": "high-peaks",
+  "surface": "grass",
+  "leftFenceFt": 240,
+  "centerFenceFt": 296,
+  "rightFenceFt": 240,
+  "windMph": 6,
+  "windDeg": 0,
+  "fenceHeightFt": 10,
+  "environment": {
+    "dragMul": 0.9
+  },
+  "hazards": [],
+  "notes": "High in the peaks, the Peak Guard's home. Thin air: the ball carries farther, so the fences stand deep. Gusts that turn the wind each inning are a later environment rule."
+}

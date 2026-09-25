@@ -14,7 +14,8 @@
     "statue": "keep-statue",
     "train": "midway-train",
     "acUnit": "ac-unit",
-    "tree": "jungle-tree"
+    "tree": "jungle-tree",
+    "lilyPad": "lily-pad"
   },
   "rings": {
     "statusVolume": "#1A1A22",

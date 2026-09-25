@@ -64,7 +64,9 @@ namespace GrandSluggers.EditorTools
                     var actual = PitchFlight.Point(result.Pitch, 1, match.Rules, starId);
                     Require(Math.Abs(ball.x - actual.X) < 0.0001 && Math.Abs(ball.y - actual.Y) < 0.0001,
                         "Rendered crossing differs from recorded delivery.");
-                    var inside = StrikeZoneGeometry.Contains(ball.x, ball.y);
+                    // The frame is the batter's (spec §4.4): the delivery carries the zone it was judged in.
+                    Require(result.Pitch.Zone == StrikeZoneGeometry.For(result.Batter, match.Rules), "Delivery is not in its batter's zone.");
+                    var inside = StrikeZoneGeometry.Of(result.Pitch).Contains(ball.x, ball.y);
                     Require(result.AtBat.InZone == inside, "Umpire differs from visible zone.");
                     Require(inside == (result.Kind == PlayKind.Strikeout), "Wrong taken third-strike result.");
                     // The aim tell is the same crossing (#577): drawn on the pitching seat from PitchFlight.Crossing.

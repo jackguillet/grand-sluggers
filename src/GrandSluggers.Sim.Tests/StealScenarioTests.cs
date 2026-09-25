@@ -99,7 +99,7 @@ public sealed class StealScenarioTests
         Station(match, [1]);
         var runner = match.First!;
         Assert.True(match.StartSteal());
-        var whiff = Scenario.PitchAt(0.9, StrikeZoneGeometry.CenterY);
+        var whiff = Scenario.PitchAt(0.9, StrikeZoneGeometry.Reference.CenterY);
         var run = RunSteal(match, whiff, Scenario.SwingAt(14), LiveSeats.CpuOnly, LivePlayCommandSource.Cpu);
         Assert.Equal(PlayKind.SwingMiss, run.PitchKind);
         Assert.Single(run.Throws, t => t.Bag == 2);
@@ -498,7 +498,7 @@ public sealed class StealScenarioTests
         Assert.True(burner.StationRunner(3, _content.Must("zig")));
         Assert.True(burner.StartSteal(windupSec: 0.2));
         burner.PitchSetup.Advance(.25);
-        var slow = Scenario.PitchAt(0, StrikeZoneGeometry.CenterY, family: PitchFamily.Changeup);
+        var slow = Scenario.PitchAt(0, StrikeZoneGeometry.Reference.CenterY, family: PitchFamily.Changeup);
         var dash = RunSteal(burner, slow, Scenario.Take, HumanRunners, LivePlayCommandSource.Human,
             runPad: (i, _) => i % 4 == 0 ? new LivePadInput(SouthDown: true) : LivePadInput.Dead);
         var facts = dash.Play.Outcome!;

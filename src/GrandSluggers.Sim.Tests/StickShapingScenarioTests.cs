@@ -27,7 +27,8 @@ public sealed class StickShapingScenarioTests
 {
     readonly ContentCatalog _shipped = ContentCatalog.Load(new DataRoot(Shipped.Content.Root.Shipped));
 
-    static double CenterY => StrikeZoneGeometry.CenterY;
+    /// <summary>The middle in the reference frame (§4.4): <see cref="Input"/> and <see cref="Scenario.PitchAt"/> lay it on each batter's zone.</summary>
+    static double CenterY => StrikeZoneGeometry.Reference.CenterY;
 
     /// <summary>A middle-middle fastball: the CPU's middle zone, the umpire's strike.</summary>
     static PitchCommand Middle => Scenario.PitchAt(0, CenterY);
@@ -444,13 +445,20 @@ public sealed class StickShapingScenarioTests
         BuntSide side = BuntSide.None) =>
         SwingInputIntent.Capture(new ChargeButtonStep(default, true, charge01, 0), stickX, stickY, bunt, 0, Rules.Default, side);
 
+    /// <remarks><paramref name="crossingY"/> is in the reference frame: the same place in this batter's zone (§4.4).</remarks>
     static AtBatInput Input(ContentCatalog content, Character batter, SwingInputIntent intent, double err,
         double crossingX, double crossingY, bool inZone = true, bool star = false) =>
         new(Arm(content), batter, null, [],
             ChargePitch: false, ChangeupPitch: false, TimingErrorFrames: err,
             UseStarPitch: false, UseStarSwing: star, Bat: content.Bats["harbor-lumber"], PitcherStamina: 80,
             SprayAimDeg: intent.SprayAimDeg, PitchInZone: inZone, Bunt: intent.Bunt, LaunchAim: intent.LaunchAim,
-            Charge01: intent.Fill01, CrossingX: crossingX, CrossingY: crossingY, BuntSide: intent.BuntSide);
+            Charge01: intent.Fill01, CrossingX: crossingX, CrossingY: OnZone(content, batter, crossingY), BuntSide: intent.BuntSide);
+
+    static double OnZone(ContentCatalog content, Character batter, double referenceY)
+    {
+        var zone = StrikeZoneGeometry.For(batter, content.Rules);
+        return zone.CenterY + (referenceY - StrikeZoneGeometry.Reference.CenterY) * zone.VerticalScale;
+    }
 
     /// <summary>
     /// The crossing X, from the heart of the oval toward the tip, where this hitter's swing meets the

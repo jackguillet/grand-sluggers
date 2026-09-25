@@ -271,6 +271,7 @@ public static class RulesValidation
         table.Hazards.Validate(RulesTable.PathFor(root, "hazards"), errors);
         table.Batting.Validate(RulesTable.PathFor(root, "batting"), errors);
         table.Pitching.Cpu.Validate(RulesTable.PathFor(root, "pitching"), errors);
+        table.Pitching.Zone.Validate(RulesTable.PathFor(root, "pitching"), errors);
         table.Pitching.Families.Validate(RulesTable.PathFor(root, "pitching"), errors);
     }
 
@@ -596,10 +597,42 @@ public sealed record PitchingRules
     public PitchSpeedRules Speed { get; init; } = new();
     public PitchReleaseRules Release { get; init; } = new();
     public PitchFlightRules Flight { get; init; } = new();
+    /// <summary>The safety net on every batter's thigh-to-chest zone (spec §4.4, <see cref="StrikeZoneGeometry.For"/>).</summary>
+    public PitchZoneRules Zone { get; init; } = new();
     public PitchFamilyTable Families { get; init; } = new();
     public StarPitchShapeRules StarShapes { get; init; } = new();
     public StaminaRules Stamina { get; init; } = new();
     public CpuPitcherRules Cpu { get; init; } = new();
+}
+
+/// <summary>
+/// The safety net on a batter's zone (spec §4.4): the mid-thigh landmark is clamped into
+/// [<see cref="BottomMinFt"/>, <see cref="BottomMaxFt"/>], the chest landmark into [<see cref="TopMinFt"/>,
+/// <see cref="TopMaxFt"/>], then the height into [<see cref="HeightMinFt"/>, <see cref="HeightMaxFt"/>] about the
+/// zone's center. Not a design lever. The height floor is what keeps S-108 true for any body: a family's no-aim crossing sits a fixed share of the zone inside it, and the floor
+/// keeps that share wider than a ball.
+/// </summary>
+public sealed record PitchZoneRules
+{
+    [Positive] public double BottomMinFt { get; init; }
+    [Positive] public double BottomMaxFt { get; init; }
+    [Positive] public double TopMinFt { get; init; }
+    [Positive] public double TopMaxFt { get; init; }
+    [Positive] public double HeightMinFt { get; init; }
+    [Positive] public double HeightMaxFt { get; init; }
+
+    /// <summary>The rules the attributes cannot say: each band is a band, and the lowest top is above the highest bottom.</summary>
+    public void Validate(string source, List<string> errors)
+    {
+        if (BottomMinFt > BottomMaxFt)
+            errors.Add($"{source}: zone.bottomMinFt ({BottomMinFt}) must not exceed zone.bottomMaxFt ({BottomMaxFt})");
+        if (TopMinFt > TopMaxFt)
+            errors.Add($"{source}: zone.topMinFt ({TopMinFt}) must not exceed zone.topMaxFt ({TopMaxFt})");
+        if (HeightMinFt > HeightMaxFt)
+            errors.Add($"{source}: zone.heightMinFt ({HeightMinFt}) must not exceed zone.heightMaxFt ({HeightMaxFt})");
+        if (TopMinFt <= BottomMaxFt)
+            errors.Add($"{source}: zone.topMinFt ({TopMinFt}) must be above zone.bottomMaxFt ({BottomMaxFt})");
+    }
 }
 
 /// <summary>The one coefficient every family shares: mph per point of the arm's Velocity (PH-15-R6; the key keeps its historical name) (<see cref="AtBatResolver.PitchSpeedMph(PitchCommand, int, RulesTable)"/>). Base mph and charge mph are per family.</summary>
@@ -1415,6 +1448,12 @@ public sealed record GroundLibrary
     /// <summary>Ember Keep's surface. Its numbers are grass's until F9-a measures a trial.</summary>
     public GroundRules Ash { get; init; } = new();
 
+    /// <summary>
+    /// Coconut Cove's beach outfield: a ball rolls shorter and bounces lower than on grass; a body runs as on grass.
+    /// Proposed numbers, not tuned.
+    /// </summary>
+    public GroundRules Sand { get; init; } = new();
+
     /// <summary>This table's row for a library id, or null for an id the library does not have.</summary>
     GroundRules? Named(string id) => id switch
     {
@@ -1422,6 +1461,7 @@ public sealed record GroundLibrary
         Ground.Dirt => Dirt,
         Ground.Ice => Ice,
         Ground.Ash => Ash,
+        Ground.Sand => Sand,
         _ => null
     };
 
@@ -2314,6 +2354,9 @@ public sealed record HazardRules
     /// <summary>Canopy's trees: solid bodies (F4-f).</summary>
     public HazardTypeRules Tree { get; init; } = new();
 
+    /// <summary>Stillwater Marsh's lily pads: low timed movers that drift across the outfield; a rolling ball caroms off one.</summary>
+    public HazardTypeRules LilyPad { get; init; } = new();
+
     /// <summary>
     /// This table's row for a library id, or null when the data does not author one. Not public:
     /// callers ask <see cref="IsAuthored"/> or take <see cref="Of"/>'s named stop, so an unauthored
@@ -2333,6 +2376,7 @@ public sealed record HazardRules
         HazardType.Train => Train,
         HazardType.AcUnit => AcUnit,
         HazardType.Tree => Tree,
+        HazardType.LilyPad => LilyPad,
         _ => null
     };
 

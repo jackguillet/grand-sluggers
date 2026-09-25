@@ -12,6 +12,10 @@ static class ParkId
     public const string Ember = "ember-keep";
     public const string Funfair = "funfair-park";
     public const string Rooftop = "rooftop-city";
+    public const string Stillwater = "stillwater-marsh";
+    public const string Coconut = "coconut-cove";
+    public const string Sunscorch = "sunscorch-mesa";
+    public const string Summit = "summit-park";
 
-    public static readonly IReadOnlyList<string> All = [Harbor, Crystal, Canopy, Ember, Funfair, Rooftop];
+    public static readonly IReadOnlyList<string> All = [Harbor, Crystal, Canopy, Ember, Funfair, Rooftop, Stillwater, Coconut, Sunscorch, Summit];
 }

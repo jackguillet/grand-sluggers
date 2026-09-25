@@ -20,15 +20,20 @@ public sealed class Scenario
     /// <summary>
     /// A pitch of <paramref name="family"/> — a <see cref="PitchFamily"/> id, the fastball unless a
     /// row says otherwise — whose plate crossing is exactly (<paramref name="worldX"/>,
-    /// <paramref name="worldY"/>) in world feet: the point the umpire, the body, and the cursor read
-    /// (spec §3, §4.4).
+    /// <paramref name="worldY"/>) in world feet in <paramref name="zone"/>: the point the umpire, the body, and the
+    /// cursor read (spec §3, §4.4). With no zone the height is in <see cref="StrikeZoneGeometry.Reference"/>'s frame,
+    /// so a match that stamps its batter's zone lays the pitch at the same place in that batter's zone:
+    /// <c>PitchAt(0, Reference.CenterY)</c> is every batter's middle.
     /// </summary>
     public static PitchCommand PitchAt(double worldX, double worldY, double charge = 0,
-        string family = PitchFamily.Fastball) =>
-        PitchFlight.AimForCrossing(
-            new PitchCommand(family, charge, false),
+        string family = PitchFamily.Fastball, BatterZone? zone = null)
+    {
+        var z = zone ?? StrikeZoneGeometry.Reference;
+        return PitchFlight.AimForCrossing(
+            new PitchCommand(family, charge, false, Zone: zone),
             worldX / PitchFlight.PlateScaleX,
-            (worldY - PitchFlight.PlateY) / PitchFlight.PlateScaleY, rules: Rules.Default);
+            (worldY - z.CenterY) / (PitchFlight.PlateScaleY * z.VerticalScale), rules: Rules.Default);
+    }
 
     /// <summary>A swing pressed <paramref name="errFrames"/> after the square press, the ball's plate time less the lead (negative = early, D13).</summary>
     public static SwingCommand SwingAt(double errFrames, double charge = 0, bool bunt = false, double stickX = 0, double launchAim = 0) =>

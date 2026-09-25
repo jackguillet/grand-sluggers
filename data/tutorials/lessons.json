@@ -23,7 +23,8 @@
         "control:pitching/Normal pitch"
       ],
       "tests": [
-        "TutorialSessionTests"
+        "TutorialSessionTests",
+        "BatterZoneScenarioTests"
       ]
     },
     {
@@ -2913,6 +2914,31 @@
       "prerequisites": [],
       "setup": "T-H04",
       "objective": "hazard-carom-take",
+      "controls": [
+        "control:fielding/Take the glove"
+      ],
+      "tests": [
+        "HazardLessonTests"
+      ]
+    },
+    {
+      "id": "T-H08",
+      "revision": 1,
+      "mechanics": [
+        "fields.sand"
+      ],
+      "title": "field on the sand",
+      "category": "fielding",
+      "status": "planned",
+      "issue": 1133,
+      "reason": "Needs a grounder fixture onto Coconut Cove's sand outfield, the ice lesson's shape",
+      "profiles": [
+        "shipped"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-H01",
+      "objective": "manual-ground-possession",
       "controls": [
         "control:fielding/Take the glove"
       ],

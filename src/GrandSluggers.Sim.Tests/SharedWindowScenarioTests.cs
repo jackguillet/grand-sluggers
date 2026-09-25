@@ -187,7 +187,7 @@ public sealed class SharedWindowScenarioTests
         // A curveball aimed at the middle: the catalog's drop takes it under the zone, the process's does not.
         var pitch = new PitchCommand(PitchFamily.Curveball, 0, false);
         var crossing = PitchFlight.Point(pitch, 1, rules: content.Rules);
-        var inZone = StrikeZoneGeometry.Contains(crossing.X, crossing.Y);
+        var inZone = StrikeZoneGeometry.Reference.Contains(crossing.X, crossing.Y);
         Assert.Equal(inZone, StrikeZoneGeometry.Contains(pitch, content.Rules, null));
         Assert.Equal(inZone, AtBatResolver.PitchInZone(pitch, 5, content.Rules, null));
         Assert.NotEqual(inZone, AtBatResolver.PitchInZone(pitch, 5, rules: Rules.Default));

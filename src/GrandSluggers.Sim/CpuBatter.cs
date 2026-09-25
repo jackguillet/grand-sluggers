@@ -73,11 +73,13 @@ public sealed class CpuBatter
         // swinging for it is Power's.
         var contact = Batter.Stats.Contact;
         var power = Batter.Stats.Power;
-        // Commit from what can be seen: the read pitch replaces the final one for every decision below.
-        pitch = ReadPitch(pitch, breakAtCommit);
+        // Commit from what can be seen: the read pitch replaces the final one for every decision below. It is read in
+        // this batter's own zone (§4.4), the one the umpire will judge it in.
+        var strikeZone = _match.BatterZone;
+        pitch = ReadPitch(pitch, breakAtCommit) with { Zone = strikeZone };
         var inZone = AtBatResolver.PitchInZone(pitch, Pitcher.Stats.Control, Rules, Pitcher.StarPitch);
         var (cx, cy) = PitchFlight.Crossing(pitch, Rules, Pitcher.StarPitch);
-        var zone = ZoneClass(cx, cy, inZone, c);
+        var zone = ZoneClass(cx, cy, inZone, strikeZone, c);
         var take = new SwingCommand(false, 0, 0, false);
 
         // Sac bunt (§5.9, §7.3): the square and its side were read at SET (<see cref="SquaresBunt"/>); in the
@@ -151,16 +153,21 @@ public sealed class CpuBatter
 
     enum Zone { Middle, Edge, Near, Far }
 
-    static Zone ZoneClass(double x, double y, bool inZone, CpuBatterRules c)
+    /// <summary>
+    /// The read's class in this batter's zone (§5.9). Heights are read in the reference frame (§4.4), so the near band
+    /// (<c>nearFt</c>) above and below the zone is the same share of every body's zone.
+    /// </summary>
+    static Zone ZoneClass(double x, double y, bool inZone, BatterZone z, CpuBatterRules c)
     {
         var dx = Math.Abs(x);
-        var dy = Math.Abs(y - StrikeZoneGeometry.CenterY);
+        var dy = Math.Abs(y - z.CenterY) / z.VerticalScale;
+        var halfH = StrikeZoneGeometry.Reference.HalfHeight;
         if (inZone)
-            return dx <= StrikeZoneGeometry.HalfWidth * c.MiddleFraction && dy <= StrikeZoneGeometry.Height / 2 * c.MiddleFraction
+            return dx <= z.HalfWidth * c.MiddleFraction && dy <= halfH * c.MiddleFraction
                 ? Zone.Middle
                 : Zone.Edge;
-        var outX = Math.Max(0, dx - StrikeZoneGeometry.HalfWidth);
-        var outY = Math.Max(0, dy - StrikeZoneGeometry.Height / 2);
+        var outX = Math.Max(0, dx - z.HalfWidth);
+        var outY = Math.Max(0, dy - halfH);
         return Math.Sqrt(outX * outX + outY * outY) <= c.NearFt ? Zone.Near : Zone.Far;
     }
 
