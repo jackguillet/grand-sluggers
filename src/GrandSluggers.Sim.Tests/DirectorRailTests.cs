@@ -63,8 +63,8 @@ public sealed class DirectorRailTests
     }
 
     /// <summary>
-    /// SET clears the pitch and the live play on the objects that own them (<c>PlayState.NewPitch</c>,
-    /// <c>LiveFieldState.NewPitch</c>), so a new field is cleared where it is declared, not in the at-bat.
+    /// SET clears the pitch, the live play and the at-bat on the objects that own them (<c>PlayState.NewPitch</c>,
+    /// <c>LiveFieldState.NewPitch</c>, <c>AtBatDirector.NewPitch</c>), so a new field is cleared where it is declared, not in the at-bat.
     /// </summary>
     [Fact]
     public void TheNewPitchClearsStateOnItsOwners()
@@ -72,7 +72,8 @@ public sealed class DirectorRailTests
         var atBat = File.ReadAllText(Path.Combine(Scripts, "Runtime", "AtBatDirector.cs"));
         Assert.Contains("Play.NewPitch();", atBat, StringComparison.Ordinal);
         Assert.Contains("Live.NewPitch();", atBat, StringComparison.Ordinal);
-        foreach (var owned in new[] { "_gloveAt.Clear()", "_resultBodies = null", "_pending = null", "_closeBag = 0" })
+        Assert.Contains("AtBat.NewPitch();", atBat, StringComparison.Ordinal);
+        foreach (var owned in new[] { "_gloveAt.Clear()", "_resultBodies = null", "_pending = null", "_closeBag = 0", "_cpuSteer = 0" })
             Assert.DoesNotContain(owned, atBat, StringComparison.Ordinal);
     }
 
