@@ -88,7 +88,7 @@ public sealed class TagUpDecisionTests
         var content = Game;
         var rules = table == "gated" ? CarryGated : content.Rules;
         var who = content.Must("cinder");
-        var runner = new Runner(who, bag);
+        var runner = new Runner(who, bag, Rules.Default);
         runner.BeginPlay(forced: false, tagAndGo: false);
         Assert.True(runner.OnBag);
         var next = bag + 1;
@@ -114,7 +114,7 @@ public sealed class TagUpDecisionTests
     public void TheRungsSlackMovesTheLine(string rung, double marginWanted, bool expectSent)
     {
         var rules = Game.Rules.AtLevel(rung);
-        var runner = new Runner(Game.Must("konga"), 3);
+        var runner = new Runner(Game.Must("konga"), 3, Rules.Default);
         runner.BeginPlay(forced: false, tagAndGo: false);
         var arrival = RunnerSystem.ArrivalSec(runner, 4, 0, rules, 0) + marginWanted - rules.Running.Cpu.ReactionSec;
         var ball = new BallSituation(true, false, 0, 0, 0, 250, 0, true, 0, 250, 250, ThrowClock: (x, z, b) => b == 4 ? arrival : 99);

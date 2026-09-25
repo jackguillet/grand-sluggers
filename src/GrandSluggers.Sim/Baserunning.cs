@@ -106,12 +106,12 @@ public static class Baserunning
     /// touched toward the next and the fraction run along it (<paramref name="feet"/> of
     /// <paramref name="segmentFt"/>). A returning runner is the same segment with the fraction falling. On
     /// the run-through at first (<paramref name="overrunFt"/> past the bag, on the line from home) the
-    /// fraction runs past 1 on home → first.
+    /// fraction runs past 1 on home → first, in <paramref name="baselineFt"/> (the table's basepath).
     /// </summary>
-    public static (int From, int To, double U) PathPip(int bag, double feet, double segmentFt, double overrunFt)
+    public static (int From, int To, double U) PathPip(int bag, double feet, double segmentFt, double overrunFt, double baselineFt)
     {
         if (bag >= 4) return (3, 4, 1);
-        if (overrunFt > 0 && bag == 1 && feet <= 0) return (0, 1, 1 + overrunFt / Diamond.Baseline);
+        if (overrunFt > 0 && bag == 1 && feet <= 0) return (0, 1, 1 + overrunFt / baselineFt);
         return (bag, bag + 1, Math.Clamp(feet / Math.Max(1, segmentFt), 0, 1));
     }
 }

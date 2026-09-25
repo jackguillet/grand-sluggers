@@ -586,7 +586,7 @@ public sealed partial class Match
     {
         if (Over || who is null || bag is < 1 or > 3 || LivePlay.Active) return false;
         _runners.RemoveAll(r => r.Bag == bag || r.Who.Id == who.Id);
-        _runners.Add(new Runner(who, bag));
+        _runners.Add(new Runner(who, bag, Rules));
         SyncSelection();
         return true;
     }
@@ -646,7 +646,7 @@ public sealed partial class Match
             r.BeginPlay(forces.At(r.Bag + 1), SendAll);
             // A runner who broke on the pitch is on the path with their head start (§11.2): the steal is running now (S-64).
         }
-        _runners.Add(Runner.BatterRunner(Batter, startX, startZ));
+        _runners.Add(Runner.BatterRunner(Batter, startX, startZ, Rules));
         _thirdOutAt = double.PositiveInfinity;
         _thirdOutKillsRuns = false;
     }
@@ -1781,7 +1781,7 @@ public sealed partial class Match
             RecordMove(f.Who, 1, 2);
         }
         _runners.RemoveAll(r => r.IsBatter);
-        _runners.Add(new Runner(batter, 1));
+        _runners.Add(new Runner(batter, 1, Rules));
         RecordMove(batter, 0, 1);
         PruneRunners();
         return (scorers.Count, scorers);
@@ -1791,7 +1791,7 @@ public sealed partial class Match
     (int Runs, IReadOnlyList<string> Scorers) AwardBases(int bases)
     {
         var scorers = new List<string>();
-        if (BatterRunner is null) _runners.Add(Runner.BatterRunner(Batter, HomeSet.BatterBodyX(Batter.Bats, BatterContactOffsetX), HomeSet.BatterZ));
+        if (BatterRunner is null) _runners.Add(Runner.BatterRunner(Batter, HomeSet.BatterBodyX(Batter.Bats, BatterContactOffsetX), HomeSet.BatterZ, Rules));
         foreach (var r in _runners.OrderByDescending(x => x.FromBag).ToList())
         {
             if (!r.Live) continue;
