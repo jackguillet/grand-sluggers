@@ -30,7 +30,7 @@
     "WD-17",
     "WD-18"
   ],
-  "next_decision": "WD-04",
+  "next_decision": "WD-05",
   "brief": "Jack, 2026-09-24: expand to 10 stadiums that make up a continent, each in the region that fits it (ice in a cold place, one in a volcano, one on a tropical island), selectable from the menu; define hazards, night lights and other defining features per stadium; grow to 10 captains, each assigned a field; one field is a tropical beach.",
   "decisions": [
     {
@@ -154,7 +154,7 @@
       "id": "WD-04",
       "area": "Gating",
       "question": "Are the ten parks unlocked by play?",
-      "status": "open",
+      "status": "accepted",
       "depends_on": [],
       "options": [
         {
@@ -179,11 +179,15 @@
       "blocks": [
         "C6 picker"
       ],
-      "selected_option": null,
-      "accepted_scope": null,
-      "decided_by": null,
-      "decided_at": null,
-      "decision_evidence": null
+      "selected_option": "C",
+      "accepted_scope": "All ten parks are open in Exhibition from the first boot. Unlocks by play come only with a later Challenge mode (#36); no save file or unlock rule is built now.",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-25",
+      "decision_evidence": {
+        "kind": "conversation",
+        "question": "WD-04: A All ten open / B Harbor and a few open; the rest unlock by play / C All open in Exhibition; unlocks only in a later Challenge mode",
+        "answer_quote": "c"
+      }
     },
     {
       "id": "WD-05",
@@ -693,6 +697,12 @@
       "who": "Jack",
       "quote": "a. but it doesn't need to be completed work.",
       "effect": "WD-03 accepted: A."
+    },
+    {
+      "date": "2026-09-25",
+      "who": "Jack",
+      "quote": "c",
+      "effect": "WD-04 accepted: C."
     }
   ]
 }

@@ -26,14 +26,14 @@ Status: **planning. Nothing here is built.** Rails, data and greyboxes may be bu
 
 ## Decision matrix
 
-3 decisions are accepted; 15 are open. The recommendation is not the decision. "Blocks" names the children in [Build order](#build-order).
+4 decisions are accepted; 14 are open. The recommendation is not the decision. "Blocks" names the children in [Build order](#build-order).
 
 | Id | Area | Question | Options | Recommend | Depends on | Blocks |
 | --- | --- | --- | --- | --- | --- | --- |
 | WD-01 | Gating | When does building start? | A after #346 · B rails + greyboxes now, art later · C everything now | **Accepted: B** (Jack, 2026-09-24) | — | all |
 | WD-02 | Gating | Park art order | A keep FD-17 (greybox sittings first) · B art as built | **Accepted: A** (Jack, 2026-09-24) | 01 | C9 |
 | WD-03 | Gating | Backdrops come back? | A kit art · B data greybox now, art later · C none | **Accepted: A, rough blockout is enough** (Jack, 2026-09-25) | 01 | C5, C9 |
-| WD-04 | Gating | Unlocks | A all open · B unlock by play · C open in Exhibition, unlocks in Challenge | **C** | — | C6 |
+| WD-04 | Gating | Unlocks | A all open · B unlock by play · C open in Exhibition, unlocks in Challenge | **Accepted: C** (Jack, 2026-09-25) | — | C6 |
 | WD-05 | World | Continent shape and name | A the draft (the Diamond Isles) · B Jack's own | **A** | — | C1, C6 |
 | WD-06 | World | Which ten parks | A the draft ten · B swap in a deferred park · C Jack's list | **A** | 05 | C3 |
 | WD-07 | World | Fenn's home | A Stillwater Marsh · B keep Harbor, fourth new captain | **A** | 06 | C1, C3 |
