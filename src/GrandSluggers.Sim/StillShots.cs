@@ -43,7 +43,7 @@ public static class StillShots
 
     /// <summary>
     /// The row's pose on <paramref name="park"/>, cut (blend 0). <paramref name="bounds"/> is the edge the kit draws the
-    /// rail on — the client passes <see cref="ParkBoundary.Default"/>, the edge <see cref="HarborWall"/> dresses.
+    /// rail on — the client passes the match table's <see cref="ParkBoundary.From"/>, the edge <see cref="HarborWall"/> dresses.
     /// </summary>
     public static CameraShot Frame(ParkShot row, Park park, ParkBoundary bounds)
     {

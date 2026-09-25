@@ -91,7 +91,7 @@ public sealed class PolylineFenceTests
                 .Select(i => -AtBatResolver.FoulLineDeg + 2 * AtBatResolver.FoulLineDeg * i / FieldBounds.FenceSegs).ToArray();
             Assert.Equal(grid, FieldBounds.FenceBearings(park));
 
-            var expected = Old.Polygon(park, ParkBoundary.Default);
+            var expected = Old.Polygon(park, ParkBoundary.From(Rules.Default.Boundary));
             var actual = FieldBounds.Of(park, Rules.Default).Segments;
             Assert.Equal(expected.Count, actual.Count);
             for (var i = 0; i < expected.Count; i++)
@@ -104,15 +104,15 @@ public sealed class PolylineFenceTests
                 Bits($"{park.Id} top of segment {i}", actual[i].HeightFt, actual[i].HeightAt(0.37));
             }
 
-            var oldLoop = Old.Loop(park, ParkBoundary.Default);
-            var loop = HarborWall.Loop(park);
+            var oldLoop = Old.Loop(park, ParkBoundary.From(Rules.Default.Boundary));
+            var loop = HarborWall.Loop(park, Rules.Default);
             Assert.Equal(oldLoop.Length, loop.Length);
             for (var i = 0; i < loop.Length; i++)
             {
                 Bits($"{park.Id} loop[{i}].X", oldLoop[i].X, loop[i].X);
                 Bits($"{park.Id} loop[{i}].Z", oldLoop[i].Z, loop[i].Z);
-                if (HarborWall.IsOutfield(park, i))
-                    Assert.Equal((float)park.FenceHeightFt, HarborWall.Height(park, i));
+                if (HarborWall.IsOutfield(park, i, Rules.Default))
+                    Assert.Equal((float)park.FenceHeightFt, HarborWall.Height(park, i, Rules.Default));
             }
 
             var identity = PlayTraceIdentity.Capture(new Match(catalog, away, home, park, innings: 3, seed: 7));
@@ -502,10 +502,10 @@ public sealed class PolylineFenceTests
         Assert.Same(plain, FieldBounds.Of(arc, Rules.Default));
         Assert.NotEqual(plain.RadiusAt(0), polygon.RadiusAt(0));
 
-        var loop = HarborWall.Loop(fenced);
-        Assert.NotSame(HarborWall.Loop(arc), loop);
-        Assert.Same(loop, HarborWall.Loop(again));
-        Assert.Equal(HarborWall.WrapSegs, HarborWall.Loop(arc).Length);
+        var loop = HarborWall.Loop(fenced, Rules.Default);
+        Assert.NotSame(HarborWall.Loop(arc, Rules.Default), loop);
+        Assert.Same(loop, HarborWall.Loop(again, Rules.Default));
+        Assert.Equal(HarborWall.WrapSegs, HarborWall.Loop(arc, Rules.Default).Length);
 
         // One more point is another field.
         var moved = arc with { Fence = new ParkFence(Fixture.Select((p, i) => i == 4 ? p with { FenceFrac = 0.95 } : p).ToList()) };

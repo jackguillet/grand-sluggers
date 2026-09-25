@@ -407,11 +407,11 @@ public static class ParkDiamond
     /// Lawn slab covers this XZ. Dirt, track, and dugout pits sit on or
     /// punch through it — the mow does not stop at <see cref="DirtMaxZ"/>.
     /// </summary>
-    public static bool LawnCovers(double x, double z, Park park)
+    public static bool LawnCovers(double x, double z, Park park, RulesTable rules)
     {
         if (z < GrassZ0 || z > GrassZ1(park)) return false;
         if (Math.Abs(x) > GrassHalfWidth((float)Math.Max(z, 0))) return false;
-        if (HarborDugout.InPitHole(x, z)) return false;
+        if (HarborDugout.InPitHole(x, z, rules)) return false;
         return true;
     }
 
@@ -434,5 +434,5 @@ public static class ParkDiamond
         return Math.Abs(dist - park.RightFenceFt) < 1.5;
     }
 
-    public static bool LawnRespectsPits(DiamondGeometry d) => HarborInfield.LawnRespectsPits(d);
+    public static bool LawnRespectsPits(RulesTable rules) => HarborInfield.LawnRespectsPits(rules);
 }

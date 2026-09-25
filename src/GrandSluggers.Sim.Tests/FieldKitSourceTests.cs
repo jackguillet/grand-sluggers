@@ -303,7 +303,7 @@ public sealed class FieldKitSourceTests
     }
 
     /// <summary>The pit's back wall, measured into foul ground from the chalk: the rail, then the pit's depth behind it.</summary>
-    static double DugoutBackFt => HarborWall.FoulOffset + 2.0 * HarborDugout.HalfDeep;
+    static double DugoutBackFt => HarborWall.FoulOffset(Rules.Default) + 2.0 * HarborDugout.HalfDeep;
 
     /// <summary>
     /// Where the kit's backstop wall stops, measured from the plate: the radius of the loop's wrap —
@@ -311,7 +311,7 @@ public sealed class FieldKitSourceTests
     /// <see cref="ParkBoundary"/> — at the park where it is widest, plus half the wall.
     /// </summary>
     static double BackstopOuterFaceFt() =>
-        Content.Parks.Values.Max(park => HarborWall.Loop(park).Min(p => FromPlate(p.X, p.Z)))
+        Content.Parks.Values.Max(park => HarborWall.Loop(park, Rules.Default).Min(p => FromPlate(p.X, p.Z)))
         + HarborPostcard.WallThickFt * 0.5;
 
     static double FromPlate(double x, double z) =>

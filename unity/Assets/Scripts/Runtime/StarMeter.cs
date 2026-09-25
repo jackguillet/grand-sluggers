@@ -29,20 +29,21 @@ namespace GrandSluggers.UnityClient
         {
             var view = GetComponent<ParkView>();
             var park = view != null ? view.Park : null;
+            var rules = view != null && view.Table != null ? view.Table : Rules.Default;
             if (_root != null) Destroy(_root.gameObject);
             _on = Look.Toon(Colors.Gold);
             _off = Look.Toon(new Color(0.28f, 0.28f, 0.30f));
             _mesh = StarMesh();
             _root = new GameObject("StarMeter").transform;
             _root.SetParent(parent, false);
-            var y = HarborWall.HipHeight + 0.22f;
+            var y = HarborWall.HipHeight(rules) + 0.22f;
             var faceHome = Quaternion.Euler(-8f, -135f, 0f);
             var faceAway = Quaternion.Euler(-8f, 135f, 0f);
             for (var i = 0; i < 5; i++)
             {
                 var along = HarborDugout.AlongHome + 1.7f + i * HarborDugout.StarSpacing;
-                var home = Rail(park, 1, along);
-                var away = Rail(park, -1, along);
+                var home = Rail(park, 1, along, rules);
+                var away = Rail(park, -1, along, rules);
                 _home[i] = Pip("HomeStar" + i, new Vector3(home.x - 0.15f, y, home.z), faceHome);
                 _away[i] = Pip("AwayStar" + i, new Vector3(away.x + 0.15f, y, away.z), faceAway);
             }
@@ -53,10 +54,10 @@ namespace GrandSluggers.UnityClient
         /// park built yet the rail runs parallel to the line, which is where every park's rail is this
         /// close to home (the flare starts at <see cref="ParkBoundary.FlareStartFt"/>).
         /// </summary>
-        static Vector3 Rail(Park park, int sign, float along)
+        static Vector3 Rail(Park park, int sign, float along, RulesTable rules)
         {
             var pole = park != null ? AtBatResolver.FenceAt(park, sign * AtBatResolver.FoulLineDeg) : 0;
-            var p = HarborWall.FoulWall(sign, along, pole);
+            var p = HarborWall.FoulWall(sign, along, pole, rules);
             return new Vector3((float)p.X, 0f, (float)p.Z);
         }
 

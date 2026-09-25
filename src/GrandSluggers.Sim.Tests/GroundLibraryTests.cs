@@ -569,7 +569,7 @@ public sealed class GroundLibraryTests
 
     /// <summary>
     /// The no-table overload takes the process-wide table and nothing else — the same fallback
-    /// <see cref="ParkBoundary.Default"/> and <see cref="FieldBounds.Of(Park, Rules.Default)"/> take, for the callers
+    /// <see cref="ParkBoundary.From"/> and <see cref="FieldBounds.Of(Park, RulesTable)"/> take, for the callers
     /// that hold no catalog. It is pinned here rather than left to a comment, because a reader who
     /// used it from inside a match would be reading the process's lip instead of the match's, and that
     /// is exactly the class of bug the F3-a audit was opened for (map finding 3). A match hands its

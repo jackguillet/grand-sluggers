@@ -28,16 +28,16 @@ public static class HarborWall
     /// <c>data/rules/boundary.json</c> (#826). The drawn rail and the ball's rail are the same
     /// number because they are read from the same place — there is no second constant.
     /// </summary>
-    static ParkBoundary Bounds => ParkBoundary.Default;
+    static ParkBoundary Edge(RulesTable rules) => ParkBoundary.From(rules.Boundary);
 
     /// <summary>
     /// Hip wall offset from the foul line along the infield. The dugout rail
     /// <b>is</b> this line. Flares to the pole. Home backstop stays at <see cref="HomeZ"/>.
     /// </summary>
-    public static float FoulOffset => (float)Bounds.FoulOffsetFt;
+    public static float FoulOffset(RulesTable rules) => (float)Edge(rules).FoulOffsetFt;
     /// <summary>Round wrap behind the plate. Radius is the offset line’s closest point, not a V to a farther apex.</summary>
-    public static float HomeZ => (float)Bounds.BackstopZFt;
-    public static float DugoutPad => (float)Bounds.DugoutPadFt;
+    public static float HomeZ(RulesTable rules) => (float)Edge(rules).BackstopZFt;
+    public static float DugoutPad(RulesTable rules) => (float)Edge(rules).DugoutPadFt;
     /// <summary>
     /// The padded outfield wall's top is the park's own fence (spec D15): the same number the flight
     /// clips against (<see cref="FieldBounds"/>), so a ball that meets the padding you see caroms and a
@@ -58,12 +58,12 @@ public static class HarborWall
     /// Hip-high rail around the infield, dugouts, and home, all the way out to each pole. The top the
     /// flight clips against (<see cref="ParkBoundary.RailTopFt"/>).
     /// </summary>
-    public static float HipHeight => (float)Bounds.RailHeightFt;
+    public static float HipHeight(RulesTable rules) => (float)Edge(rules).RailHeightFt;
     public const bool HasNet = false;
     /// <summary>Authored ring sat on its side in the sky. Boxes follow the loop until the FBX lies in XZ.</summary>
     public const bool DropAuthoredRing = false;
 
-    public static float DugoutClearX => HarborDugout.X + HarborDugout.HalfDeep + DugoutPad;
+    public static float DugoutClearX(RulesTable rules) => HarborDugout.X + HarborDugout.HalfDeep + DugoutPad(rules);
 
     /// <summary>
     /// The loop per (park, edge), built once. The key is <see cref="FieldBounds"/>'s key, deliberately —
@@ -81,15 +81,15 @@ public static class HarborWall
     /// </summary>
     static readonly System.Collections.Concurrent.ConcurrentDictionary<FieldBounds.EdgeKey, (double X, double Z)[]> Loops = new();
 
-    public static (double X, double Z)[] Loop(Park park) => Loop(park, ParkBoundary.For(park));
+    public static (double X, double Z)[] Loop(Park park, RulesTable rules) => Loop(park, ParkBoundary.For(park, rules));
 
     /// <summary>The loop this park draws on a given edge. <see cref="FieldBounds.Of(Park, ParkBoundary)"/>'s sibling.</summary>
     public static (double X, double Z)[] Loop(Park park, ParkBoundary bounds) =>
         Loops.GetOrAdd(FieldBounds.EdgeKey.Of(park, bounds), k => BuildLoop(park, k.Bounds));
 
-    public static (double X, double Z) LoopPoint(Park park, int i)
+    public static (double X, double Z) LoopPoint(Park park, int i, RulesTable rules)
     {
-        var loop = Loop(park);
+        var loop = Loop(park, rules);
         var n = loop.Length;
         var i0 = ((i % n) + n) % n;
         return loop[i0];
@@ -174,8 +174,8 @@ public static class HarborWall
     /// not a copy of it (#826).
     /// </para>
     /// </summary>
-    public static (double X, double Z) FoulWall(int sign, double alongFt, double poleFt) =>
-        Bounds.RailPoint(sign, alongFt, poleFt);
+    public static (double X, double Z) FoulWall(int sign, double alongFt, double poleFt, RulesTable rules) =>
+        Edge(rules).RailPoint(sign, alongFt, poleFt);
 
     static (double X, double Z) FencePoint(Park park, double sprayDeg)
     {
@@ -208,9 +208,9 @@ public static class HarborWall
     /// only of a symmetric park (<see cref="ParkIsSymmetric"/>).
     /// </para>
     /// </summary>
-    public static bool LoopIsSymmetric(Park park)
+    public static bool LoopIsSymmetric(Park park, RulesTable rules)
     {
-        var loop = Loop(park);
+        var loop = Loop(park, rules);
         if (loop.Length != WrapSegs) return false;
         foreach (var p in loop)
         {
@@ -228,18 +228,18 @@ public static class HarborWall
         return true;
     }
 
-    public static (double X, double Z) TrackInner(Park park, int i)
+    public static (double X, double Z) TrackInner(Park park, int i, RulesTable rules)
     {
-        var p = LoopPoint(park, i);
-        var o = Outward(park, i);
+        var p = LoopPoint(park, i, rules);
+        var o = Outward(park, i, rules);
         var w = ParkDiamond.TrackWidth;
         return (p.X - o.X * w, p.Z - o.Z * w);
     }
 
-    public static (double X, double Z) TrackOuter(Park park, int i)
+    public static (double X, double Z) TrackOuter(Park park, int i, RulesTable rules)
     {
-        var p = LoopPoint(park, i);
-        var o = Outward(park, i);
+        var p = LoopPoint(park, i, rules);
+        var o = Outward(park, i, rules);
         var w = ParkDiamond.TrackWallInset;
         return (p.X - o.X * w, p.Z - o.Z * w);
     }
@@ -258,9 +258,9 @@ public static class HarborWall
     /// </summary>
     static readonly System.Collections.Concurrent.ConcurrentDictionary<FieldBounds.EdgeKey, DrawnSpan[]> Spans = new();
 
-    static DrawnSpan Span(Park park, int i)
+    static DrawnSpan Span(Park park, int i, RulesTable rules)
     {
-        var spans = Spans.GetOrAdd(FieldBounds.EdgeKey.Of(park, Bounds),
+        var spans = Spans.GetOrAdd(FieldBounds.EdgeKey.Of(park, Edge(rules)),
             k => BuildSpans(Loop(park, k.Bounds), FieldBounds.Of(park, k.Bounds)));
         var n = spans.Length;
         return spans[((i % n) + n) % n];
@@ -324,7 +324,7 @@ public static class HarborWall
     /// span is a piece of exactly one flight segment: its top, its kind (fence or rail) and its
     /// material are read from here, not recomputed (FD-06-R2).
     /// </summary>
-    public static FieldBounds.WallSegment FlightSpan(Park park, int i) => Span(park, i).Segment;
+    public static FieldBounds.WallSegment FlightSpan(Park park, int i, RulesTable rules) => Span(park, i, rules).Segment;
 
     /// <summary>
     /// The top of the drawn span from loop vertex <paramref name="i"/> to <paramref name="i"/> + 1 at
@@ -336,9 +336,9 @@ public static class HarborWall
     /// first foot and the wall steps from the fence to the rail at the pole itself, where the ball's
     /// wall steps. Every span of a park with no polyline is level (<c>Start == End</c>).
     /// </summary>
-    public static (float Start, float End) SpanTops(Park park, int i)
+    public static (float Start, float End) SpanTops(Park park, int i, RulesTable rules)
     {
-        var span = Span(park, i);
+        var span = Span(park, i, rules);
         return (span.Start, span.End);
     }
 
@@ -357,7 +357,7 @@ public static class HarborWall
     /// hip-high to the pole and the wall steps up at the pole. No flight number moved.
     /// </para>
     /// </summary>
-    public static float Height(Park park, int i) => Math.Max(SpanTops(park, i - 1).End, SpanTops(park, i).Start);
+    public static float Height(Park park, int i, RulesTable rules) => Math.Max(SpanTops(park, i - 1, rules).End, SpanTops(park, i, rules).Start);
 
     /// <summary>
     /// A loop vertex on the fence between the poles, the poles included: a vertex of a fair span of
@@ -365,14 +365,14 @@ public static class HarborWall
     /// F2-b2 this was "within half a degree of the foul line", which also took in the first one or
     /// two rail vertices past each pole, where the rail flares into the line.
     /// </summary>
-    public static bool IsOutfield(Park park, int i) =>
-        FlightSpan(park, i - 1).Kind == FieldBounds.WallKind.FairFence
-        || FlightSpan(park, i).Kind == FieldBounds.WallKind.FairFence;
+    public static bool IsOutfield(Park park, int i, RulesTable rules) =>
+        FlightSpan(park, i - 1, rules).Kind == FieldBounds.WallKind.FairFence
+        || FlightSpan(park, i, rules).Kind == FieldBounds.WallKind.FairFence;
 
     /// <summary>A loop vertex at a foul pole: the point on that side's fence where the foul line meets it (<see cref="ParkDiamond.FoulPole"/>).</summary>
-    public static bool IsPole(Park park, int i)
+    public static bool IsPole(Park park, int i, RulesTable rules)
     {
-        var p = LoopPoint(park, i);
+        var p = LoopPoint(park, i, rules);
         for (var sign = -1; sign <= 1; sign += 2)
         {
             var pole = ParkDiamond.FoulPole(park, sign);
@@ -387,15 +387,15 @@ public static class HarborWall
     /// between them — the rail stays hip-high, and the fence is taller than the rail so the wall steps
     /// up to it at each pole (FD-06-R2).
     /// </summary>
-    public static bool OutfieldIsTheFence(Park park)
+    public static bool OutfieldIsTheFence(Park park, RulesTable rules)
     {
-        if (!(HipHeight >= 3.2f && HipHeight <= 5.5f && park.FenceHeightFt > HipHeight)) return false;
-        var loop = Loop(park);
+        if (!(HipHeight(rules) >= 3.2f && HipHeight(rules) <= 5.5f && park.FenceHeightFt > HipHeight(rules))) return false;
+        var loop = Loop(park, rules);
         for (var i = 0; i < loop.Length; i++)
         {
-            if (!IsOutfield(park, i)) continue;
+            if (!IsOutfield(park, i, rules)) continue;
             var top = AtBatResolver.FenceSpotAt(park, FieldBounds.SprayDeg(loop[i].X, loop[i].Z)).TopFt;
-            if (!(top > HipHeight) || Math.Abs(Height(park, i) - top) > 1e-4) return false;
+            if (!(top > HipHeight(rules)) || Math.Abs(Height(park, i, rules) - top) > 1e-4) return false;
         }
         return true;
     }
@@ -412,27 +412,27 @@ public static class HarborWall
     /// at least six vertices past 95 ft out, while the ball's rail stayed hip-high to the pole.
     /// </para>
     /// </summary>
-    public static bool StepsOnlyAtThePoles(Park park)
+    public static bool StepsOnlyAtThePoles(Park park, RulesTable rules)
     {
-        var n = Loop(park).Length;
+        var n = Loop(park, rules).Length;
         var steps = 0;
         for (var i = 0; i < n; i++)
         {
-            var before = FlightSpan(park, i - 1).Kind;
-            var here = FlightSpan(park, i).Kind;
-            var tops = SpanTops(park, i);
-            if (here == FieldBounds.WallKind.FoulWall && (tops.Start != HipHeight || tops.End != HipHeight)) return false;
+            var before = FlightSpan(park, i - 1, rules).Kind;
+            var here = FlightSpan(park, i, rules).Kind;
+            var tops = SpanTops(park, i, rules);
+            if (here == FieldBounds.WallKind.FoulWall && (tops.Start != HipHeight(rules) || tops.End != HipHeight(rules))) return false;
             if (before == here) continue;
-            if (!IsPole(park, i) || SpanTops(park, i - 1).End == tops.Start) return false;
+            if (!IsPole(park, i, rules) || SpanTops(park, i - 1, rules).End == tops.Start) return false;
             steps++;
         }
         return steps == 2;
     }
 
-    public static (double X, double Z) Outward(Park park, int i)
+    public static (double X, double Z) Outward(Park park, int i, RulesTable rules)
     {
-        var a = LoopPoint(park, i);
-        var b = LoopPoint(park, i + 1);
+        var a = LoopPoint(park, i, rules);
+        var b = LoopPoint(park, i + 1, rules);
         var tx = b.X - a.X;
         var tz = b.Z - a.Z;
         var len = Math.Sqrt(tx * tx + tz * tz);
@@ -453,9 +453,9 @@ public static class HarborWall
     }
 
     /// <summary>Behind home is a circular arc, not two lines to a point.</summary>
-    public static bool HomeWrapIsRound(Park park)
+    public static bool HomeWrapIsRound(Park park, RulesTable rules)
     {
-        var loop = Loop(park);
+        var loop = Loop(park, rules);
         var home = loop.OrderBy(p => p.Z).First();
         if (Math.Abs(home.X) > 4) return false;
         (double X, double Z)? left = null, right = null;
@@ -469,25 +469,25 @@ public static class HarborWall
         double R((double X, double Z) p) => Math.Sqrt(p.X * p.X + p.Z * p.Z);
         return Math.Abs(R(home) - R(left.Value)) < 6
             && Math.Abs(R(home) - R(right.Value)) < 6
-            && home.Z > -FoulOffset - 8;
+            && home.Z > -FoulOffset(rules) - 8;
     }
 
-    public static bool WrapStaysInFoul(Park park, DiamondGeometry d)
+    public static bool WrapStaysInFoul(Park park, RulesTable rules)
     {
-        foreach (var p in Loop(park))
+        foreach (var p in Loop(park, rules))
         {
             if (p.Z < 8) continue;
             var spray = Math.Atan2(p.X, p.Z) * (180.0 / Math.PI);
             if (Math.Abs(spray) <= AtBatResolver.FoulLineDeg + 1) continue;
             if (Math.Abs(p.X) < p.Z - 2) return false;
-            if (ParkDiamond.OnDirt(p.X, p.Z, d)) return false;
+            if (ParkDiamond.OnDirt(p.X, p.Z, DiamondGeometry.Of(rules))) return false;
         }
         return true;
     }
 
-    public static bool WrapsTheDiamond(Park park, DiamondGeometry d)
+    public static bool WrapsTheDiamond(Park park, RulesTable rules)
     {
-        var loop = Loop(park);
+        var loop = Loop(park, rules);
         if (loop.Length < 40) return false;
         var home = loop.OrderBy(p => p.Z).First();
         if (home.Z > HomeSet.CatcherZ - 8) return false;
@@ -498,12 +498,12 @@ public static class HarborWall
         if (Math.Abs(minDug - HarborDugout.HalfDeep) > 4) return false;
         var cf = FencePoint(park, 0);
         if (loop.Min(p => Diamond.Dist(p.X, p.Z, cf.X, cf.Z)) > 4) return false;
-        return WrapStaysInFoul(park, d)
+        return WrapStaysInFoul(park, rules)
             // A symmetric park draws one wall on both sides. A lopsided park draws two, which is
             // the point of #845 — asking every park for a mirror is what hid the bug.
-            && (!ParkIsSymmetric(park) || LoopIsSymmetric(park))
-            && HomeWrapIsRound(park)
+            && (!ParkIsSymmetric(park) || LoopIsSymmetric(park, rules))
+            && HomeWrapIsRound(park, rules)
             && !HasNet && !DropAuthoredRing
-            && OutfieldIsTheFence(park);
+            && OutfieldIsTheFence(park, rules);
     }
 }

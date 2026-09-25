@@ -80,6 +80,7 @@ namespace GrandSluggers.UnityClient
         public void Bind(Park park, RulesTable rules, bool night = false)
         {
             _park = park;
+            _rules = rules;
             _diamond = DiamondGeometry.Of(rules);
             _field = null;
             _night = night;
@@ -132,9 +133,10 @@ namespace GrandSluggers.UnityClient
         }
 
         /// <summary>The one field kit, built under this component's placed anchors.</summary>
-        FieldKit Field => _field ??= new FieldKit(transform, _diamond);
+        FieldKit Field => _field ??= new FieldKit(transform, _rules);
 
-        /// <summary>The bound table's diamond (<see cref="Bind"/>); null until a park is bound.</summary>
+        /// <summary>The bound table and its diamond (<see cref="Bind"/>); null until a park is bound.</summary>
+        RulesTable _rules;
         DiamondGeometry _diamond;
 
         /// <summary>The middle of the square, halfway to second, on the bound table (0 before a park is bound: the slabs are placeholders until <see cref="Dress"/> places them).</summary>
@@ -579,7 +581,7 @@ namespace GrandSluggers.UnityClient
             };
             var mark = Look.Unlit(Colors.Gold);
             var spark = Look.Unlit(Colors.Spark);
-            Field.Wall(_park, new[] { pad }, cap, HarborDugout.WallOpensHere, span =>
+            Field.Wall(_park, new[] { pad }, cap, (x, z) => HarborDugout.WallOpensHere(x, z, _rules), span =>
             {
                 var i = span.Index;
                 var mid = span.Mid;

@@ -25,11 +25,11 @@ public class HarborPostcardTests
         Assert.True(HarborPostcard.TownPastFenceFt > 20);
         Assert.False(HarborPostcard.CenterFieldHasBleachers);
         Assert.False(HarborWall.HasNet, "chain-link net is gone; the padded wall wraps home");
-        Assert.True(HarborWall.WrapsTheDiamond(harbor, DiamondGeometry.Of(Rules.Default)));
-        Assert.True(HarborWall.OutfieldIsTheFence(harbor));
+        Assert.True(HarborWall.WrapsTheDiamond(harbor, Rules.Default));
+        Assert.True(HarborWall.OutfieldIsTheFence(harbor, Rules.Default));
         // Re-authored by F2-b2 (#873, FD-06-R2): it read "taper is a ramp, not stairs". The drawn
         // rail now stays hip-high to each pole, as the ball's does, and steps up to the fence there.
-        Assert.True(HarborWall.StepsOnlyAtThePoles(harbor), "the rail steps up to the fence at each pole, not before it");
+        Assert.True(HarborWall.StepsOnlyAtThePoles(harbor, Rules.Default), "the rail steps up to the fence at each pole, not before it");
         Assert.False(HarborStands.HasRoofs, "white roof slabs are not the postcard");
         Assert.True(HarborStands.CrowdIsPeople(),
             $"crowd {HarborStands.PersonFt}ft must be people, not 12-ft giants");
@@ -42,9 +42,9 @@ public class HarborPostcardTests
         Assert.Equal(HarborStands.PersonFt, HarborPostcard.CrowdPersonFt);
         Assert.True(HarborPostcard.WallSegs >= 36);
         Assert.True(HarborPostcard.WallOverlapFt >= 0.6f);
-        Assert.True(HarborPostcard.WallPiecesConnect(harbor, DiamondGeometry.Of(Rules.Default)),
+        Assert.True(HarborPostcard.WallPiecesConnect(harbor, Rules.Default),
             "wall pieces must overlap along the ground loop, not sit as gapped slabs");
-        Assert.True(HarborWall.WrapStaysInFoul(harbor, DiamondGeometry.Of(Rules.Default)),
+        Assert.True(HarborWall.WrapStaysInFoul(harbor, Rules.Default),
             "wrap must follow foul territory, not cut the infield");
         // Re-authored by #845 (FD-06). It used to read "the home wrap is mirrored, not two different
         // polylines", which held for every park because the builder copied the right-field half onto
@@ -53,9 +53,9 @@ public class HarborPostcardTests
         // same wall it drew before this child (bit for bit). A lopsided park must not, and
         // HarborWallTests.SF05_ALopsidedParkDrawsItsOwnLeftFieldWall holds the other side of it.
         Assert.True(HarborWall.ParkIsSymmetric(harbor), "Harbor's two lines are the same length");
-        Assert.True(HarborWall.LoopIsSymmetric(harbor),
+        Assert.True(HarborWall.LoopIsSymmetric(harbor, Rules.Default),
             "a symmetric park draws matching 1B and 3B walls");
-        Assert.True(HarborWall.HomeWrapIsRound(harbor), "behind home is an arc, not a V");
+        Assert.True(HarborWall.HomeWrapIsRound(harbor, Rules.Default), "behind home is an arc, not a V");
         var cf = HarborPostcard.WallPoint(harbor, 0);
         var cfDist = Math.Sqrt(cf.X * cf.X + cf.Z * cf.Z);
         Assert.InRange(cfDist, harbor.CenterFenceFt - 4, harbor.CenterFenceFt + 4);
@@ -79,8 +79,8 @@ public class HarborPostcardTests
     [Fact]
     public void DugoutsAreSunkenAndSetBackOffTheDirt()
     {
-        Assert.True(HarborDugout.IsSetBackFromTheDirt(),
-            $"field lip {HarborDugout.FieldX(HarborDugout.X)} still on the path");
+        Assert.True(HarborDugout.IsSetBackFromTheDirt(Rules.Default),
+            $"field lip {HarborDugout.FieldX(HarborDugout.X, Rules.Default)} still on the path");
         Assert.True(HarborDugout.IsSunken());
         Assert.True(HarborDugout.HasStairs());
         Assert.True(HarborDugout.HasMeshFront(), "dugout is a padded rail + mesh pit, not a shed");
@@ -91,30 +91,30 @@ public class HarborPostcardTests
         Assert.True(HarborDugout.HalfAlong >= 16f && HarborDugout.HalfAlong <= 24f,
             "dugout is two-thirds the old home-to-bag shed");
         Assert.True(HarborDugout.FieldStairRun < 3f, "stairs stay in the pit, not a runway on the grass");
-        Assert.True(HarborDugout.RailFacesTheDiamond(), "local −X points at the diamond, not the stands");
+        Assert.True(HarborDugout.RailFacesTheDiamond(Rules.Default), "local −X points at the diamond, not the stands");
         Assert.True(HarborDugout.YawFollowsTheFoulLine(), "dugout +Z is home→bag; a 180° yaw is the Play gap");
-        Assert.True(HarborDugout.RailIsTheHipWall(), "front rail is the short wall, pit behind it");
+        Assert.True(HarborDugout.RailIsTheHipWall(Rules.Default), "front rail is the short wall, pit behind it");
         var harborPark = _content.Parks[HarborPostcard.ParkId];
-        Assert.True(HarborDugout.WallMeetsTheRail(harborPark),
+        Assert.True(HarborDugout.WallMeetsTheRail(harborPark, Rules.Default),
             "wall loop must pin a vertex on each dugout rail end so DressWall cannot skip a 16-ft gap");
         Assert.False(HarborDugout.KitSpansTheOpening(HarborDugout.HalfAlong),
             "a kit shorter than the opening must not dress the hole");
         Assert.True(HarborDugout.KitSpansTheOpening(HarborDugout.HalfAlong * 2f));
-        Assert.True(HarborDugout.CameraClears(StillPose.CamX, StillPose.CamZ));
-        Assert.True(HarborDugout.CameraClears(StillPose.PlateCamX, StillPose.PlateCamZ));
-        Assert.False(HarborDugout.CameraClears(HarborDugout.X, HarborDugout.Z),
+        Assert.True(HarborDugout.CameraClears(StillPose.CamX, StillPose.CamZ, Rules.Default));
+        Assert.True(HarborDugout.CameraClears(StillPose.PlateCamX, StillPose.PlateCamZ, Rules.Default));
+        Assert.False(HarborDugout.CameraClears(HarborDugout.X, HarborDugout.Z, Rules.Default),
             "a camera in the pit is not clear");
         Assert.InRange(HarborDugout.StarZ0, HarborDugout.Z - HarborDugout.HalfAlong,
             HarborDugout.Z + HarborDugout.HalfAlong);
-        Assert.True(HarborDugout.InPitHole(HarborDugout.X, HarborDugout.Z));
-        Assert.True(HarborDugout.InPitHole(-HarborDugout.X, HarborDugout.Z));
-        Assert.False(HarborDugout.LawnCovers(HarborDugout.X, HarborDugout.Z),
+        Assert.True(HarborDugout.InPitHole(HarborDugout.X, HarborDugout.Z, Rules.Default));
+        Assert.True(HarborDugout.InPitHole(-HarborDugout.X, HarborDugout.Z, Rules.Default));
+        Assert.False(HarborDugout.LawnCovers(HarborDugout.X, HarborDugout.Z, Rules.Default),
             "lawn must not cap the pit");
-        Assert.True(HarborDugout.LawnCovers(0, HarborDugout.Z), "grass between the dugouts");
-        Assert.True(HarborDugout.LawnCovers(StillPose.CamX, StillPose.CamZ));
-        Assert.True(HarborDugout.LawnCovers(StillPose.ScoopX, StillPose.ScoopZ));
-        Assert.True(HarborDugout.IsSetBackFromTheDirt());
-        Assert.False(HarborDugout.InPitHole(Diamond.First.X, Diamond.First.Z), "pit does not cover 1B");
+        Assert.True(HarborDugout.LawnCovers(0, HarborDugout.Z, Rules.Default), "grass between the dugouts");
+        Assert.True(HarborDugout.LawnCovers(StillPose.CamX, StillPose.CamZ, Rules.Default));
+        Assert.True(HarborDugout.LawnCovers(StillPose.ScoopX, StillPose.ScoopZ, Rules.Default));
+        Assert.True(HarborDugout.IsSetBackFromTheDirt(Rules.Default));
+        Assert.False(HarborDugout.InPitHole(Diamond.First.X, Diamond.First.Z, Rules.Default), "pit does not cover 1B");
     }
 
     [Fact]
@@ -123,7 +123,7 @@ public class HarborPostcardTests
         Assert.True(HarborInfield.PathIsNotALake(DiamondGeometry.Of(Rules.Default)));
         Assert.True(HarborInfield.BagIsABag());
         Assert.True(HarborInfield.HomePackedIsAPad());
-        Assert.True(HarborInfield.LawnRespectsPits(DiamondGeometry.Of(Rules.Default)));
+        Assert.True(HarborInfield.LawnRespectsPits(Rules.Default));
         Assert.True(HarborInfield.PathIsNotALake(DiamondGeometry.Of(Rules.Default)));
         Assert.True(HarborInfield.BagIsABag());
     }

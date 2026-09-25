@@ -43,7 +43,7 @@ public sealed class HarborKitScriptTests
     public void TheKitsHomeWrapIsRecordedAgainstTheBoundaryTable()
     {
         Assert.Equal(34.0, Const("HOME_RADIUS"));
-        Assert.Equal(-36.0, ParkBoundary.Default.BackstopZFt);
+        Assert.Equal(-36.0, ParkBoundary.From(Rules.Default.Boundary).BackstopZFt);
         Assert.Contains("\"data\" / \"rules\" / \"boundary.json\"", Script, StringComparison.Ordinal);
         Assert.Contains("DUGOUT_PAD = float(BOUNDARY[\"dugoutPadFt\"])", Script, StringComparison.Ordinal);
     }

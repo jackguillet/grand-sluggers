@@ -37,6 +37,9 @@ namespace GrandSluggers.UnityClient
         /// <summary>The park this view last built: the one being played.</summary>
         public Park Park { get; private set; }
 
+        /// <summary>The table this park is built on (<see cref="Build"/>).</summary>
+        public RulesTable Table => _rules;
+
         RulesTable _rules;
         FeelTable _feel;
 
@@ -101,7 +104,7 @@ namespace GrandSluggers.UnityClient
                 Quad("Outfield", new Vector3(0, -0.12f, 190), new Vector3(620, 0.35f, 620), grassMat);
                 // The one field kit (FD-16, #859): the diamond, rail and wall Harbor draws, from the same
                 // geometry owner, in this park's dirt and wall. HarborKit draws it for Harbor.
-                new FieldKit(_root, DiamondGeometry.Of(_rules)).Build(park, FieldSkin(palette, dirtMat));
+                new FieldKit(_root, _rules).Build(park, FieldSkin(palette, dirtMat));
             }
             // The dress stands beside the kit, never in it: no dress piece stands inside the kit's
             // backstop or in the dugout span along either foul line (F6-a2 #881, FieldKitSourceTests).
@@ -124,7 +127,7 @@ namespace GrandSluggers.UnityClient
         {
             var stands = kitRow.Palette?.Stands;
             if (kitRow.Fills(ParkKitSlots.Stands, ParkKitSlots.KitBowl) && stands != null)
-                new ParkStands(_root).Build(park, stands);
+                new ParkStands(_root).Build(park, stands, _rules);
             else
                 GreyboxStands();
         }

@@ -36,7 +36,7 @@ namespace GrandSluggers.UnityClient
             _root.SetParent(parent, false);
         }
 
-        public void Build(Park park, ParkStandsLook look)
+        public void Build(Park park, ParkStandsLook look, RulesTable rules)
         {
             var steps = new Quads();
             var rail = new Quads();
@@ -49,7 +49,7 @@ namespace GrandSluggers.UnityClient
             for (var i = 0; i < seats.Length; i++) seats[i] = new Quads();
             var posts = new List<(Vector3 Base, float Height)>();
 
-            foreach (var piece in KitBowl.Of(park))
+            foreach (var piece in KitBowl.Of(park, rules))
             {
                 pieceNo++;
                 var treads = piece.Treads;

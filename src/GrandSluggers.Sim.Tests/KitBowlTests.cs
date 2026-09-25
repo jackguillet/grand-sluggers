@@ -17,7 +17,7 @@ public sealed class KitBowlTests
     [MemberData(nameof(Parks))]
     public void EveryParkHasAHorseshoeAndTwoCornerBanksOfSevenRows(string id)
     {
-        var bowl = KitBowl.Of(Catalog.Parks[id]);
+        var bowl = KitBowl.Of(Catalog.Parks[id], Rules.Default);
         Assert.Equal([KitBowl.CornerRight, KitBowl.Horseshoe, KitBowl.CornerLeft], bowl.Select(p => p.Kind));
         Assert.All(bowl, p => Assert.Equal(KitBowl.Rows, p.Treads.Count));
     }
@@ -28,8 +28,8 @@ public sealed class KitBowlTests
     public void EveryTreadStandsOutsideTheWall(string id)
     {
         var park = Catalog.Parks[id];
-        var loop = HarborWall.Loop(park);
-        foreach (var piece in KitBowl.Of(park))
+        var loop = HarborWall.Loop(park, Rules.Default);
+        foreach (var piece in KitBowl.Of(park, Rules.Default))
         {
             var gap = piece.Kind == KitBowl.Horseshoe ? KitBowl.FoulGapFt : KitBowl.WallGapFt;
             foreach (var t in piece.Treads)
@@ -50,8 +50,8 @@ public sealed class KitBowlTests
     public void RowsClimbAwayFromTheFieldAndCenterFieldIsOpen(string id)
     {
         var park = Catalog.Parks[id];
-        var loop = HarborWall.Loop(park);
-        foreach (var piece in KitBowl.Of(park))
+        var loop = HarborWall.Loop(park, Rules.Default);
+        foreach (var piece in KitBowl.Of(park, Rules.Default))
         {
             for (var r = 1; r < piece.Treads.Count; r++)
             {
@@ -70,13 +70,13 @@ public sealed class KitBowlTests
     public void CornerBanksStartUnderTheCapAndTheHorseshoeAtTheRail(string id)
     {
         var park = Catalog.Parks[id];
-        foreach (var piece in KitBowl.Of(park))
+        foreach (var piece in KitBowl.Of(park, Rules.Default))
         {
             var y0 = piece.Treads[0].Y;
             if (piece.Kind == KitBowl.Horseshoe)
-                Assert.True(y0 < HarborWall.HipHeight, $"{id} horseshoe starts at {y0}");
+                Assert.True(y0 < HarborWall.HipHeight(Rules.Default), $"{id} horseshoe starts at {y0}");
             else
-                Assert.True(y0 < park.FenceHeightFt + 4 && y0 > HarborWall.HipHeight, $"{id} {piece.Kind} starts at {y0}");
+                Assert.True(y0 < park.FenceHeightFt + 4 && y0 > HarborWall.HipHeight(Rules.Default), $"{id} {piece.Kind} starts at {y0}");
         }
     }
 

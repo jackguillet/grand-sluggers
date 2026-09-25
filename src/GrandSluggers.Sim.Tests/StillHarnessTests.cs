@@ -49,7 +49,7 @@ public class StillHarnessTests
         Assert.True(StillPose.ScoopX > 12);
         Assert.InRange(StillPose.ScoopPoseT, 0.18, 0.26);
         Assert.Equal("2B", StillPose.ScoopGlove);
-        Assert.True(StillPose.CameraClearsTheDugout(StillPose.CamX, StillPose.CamZ));
+        Assert.True(StillPose.CameraClearsTheDugout(StillPose.CamX, StillPose.CamZ, Rules.Default));
         Assert.True(StillPose.CameraIsSideThreeQuarter(
             StillPose.CamX, StillPose.CamZ, StillPose.ScoopX, StillPose.ScoopZ),
             "12:39 PNG looked down the path so gloves read as a T");
