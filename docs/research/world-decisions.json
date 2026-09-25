@@ -1,0 +1,1001 @@
+{
+  "schema_version": 1,
+  "title": "The world: ten stadiums on one continent, ten captains",
+  "created_local_date": "2026-09-24",
+  "timezone": "America/Los_Angeles",
+  "tracker_issue": "https://github.com/jackguillet/grand-sluggers/issues/1133",
+  "plan": "docs/decisions/plan-world.md",
+  "status_vocabulary": {
+    "open": "not answered",
+    "accepted": "Jack answered; the selected option and scope are recorded",
+    "superseded": "a later decision replaced it"
+  },
+  "discussion_order": [
+    "WD-01",
+    "WD-02",
+    "WD-03",
+    "WD-04",
+    "WD-05",
+    "WD-06",
+    "WD-07",
+    "WD-08",
+    "WD-09",
+    "WD-10",
+    "WD-11",
+    "WD-12",
+    "WD-13",
+    "WD-14",
+    "WD-15",
+    "WD-16",
+    "WD-17",
+    "WD-18",
+    "WD-19",
+    "WD-20",
+    "WD-21",
+    "WD-22"
+  ],
+  "next_decision": null,
+  "brief": "Jack, 2026-09-24: expand to 10 stadiums that make up a continent, each in the region that fits it (ice in a cold place, one in a volcano, one on a tropical island), selectable from the menu; define hazards, night lights and other defining features per stadium; grow to 10 captains, each assigned a field; one field is a tropical beach.",
+  "decisions": [
+    {
+      "id": "WD-01",
+      "area": "Gating",
+      "question": "When does building start?",
+      "status": "accepted",
+      "depends_on": [],
+      "options": [
+        {
+          "id": "A",
+          "label": "Plan now, build after #346",
+          "tradeoff": "Nothing is built until Jack passes the Exhibition gate (#346). Safest for focus; the world waits."
+        },
+        {
+          "id": "B",
+          "label": "Plan now; rails and greyboxes now; art after #346",
+          "tradeoff": "The data rails, the new captains in data, the four new park files, new hazard patterns, greyboxes and the map picker are built now. No park art. Changes one AGENTS.md line: extra parks move from 'do not start' to 'greybox only'."
+        },
+        {
+          "id": "C",
+          "label": "Build everything now",
+          "tradeoff": "Parks and art become products now. Conflicts with AGENTS.md, #37 and FD-17."
+        }
+      ],
+      "recommendation": "B",
+      "existing_contract": "AGENTS.md 'Do not start: extra parks as products (#37)'; FD-01 (rails and greyboxes allowed); FD-17 (greybox sitting before art).",
+      "acceptance": "One scope line in AGENTS.md an agent can obey without asking.",
+      "blocks": [
+        "all children"
+      ],
+      "selected_option": "B",
+      "accepted_scope": "Plan now. Build now: the world data rail, the new captains in data, the four new park files, the new hazard patterns, the greyboxes and the map picker. No park, backdrop or map art until Jack passes #346; a park's art still waits for its greybox sitting (FD-17, WD-02 open). AGENTS.md carries the scope line.",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-24",
+      "decision_evidence": {
+        "kind": "conversation",
+        "question": "WD-01: A plan now, build after #346 / B rails and greyboxes now, art after #346 / C everything now",
+        "answer_quote": "B"
+      }
+    },
+    {
+      "id": "WD-02",
+      "area": "Gating",
+      "question": "In what order does park art come?",
+      "status": "accepted",
+      "depends_on": [
+        "WD-01"
+      ],
+      "options": [
+        {
+          "id": "A",
+          "label": "Keep FD-17",
+          "tradeoff": "All ten as greyboxes first; Jack sits each greybox; then art one park at a time."
+        },
+        {
+          "id": "B",
+          "label": "Art as each new park is built",
+          "tradeoff": "Faster to look good; risks art on a park whose play is not settled."
+        }
+      ],
+      "recommendation": "A",
+      "existing_contract": "FD-17 (greybox sitting before art, one park in art at a time).",
+      "acceptance": "The art order written in the plan.",
+      "blocks": [
+        "Art children"
+      ],
+      "selected_option": "A",
+      "accepted_scope": "Keep FD-17: all ten parks are greyboxes first; Jack sits each greybox; then art one park at a time.",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-24",
+      "decision_evidence": {
+        "kind": "conversation",
+        "question": "WD-02: A Keep FD-17 / B Art as each new park is built",
+        "answer_quote": "a"
+      }
+    },
+    {
+      "id": "WD-03",
+      "area": "Gating",
+      "question": "Do backdrops come back?",
+      "status": "accepted",
+      "depends_on": [
+        "WD-01"
+      ],
+      "options": [
+        {
+          "id": "A",
+          "label": "Blender kit art per park",
+          "tradeoff": "The region past the fence is authored art (the volcano, the sea). Behind WD-02."
+        },
+        {
+          "id": "B",
+          "label": "Data greybox backdrops now, art later",
+          "tradeoff": "A backdrop row per region: a silhouette shape and a palette, drawn by one builder for every park. Reads as a place at greybox stage."
+        },
+        {
+          "id": "C",
+          "label": "No backdrops",
+          "tradeoff": "The field stays in an empty sky until art."
+        }
+      ],
+      "recommendation": "B, then A",
+      "existing_contract": "FD-16-R2 (the hand-built backdrops were deleted; identity returns only as art). B is a data rail, not per-park Unity art.",
+      "acceptance": "A park's backdrop is named by its kit row and drawn by one builder; no park id in code.",
+      "blocks": [
+        "C5 greyboxes",
+        "C9 art"
+      ],
+      "selected_option": "A",
+      "accepted_scope": "Backdrops come back as Blender kit pieces, one per park, in tools/blender (a kit slot, not Unity-only art). A rough blockout is enough; finished art is not required (Jack). Reading recorded for confirmation: a rough blockout backdrop counts as greybox and may be built with the park's greybox (C5); finishing it waits for #346 and the park's sitting (WD-01, WD-02).",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-25",
+      "decision_evidence": {
+        "kind": "conversation",
+        "question": "WD-03: A Blender kit art per park / B Data greybox backdrops now, art later / C No backdrops",
+        "answer_quote": "a. but it doesn't need to be completed work."
+      }
+    },
+    {
+      "id": "WD-04",
+      "area": "Gating",
+      "question": "Are the ten parks unlocked by play?",
+      "status": "accepted",
+      "depends_on": [],
+      "options": [
+        {
+          "id": "A",
+          "label": "All ten open",
+          "tradeoff": "Every park is on the map from the first boot."
+        },
+        {
+          "id": "B",
+          "label": "Harbor and a few open; the rest unlock by play",
+          "tradeoff": "A reason to play; needs a save file and an unlock rule."
+        },
+        {
+          "id": "C",
+          "label": "All open in Exhibition; unlocks only in a later Challenge mode",
+          "tradeoff": "Exhibition stays simple; unlocks wait for Challenge (#36)."
+        }
+      ],
+      "recommendation": "C",
+      "existing_contract": "#36 (Challenge after Exhibition is fun); research: 'unlock parks through play, not a shop'.",
+      "acceptance": "The map shows which parks are open and why.",
+      "blocks": [
+        "C6 picker"
+      ],
+      "selected_option": "C",
+      "accepted_scope": "All ten parks are open in Exhibition from the first boot. Unlocks by play come only with a later Challenge mode (#36); no save file or unlock rule is built now.",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-25",
+      "decision_evidence": {
+        "kind": "conversation",
+        "question": "WD-04: A All ten open / B Harbor and a few open; the rest unlock by play / C All open in Exhibition; unlocks only in a later Challenge mode",
+        "answer_quote": "c"
+      }
+    },
+    {
+      "id": "WD-05",
+      "area": "World",
+      "question": "What is the continent's shape and name?",
+      "status": "accepted",
+      "depends_on": [],
+      "options": [
+        {
+          "id": "A",
+          "label": "The draft",
+          "tradeoff": "The Diamond Isles: a main continent with the cold north, jungle west, city east and warm south, plus one tropical island off the south coast."
+        },
+        {
+          "id": "B",
+          "label": "Jack's own layout",
+          "tradeoff": "Jack names the shape, the name and where each park sits."
+        }
+      ],
+      "recommendation": "A",
+      "existing_contract": "None: new.",
+      "acceptance": "A named continent and a map position for every park.",
+      "blocks": [
+        "C1 world data",
+        "C6 picker",
+        "C9 map art"
+      ],
+      "selected_option": "A (shape only)",
+      "accepted_scope": "The draft layout stands: cold north, peaks, rainforest and delta west, capital east, plains in the middle, volcano, canyon and harbor south, one island. The name 'the Diamond Isles' is rejected; the name is WD-19. Crystal Rink keeps its place and gets a colder, polar name (WD-20).",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-25",
+      "decision_evidence": {
+        "kind": "artifact-form",
+        "question": "WD-05",
+        "answer_quote": "i like the shape. i don't love the name. crystal rink - great, but maybe a new name. something that relates to cold, icy, 'antartica'. summit park - great. canopy yard - great. stillwater marsh - great. ember keep - great. coconut cove - amazing. sunscorch - great. roottop city - great. funfair - good. harbor - good",
+        "where": "answered in the World Decisions artifact (https://claude.ai/artifact/WWEYSBE4YqUGC4rDh833YC), 2026-09-25"
+      }
+    },
+    {
+      "id": "WD-06",
+      "area": "World",
+      "question": "Which ten parks?",
+      "status": "accepted",
+      "depends_on": [
+        "WD-05"
+      ],
+      "options": [
+        {
+          "id": "A",
+          "label": "The draft ten",
+          "tradeoff": "The six parks in data, plus Stillwater Marsh, Coconut Cove, Sunscorch Mesa and Summit Park."
+        },
+        {
+          "id": "B",
+          "label": "Swap in a deferred park",
+          "tradeoff": "Haunt Manor, Cruise Deck or Playroom replaces one of Stillwater Marsh, Sunscorch Mesa or Summit Park."
+        },
+        {
+          "id": "C",
+          "label": "Jack's own list",
+          "tradeoff": ""
+        }
+      ],
+      "recommendation": "A: every region looks different, and a desert and a mountain are new for the genre. Haunt Manor needs a hazard pattern the library does not have (input disruption, FD-09).",
+      "existing_contract": "docs/parks.md (Haunt Manor, Cruise Deck, Playroom deferred, #37).",
+      "acceptance": "Ten park ids and names.",
+      "blocks": [
+        "C3 park files"
+      ],
+      "selected_option": "A",
+      "accepted_scope": "The ten parks: Harbor Diamond, Crystal Rink (to be renamed, WD-20), Funfair Park, Rooftop City, Canopy Yard, Ember Keep, Stillwater Marsh, Coconut Cove, Sunscorch Mesa, Summit Park.",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-25",
+      "decision_evidence": {
+        "kind": "artifact-form",
+        "question": "WD-06: Which ten parks?",
+        "answer_quote": "A",
+        "where": "answered in the World Decisions artifact (https://claude.ai/artifact/WWEYSBE4YqUGC4rDh833YC), 2026-09-25"
+      }
+    },
+    {
+      "id": "WD-07",
+      "area": "World",
+      "question": "Where does Elder Fenn play at home?",
+      "status": "accepted",
+      "depends_on": [
+        "WD-06"
+      ],
+      "options": [
+        {
+          "id": "A",
+          "label": "Stillwater Marsh",
+          "tradeoff": "Fenn gets a park of their own; one captain, one field."
+        },
+        {
+          "id": "B",
+          "label": "Fenn keeps sharing Harbor",
+          "tradeoff": "The tenth park goes to a fourth new captain."
+        }
+      ],
+      "recommendation": "A",
+      "existing_contract": "Parks: 'faction' is unique per park; Stillwater has no park today.",
+      "acceptance": "Every captain names exactly one home park.",
+      "blocks": [
+        "C1 world data",
+        "C3 park files"
+      ],
+      "selected_option": "Jack's own: Coconut Cove",
+      "accepted_scope": "Elder Fenn (a turtle) plays at home at Coconut Cove, not Stillwater Marsh. Who plays at home at Stillwater Marsh, and where Kai goes, is WD-21.",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-25",
+      "decision_evidence": {
+        "kind": "artifact-form",
+        "question": "WD-07",
+        "answer_quote": "fenn should go to the coconut cove (turtle)",
+        "where": "answered in the World Decisions artifact (https://claude.ai/artifact/WWEYSBE4YqUGC4rDh833YC), 2026-09-25"
+      }
+    },
+    {
+      "id": "WD-08",
+      "area": "World",
+      "question": "How many hazards does a park have?",
+      "status": "accepted",
+      "depends_on": [],
+      "options": [
+        {
+          "id": "A",
+          "label": "One primary hazard plus one night change",
+          "tradeoff": "The parks.md rule. Each park has one thing to learn by day and one thing that changes at night."
+        },
+        {
+          "id": "B",
+          "label": "Two hazards per park",
+          "tradeoff": "More variety; harder to read at gameplay distance and to teach."
+        }
+      ],
+      "recommendation": "A",
+      "existing_contract": "docs/parks.md 'One park, one primary gimmick'; research: one primary gimmick and a night variant.",
+      "acceptance": "Each park sheet names one day hazard and one night change.",
+      "blocks": [
+        "C3 park files",
+        "C4 patterns"
+      ],
+      "selected_option": "A",
+      "accepted_scope": "One primary hazard per park plus one night change.",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-25",
+      "decision_evidence": {
+        "kind": "artifact-form",
+        "question": "WD-08: How many hazards does a park have?",
+        "answer_quote": "A",
+        "where": "answered in the World Decisions artifact (https://claude.ai/artifact/WWEYSBE4YqUGC4rDh833YC), 2026-09-25"
+      }
+    },
+    {
+      "id": "WD-09",
+      "area": "World",
+      "question": "Which new hazard patterns are built?",
+      "status": "accepted",
+      "depends_on": [
+        "WD-06",
+        "WD-08"
+      ],
+      "options": [
+        {
+          "id": "A",
+          "label": "All three, one child each",
+          "tradeoff": "Surge (the tide), drifting redirect (dust devils), fog bank (Stillwater). Each is a closed-library row with its own tests; none awards a result (FD-08)."
+        },
+        {
+          "id": "B",
+          "label": "Only what the existing patterns can do",
+          "tradeoff": "The new parks reuse status volumes, redirects, solid bodies and timed movers."
+        },
+        {
+          "id": "C",
+          "label": "A and B mixed",
+          "tradeoff": "Build surge and drifting redirect; give Stillwater an existing pattern instead of fog."
+        }
+      ],
+      "recommendation": "C. Fog as a vision effect hides the ball from a human and not from the CPU (FD-14: the CPU reads the park), which is unfair. Stillwater's hazard becomes floating lily pads (solid bodies on a timed drift) unless Jack wants fog as look only.",
+      "existing_contract": "FD-08 (a hazard may be random, never decides a result); FD-09 (closed pattern library); FD-14 (CPU reads the park); FD-19 (off the base paths).",
+      "acceptance": "Every new type has a row naming its pattern; a scenario per pattern shows the ball and bodies still decide the play.",
+      "blocks": [
+        "C4 patterns",
+        "C7 tutorials"
+      ],
+      "selected_option": "C",
+      "accepted_scope": "Build two new patterns, surge (the tide) and drifting redirect (dust devils), plus the Summit wind schedule as an environment row; Stillwater reuses existing patterns (drifting lily pads). No fog hazard.",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-25",
+      "decision_evidence": {
+        "kind": "artifact-form",
+        "question": "WD-09: Which new hazard patterns are built?",
+        "answer_quote": "C",
+        "where": "answered in the World Decisions artifact (https://claude.ai/artifact/WWEYSBE4YqUGC4rDh833YC), 2026-09-25"
+      }
+    },
+    {
+      "id": "WD-10",
+      "area": "World",
+      "question": "What are night lights?",
+      "status": "accepted",
+      "depends_on": [],
+      "options": [
+        {
+          "id": "A",
+          "label": "A themed light rig per park, plus its night look",
+          "tradeoff": "Towers, torches, neon or lanterns as kit art; the sky and light rows in looks.json. The play light stays the same."
+        },
+        {
+          "id": "B",
+          "label": "Night look rows only",
+          "tradeoff": "No light props; only the sky and light change."
+        },
+        {
+          "id": "C",
+          "label": "Night also changes the light you play in",
+          "tradeoff": "For example a darker outfield. Reopens FD-11-R2."
+        }
+      ],
+      "recommendation": "A. The rig is a kit slot (the 'night' slot) filled per park, greybox first (a data row: pole count, height, lamp color).",
+      "existing_contract": "FD-11-R2 (lights stay on; night changes only the view outside and the hazards).",
+      "acceptance": "Every park names a night rig; the field is lit the same at every park.",
+      "blocks": [
+        "C5 greyboxes",
+        "C9 art"
+      ],
+      "selected_option": "A",
+      "accepted_scope": "Each park gets a themed night light rig (a kit slot, greybox row first) and its night look row; the play light stays the same (FD-11-R2 holds).",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-25",
+      "decision_evidence": {
+        "kind": "artifact-form",
+        "question": "WD-10: What are night lights?",
+        "answer_quote": "A",
+        "where": "answered in the World Decisions artifact (https://claude.ai/artifact/WWEYSBE4YqUGC4rDh833YC), 2026-09-25"
+      }
+    },
+    {
+      "id": "WD-11",
+      "area": "Captains",
+      "question": "Who are the three new captains?",
+      "status": "accepted",
+      "depends_on": [
+        "WD-06"
+      ],
+      "options": [
+        {
+          "id": "A",
+          "label": "The draft",
+          "tradeoff": "Kai (beach, Tide Riders), Sable (desert, Dune Nomads), Hollis (mountain, Peak Guard)."
+        },
+        {
+          "id": "B",
+          "label": "Jack's own",
+          "tradeoff": "Jack names them, or changes any one."
+        }
+      ],
+      "recommendation": "A. The beach captain was renamed from the first draft on Jack's request (no name close to a Nintendo name).",
+      "existing_contract": "docs/roster.md; original-IP rule (tools/original_ip.py).",
+      "acceptance": "Three names, colors and identity lines.",
+      "blocks": [
+        "C2 captains"
+      ],
+      "selected_option": "A",
+      "accepted_scope": "The three new captains are Kai, Sable and Hollis. Where Kai plays is reopened by WD-07 (WD-21).",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-25",
+      "decision_evidence": {
+        "kind": "artifact-form",
+        "question": "WD-11: Who are the three new captains?",
+        "answer_quote": "A",
+        "where": "answered in the World Decisions artifact (https://claude.ai/artifact/WWEYSBE4YqUGC4rDh833YC), 2026-09-25"
+      }
+    },
+    {
+      "id": "WD-12",
+      "area": "Captains",
+      "question": "Do the new captains found new factions?",
+      "status": "accepted",
+      "depends_on": [
+        "WD-11"
+      ],
+      "options": [
+        {
+          "id": "A",
+          "label": "Yes, one new faction each",
+          "tradeoff": "Ten factions, one captain and one park each; chemistry gets three new groups to learn."
+        },
+        {
+          "id": "B",
+          "label": "They join existing factions",
+          "tradeoff": "Fewer factions; a faction has two parks, which the unique-faction rule refuses today."
+        }
+      ],
+      "recommendation": "A",
+      "existing_contract": "docs/roster.md 'one captain per faction'; the park 'faction' field is unique.",
+      "acceptance": "Ten factions, each with one captain and one home park.",
+      "blocks": [
+        "C2 captains"
+      ],
+      "selected_option": "A",
+      "accepted_scope": "Each new captain founds a new faction.",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-25",
+      "decision_evidence": {
+        "kind": "artifact-form",
+        "question": "WD-12: Do the new captains found new factions?",
+        "answer_quote": "A",
+        "where": "answered in the World Decisions artifact (https://claude.ai/artifact/WWEYSBE4YqUGC4rDh833YC), 2026-09-25"
+      }
+    },
+    {
+      "id": "WD-13",
+      "area": "Captains",
+      "question": "When do the new factions get role players?",
+      "status": "accepted",
+      "depends_on": [
+        "WD-12"
+      ],
+      "options": [
+        {
+          "id": "A",
+          "label": "Now: three each, like the others",
+          "tradeoff": "Nine new role players with stats and chemistry."
+        },
+        {
+          "id": "B",
+          "label": "Captains first, role players later",
+          "tradeoff": "A new faction fields its captain and borrows role players until its own exist."
+        }
+      ],
+      "recommendation": "B: keeps one rig and one art queue (AGENTS.md); #687 keeps extras off until they read as toys.",
+      "existing_contract": "#25 (role-player variants after captains read); #687.",
+      "acceptance": "The lineup fills a nine for every captain.",
+      "blocks": [
+        "C2 captains"
+      ],
+      "selected_option": "A",
+      "accepted_scope": "Each new faction gets three role players now, like the others (the recommendation was B).",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-25",
+      "decision_evidence": {
+        "kind": "artifact-form",
+        "question": "WD-13: When do the new factions get role players?",
+        "answer_quote": "A",
+        "where": "answered in the World Decisions artifact (https://claude.ai/artifact/WWEYSBE4YqUGC4rDh833YC), 2026-09-25"
+      }
+    },
+    {
+      "id": "WD-14",
+      "area": "Captains",
+      "question": "What body class does each new captain have?",
+      "status": "accepted",
+      "depends_on": [
+        "WD-11"
+      ],
+      "options": [
+        {
+          "id": "A",
+          "label": "A new class row each",
+          "tradeoff": "The class table has room for about fifteen rows (CH-11); a new captain gets its own size, weight and motion style."
+        },
+        {
+          "id": "B",
+          "label": "Reuse an existing class",
+          "tradeoff": "Faster; the new captains read less distinct."
+        }
+      ],
+      "recommendation": "A, after CF-3 (#1116) lands the class table.",
+      "existing_contract": "CH-05, CH-11, CH-12 (body classes are data; about fifteen rows); CF-3 #1116.",
+      "acceptance": "Every captain resolves exactly one class (SC-09).",
+      "blocks": [
+        "C2 captains"
+      ],
+      "selected_option": "A",
+      "accepted_scope": "Each new captain gets a new body class row, after CF-3 (#1116) lands the class table.",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-25",
+      "decision_evidence": {
+        "kind": "artifact-form",
+        "question": "WD-14: What body class does each new captain have?",
+        "answer_quote": "A",
+        "where": "answered in the World Decisions artifact (https://claude.ai/artifact/WWEYSBE4YqUGC4rDh833YC), 2026-09-25"
+      }
+    },
+    {
+      "id": "WD-15",
+      "area": "Captains",
+      "question": "Do the new captains bring new star abilities?",
+      "status": "accepted",
+      "depends_on": [
+        "WD-11"
+      ],
+      "options": [
+        {
+          "id": "A",
+          "label": "New abilities",
+          "tradeoff": "Each captain gets a star pitch, a star swing and a field ability of its own. Each is gameplay work with a lesson."
+        },
+        {
+          "id": "B",
+          "label": "Reuse the ability library",
+          "tradeoff": "The new captains draw from the abilities that exist; their identity is stats, body and park."
+        },
+        {
+          "id": "C",
+          "label": "One new ability each, the rest reused",
+          "tradeoff": ""
+        }
+      ],
+      "recommendation": "C: one signature ability each (the draft names them), the rest from the library.",
+      "existing_contract": "#1011 (Phase 6 replacement effects open); tutorials contract (every mechanic has a lesson).",
+      "acceptance": "Every ability a captain names exists in data/abilities and has a lesson.",
+      "blocks": [
+        "C2 captains",
+        "C7 tutorials"
+      ],
+      "selected_option": "A",
+      "accepted_scope": "Each new captain gets all-new star abilities: a star pitch, a star swing and a field ability of its own, each with a lesson (the recommendation was C).",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-25",
+      "decision_evidence": {
+        "kind": "artifact-form",
+        "question": "WD-15: Do the new captains bring new star abilities?",
+        "answer_quote": "A",
+        "where": "answered in the World Decisions artifact (https://claude.ai/artifact/WWEYSBE4YqUGC4rDh833YC), 2026-09-25"
+      }
+    },
+    {
+      "id": "WD-16",
+      "area": "Captains",
+      "question": "Does the home park give an edge?",
+      "status": "accepted",
+      "depends_on": [],
+      "options": [
+        {
+          "id": "A",
+          "label": "Cosmetic",
+          "tradeoff": "Home park is only where a faction's captain plays at home."
+        },
+        {
+          "id": "B",
+          "label": "A small home edge",
+          "tradeoff": "For example a crowd boost to the Star meter at home."
+        }
+      ],
+      "recommendation": "A, until Jack wants balance.",
+      "existing_contract": "'Do not balance until Jack says' (AGENTS.md).",
+      "acceptance": "None for A.",
+      "blocks": [],
+      "selected_option": "A",
+      "accepted_scope": "Home park is cosmetic.",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-25",
+      "decision_evidence": {
+        "kind": "artifact-form",
+        "question": "WD-16: Does the home park give an edge?",
+        "answer_quote": "A",
+        "where": "answered in the World Decisions artifact (https://claude.ai/artifact/WWEYSBE4YqUGC4rDh833YC), 2026-09-25"
+      }
+    },
+    {
+      "id": "WD-17",
+      "area": "Menu",
+      "question": "How is the stadium picked?",
+      "status": "accepted",
+      "depends_on": [
+        "WD-05"
+      ],
+      "options": [
+        {
+          "id": "A",
+          "label": "A continent map with park pins",
+          "tradeoff": "The stick moves between pins; each pin shows the postcard, crest, hazard line and night rig; South confirms."
+        },
+        {
+          "id": "B",
+          "label": "The left/right cycle plus a map postcard",
+          "tradeoff": "Today's row, with a small map showing where the park is."
+        },
+        {
+          "id": "C",
+          "label": "Both",
+          "tradeoff": "Map in Exhibition setup, cycle in a quick rematch."
+        }
+      ],
+      "recommendation": "A",
+      "existing_contract": "docs/how-to-play.md stadium row; HowToPlay.cs; one screen for one and two pads.",
+      "acceptance": "Both pads can pick any park; how-to-play and HowToPlay.cs change in the same PR.",
+      "blocks": [
+        "C6 picker"
+      ],
+      "selected_option": "A",
+      "accepted_scope": "The stadium is picked on a continent map with park pins.",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-25",
+      "decision_evidence": {
+        "kind": "artifact-form",
+        "question": "WD-17: How is the stadium picked?",
+        "answer_quote": "A",
+        "where": "answered in the World Decisions artifact (https://claude.ai/artifact/WWEYSBE4YqUGC4rDh833YC), 2026-09-25"
+      }
+    },
+    {
+      "id": "WD-18",
+      "area": "Menu",
+      "question": "What does the map look like?",
+      "status": "accepted",
+      "depends_on": [
+        "WD-17"
+      ],
+      "options": [
+        {
+          "id": "A",
+          "label": "A painted 2-D map (art slot)",
+          "tradeoff": "One illustrated map image in an art slot, with pins drawn over it."
+        },
+        {
+          "id": "B",
+          "label": "A 3-D diorama",
+          "tradeoff": "The continent as a small 3-D model the camera flies over. More work; more toy."
+        },
+        {
+          "id": "C",
+          "label": "Greybox first, then A or B",
+          "tradeoff": "A flat shape map from the region data now; art later."
+        }
+      ],
+      "recommendation": "C, then A.",
+      "existing_contract": "Catalog first, files second (AGENTS.md): a map slot + validator + empty folder, then the art.",
+      "acceptance": "The map draws from region data with no art present.",
+      "blocks": [
+        "C6 picker",
+        "C9 art"
+      ],
+      "selected_option": "C",
+      "accepted_scope": "The map is drawn from region data first; art replaces it later (WD-02 order).",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-25",
+      "decision_evidence": {
+        "kind": "artifact-form",
+        "question": "WD-18: What does the map look like?",
+        "answer_quote": "C",
+        "where": "answered in the World Decisions artifact (https://claude.ai/artifact/WWEYSBE4YqUGC4rDh833YC), 2026-09-25"
+      }
+    },
+    {
+      "id": "WD-19",
+      "area": "World",
+      "question": "What is the continent called?",
+      "status": "accepted",
+      "depends_on": [
+        "WD-05"
+      ],
+      "options": [
+        {
+          "id": "A",
+          "label": "The Pennant Isles",
+          "tradeoff": "A pennant is what a season is played for; short and baseball."
+        },
+        {
+          "id": "B",
+          "label": "The Grand Reach",
+          "tradeoff": "Echoes Grand Sluggers; reads as one big land."
+        },
+        {
+          "id": "C",
+          "label": "Homeplate Isles",
+          "tradeoff": "Home plate is the place every trip starts and ends."
+        },
+        {
+          "id": "D",
+          "label": "Jack's own",
+          "tradeoff": ""
+        }
+      ],
+      "recommendation": "A",
+      "existing_contract": "The draft 'the Diamond Isles' was rejected (WD-05).",
+      "acceptance": "One name, checked against the original-IP rule.",
+      "blocks": [
+        "C1 world data",
+        "C6 picker"
+      ],
+      "selected_option": "B",
+      "accepted_scope": "The continent is the Grand Reach: one main land with Coconut Cove as the island off its south coast. Not 'Isles': there is one island, and the map stays the accepted shape (WD-05).",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-25",
+      "decision_evidence": {
+        "kind": "conversation",
+        "question": "WD-19: A The Pennant Isles / B The Grand Reach / C Homeplate Isles / D Jack's own",
+        "answer_quote": "option 1, the Grand Reach"
+      }
+    },
+    {
+      "id": "WD-20",
+      "area": "World",
+      "question": "What is Crystal Rink's new, colder name?",
+      "status": "accepted",
+      "depends_on": [
+        "WD-06"
+      ],
+      "options": [
+        {
+          "id": "A",
+          "label": "Aurora Rink",
+          "tradeoff": "The polar lights over an ice palace; keeps the Royal Rink's glamour."
+        },
+        {
+          "id": "B",
+          "label": "Glacier Garden",
+          "tradeoff": "An ice garden on a glacier; cold and stately."
+        },
+        {
+          "id": "C",
+          "label": "Polar Palace",
+          "tradeoff": "The Royal Rink's palace at the pole."
+        },
+        {
+          "id": "D",
+          "label": "Jack's own",
+          "tradeoff": ""
+        }
+      ],
+      "recommendation": "A",
+      "existing_contract": "The park id 'crystal-rink' is a content id that stays stable (AGENTS.md); only the display name changes unless Jack asks for a new id.",
+      "acceptance": "The display name in data and every player-facing string.",
+      "blocks": [
+        "C1 world data"
+      ],
+      "selected_option": "A",
+      "accepted_scope": "Crystal Rink's display name becomes Aurora Rink. It stays in the frozen north with Vale and the Royal Rink; the content id crystal-rink stays (content ids are stable).",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-25",
+      "decision_evidence": {
+        "kind": "conversation",
+        "question": "WD-20: A Aurora Rink / B Glacier Garden / C Polar Palace / D Jack's own",
+        "answer_quote": "A"
+      }
+    },
+    {
+      "id": "WD-21",
+      "area": "Captains",
+      "question": "With Fenn at Coconut Cove, who plays at Stillwater Marsh, and where does Kai go?",
+      "status": "accepted",
+      "depends_on": [
+        "WD-07",
+        "WD-11"
+      ],
+      "options": [
+        {
+          "id": "A",
+          "label": "Kai moves to Stillwater Marsh",
+          "tradeoff": "Kai becomes a river rider on the delta (faction renamed from Tide Riders); stats and Wave Swing stay."
+        },
+        {
+          "id": "B",
+          "label": "A new marsh captain replaces Kai",
+          "tradeoff": "A new captain who belongs in a marsh (working idea: a long-legged frog jumper, speed and range) founds Stillwater Marsh's faction. Kai is dropped, or returns later as a role player on Fenn's beach team."
+        },
+        {
+          "id": "C",
+          "label": "Kai joins Fenn at Coconut Cove",
+          "tradeoff": "Kai is on Fenn's team, and Stillwater Marsh gets a new captain. That is eleven captains, not ten."
+        },
+        {
+          "id": "D",
+          "label": "Jack's own",
+          "tradeoff": ""
+        }
+      ],
+      "recommendation": "B: a surfer reads as a beach captain, not a marsh one, and it keeps ten captains. Fenn's faction name (Stillwater) may also want a beach name.",
+      "existing_contract": "WD-11 A (Kai, Sable, Hollis), WD-12 A (one new faction each), ten captains (the brief).",
+      "acceptance": "Every one of the ten parks has exactly one home captain, and every captain has one home park.",
+      "blocks": [
+        "C2 captains",
+        "C3 park files"
+      ],
+      "selected_option": "B",
+      "accepted_scope": "A new captain who belongs in a marsh founds Stillwater Marsh's faction and plays there at home. Kai is dropped from the ten; Kai may return later as a role player on Fenn's beach team. The new captain's name and identity are WD-22.",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-25",
+      "decision_evidence": {
+        "kind": "conversation",
+        "question": "WD-21: A Kai moves to Stillwater Marsh / B A new marsh captain replaces Kai / C Kai joins Fenn at Coconut Cove / D Jack's own",
+        "answer_quote": "B"
+      }
+    },
+    {
+      "id": "WD-22",
+      "area": "Captains",
+      "question": "Who is Stillwater Marsh's new captain?",
+      "status": "accepted",
+      "depends_on": [
+        "WD-21"
+      ],
+      "options": [
+        {
+          "id": "A",
+          "label": "Reed, of the Marsh Hoppers",
+          "tradeoff": "A long-legged frog jumper in green and lotus pink. Speed and range: huge leaps in the field, a quick bat. Fits the lily pads."
+        },
+        {
+          "id": "B",
+          "label": "Heron, of the Reedwalkers",
+          "tradeoff": "A tall, patient wader in slate blue and cream. Glove and arm: a long reach and a spear-straight throw."
+        },
+        {
+          "id": "C",
+          "label": "Jack's own",
+          "tradeoff": ""
+        }
+      ],
+      "recommendation": "A: a frog reads at gameplay distance, and the jumping ties to the marsh's lily pads.",
+      "existing_contract": "WD-21 B; WD-12 A (a new faction); WD-13 A (three role players); WD-14 A (a new body class); WD-15 A (all-new abilities). Original-IP rule: the name is checked.",
+      "acceptance": "A name, a faction, colors and an identity line for the captain.",
+      "blocks": [
+        "C2 captains",
+        "C2b abilities"
+      ],
+      "selected_option": "A",
+      "accepted_scope": "Stillwater Marsh's captain is Reed, a long-legged frog jumper of the Marsh Hoppers, in green and lotus pink: speed and range. The draft bars and the Lily Leap line are proposals for C2 and C2b.",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-25",
+      "decision_evidence": {
+        "kind": "conversation",
+        "question": "WD-22: A Reed, of the Marsh Hoppers / B Heron, of the Reedwalkers / C Jack's own",
+        "answer_quote": "A"
+      }
+    }
+  ],
+  "history": [
+    {
+      "date": "2026-09-24",
+      "who": "Jack",
+      "quote": "let's plan on expanding to 10 stadiums that make up a contentent where you can select the one you play on the menu",
+      "effect": "Brief. Tracker #1133 filed."
+    },
+    {
+      "date": "2026-09-24",
+      "who": "Jack",
+      "quote": "pick a new name instead of mario. but otherwise i like it. let's create a matrix to track all these decisions and expand on details.",
+      "effect": "The beach captain's draft name changed to Kai. Feedback on the draft as a whole; no decision is recorded as accepted from it. This register and the expanded plan were written."
+    },
+    {
+      "date": "2026-09-24",
+      "who": "Jack",
+      "quote": "B",
+      "effect": "WD-01 accepted: B. AGENTS.md gains the world scope line."
+    },
+    {
+      "date": "2026-09-24",
+      "who": "Jack",
+      "quote": "a",
+      "effect": "WD-02 accepted: A."
+    },
+    {
+      "date": "2026-09-25",
+      "who": "Jack",
+      "quote": "a. but it doesn't need to be completed work.",
+      "effect": "WD-03 accepted: A."
+    },
+    {
+      "date": "2026-09-25",
+      "who": "Jack",
+      "quote": "c",
+      "effect": "WD-04 accepted: C."
+    },
+    {
+      "date": "2026-09-25",
+      "who": "Jack",
+      "quote": "answers are in",
+      "effect": "WD-05 (shape only), WD-06, WD-07 (Fenn to Coconut Cove), WD-08 to WD-18 accepted from the World Decisions artifact; WD-13 and WD-15 differ from the recommendation. New open decisions: WD-19 continent name, WD-20 Crystal Rink name, WD-21 Stillwater Marsh captain and Kai."
+    },
+    {
+      "date": "2026-09-25",
+      "who": "Jack",
+      "quote": "option 1, the Grand Reach",
+      "effect": "WD-19 accepted: B."
+    },
+    {
+      "date": "2026-09-25",
+      "who": "Jack",
+      "quote": "A",
+      "effect": "WD-20 accepted: A."
+    },
+    {
+      "date": "2026-09-25",
+      "who": "Jack",
+      "quote": "B",
+      "effect": "WD-21 accepted: B."
+    },
+    {
+      "date": "2026-09-25",
+      "who": "Jack",
+      "quote": "answers are in",
+      "effect": "WD-20 A (Aurora Rink), WD-21 B (a new marsh captain; Kai dropped) from the artifact. WD-22 opened: the marsh captain."
+    },
+    {
+      "date": "2026-09-25",
+      "who": "Jack",
+      "quote": "A",
+      "effect": "WD-22 accepted: A."
+    }
+  ]
+}
