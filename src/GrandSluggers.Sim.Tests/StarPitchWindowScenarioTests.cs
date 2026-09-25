@@ -232,6 +232,6 @@ public sealed class StarPitchWindowScenarioTests
             arm, _content.Must("rio"), null, [],
             ChargePitch: false, ChangeupPitch: false, TimingErrorFrames: err,
             UseStarPitch: useStar, UseStarSwing: false, Bat: _content.Bats["harbor-lumber"], PitcherStamina: 80,
-            CrossingX: 0, CrossingY: StrikeZoneGeometry.CenterY);
+            CrossingX: 0);
     }
 }

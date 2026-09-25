@@ -118,7 +118,7 @@ public class PitchRatingsScenarioTests
             arm, batter, null, [],
             ChargePitch: false, ChangeupPitch: false, TimingErrorFrames: 0,
             UseStarPitch: false, UseStarSwing: false, Bat: null, PitcherStamina: 100,
-            CrossingX: x, CrossingY: StrikeZoneGeometry.CenterY), _content.Parks[ExhibitionPick.DefaultPark], new Random(seed));
+            CrossingX: x), _content.Parks[ExhibitionPick.DefaultPark], new Random(seed));
         Assert.Equal(ContactQuality.Nice, hit.Quality);
 
         return new Reads(mph, pool, step, plan.IntentX, hit.ExitVeloMph);

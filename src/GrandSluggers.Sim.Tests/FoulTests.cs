@@ -128,7 +128,7 @@ public class FoulTests
         {
             var r = new AtBatResolver(_content.Chemistry, rules: Rules.Default).Resolve(
                 Square(AtBatResolver.SprayAimDeg(pullSide, rules: Rules.Default), timing: -3.5) with
-                    { CrossingX = -SweetSpot.TipSign(bats) * 0.95, CrossingY = StrikeZoneGeometry.CenterY },
+                    { CrossingX = -SweetSpot.TipSign(bats) * 0.95, CrossingY = null },
                 park, new Random(seed));
             if (r.Quality == ContactQuality.Miss) continue;
             var ball = BattedBall.Of(r, park, rules: Rules.Default);

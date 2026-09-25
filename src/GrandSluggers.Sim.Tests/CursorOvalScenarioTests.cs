@@ -58,13 +58,14 @@ public sealed class CursorOvalScenarioTests
             foreach (var box in new[] { 0.0, -0.6 })
             {
                 var oval = SweetSpot.Oval(hitter, bat, charge, box, R);
-                Assert.Equal(SweetSpot.WorldCenter(box), (oval.CenterX, oval.CenterY));
+                var zone = StrikeZoneGeometry.For(hitter, R);
+                Assert.Equal(SweetSpot.WorldCenter(box, zone), (oval.CenterX, oval.CenterY));
                 Assert.Equal(bats, oval.Bats);
 
                 // Every drawn point sits on the judged boundary.
                 var pts = SweetSpot.Outline(oval);
                 foreach (var (x, y) in pts)
-                    Assert.Equal(1.0, SweetSpot.Distance(box, bats, oval.CenterX + x, oval.CenterY + y, R,
+                    Assert.Equal(1.0, SweetSpot.Distance(box, bats, oval.CenterX + x, oval.CenterY + y, R, zone,
                         oval.BarrelScale), 9);
 
                 // And the resolver agrees at the drawn line: just inside is Nice, just outside is
@@ -95,7 +96,7 @@ public sealed class CursorOvalScenarioTests
         foreach (var charge in Charges)
         {
             var oval = SweetSpot.Oval(Hitter(contact, bats), null, charge, 0, R);
-            var before = SweetSpot.Outline(bats, R, oval.BarrelScale, 40);
+            var before = SweetSpot.Outline(bats, R, StrikeZoneGeometry.For(Hitter(contact, bats), R), oval.BarrelScale, 40);
             Assert.Equal(before, SweetSpot.Outline(oval, 40));
         }
     }
@@ -153,7 +154,7 @@ public sealed class CursorOvalScenarioTests
 
             // Through the resolver: the same timing error is on the plane or off it for a quick and a
             // charged swing alike, at the rim of the window and just past it.
-            var (cx, cy) = SweetSpot.WorldCenter(0);
+            var (cx, cy) = SweetSpot.WorldCenter(0, StrikeZoneGeometry.For(hitter, R));
             foreach (var err in new[] { window / 2, -window / 2, window / 2 + 0.01, -window / 2 - 0.01 })
             {
                 var q = resolver.Resolve(Swing(pitcher, hitter, bat, [], 0, 0, cx, cy) with { TimingErrorFrames = err },
@@ -186,8 +187,8 @@ public sealed class CursorOvalScenarioTests
                 Assert.Equal(scale, oval.BarrelScale);
                 Assert.Equal(c.NiceTipFt * scale, oval.TipHalfFt);
                 Assert.Equal(c.NiceHandleFt * scale, oval.HandleHalfFt);
-                Assert.Equal(SweetSpot.HalfHeightFt, oval.HalfHeightFt);
-                Assert.Equal(SweetSpot.WorldCenter(-0.3), (oval.CenterX, oval.CenterY));
+                Assert.Equal(SweetSpot.HalfHeightFt(StrikeZoneGeometry.For(hitter, R)), oval.HalfHeightFt);
+                Assert.Equal(SweetSpot.WorldCenter(-0.3, StrikeZoneGeometry.For(hitter, R)), (oval.CenterX, oval.CenterY));
                 if (last is { } prev)
                     Assert.True(oval.TipHalfFt > prev.TipHalfFt, $"Contact {contact} carries a wider barrel");
                 last = oval;

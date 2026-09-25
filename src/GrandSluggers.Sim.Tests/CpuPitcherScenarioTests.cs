@@ -32,7 +32,8 @@ public sealed class CpuPitcherScenarioTests
     string ShippedRoot => _shipped.Root.Shipped;
 
 
-    static double CenterY => StrikeZoneGeometry.CenterY;
+    /// <summary>The middle in the reference frame: <see cref="Scenario.PitchAt"/> lays it on the batter's middle.</summary>
+    static double CenterY => StrikeZoneGeometry.Reference.CenterY;
 
     // ---------------------------------------------------------------------------------
     // S-115  no aim, a reachable crossing, and the arm stamped before the solve
@@ -83,9 +84,12 @@ public sealed class CpuPitcherScenarioTests
                 //     one exception and it is not a new CPU input: §13's shapes move the ball on
                 //     their own, for a human's star as much as for this one, and the solve above
                 //     lands on the intent anyway because the same wobble is in X₀.
+                //     The height is a share of this batter's zone (§4.4): the delivery carries the batter's zone.
+                var zone = match.BatterZone;
+                Assert.Equal(zone, pitch.Zone);
                 var row = rules.Pitching.Families.Of(pitch.Type);
                 if (pitch.Star) stars++;
-                else Assert.Equal(PitchFlight.PlateY - row.DropFt, y, 9);
+                else Assert.Equal(zone.CenterY - row.DropFt * zone.VerticalScale, y, 9);
             }
         }
 
@@ -340,10 +344,11 @@ public sealed class CpuPitcherScenarioTests
         {
             var pitch = match.CpuPitcher.PitchByInputs(out _);
             var (x, y) = PitchFlight.Crossing(pitch, _shipped.Rules, match.Pitcher.StarPitch);
-            if (StrikeZoneGeometry.Contains(x, y)) continue;
+            var zone = match.BatterZone;
+            if (zone.Contains(x, y)) continue;
             outside++;
-            if (Math.Abs(x) > StrikeZoneGeometry.HalfWidth) byX++;
-            if (y < StrikeZoneGeometry.Bottom || y > StrikeZoneGeometry.Top) byY++;
+            if (Math.Abs(x) > zone.HalfWidth) byX++;
+            if (y < zone.Bottom || y > zone.Top) byY++;
         }
 
         Assert.True(outside >= 30, $"{outside} of 100 outside");
@@ -357,7 +362,7 @@ public sealed class CpuPitcherScenarioTests
         for (var i = 0; i < 100; i++)
         {
             var (x, y) = PitchFlight.Crossing(even.CpuPitcher.PitchByInputs(out _), _shipped.Rules, even.Pitcher.StarPitch);
-            if (Math.Abs(x) < 0.25 && Math.Abs(y - CenterY) < 0.25) center++;
+            if (Math.Abs(x) < 0.25 && Math.Abs(y - even.BatterZone.CenterY) < 0.25) center++;
         }
         Assert.True(center < 10, $"{center} of 100 down the middle");
     }

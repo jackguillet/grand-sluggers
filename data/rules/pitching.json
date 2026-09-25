@@ -6,6 +6,14 @@
     "niceBandSec": 0.25,
     "niceMul": 1.05
   },
+  "zone": {
+    "bottomMinFt": 0.6,
+    "bottomMaxFt": 1.9,
+    "topMinFt": 2.1,
+    "topMaxFt": 4.3,
+    "heightMinFt": 1.4,
+    "heightMaxFt": 3.0
+  },
   "flight": {
     "releaseHandX": 1.55,
     "releaseHandY": 6.2,

@@ -556,8 +556,8 @@ namespace GrandSluggers.UnityClient
                 return;
             }
             var (x, y) = teaching
-                ? SetTells.Locator(pitch, _match.Rules, _match.Pitcher.StarPitch)
-                : SetTells.RubberRing(_match.PitcherOffsetX);
+                ? SetTells.Locator(pitch, _match.BatterZone, _match.Rules, _match.Pitcher.StarPitch)
+                : SetTells.RubberRing(_match.PitcherOffsetX, _match.BatterZone);
             _zone.AimTell(true, (float)x, (float)y);
         }
 
@@ -569,7 +569,7 @@ namespace GrandSluggers.UnityClient
         {
             if (_match == null) return;
             _zone.Show(SweetSpot.Oval(_match.Batter, _match.OffenseBat, EffectiveCharge(_charge, _chargePast),
-                _match.BatterOffsetX, _match.Rules));
+                _match.BatterOffsetX, _match.Rules), _match.BatterZone);
         }
 
         static ChargeButtonStep TickChargeButton(float dt, double seconds, Controls.Pad pad,

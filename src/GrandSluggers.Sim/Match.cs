@@ -297,6 +297,12 @@ public sealed partial class Match
     public Team Offense => Top ? Away : Home;
     public Team Defense => Top ? Home : Away;
     public Character Batter => (Top ? AwayOrder : HomeOrder)[Top ? AwayBatter : HomeBatter];
+
+    /// <summary>
+    /// The strike zone of the batter at the plate (spec §4.4): mid-thigh to chest on the rest body, clamped by
+    /// <c>pitching.zone</c>. One zone per batter, the same whoever sits which seat; the pose never moves it.
+    /// </summary>
+    public BatterZone BatterZone => StrikeZoneGeometry.For(Batter, Rules);
     public Character Pitcher => Top ? _homePitcher : _awayPitcher;
     /// <summary>The defense in glove order: <see cref="FieldingResolver.Assign"/> reads it, the swap reorders it.</summary>
     public IReadOnlyList<Character> DefenseRoster => Top ? _homeDefense : _awayDefense;
@@ -1067,13 +1073,16 @@ public sealed partial class Match
     /// <summary>Stamp the delivery once, before flight, so the visible pitch is the judged pitch.</summary>
     public PitchCommand PreparePitch(PitchCommand pitch)
     {
-        if (pitch.DeliveryPrepared) return pitch;
+        // The zone is the batter's at the plate (§4.4): stamped on every delivery, prepared or not, so the aim,
+        // the flight, the umpire and the bat all read the one zone and no seat or caller brings its own.
+        var zone = BatterZone;
+        if (pitch.DeliveryPrepared) return pitch.Zone == zone ? pitch : pitch with { Zone = zone };
         // The arm is stamped from the pitcher on the mound, because the flight mirrors a family's
         // natural sweep by it (#818). It rides on the command rather than being read from the match
         // so that one delivery is one object: a trace, a harness and the Unity client all hold the
         // same pitch, and the shipped families sweep 0, so this moves nothing that flies today.
         var ready = pitch with { RubberX = pitch.RubberX != 0 ? pitch.RubberX : PitcherOffsetX,
-            DeliveryPrepared = true, Throws = Pitcher.Throws };
+            DeliveryPrepared = true, Throws = Pitcher.Throws, Zone = zone };
         // Fatigue (spec §4.7) takes steering room. It is never a random miss (PH-08-R1): the arm lands
         // where it was aimed and steered.
         var breakMul = Rules.Pitching.Stamina.BreakMul(PitcherStamina);
@@ -1125,7 +1134,8 @@ public sealed partial class Match
         pitch = SettleStarPitch(pitch);
         // One crossing for the umpire, the body, and the bat: the shown pitch is the judged pitch (§3).
         var crossing = PitchFlight.Point(pitch, 1, Rules, Pitcher.StarPitch);
-        var inZone = StrikeZoneGeometry.Contains(crossing.X, crossing.Y);
+        var zone = StrikeZoneGeometry.Of(pitch);
+        var inZone = zone.Contains(crossing.X, crossing.Y);
         SpendPitch(pitch);
         CpuBatter.SawCrossing(crossing.X);
         // Runner positions already came from the pre-contact clock; never recalculate a head start.
@@ -1134,7 +1144,7 @@ public sealed partial class Match
 
         if (!swing.Swing)
         {
-            finished = AtBatResolver.HitsBatter(box, crossing.X, crossing.Y, Rules, Batter.Bats)
+            finished = AtBatResolver.HitsBatter(box, crossing.X, crossing.Y, Rules, zone, Batter.Bats)
                 ? FinishHitByPitch(pitch, swing, EmptyHit(inZone))
                 : FinishTake(pitch, swing, inZone);
             EndIfWalkOff();

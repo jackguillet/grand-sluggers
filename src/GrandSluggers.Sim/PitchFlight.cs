@@ -18,13 +18,17 @@ public static class PitchFlight
     // strike frame, and the umpire all share it, so it stays one number like Diamond — which
     // now reads it from data, so this forwards rather than baking a copy at compile time.
     public static double MoundZ => Diamond.Mound;
-    /// <summary>The natural crossing height: a normal or charged pitch crosses mid-zone (spec §4.2).</summary>
-    public const double PlateY = StrikeZoneGeometry.CenterY;
     public const double PlateScaleX = 1.85;
+    /// <summary>Feet of crossing per unit of vertical aim in the reference frame; a batter's zone scales it (§4.4).</summary>
     public const double PlateScaleY = 1.35;
 
-    public static (double X, double Y) PlateTarget(double aimX, double aimY) =>
-        (aimX * PlateScaleX, PlateY + aimY * PlateScaleY);
+    /// <summary>
+    /// Where an aim crosses in <paramref name="zone"/> (spec §4.2, §4.4): the aim is relative to the batter's zone.
+    /// Aim 0 is the middle of this batter's zone; the vertical aim stretches with the zone
+    /// (<see cref="BatterZone.VerticalScale"/>) and the horizontal one does not, because the width is fixed.
+    /// </summary>
+    public static (double X, double Y) PlateTarget(double aimX, double aimY, BatterZone zone) =>
+        (aimX * PlateScaleX, zone.CenterY + aimY * PlateScaleY * zone.VerticalScale);
 
     /// <summary>Throwing hand, not the torso (pitching.flight.releaseHand*). +X toward first from a RHP. The rubber walk moves it by <see cref="HomeSet.PitcherWalk"/> per unit.</summary>
     public static (double X, double Y, double Z) Release(RulesTable rules, double rubberX = 0)
@@ -49,23 +53,27 @@ public static class PitchFlight
     /// instead of flying as a fastball. <paramref name="breakX"/> is the stick (−1..1); a charged
     /// pitch, or one whose family is <see cref="PitchFamilyRules.BreakDamped"/>, takes
     /// <c>breakDampedMul</c> of it (spec §4.1). The rubber walk moves the crossing by the same world
-    /// distance as the body, once (spec §4.2).
+    /// distance as the body, once (spec §4.2). <paramref name="zone"/> is the batter's (§4.4): the aim is its
+    /// middle and the row's <c>dropFt</c> is a share of it, so every family keeps its place in every batter's zone.
+    /// Absent, the flight is in <see cref="StrikeZoneGeometry.Reference"/> (a probe or a still with no batter).
     /// </summary>
     public static (double X, double Y, double Z) Point(
         string type, double u, RulesTable rules, double aimX = 0, double aimY = 0,
         double breakX = 0, double rubberX = 0,
         (double X, double Y, double Z)? from = null, bool charged = false,
-        Hand throws = Hand.R)
+        Hand throws = Hand.R, BatterZone? zone = null)
     {
         var r = rules;
         var f = r.Pitching.Flight;
         var row = r.Pitching.Families.Of(type);
         u = Math.Clamp(u, 0, 1);
-        var (tx, ty) = PlateTarget(aimX, aimY);
+        var z0 = zone ?? StrikeZoneGeometry.Reference;
+        var (tx, ty) = PlateTarget(aimX, aimY, z0);
         tx += rubberX * HomeSet.PitcherWalk;
-        ty -= row.DropFt;
+        ty -= row.DropFt * z0.VerticalScale;
         var rel = from ?? Release(r, rubberX);
-        var z = rel.Z * (1 - u);
+        // Release to the zone's plane, the plate's front edge (§4.4): u = 1 is the crossing the umpire judges.
+        var z = rel.Z * (1 - u) + StrikeZoneGeometry.PlateZ * u;
         var (x, y, zz) = Shape(u, tx, ty, z, rel, row);
         // Shape → sweep → stick → star. The sweep is the family's own movement and the stick's shift
         // is the player's, so they add rather than one scaling the other (PH-15-R6). The add is
@@ -85,8 +93,9 @@ public static class PitchFlight
     {
         var r = rules;
         u = Math.Clamp(u, 0, 1);
+        var zone = StrikeZoneGeometry.Of(pitch);
         var p = Point(pitch.Type, u, r, pitch.AimX, pitch.AimY, pitch.BreakX * pitch.BreakMul,
-            pitch.RubberX, from, ChargeFeel.IsCharge(pitch.Charge01), pitch.Throws);
+            pitch.RubberX, from, ChargeFeel.IsCharge(pitch.Charge01), pitch.Throws, zone);
         if (!pitch.Star) return p;
         var st = r.Pitching.StarShapes;
         return starPitchId switch
@@ -95,7 +104,7 @@ public static class PitchFlight
             "prismball" => (p.X + Math.Sin(u * st.PrismballWobbleHz) * st.PrismballWobbleFt, p.Y, p.Z),
             "charmball" => (p.X + Math.Sin(u * st.CharmballWobbleHz) * st.CharmballWobbleFt, p.Y, p.Z),
             "phonyball" => (p.X + (u > st.PhonyballSwitchAt ? st.PhonyballLateX : st.PhonyballEarlyX), p.Y, p.Z),
-            "caskball" => (p.X, p.Y + st.CaskballRise * u, p.Z),
+            "caskball" => (p.X, p.Y + st.CaskballRise * zone.VerticalScale * u, p.Z),
             _ => p
         };
     }
@@ -238,7 +247,8 @@ public static class PitchFlight
     public static (double X, double Y) ContactAim(PitchCommand pitch, RulesTable rules, string? starPitchId = null)
     {
         var p = Point(pitch, 1, rules, starPitchId);
-        return (p.X / PlateScaleX, (p.Y - PlateY) / PlateScaleY);
+        var zone = StrikeZoneGeometry.Of(pitch);
+        return (p.X / PlateScaleX, (p.Y - zone.CenterY) / (PlateScaleY * zone.VerticalScale));
     }
 
     public static bool InFrontOfLook(double x, double y, double z, CameraShot shot)

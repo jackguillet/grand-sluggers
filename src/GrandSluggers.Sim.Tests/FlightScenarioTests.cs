@@ -152,12 +152,16 @@ public sealed class FlightScenarioTests
     // ---------------------------------------------------------------------------------
 
     /// <summary>Where the crossing sits above the barrel's nice top: the upper sour rim, the bat under the ball.</summary>
-    static double AboveNiceTop(double ft) => StrikeZoneGeometry.CenterY + SweetSpot.HalfHeightFt + ft;
+    /// <remarks><paramref name="ft"/> is in the reference frame: the same share of every batter's zone (§4.4).</remarks>
+    static double AboveNiceTop(BatterZone zone, double ft) =>
+        zone.CenterY + SweetSpot.HalfHeightFt(zone) + ft * zone.VerticalScale;
+
+    BatterZone ZoneOf(Character batter) => StrikeZoneGeometry.For(batter, _content.Rules);
 
     AtBatResult UnderTheBall(string batter, double aboveNiceTopFt, int seed) =>
         new AtBatResolver(_content.Chemistry, _content.Rules, _content.StarSkills).Resolve(
             new AtBatInput(_content.Must("vale"), _content.Must(batter), null, [], false, false, 0, false, false, null, 80,
-                PitchInZone: false, CrossingY: AboveNiceTop(aboveNiceTopFt)),
+                PitchInZone: false, CrossingY: AboveNiceTop(ZoneOf(_content.Must(batter)), aboveNiceTopFt)),
             Harbor, new Random(seed));
 
     /// <summary>A real swing's pop that comes down behind the plate inside the backstop: no fixture launch or spray.</summary>
@@ -258,12 +262,12 @@ public sealed class FlightScenarioTests
     {
         var resolver = new AtBatResolver(_content.Chemistry, _content.Rules, _content.StarSkills);
         foreach (var batter in _content.Characters.Values)
-            for (var y = StrikeZoneGeometry.Bottom; y <= AboveNiceTop(0); y += 0.2)
+            for (var y = ZoneOf(batter).Bottom; y <= AboveNiceTop(ZoneOf(batter), 0); y += 0.2)
                 for (var seed = 0; seed < 4; seed++)
                 {
                     var hit = resolver.Resolve(new AtBatInput(_content.Must("vale"), batter, null, [], false, false, 0, false, false,
                         null, 80, CrossingY: y), Harbor, new Random(seed));
-                    Assert.Equal(0, AtBatResolver.UnderTheBallDeg(0, y, _content.Rules));
+                    Assert.Equal(0, AtBatResolver.UnderTheBallDeg(0, y, _content.Rules, ZoneOf(batter)));
                     Assert.True(Math.Abs(hit.SprayDeg) <= 90, $"{batter.Id} y {y:0.00} spray {hit.SprayDeg}");
                 }
     }

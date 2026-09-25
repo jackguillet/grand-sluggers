@@ -112,25 +112,29 @@ public sealed class PitchFamilyScenarioTests
     {
         var rules = ShippedRules;
 
+        // Against every body that can bat (§4.4): the zone is the batter's, knee to chest, and the family's height is a
+        // share of it, so the same claim holds for Zig's short zone and Ashlord's tall one.
+        foreach (var batter in _shippedContent.Characters.Values)
         foreach (var family in PitchFamily.All)
             foreach (var throws in new[] { Hand.L, Hand.R })
             {
                 // The middle of the rubber, no aim, no stick, no charge: what the pitch does by
                 // itself. Nobody aims height in this game, so this crossing has to be a strike.
-                var pitch = new PitchCommand(family, 0, false, Throws: throws);
+                var zone = StrikeZoneGeometry.For(batter, rules);
+                var pitch = new PitchCommand(family, 0, false, Throws: throws, Zone: zone);
                 var (x, y) = PitchFlight.Crossing(pitch, rules: rules);
-                var where = $"{family}/{throws}";
+                var where = $"{batter.Id}/{family}/{throws}";
 
-                Assert.True(Math.Abs(x) + BallRadiusFt <= StrikeZoneGeometry.HalfWidth,
-                    $"{where}: crossing x {x} is not a ball inside the zone's {StrikeZoneGeometry.HalfWidth} ft half-width");
-                Assert.True(y - BallRadiusFt >= StrikeZoneGeometry.Bottom, $"{where}: crossing y {y} is on the floor");
-                Assert.True(y + BallRadiusFt <= StrikeZoneGeometry.Top, $"{where}: crossing y {y} is on the ceiling");
-                Assert.True(StrikeZoneGeometry.Contains(x, y), where);
+                Assert.True(Math.Abs(x) + BallRadiusFt <= zone.HalfWidth,
+                    $"{where}: crossing x {x} is not a ball inside the zone's {zone.HalfWidth} ft half-width");
+                Assert.True(y - BallRadiusFt >= zone.Bottom, $"{where}: crossing y {y} is on the floor {zone.Bottom}");
+                Assert.True(y + BallRadiusFt <= zone.Top, $"{where}: crossing y {y} is on the ceiling {zone.Top}");
+                Assert.True(zone.Contains(x, y), where);
 
                 // Reachable, not merely legal: a batter standing where the box starts them, with an
                 // ordinary bat and no charge, has the crossing inside the drawn oval (§5.2, D4).
                 foreach (var bats in new[] { Hand.L, Hand.R })
-                    Assert.True(SweetSpot.Distance(0, bats, x, y, rules, 1) <= 1,
+                    Assert.True(SweetSpot.Distance(0, bats, x, y, rules, zone, 1) <= 1,
                         $"{where}: a {bats} batter's nice oval does not reach ({x}, {y})");
             }
     }
@@ -344,9 +348,10 @@ public sealed class PitchFamilyScenarioTests
 
         // The oval at the crossing's height, not at the cursor's middle: a pitch that crosses low
         // meets a narrower bat.
-        var dy = crossingY - StrikeZoneGeometry.CenterY;
+        var dy = crossingY - StrikeZoneGeometry.Reference.CenterY;
+        var halfH = SweetSpot.HalfHeightFt(StrikeZoneGeometry.Reference);
         var half = SweetSpot.NiceHalfWidthFt(bats, crossingX, 1, rules)
-            * Math.Sqrt(Math.Max(0, 1 - dy * dy / (SweetSpot.HalfHeightFt * SweetSpot.HalfHeightFt)));
+            * Math.Sqrt(Math.Max(0, 1 - dy * dy / (halfH * halfH)));
 
         return window * BoxWalkPerSec + half - Math.Abs(crossingX);
     }

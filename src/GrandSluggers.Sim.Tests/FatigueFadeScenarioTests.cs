@@ -59,7 +59,7 @@ public sealed class FatigueFadeScenarioTests
             var fresh = match.PitchSpeedMph(Scenario.Paint with { Type = family });
             var freshAir = PitchFlight.AirSeconds(fresh, Content.Rules);
             var emptyAir = PitchFlight.AirSeconds(fresh - st.ExhaustedMph, Content.Rules);
-            var outside = Scenario.PitchAt(2.5, StrikeZoneGeometry.CenterY);
+            var outside = Scenario.PitchAt(2.5, StrikeZoneGeometry.Reference.CenterY);
             var sawFadeBeforeTired = false;
             for (var guard = 0; guard < 80 && match.PitcherStamina > -10; guard++)
             {

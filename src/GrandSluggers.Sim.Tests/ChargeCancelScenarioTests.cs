@@ -51,9 +51,9 @@ public sealed class ChargeCancelScenarioTests
         Assert.Equal(default, state);
 
         // No commit is a take: the umpire calls the pitch.
-        var ball = match.Play(Scenario.PitchAt(2.5, StrikeZoneGeometry.CenterY), Scenario.Take);
+        var ball = match.Play(Scenario.PitchAt(2.5, StrikeZoneGeometry.Reference.CenterY), Scenario.Take);
         Assert.Equal(PlayKind.TakeBall, ball.Kind);
-        var strike = match.Play(Scenario.PitchAt(0, StrikeZoneGeometry.CenterY), Scenario.Take);
+        var strike = match.Play(Scenario.PitchAt(0, StrikeZoneGeometry.Reference.CenterY), Scenario.Take);
         Assert.Equal(PlayKind.TakeStrike, strike.Kind);
         Assert.Equal((1, 1), (match.Balls, match.Strikes));
     }

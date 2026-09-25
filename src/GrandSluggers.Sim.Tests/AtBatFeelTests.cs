@@ -308,16 +308,19 @@ public class AtBatFeelTests
     [Fact]
     public void CursorEatsHeartAndWalkedOffMisses()
     {
-        Assert.Equal(ContactQuality.Perfect, SweetSpot.Zone(0, Hand.R, 0, StrikeZoneGeometry.CenterY, rules: Rules.Default));
-        Assert.Equal(ContactQuality.Miss, SweetSpot.Zone(0.9, Hand.R, 0, StrikeZoneGeometry.CenterY, rules: Rules.Default));
-        var left = SweetSpot.WorldCenter(-0.4);
-        var right = SweetSpot.WorldCenter(0.4);
-        Assert.True(right.X > left.X, $"cursor right {right.X} vs left {left.X}");
-        Assert.Equal(0.8 * HomeSet.BatterWalk, right.X - left.X, 8);
-        Assert.Equal(StrikeZoneGeometry.CenterY, left.Y);
-        Assert.Equal(StrikeZoneGeometry.Height / 2, SweetSpot.HalfHeightFt);
-        Assert.True(SweetSpot.CoversTheZone(Hand.R, rules: Rules.Default), "every strike is on the bat with the box centered");
-        Assert.True(SweetSpot.CoversTheZone(Hand.L, rules: Rules.Default), "every strike is on the bat with the box centered");
+        foreach (var zone in new[] { StrikeZoneGeometry.Reference }.Concat(_content.Characters.Values.Select(c => StrikeZoneGeometry.For(c, Rules.Default))))
+        {
+            Assert.Equal(ContactQuality.Perfect, SweetSpot.Zone(0, Hand.R, 0, zone.CenterY, Rules.Default, zone));
+            Assert.Equal(ContactQuality.Miss, SweetSpot.Zone(0.9, Hand.R, 0, zone.CenterY, Rules.Default, zone));
+            var left = SweetSpot.WorldCenter(-0.4, zone);
+            var right = SweetSpot.WorldCenter(0.4, zone);
+            Assert.True(right.X > left.X, $"cursor right {right.X} vs left {left.X}");
+            Assert.Equal(0.8 * HomeSet.BatterWalk, right.X - left.X, 8);
+            Assert.Equal(zone.CenterY, left.Y);
+            Assert.Equal(zone.Height / 2, SweetSpot.HalfHeightFt(zone));
+            Assert.True(SweetSpot.CoversTheZone(Hand.R, Rules.Default, zone), "every strike is on the bat with the box centered");
+            Assert.True(SweetSpot.CoversTheZone(Hand.L, Rules.Default, zone), "every strike is on the bat with the box centered");
+        }
         var park = _content.Parks[ParkId.Harbor];
         var resolver = new AtBatResolver(_content.Chemistry, rules: Rules.Default);
         var vale = _content.Must("vale");
@@ -432,7 +435,7 @@ public class AtBatFeelTests
     static AtBatInput Input(Character pitcher, Character batter, BatItem bat, double charge, double timing,
         double box = 0, double aimX = 0) =>
         new(pitcher, batter, null, [], false, false,
-            timing, false, false, bat, 80, 0, true, false, 0, charge, box, aimX * PitchFlight.PlateScaleX, PitchFlight.PlateY);
+            timing, false, false, bat, 80, 0, true, false, 0, charge, box, aimX * PitchFlight.PlateScaleX);
 
     static void WalkOn(Match match)
     {

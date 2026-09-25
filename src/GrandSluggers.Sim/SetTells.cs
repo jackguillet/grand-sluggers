@@ -61,16 +61,17 @@ public static class SetTells
     /// <summary>
     /// The pitcher's aim tell: the crossing of the pitch as it stands, in world feet at the plate
     /// plane. Walking the rubber moves it with the body; the stick moves it during flight; it is
-    /// the same point the umpire judges (spec §4.4, #577).
+    /// the same point the umpire judges (spec §4.4, #577). The pitch flies in <paramref name="zone"/>, the batter's
+    /// (<see cref="Match.BatterZone"/>), whether or not the delivery has been prepared yet.
     /// </summary>
-    public static (double X, double Y) Locator(PitchCommand pitch, RulesTable rules, string? starPitchId = null) =>
-        PitchFlight.Crossing(pitch, rules, starPitchId);
+    public static (double X, double Y) Locator(PitchCommand pitch, BatterZone zone, RulesTable rules, string? starPitchId = null) =>
+        PitchFlight.Crossing(pitch with { Zone = zone }, rules, starPitchId);
 
     /// <summary>
     /// The ordinary-play SET ring (PH-06, PH-06-R1): <b>where the pitcher stands</b>, not where the
     /// pitch will cross. X is the rubber walked into world feet (<see cref="HomeSet.PitcherWalk"/>
-    /// per unit, the same distance the body moves, §4.2); Y is the middle of the strike frame, which
-    /// is a fixed height and says nothing about the family.
+    /// per unit, the same distance the body moves, §4.2); Y is the middle of this batter's strike frame
+    /// (<paramref name="zone"/>, §4.4), which says nothing about the family.
     ///
     /// <para>
     /// It exists because <see cref="Locator"/> cannot be drawn in SET any more. The crossing now
@@ -81,11 +82,12 @@ public static class SetTells
     /// </para>
     /// </summary>
     /// <param name="rubberX">The pitcher's rubber position, −1..1 (<c>Match.PitcherOffsetX</c>).</param>
-    public static (double X, double Y) RubberRing(double rubberX) =>
-        (rubberX * HomeSet.PitcherWalk, StrikeZoneGeometry.CenterY);
+    /// <param name="zone">The batter's zone (<see cref="Match.BatterZone"/>).</param>
+    public static (double X, double Y) RubberRing(double rubberX, BatterZone zone) =>
+        (rubberX * HomeSet.PitcherWalk, zone.CenterY);
 
-    public static bool InZone(PitchCommand pitch, RulesTable rules, string? starPitchId = null) =>
-        StrikeZoneGeometry.Contains(pitch, rules, starPitchId);
+    public static bool InZone(PitchCommand pitch, BatterZone zone, RulesTable rules, string? starPitchId = null) =>
+        StrikeZoneGeometry.Contains(pitch with { Zone = zone }, rules, starPitchId);
 
     /// <summary>The tell is the pitcher's: shown on the pitching seat, never to the batter as a giveaway.</summary>
     public static bool AimTellOn(bool humanPitches, bool setOrFlight) => humanPitches && setOrFlight;

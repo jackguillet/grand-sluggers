@@ -17,7 +17,7 @@ Directions only. Each line names its decision.
 - **Build (CH-04).** Head, Arms and Torso shape the 3D body on the one rig, from each captain's `proportions`. No second rig, no unique mesh.
 - **Body classes (CH-05, CH-11, CH-12).** A body class is a data row. It names size in play (ground and fly catch reach, contact width), weight (speed-up and braking ramp, knockback), and a motion style. The table is sized for **about fifteen classes**, so role players can have their own class. Seven ship first, one per captain cut.
 - **Size in play (CH-05).** Reach and contact width come from the class row, not measured off the mesh. Grow stays a verb.
-- **Strike zone (CH-06).** The zone runs from the batter's **knee** to the batter's **chest**. It scales vertically with the body. Its width over the plate stays fixed (0.92 ft half-width). It is judged at the plate crossing, as today.
+- **Strike zone (CH-06).** The zone runs from the batter's **mid-thigh** to the batter's **chest** (Jack moved the bottom from the knee on 2026-09-25). It stands directly over the front edge of the plate (Jack, 2026-09-25). It scales vertically with the body. Its width over the plate stays fixed (0.92 ft half-width). It is judged at the plate crossing, as today.
 - **Stats (CH-07, CH-08, CH-09).** Four visible bars, each the rounded mean of authored sub-stats:
 
   | Bar | Sub-stats | Code slot today |
@@ -89,9 +89,9 @@ CF-2 toy body (Art) ──┬─▶ CF-3 body classes + speed (Gameplay) ─▶ 
 - **Also owes.** gameplay-spec §8.1, §8.2 and the running section. Keep the pursuit consistency rule (F693-02): one movement profile per body, across hit classes and positions.
 - **Banned.** Reach read from the mesh. A per-captain `switch`. A second movement system.
 
-### CF-4 · [#1117](https://github.com/jackguillet/grand-sluggers/issues/1117) · Knee-to-chest zone (Gameplay) · CH-06
+### CF-4 · [#1117](https://github.com/jackguillet/grand-sluggers/issues/1117) · Thigh-to-chest zone (Gameplay) · CH-06
 
-- **Observable.** The zone for each batter runs from the knee to the chest landmark, at the fixed width. Aim, the CPU pitcher, the ring, the cursor and the sweet-spot oval follow the batter's zone.
+- **Observable.** The zone for each batter runs from the mid-thigh landmark (`anatomy.thighMid`, halfway from the hip joint to the knee) to the chest landmark, at the fixed width. Aim, the CPU pitcher, the ring, the cursor and the sweet-spot oval follow the batter's zone.
 - **Files.** `StrikeZoneGeometry.cs` (a batter-aware zone; the static fixed zone retires), `PitchFlight.cs` (the aim center), `SetTells.cs`, `SweetSpot.cs`, `AtBatResolver.cs`, the CPU pitcher and batter, the HUD zone draw (reads the sim zone, no own numbers).
 - **Tests.** SC-15 … SC-19. S-108 and S-134 rerun against every captain.
 - **Also owes.** gameplay-spec §4.4 rewritten; `docs/how-to-play.md` and `HowToPlay.cs` if the zone copy changes; the strike-zone lesson in `docs/tutorials.md`.
@@ -139,7 +139,7 @@ Headless unless the row says still. Each names the reason, not only the result.
 | SC-12 | Light and heavy body from rest | The light body reaches top speed sooner. The heavy one takes longer to brake and reverse. |
 | SC-13 | The same body on a grounder, a liner and a fly | One movement profile (F693-02 consistency). |
 | SC-14 | A light and a heavy body hit by the same knockback | The light body recoils longer. |
-| SC-15 | Every captain as batter | Zone bottom = knee landmark, top = chest landmark, width 0.92 ft half. |
+| SC-15 | Every captain as batter | Zone bottom = mid-thigh landmark, top = chest landmark, width 0.92 ft half. |
 | SC-16 | The same pitch aimed middle, Zig then Ashlord batting | It crosses the middle of each batter's own zone. |
 | SC-17 | Batter mid-swing vs at rest | Same zone. (The animation does not move it.) |
 | SC-18 | Every family, no aim, every captain batting | S-108 holds: inside the zone with a ball's radius to spare. |

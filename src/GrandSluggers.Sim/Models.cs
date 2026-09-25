@@ -559,7 +559,8 @@ public sealed record Team(
 /// One swing at one crossing. <paramref name="CrossingX"/> / <paramref name="CrossingY"/> are the
 /// pitch at the plate plane in world feet (the same point the umpire and the aim tell read);
 /// <paramref name="TimingErrorFrames"/> is the press minus the square press (the ball's plate time
-/// less <c>batting.window.leadSec</c>) at 60 Hz, D13.
+/// less <c>batting.window.leadSec</c>) at 60 Hz, D13. An absent <paramref name="CrossingY"/> is the middle of
+/// this batter's zone (<see cref="StrikeZoneGeometry.For"/>).
 /// </summary>
 public sealed record AtBatInput(
     Character Pitcher,
@@ -580,7 +581,7 @@ public sealed record AtBatInput(
     double Charge01 = 0,
     double BoxOffsetX = 0,
     double CrossingX = 0,
-    double CrossingY = PitchFlight.PlateY,
+    double? CrossingY = null,
     BuntSide BuntSide = BuntSide.None);
 
 public sealed record AtBatResult(
@@ -622,6 +623,11 @@ public sealed record AtBatResult(
 /// about the pitcher's hand, and it exists because a family's natural sweep mirrors with the arm
 /// (<see cref="PitchFlight.SweepShiftFt"/>, #818). It is last and defaulted so every positional call
 /// site and every stored command that predates it still reads, as a right-hander's.
+///
+/// <paramref name="Zone"/> is the batter's thigh-to-chest zone this delivery flies at (spec §4.4), stamped by
+/// <see cref="Match.PreparePitch"/> from the batter at the plate: the aim center, the family's heights and the
+/// umpire all read it, so one delivery is judged in one zone. Null only off the live path (a probe, a tool, a unit
+/// test), where the flight falls back to <see cref="StrikeZoneGeometry.Reference"/> and counts it.
 /// </summary>
 public sealed record PitchCommand(
     string Type,
@@ -634,7 +640,8 @@ public sealed record PitchCommand(
     bool DeliveryPrepared = false,
     bool Nice = false,
     double BreakMul = 1,
-    Hand Throws = Hand.R);
+    Hand Throws = Hand.R,
+    BatterZone? Zone = null);
 
 public sealed record SwingCommand(
     bool Swing,

@@ -135,7 +135,7 @@ public sealed class Training
     }
 
     public bool RecordPitch(PitchCommand pitch, Match match) =>
-        RecordPitch(pitch, match.Pitcher.Stats.Control, match.CanStarPitch);
+        RecordPitch(pitch with { Zone = match.BatterZone }, match.Pitcher.Stats.Control, match.CanStarPitch);
 
     public bool RecordPitch(PitchCommand pitch, int pitchStat, bool canStar)
     {

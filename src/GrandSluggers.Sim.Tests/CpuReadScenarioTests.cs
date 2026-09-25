@@ -19,7 +19,7 @@ public sealed class CpuReadScenarioTests
 {
     static readonly ContentCatalog Shipped = ContentCatalog.Load(new DataRoot(global::GrandSluggers.Sim.Tests.Shipped.Content.Root.Shipped));
 
-    static double CenterY => StrikeZoneGeometry.CenterY;
+    static double CenterY => StrikeZoneGeometry.Reference.CenterY;
 
     /// <summary>An edge strike that full break carries out of the zone (S-04's pitch).</summary>
     static (PitchCommand Edge, PitchCommand Steered) EdgeAndSteered(Match match)
