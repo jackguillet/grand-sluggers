@@ -89,6 +89,7 @@ Mesh landmarks remain `torsoMesh`, `Stripe`, `headMesh`, `EyeL`, `EyeR`, `lHand`
 | Slide | slide | verb | no | FootPlant 0.18 |
 
 The fielding takes carry the reference's relationships as bake contracts (#558). The scoop at Contact has the glove within 0.45 of the dirt and 0.6 ahead of the feet, a base wider than the shoulders and the bare hand over the glove. The jump stands on the dirt at take-off and landing, its soles rise `Motion.JumpPeak` at the top key, and the glove reaches over the head and the bare hand. The catch hold has both hands above the head.
+The other holds do too. The crouch (the catcher, the get-up, the wall) has flat feet, the seat at the knees, a base wider than the shoulders, the glove out in front at chest height and the bare hand tucked. The dive lies laid out on its lowest point, head and seat level, the glove stretched past the head. The lead has a base wider than the shoulders, the seat down and the hands loose in front. The stun throws both arms out level.
 
 A held load samples the one-shot at `LoadSampleAt(charge) = NormalLoadAt · (1 − charge)`: MAX holds the full coil at 0, a tap starts from the half load. The committed verb then samples `LoadedClipTime(poseT, loadAt, eventAt)`, which is monotonic and lands the marker exactly at `eventAt`. One function for pitch and swing.
 

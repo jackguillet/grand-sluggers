@@ -635,31 +635,38 @@ CATCH = [
              lThigh=limb(10, 6), rThigh=limb(10, 6), lShin=limb(12), rShin=limb(12))),
 ]
 
+# The laid-out dive (#558): the whole body near flat and on the dirt, head up on the ball, the glove arm stretched out past
+# the head and the bare arm behind it, the legs trailing. Lies on its lowest point (dive_frame), not on its soles.
 DIVE = [
-    (0.00, K(torso=spine(70), head=spine(-30), lUpper=limb(170, 10), rUpper=limb(170, 10), lFore=limb(6), rFore=limb(6),
-             lThigh=limb(-30, 6), rThigh=limb(-30, 6), lShin=limb(20), rShin=limb(20), lift=0.20)),
-    (HOLD, K(torso=spine(72), head=spine(-32), lUpper=limb(172, 10), rUpper=limb(172, 10), lFore=limb(6), rFore=limb(6),
-             lThigh=limb(-32, 6), rThigh=limb(-32, 6), lShin=limb(20), rShin=limb(20), lift=0.18)),
+    (0.00, K(pelvis=spine(80), torso=spine(6), head=spine(-40), lUpper=limb(174, 8), rUpper=limb(150, 14), lFore=limb(4),
+             rFore=limb(14), lThigh=limb(-6, 6), rThigh=limb(-2, 8), lShin=limb(18), rShin=limb(26))),
+    (HOLD, K(pelvis=spine(82), torso=spine(6), head=spine(-42), lUpper=limb(176, 8), rUpper=limb(152, 14), lFore=limb(4),
+             rFore=limb(14), lThigh=limb(-6, 6), rThigh=limb(-2, 8), lShin=limb(18), rShin=limb(26))),
 ]
 
+# The catcher's squat (#558), also the get-up and the wall crouch: feet wider than the shoulders and flat, the seat down to
+# the knees, the chest up, the glove out in front at chest height as the target, the bare hand tucked behind the back.
 CROUCH = [
-    (0.00, K(torso=spine(32), head=spine(-10), lUpper=limb(40, 18), rUpper=limb(40, 18), lFore=limb(60), rFore=limb(60),
-             lThigh=limb(68, 12), rThigh=limb(68, 12), lShin=limb(70), rShin=limb(70), lift=-0.25)),
-    (HOLD, K(torso=spine(33), head=spine(-10), lUpper=limb(40, 18), rUpper=limb(40, 18), lFore=limb(60), rFore=limb(60),
-             lThigh=limb(68, 12), rThigh=limb(68, 12), lShin=limb(70), rShin=limb(70), lift=-0.26)),
+    (0.00, K(torso=spine(14), head=spine(-12), lUpper=limb(70, 10), lFore=limb(30), rUpper=limb(-34, 12), rFore=limb(70),
+             lThigh=limb(92, 38), rThigh=limb(92, 38), lShin=limb(108), rShin=limb(108))),
+    (HOLD, K(torso=spine(15), head=spine(-12), lUpper=limb(70, 10), lFore=limb(30), rUpper=limb(-34, 12), rFore=limb(70),
+             lThigh=limb(93, 38), rThigh=limb(93, 38), lShin=limb(110), rShin=limb(110))),
 ]
 
+# The runner's lead (#558): a base wider than the shoulders, knees bent and the seat down, the chest square, the hands
+# loose in front ready to go either way.
 STEAL_LEAD = [
-    (0.00, K(torso=spine(22, 12), head=spine(0, 14), lUpper=limb(28, 22), rUpper=limb(12, 28), lFore=limb(30), rFore=limb(30),
-             lThigh=limb(42, 10), rThigh=limb(18, 6), lShin=limb(36), rShin=limb(20), lift=-0.25)),
-    (HOLD, K(torso=spine(24, 12), head=spine(0, 16), lUpper=limb(30, 22), rUpper=limb(14, 28), lFore=limb(30), rFore=limb(30),
-             lThigh=limb(44, 10), rThigh=limb(20, 6), lShin=limb(36), rShin=limb(20), lift=-0.26)),
+    (0.00, K(torso=spine(24), head=spine(-10), lUpper=limb(34, 2), rUpper=limb(34, 2), lFore=limb(52), rFore=limb(52),
+             lThigh=limb(50, 26), rThigh=limb(50, 26), lShin=limb(64), rShin=limb(64))),
+    (HOLD, K(torso=spine(25), head=spine(-10), lUpper=limb(36, 2), rUpper=limb(36, 2), lFore=limb(54), rFore=limb(54),
+             lThigh=limb(52, 26), rThigh=limb(52, 26), lShin=limb(66), rShin=limb(66))),
 ]
 
+# The fumbler's stun (#558): both arms thrown out level at the shoulders, whatever the reach.
 SPIN = [
-    (0.00, K(torso=spine(4), head=spine(-4), lUpper=limb(10, 70), rUpper=limb(10, 70), lFore=limb(10), rFore=limb(10),
+    (0.00, K(torso=spine(4), head=spine(-4), lUpper=limb(10, 84), rUpper=limb(10, 84), lFore=limb(10), rFore=limb(10),
              lThigh=limb(4), rThigh=limb(4), lShin=limb(6), rShin=limb(6))),
-    (HOLD, K(torso=spine(4), head=spine(-4), lUpper=limb(10, 72), rUpper=limb(10, 72), lFore=limb(10), rFore=limb(10),
+    (HOLD, K(torso=spine(4), head=spine(-4), lUpper=limb(10, 86), rUpper=limb(10, 86), lFore=limb(10), rFore=limb(10),
              lThigh=limb(4), rThigh=limb(4), lShin=limb(6), rShin=limb(6))),
 ]
 
@@ -1030,16 +1037,96 @@ def catch_validate(arm, t, bats):
             raise RuntimeError(f"catch {bats}: {hand} is below the head at the hold ({center(hand).z:.2f} vs {head:.2f})")
 
 
-def sole_height(arm) -> float:
-    """The lowest shoe vertex above the dirt (z 0), rig units."""
+BODY_MESHES = ("torsoMesh", "headMesh", "lUpperMesh", "rUpperMesh", "lForeMesh", "rForeMesh", "lHand", "rHand",
+               "lThighMesh", "rThighMesh", "lShinMesh", "rShinMesh", "lShoe", "rShoe")
+
+
+def lowest(names) -> float:
+    """The lowest vertex of these meshes above the dirt (z 0), rig units."""
     deps = bpy.context.evaluated_depsgraph_get()
     low = 1e6
-    for name in ("lShoe", "rShoe"):
+    for name in names:
         ob = bpy.data.objects[name].evaluated_get(deps)
         mesh = ob.to_mesh()
         low = min(low, min((ob.matrix_world @ v.co).z for v in mesh.vertices))
         ob.to_mesh_clear()
     return low
+
+
+def sole_height(arm) -> float:
+    """The lowest shoe vertex above the dirt (z 0), rig units."""
+    return lowest(("lShoe", "rShoe"))
+
+
+def dive_frame(arm, t):
+    """The dive lies on its lowest point: the pose, then the root dropped until the body touches the dirt."""
+    apply_pose(arm, pose_at(DIVE, t, True, False, HOLD))
+    root = arm.pose.bones["root"]
+    matrix = root.matrix.copy()
+    matrix.translation.z -= lowest(BODY_MESHES)
+    root.matrix = matrix
+    bpy.context.view_layer.update()
+
+
+def _width(arm, a, b):
+    return (arm.matrix_world @ arm.pose.bones[a].head - arm.matrix_world @ arm.pose.bones[b].head).length
+
+
+def dive_validate(arm, t, bats):
+    """Laid out: on the dirt, near flat (head and seat level), the glove stretched out past the head and low."""
+    head, glove = center("headMesh"), center("lHand")
+    seat = arm.matrix_world @ arm.pose.bones["pelvis"].head
+    if abs(lowest(BODY_MESHES)) > 0.02:
+        raise RuntimeError(f"dive: the body is {lowest(BODY_MESHES):.2f} off the dirt at {t:.3f}")
+    if abs(head.z - seat.z) > 0.8:
+        raise RuntimeError(f"dive: not laid out; head {head.z:.2f} and seat {seat.z:.2f} at {t:.3f}")
+    if glove.y > head.y - 0.8 or glove.z > head.z + 0.3:
+        raise RuntimeError(f"dive: the glove ({glove.y:.2f}, {glove.z:.2f}) does not stretch out past the head ({head.y:.2f}, {head.z:.2f})")
+
+
+def crouch_validate(arm, t, bats):
+    """The catcher's squat: flat feet on the dirt, the seat at the knees, a base wider than the shoulders, the glove out in
+    front at chest height and the bare hand not in front of the chest."""
+    glove, bare, chest = center("lHand"), center("rHand"), center("torsoMesh")
+    seat = arm.matrix_world @ arm.pose.bones["pelvis"].head
+    knee = max((arm.matrix_world @ arm.pose.bones[s + "Shin"].head).z for s in "lr")
+    ls, rs = center("lShoe"), center("rShoe")
+    if seat.z > knee + 0.15:
+        raise RuntimeError(f"crouch: the seat ({seat.z:.2f}) is not down at the knees ({knee:.2f})")
+    if abs(ls.x - rs.x) < _width(arm, "lUpper", "rUpper"):
+        raise RuntimeError(f"crouch: the base ({abs(ls.x - rs.x):.2f}) is narrower than the shoulders")
+    if glove.y > chest.y - 0.8 or abs(glove.z - chest.z) > 0.5:
+        raise RuntimeError(f"crouch: the glove ({glove.y:.2f}, {glove.z:.2f}) is not a target out in front of the chest ({chest.y:.2f}, {chest.z:.2f})")
+    if bare.y < chest.y - 0.3:
+        raise RuntimeError(f"crouch: the bare hand ({bare.y:.2f}) is out in front of the chest ({chest.y:.2f})")
+
+
+def steal_lead_validate(arm, t, bats):
+    """The lead: a base wider than the shoulders, the seat down from standing, the hands loose in front and in close."""
+    glove, bare, chest = center("lHand"), center("rHand"), center("torsoMesh")
+    seat = arm.matrix_world @ arm.pose.bones["pelvis"].head
+    ls, rs = center("lShoe"), center("rShoe")
+    shoulders = _width(arm, "lUpper", "rUpper")
+    if abs(ls.x - rs.x) < 1.2 * shoulders:
+        raise RuntimeError(f"stealLead: the base ({abs(ls.x - rs.x):.2f}) is not wider than the shoulders ({shoulders:.2f})")
+    if seat.z > STAND_SEAT_Z - 0.2:
+        raise RuntimeError(f"stealLead: the seat ({seat.z:.2f}) is not down from standing ({STAND_SEAT_Z})")
+    for hand in (glove, bare):
+        if hand.y > chest.y - 0.2 or hand.z > chest.z:
+            raise RuntimeError(f"stealLead: a hand ({hand.y:.2f}, {hand.z:.2f}) is not loose in front below the chest")
+    if abs(glove.x - bare.x) > shoulders + 0.4:
+        raise RuntimeError(f"stealLead: the hands ({abs(glove.x - bare.x):.2f}) are flung out, not in close")
+
+
+def spin_validate(arm, t, bats):
+    """The fumbler's stun throws both arms out: the hands far wider than the shoulders and up at the chest or higher."""
+    glove, bare, chest = center("lHand"), center("rHand"), center("torsoMesh")
+    if abs(glove.x - bare.x) < 3 * _width(arm, "lUpper", "rUpper") or min(glove.z, bare.z) < chest.z:
+        raise RuntimeError(f"spin: the arms are not thrown out ({abs(glove.x - bare.x):.2f} wide, low {min(glove.z, bare.z):.2f})")
+
+
+# The standing seat height (rest pose pelvis), for the lead's drop.
+STAND_SEAT_Z = 1.60
 
 
 def at_key(t, key):
@@ -1476,10 +1563,11 @@ def all_takes(style: str | None = None):
              sheet_times=[0.0, float(LET_GO["returnAt"]) * 0.5, float(LET_GO["returnAt"]), float(LET_GO["duration"]) * 0.8]),
         Take("miss", None, view="three-quarter-right", duration=HOLD, handed=True, custom=miss_frame, sheet_times=[0.0], sink=0.2),
         Take("catch", CATCH, duration=HOLD, validate=catch_validate, contracts=("catch",)),
-        Take("dive", DIVE, duration=HOLD, sink=1.0),
-        Take("crouch", CROUCH, duration=HOLD, sink=0.8),
-        Take("stealLead", STEAL_LEAD, duration=HOLD, sink=0.8),
-        Take("spin", SPIN, duration=HOLD),
+        Take("dive", None, duration=HOLD, sink=1.0, custom=dive_frame, validate=dive_validate, contracts=("dive",),
+             sheet_times=[0.0, HOLD]),
+        Take("crouch", CROUCH, duration=HOLD, sink=0.8, ground=True, validate=crouch_validate, contracts=("crouch",)),
+        Take("stealLead", STEAL_LEAD, duration=HOLD, sink=0.8, ground=True, validate=steal_lead_validate, contracts=("lead",)),
+        Take("spin", SPIN, duration=HOLD, validate=spin_validate, contracts=("spin",)),
         Take("scoop", SCOOP, duration=0.50, mark=0.22, sink=0.9, ground=True, validate=scoop_validate, contracts=("scoop",)),
         Take("slide", SLIDE, duration=0.40, mark=0.18, sink=1.2),
     ]
