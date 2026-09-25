@@ -67,7 +67,7 @@ public sealed class HazardActorsTests
     }
 
     /// <summary>
-    /// FR-04: the view picks the dress by the park's slots and each hazard's toy by its row — the five per-park methods and
+    /// FR-04: a park the Harbor kit does not draw is the greybox, and each hazard's toy is picked by its row — the five per-park methods and
     /// the type-string switch are gone, no park id or hazard type string is compared, and Rooftop's two AC units that were
     /// never in its data are gone with them.
     /// </summary>
@@ -75,13 +75,15 @@ public sealed class HazardActorsTests
     public void FR04_TheDressAndTheToysArePickedByDataNotByAParkIdOrATypeString()
     {
         var view = View();
-        foreach (var retired in new[] { "void CrystalGarden(", "void FunfairGrounds(", "void RooftopDeck(", "void CanopyGrounds(", "void EmberCourtyard(", "void FunfairNightHook(", "void Stands(bool" })
+        foreach (var retired in new[] { "void CrystalGarden(", "void FunfairGrounds(", "void RooftopDeck(", "void CanopyGrounds(", "void EmberCourtyard(", "void FunfairNightHook(", "void Stands(bool",
+                     // FD-16-R2 (#1045): the named dress builders went too; a non-Harbor park is the greybox.
+                     "void DressBy(", "void FerrisWheel(", "void KeepCastle(", "void RoyalPalace(", "void RooftopSkyline(", "void CircusTents(" })
             Assert.DoesNotContain(retired, view);
         Assert.DoesNotContain("park.Id ==", view);
         Assert.DoesNotContain("new Hazard(", view);
         Assert.DoesNotMatch(new Regex(@"case\s+""", RegexOptions.None), view);
         Assert.DoesNotContain("HazardType.", view);
-        Assert.Contains("if (!placed) Dress(kitRow, park);", view);
+        Assert.Contains("if (!placed) Dress();", view);
         Assert.Contains("Ring(h, (float)HazardActors.PlayDiscFt(h.Radius, row, _night), Look.Of(ring));", view);
         foreach (var toy in HazardActors.Builders)
         {
