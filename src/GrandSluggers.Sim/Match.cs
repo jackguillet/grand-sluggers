@@ -1162,7 +1162,7 @@ public sealed partial class Match
         var bat = OffenseBat;
         var input = new AtBatInput(
             Pitcher, Batter, OnDeck, RunnersOn().ToList(),
-            ChargeFeel.IsCharge(pitch.Charge01), Rules.Pitching.Families.Of(pitch.Type).OffSpeed,
+            ChargeFeel.IsCharge(pitch.Charge01, Rules), Rules.Pitching.Families.Of(pitch.Type).OffSpeed,
             swing.TimingErrorFrames, pitch.Star, swing.Star, bat,
             PitcherStamina,
             swing.SprayAimDeg, inZone, swing.Bunt, swing.LaunchAim,
@@ -1897,7 +1897,7 @@ public sealed partial class Match
     {
         var st = Rules.Pitching.Stamina;
         var cost = st.PitchCost
-                   + (ChargeFeel.IsCharge(pitch.Charge01) ? st.ChargeCost : 0)
+                   + (ChargeFeel.IsCharge(pitch.Charge01, Rules) ? st.ChargeCost : 0)
                    + Rules.Pitching.Families.Of(pitch.Type).StaminaCost
                    + (pitch.BreakX != 0 ? st.BreakCost : 0)
                    + (pitch.Star ? StarSkills.StaminaCost(Pitcher.StarPitch, Content.StarSkills) : 0);

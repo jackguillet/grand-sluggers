@@ -229,7 +229,7 @@ public sealed class PitchFamilyGoldenTests
         /// and this is what the refactor has to keep agreeing with.
         /// </summary>
         public bool Damped(RulesTable r) =>
-            ChargeFeel.IsCharge(Delivery.Charge01) || r.Pitching.Families.Of(Delivery.Type).BreakDamped;
+            ChargeFeel.IsCharge(Delivery.Charge01, r) || r.Pitching.Families.Of(Delivery.Type).BreakDamped;
 
         public string Store(RulesTable r)
         {

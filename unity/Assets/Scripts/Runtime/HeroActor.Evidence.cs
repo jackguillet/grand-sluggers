@@ -312,10 +312,10 @@ namespace GrandSluggers.UnityClient
             var rootHandleRadius = ModelRadiusInRoot((float)SwingPresentation.ModelHandleRadius);
             var rootBarrelRadius = ModelRadiusInRoot((float)SwingPresentation.ModelBarrelRadius);
             // The held load is the charge take's windup; a committed swing is the slap or the charge take (#613).
-            var take = _verb == Motion.Verb.ChargeSwing ? SwingTake.Charge : SwingPresentation.TakeFor(_charge);
+            var take = _verb == Motion.Verb.ChargeSwing ? SwingTake.Charge : SwingPresentation.TakeFor(_charge, _rules);
             var sampleT = _verb == Motion.Verb.ChargeSwing
                 ? SwingPresentation.HeldLoadAt(_charge)
-                : System.Math.Clamp(AtBatMotion.SwingClipTime(_poseT, _charge, _swingContactSec), 0, Motion.SwingFinish);
+                : System.Math.Clamp(AtBatMotion.SwingClipTime(_poseT, _charge, _rules, _swingContactSec), 0, Motion.SwingFinish);
             var key = SwingPresentation.At(sampleT, _batsLeft ? Hand.L : Hand.R, take);
             var local = new Vector3(
                 (float)key.BarrelDirection.X,

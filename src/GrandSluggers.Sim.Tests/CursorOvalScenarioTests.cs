@@ -29,7 +29,7 @@ public sealed class CursorOvalScenarioTests
     Park Harbor => _content.Parks[ExhibitionPick.DefaultPark];
 
     /// <summary>Quick (0 and just under the charge line) and charged (on the line, and MAX).</summary>
-    static readonly double[] Charges = [0, ChargeFeel.ChargeAt - 0.01, ChargeFeel.ChargeAt, 1];
+    static readonly double[] Charges = [0, Shipped.Content.Rules.Match.Charge.ChargeAt - 0.01, Shipped.Content.Rules.Match.Charge.ChargeAt, 1];
 
     static readonly Hand[] Hands = [Hand.R, Hand.L];
 
@@ -116,7 +116,7 @@ public sealed class CursorOvalScenarioTests
             var hitter = Hitter(contact, bats);
             var quick = SweetSpot.Oval(hitter, bat, 0, 0.2, R);
             var charged = SweetSpot.Oval(hitter, bat, 1, 0.2, R);
-            var justUnder = SweetSpot.Oval(hitter, bat, ChargeFeel.ChargeAt - 0.01, 0.2, R);
+            var justUnder = SweetSpot.Oval(hitter, bat, Shipped.Content.Rules.Match.Charge.ChargeAt - 0.01, 0.2, R);
             var slap = SweetSpot.ContactScale(Math.Clamp(contact + (bat?.ContactMod ?? 0), 1, 10), R);
 
             // Under the charge line a load is still a slap's barrel.
@@ -183,7 +183,7 @@ public sealed class CursorOvalScenarioTests
             {
                 var hitter = Hitter(contact, bats);
                 var oval = SweetSpot.Oval(hitter, null, charge, -0.3, R);
-                var scale = Math.Max(0.5, 1 + (contact - 5) * c.ScalePerContact) * (charge >= ChargeFeel.ChargeAt ? c.ChargeMul : 1);
+                var scale = Math.Max(0.5, 1 + (contact - 5) * c.ScalePerContact) * (charge >= Shipped.Content.Rules.Match.Charge.ChargeAt ? c.ChargeMul : 1);
                 Assert.Equal(scale, oval.BarrelScale);
                 Assert.Equal(c.NiceTipFt * scale, oval.TipHalfFt);
                 Assert.Equal(c.NiceHandleFt * scale, oval.HandleHalfFt);
@@ -228,7 +228,7 @@ public sealed class CursorOvalScenarioTests
             state = step.Next;
             if (!release)
                 loaded = ChargeFeel.Effective01(state.Fill01, state.SecondsPastFull,
-                    feel.ChargeMaxHoldSeconds, feel.ChargeOverchargeDecay);
+                    feel.ChargeMaxHoldSeconds, feel.ChargeOverchargeDecay, R);
             else
                 commit = step;
 
@@ -237,7 +237,7 @@ public sealed class CursorOvalScenarioTests
             Assert.True(walking.WalkBatter(HomeSet.BoxWalkStep(stick, dt)));
             Assert.Equal(walking.BatterOffsetX, loading.BatterOffsetX);
         }
-        Assert.True(ChargeFeel.IsCharge(loaded), "the load reached the charge line before the release");
+        Assert.True(ChargeFeel.IsCharge(loaded, R), "the load reached the charge line before the release");
         Assert.True(commit.Committed);
 
         // Full speed, and nothing lost to the load: the walk is stick × dt × rate every frame.

@@ -21,7 +21,7 @@ public sealed class PlateChemistryScenarioTests
     RulesTable R => _content.Rules;
     Park Harbor => _content.Parks[ExhibitionPick.DefaultPark];
 
-    static readonly double[] Charges = [0, ChargeFeel.ChargeAt - 0.01, ChargeFeel.ChargeAt, 1];
+    static readonly double[] Charges = [0, Shipped.Content.Rules.Match.Charge.ChargeAt - 0.01, Shipped.Content.Rules.Match.Charge.ChargeAt, 1];
 
     // ---------------------------------------------------------------------------------
     // S-144  Good-chemistry runners on base change neither the barrel nor the exit

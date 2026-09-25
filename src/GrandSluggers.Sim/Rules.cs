@@ -258,6 +258,7 @@ public static class RulesValidation
         Walk(table.Stars, RulesTable.PathFor(root, "stars"), "stars", errors);
         Walk(table.Cpu, RulesTable.PathFor(root, "cpu"), "cpu", errors);
         Walk(table.BodyClasses, RulesTable.PathFor(root, "body-classes"), "body-classes", errors);
+        table.Match.Charge.Validate(RulesTable.PathFor(root, "match"), errors);
         table.BodyClasses.Validate(RulesTable.PathFor(root, "body-classes"), errors);
         table.Cpu.Validate(RulesTable.PathFor(root, "cpu"), errors);
         table.Stars.Validate(RulesTable.PathFor(root, "stars"), errors);
@@ -440,6 +441,28 @@ public sealed record MatchRules
     /// <summary>The visitors' glove.</summary>
     public string AwayGlove { get; init; } = "";
     public MercyRules Mercy { get; init; } = new();
+    /// <summary>The charge line both buttons share (§4.1, §5.1): where a tap ends and where a charge begins.</summary>
+    public ChargeRules Charge { get; init; } = new();
+}
+
+/// <summary>
+/// The charge line (§4.1, §5.1), on the effective charge (after overcharge decay), 0–1. Below <see cref="SlapBelow"/> a
+/// release is a tap, and a decayed overcharge never falls under it; at or above <see cref="ChargeAt"/> it is a charge:
+/// the charged pitch and its stamina cost, the narrowed barrel and the charge take, the CPU batter's fooled read.
+/// </summary>
+public sealed record ChargeRules
+{
+    [Chance] public double SlapBelow { get; init; }
+    [Chance] public double ChargeAt { get; init; }
+
+    /// <summary>A tap and a charge are both reachable: 0 &lt; slapBelow &lt; chargeAt ≤ 1.</summary>
+    public void Validate(string source, List<string> errors)
+    {
+        if (SlapBelow <= 0)
+            errors.Add($"{source}: match.charge.slapBelow must be above 0; got {SlapBelow}");
+        if (SlapBelow >= ChargeAt)
+            errors.Add($"{source}: match.charge.slapBelow must be below match.charge.chargeAt; got {SlapBelow} >= {ChargeAt}");
+    }
 }
 
 /// <summary>Mercy (§1): on by default; a lead of <see cref="Runs"/> at the end of an inning from <see cref="FromInning"/> ends the game; off below <see cref="MinScheduledInnings"/> innings.</summary>

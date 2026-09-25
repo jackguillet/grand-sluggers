@@ -432,7 +432,7 @@ namespace GrandSluggers.EditorTools
             yield return null;
             var pitch = play._pitch;
             var expected = ArtBinder.LoadClip(Motion.ClipFile(Motion.Verb.ThrowPitch,
-                match.Pitcher.Bats, hand, pitch.Charge01));
+                match.Pitcher.Bats, hand, pitch.Charge01, match.Rules));
             var clipCorrect = ((ClipPlayer)hero._player).Current == expected;
             var released = false;
             var releasedAt = 0f;
@@ -551,7 +551,7 @@ namespace GrandSluggers.EditorTools
             Tick(play, play.TickSet, State(), State());
             var pitch = play._pitch;
             Require(Phase(play) == "Flight" && pitch != null, "South release did not launch pitch.");
-            Require(ChargeFeel.IsSlap(pitch.Charge01), "Quick release was not a normal pitch.");
+            Require(ChargeFeel.IsSlap(pitch.Charge01, play._match.Rules), "Quick release was not a normal pitch.");
             return new GateCase { name = "normal-tap-release", phase = Phase(play), charge = pitch.Charge01 };
         }
 

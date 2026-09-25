@@ -183,7 +183,7 @@ public class PitchJudgmentTests
         for (var i = 0; i < 5000; i++)
         {
             var pitch = match.CpuPitcher.Pitch();
-            var type = pitch.Type == PitchFamily.Changeup ? "changeup" : pitch.BreakX != 0 ? "break" : ChargeFeel.IsCharge(pitch.Charge01) ? "charge" : "fastball";
+            var type = pitch.Type == PitchFamily.Changeup ? "changeup" : pitch.BreakX != 0 ? "break" : ChargeFeel.IsCharge(pitch.Charge01, match.Rules) ? "charge" : "fastball";
             seen[type] = seen.GetValueOrDefault(type) + 1;
             if (AtBatResolver.PitchInZone(pitch, match.Pitcher.Stats.Pitch, Rules.Default, match.Pitcher.StarPitch))
                 strikes[type] = strikes.GetValueOrDefault(type) + 1;

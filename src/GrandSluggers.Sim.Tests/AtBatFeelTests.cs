@@ -19,7 +19,7 @@ public class AtBatFeelTests
         var tapUp = ChargeButton.Advance(tapDown.Next, pressed: false, held: false, released: true,
             deltaSeconds: 1.0 / 60, secondsToFull: 0.45);
         Assert.True(tapUp.Committed);
-        Assert.True(ChargeFeel.IsSlap(tapUp.CommitFill01), $"tap fill {tapUp.CommitFill01}");
+        Assert.True(ChargeFeel.IsSlap(tapUp.CommitFill01, Shipped.Content.Rules), $"tap fill {tapUp.CommitFill01}");
         Assert.Equal(default, tapUp.Next);
 
         var held = default(ChargeButtonState);
@@ -35,7 +35,7 @@ public class AtBatFeelTests
             deltaSeconds: 1.0 / 60, secondsToFull: 0.45);
         Assert.True(maxUp.Committed);
         Assert.Equal(1, ChargeFeel.Effective01(maxUp.CommitFill01, maxUp.CommitSecondsPastFull,
-            maxHold: 0.5, decayPerSec: 0.8), 8);
+            maxHold: 0.5, decayPerSec: 0.8, Shipped.Content.Rules), 8);
     }
 
     [Fact]
@@ -48,8 +48,8 @@ public class AtBatFeelTests
             deltaSeconds: 1.0 / 60, secondsToFull: 0.45);
         Assert.True(released.Committed);
         var effective = ChargeFeel.Effective01(released.CommitFill01, released.CommitSecondsPastFull,
-            maxHold: 0.5, decayPerSec: 0.8);
-        Assert.InRange(effective, ChargeFeel.SlapBelow, 0.99);
+            maxHold: 0.5, decayPerSec: 0.8, Shipped.Content.Rules);
+        Assert.InRange(effective, Shipped.Content.Rules.Match.Charge.SlapBelow, 0.99);
     }
 
     [Fact]
@@ -161,16 +161,16 @@ public class AtBatFeelTests
         Assert.Equal(SwingPresentation.LoadAt, SwingPresentation.HeldLoadAt(1), 8);
         foreach (var charge in new[] { 0.0, 0.5, 1.0 })
         {
-            var previous = AtBatMotion.SwingClipTime(0, charge);
-            Assert.Equal(SwingPresentation.CommittedLoadAt(charge), previous, 8);
+            var previous = AtBatMotion.SwingClipTime(0, charge, Shipped.Content.Rules);
+            Assert.Equal(SwingPresentation.CommittedLoadAt(charge, Shipped.Content.Rules), previous, 8);
             for (var poseT = 0.01; poseT <= Motion.SwingContact; poseT += 0.01)
             {
-                var sampleT = AtBatMotion.SwingClipTime(poseT, charge);
+                var sampleT = AtBatMotion.SwingClipTime(poseT, charge, Shipped.Content.Rules);
                 Assert.True(sampleT >= previous, $"charge {charge} went backward at {poseT}: {sampleT} < {previous}");
                 previous = sampleT;
             }
             Assert.Equal(Motion.SwingContact,
-                AtBatMotion.SwingClipTime(Motion.SwingContact, charge), 8);
+                AtBatMotion.SwingClipTime(Motion.SwingContact, charge, Shipped.Content.Rules), 8);
         }
     }
 
@@ -275,8 +275,8 @@ public class AtBatFeelTests
         var feel = _content.Feel;
         Assert.True(feel.ChargeMaxHoldSeconds > 0);
         Assert.True(feel.ChargeOverchargeDecay > 0);
-        var max = ChargeFeel.Effective01(1, 0, feel.ChargeMaxHoldSeconds, feel.ChargeOverchargeDecay);
-        var late = ChargeFeel.Effective01(1, feel.ChargeMaxHoldSeconds + 0.6, feel.ChargeMaxHoldSeconds, feel.ChargeOverchargeDecay);
+        var max = ChargeFeel.Effective01(1, 0, feel.ChargeMaxHoldSeconds, feel.ChargeOverchargeDecay, Shipped.Content.Rules);
+        var late = ChargeFeel.Effective01(1, feel.ChargeMaxHoldSeconds + 0.6, feel.ChargeMaxHoldSeconds, feel.ChargeOverchargeDecay, Shipped.Content.Rules);
         Assert.Equal(1, max);
         Assert.True(late < max, $"overcharge {late} vs max {max}");
         Assert.True(ChargeFeel.AtMax(1, 0, feel.ChargeMaxHoldSeconds));

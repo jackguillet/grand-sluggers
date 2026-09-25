@@ -203,7 +203,7 @@ public sealed partial class TutorialSession
             ? EvaluateStarPitch(command, play, beforeStars, beforeCost, hadMeter)
             : Lesson.Objective == "star-unavailable"
             ? EvaluateStarUnavailable(command, play, beforeStars)
-            : TutorialPlateObjectives.Pitch(Lesson.Objective, _setup, command, play);
+            : TutorialPlateObjectives.Pitch(Lesson.Objective, _setup, command, play, Match.Rules);
         if (verdict is not null) Finish(verdict.Success, verdict.Code, verdict.Detail);
         return true;
     }
@@ -237,7 +237,7 @@ public sealed partial class TutorialSession
             ? EvaluateStarSwing(command, hit, beforeStars, beforeCost, hadMeter)
             : Lesson.Objective == "cancel-take"
             ? TutorialPlateObjectives.CancelTake(_plateCancelledLoad, command, play)
-            : TutorialPlateObjectives.Swing(Lesson.Objective, _setup, bats, command, hit, play);
+            : TutorialPlateObjectives.Swing(Lesson.Objective, _setup, bats, command, hit, play, Match.Rules);
         Finish(verdict.Success, verdict.Code, verdict.Detail);
         return true;
     }
