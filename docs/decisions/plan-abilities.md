@@ -1,6 +1,6 @@
 # Plan: every ability, re-evaluated as a whole
 
-Status: **planning. Nothing here is built.** AB-01, AB-02, AB-03, AB-06 and AB-12 are accepted. In the captain proposal Rio, Vale, Brondo and Fenn are accepted; Zig and Ashlord wait for a second look and Konga for a new proposal. Tracker: #1011 (rescoped from four Star Pitch proposals to the whole set, Jack, 2026-09-25). Folds in #1010 (Spin Check). Rules that stay in force: [plan-pitching-hitting.md](plan-pitching-hitting.md) PH-16 and its refinements, spec §12–§13, and principle 2 in [00-decisions](../spec/00-decisions.md).
+Status: **planning. Nothing here is built.** AB-01, AB-02, AB-03, AB-06 and AB-12 are accepted. Round 1 accepted the mechanics for Rio, Vale, Brondo and Fenn; round 2 (the captain matrix below) covers all ten captains, their themes and looks, and waits for Jack's review. Review page: https://claude.ai/artifact/2EyWdxgTiSXnN71r8nXHC4. Tracker: #1011 (rescoped from four Star Pitch proposals to the whole set, Jack, 2026-09-25). Folds in #1010 (Spin Check). Rules that stay in force: [plan-pitching-hitting.md](plan-pitching-hitting.md) PH-16 and its refinements, spec §12–§13, and principle 2 in [00-decisions](../spec/00-decisions.md).
 
 ## What Jack asked for
 
@@ -103,49 +103,115 @@ The recommendation is not the decision.
 | AB-10 | Role players | Generic low-tier specials | A keep the six generics · B faction-flavoured variants | A |
 | AB-11 | Tutorials | Lessons | A every changed ability updates its lesson in the same child (the tutorial rule) | A |
 | AB-12 | Field | Are field abilities per captain? | A distinct per captain · B one shared pool for captains and role players | **Accepted: B** (Jack, 2026-09-25): the pool starts with Snap Throw, Lick Catch, Laser and Clamber |
+| AB-13 | Look | Do the captains' themes and looks follow their abilities? | A yes: each captain gets a theme, look lines and a tell language that match the two Star abilities, and moves away from any look that reads as another game's character · B abilities only | A, in the matrix (direction for the art sessions; art waits for its gates) |
 
-## The proposal: every captain ability (AB-03 C)
+## The captain matrix (round 2)
 
-One sitting reviews the twenty Star Pitches and Star Swings; field abilities are the shared pool (AB-12). Each row names the effect, what decides it (geometry) and the counterplay. **Kept** means today's rule stands; **Changed** replaces it; **New** fills a placeholder. Every roll in the old rows is gone (AB-01); no Star Pitch touches the timing window or turns contact into a miss (PH-16-R1). Numbers are trial starting points, not decisions.
+Jack, 2026-09-25: be more creative, add the other three captains, and match each captain's theme and look to the abilities. Accepted rows keep their mechanic and take the new theme and name; ids stay. Numbers are trial starting points. The theme is a direction for the art sessions; art still waits for its gates.
 
-### Star Pitches
+| Captain | Theme | Star Pitch (family) | Star Swing (family) | Field | Tier |
+| --- | --- | --- | --- | --- | --- |
+| Rio Sparks | The harbor's fireworks kid | Skyrocket (Late rise) · Accepted | Sparkler (Bigger sweet spot) · Accepted | Laser | Top |
+| Queen Vale | The Aurora Rink's figure-skating champion | Charmball (Swelling sway) · Accepted | Spotlight (One fielder paused) · Accepted | Snap Throw | Mid |
+| Zig | The funfair chameleon | Loop-the-Loop (Path spectacle) · New | Spinning Top (Ball stalls on its hop) · New | Lick Catch | Mid |
+| Brondo | The rooftop hustler | Phonyball (Decoy switch) · Accepted | Double Deal (Decoy ball) · Accepted | Laser | Mid |
+| Konga | The canopy's storm drummer | Vine Swing (Pendulum arc) · New | Lightning Liner (Jagged flight) · New | Clamber | Top |
+| Ashlord | The forge warlord of the volcano | Anvil (Late drop) · New | Hot Iron (Hot ball on the glove) · New | Laser | Top |
+| Elder Fenn | The old sea turtle of the cove | Sea Mist (Payload on the runner) · Accepted | Driftwood Reach (Taller contact area) · Accepted | Snap Throw | Mid |
+| Sable | The desert coyote trickster | Mirage (Vanish mid-flight) · Changed | Quicksand (Terrain) · Changed | Snap Throw | Mid |
+| Hollis | The summit mountaineer | Belay (Speed hitch) · Changed | Summit Gust (Carry at the apex) · Changed | Clamber | Mid |
+| Reed | The marsh frog | Skipping Stone (Skips on the dirt) · Changed | Leapfrog (Hops over a glove) · Changed | Lick Catch | Mid |
 
-| Captain | Pitch | Effect | Counterplay | |
-| --- | --- | --- | --- | --- |
-| Rio | Heatball (top) | ×1.15 speed, and over the last third of the flight it **rises** up to 1 ft above its aimed crossing: a riser with a flame trail | The trail shows the rise; aim high and time the fast ball | Changed: the drop roll goes. **Accepted** |
-| Vale | Charmball (mid) | ×0.9 speed; the wobble **swells** to its widest at mid-flight, then settles onto the aimed crossing by 0.85 of the flight | Wait out the sway; the settled ball is the real read | Changed. **Accepted** |
-| Zig | Prismball (mid) | Late sideways break with ghost images | Read the break past the ghosts | Kept. **Second look** |
-| Brondo | Phonyball (mid) | Decoy: shows one side early, switches late | Read the switch | Kept (roll already gone). **Accepted** |
-| Konga | Caskball (top) | ×0.85 speed and the barrel **climbs** late (`caskballRise`); a ball put in play off it is heavy: its exit ×0.9 | Square it up; a Perfect still flies | Changed: the drop roll goes, the heavy exit replaces it. **Replaced: new options below** |
-| Ashlord | Skullball (top) | ×1.2 speed; a skull flashes at a fixed point late in the flight and the ball **drops** up to 1.5 ft below its aimed height by the plate (a guillotine) | The flash is the tell; read the drop, aim low | New. **Second look** |
-| Fenn | Fogball (mid) | ×0.82 speed; on contact a **fog disc** (12 ft) settles on home for 2 s and the batter-runner moves ×0.8 inside it | Hit it far enough that the extra step does not matter | New. **Accepted** |
-| Sable | Mirage Ball (mid) | A fading twin to the far half of the zone | Pick the real ball before the twin fades | Kept |
-| Hollis | Rockfall (mid) | Floats up to 2.2 ft and drops back onto its path | The crossing is the ordinary one | Kept |
-| Reed | Leapfrog (mid) | Crawls, then leaps to arrive on time | The arrival is the ordinary one | Kept |
+### Rio Sparks: the harbor's fireworks kid
 
-### Star Swings
+- **Look:** Red with gold spark trim; Fuse-cord laces on the fat sneakers; Soot smudges on the round cheeks; Bat throws a spark trail on a charge. Tell language: gold sparks, a rocket whistle, a pop.
+- **Original-IP distance:** Fireballs read as the plumber's; fireworks already belong to Harbor nights (the homer fireworks).
+- **Star Pitch: Skyrocket** (was Heatball), accepted. ×1.15 speed; over the last third it rises up to 1 ft above its aimed crossing. Tell: A spark tail and a rising whistle. Counterplay: Aim high and start early; the rise is always up.
+- **Star Swing: Sparkler** (was Heat swing), accepted. Exit ×1.15; the Perfect ring of the contact oval is ×1.5 (a sparkler ring while charged). Tell: A sparkler ring on the contact oval. Counterplay: Real contact is still needed; a miss is a miss.
+- **Field:** Laser (shared pool).
 
-| Captain | Swing | Effect | Counterplay | |
-| --- | --- | --- | --- | --- |
-| Rio | Heat swing (top) | Exit ×1.15 and a **bigger sweet spot**: the Perfect ring of the contact oval ×1.5 (PH-16-R2) | Real contact is still required; a miss is a miss | Changed: the burn patch and the burn-hop go. **Accepted** |
-| Vale | Heart swing (mid) | Exit ×1.05; the nearest fielder **pauses** 0.8 s | Other fielders back them up | Changed: the drop roll goes. **Accepted** |
-| Zig | Shell swing (mid) | Exit ×1.1 on the ground; the first hop **bites**: the ball keeps 30 % of its speed after it (a spinning shell) | Charge it; a fielder playing in wins | Changed: the warp roll goes. **Second look** |
-| Brondo | Phony swing (mid) | Exit ×1.1; one **decoy ball** flies beside the real one until the apex | Fielders read the real ball at the apex | Changed: the drop roll goes. **Accepted** |
-| Konga | Cask swing (top) | Exit ×1.2; the fielder who takes it is **knocked back** 0.4 s with the ball (a barrel's weight) | A cutoff or a second glove covers the delay | Changed: the decoy fragments and the warp roll go. **Replaced: new options below** |
-| Ashlord | Furnace (top) | Exit ×1.25; a **lava strip** on the warning track where it lands slows a fielder ×0.45 for 2 s | Play off the track; cut the ball off short | Kept (now the only terrain swing). **Second look** |
-| Fenn | Staff swing (mid) | Exit ×1.08 and a **taller contact area** (the staff reaches): the oval ×1.4 tall (PH-16-R2) | Real contact is still required; wide pitches still beat it | Changed: the warp roll goes. **Accepted** |
-| Sable | Sidewinder (mid) | The first hop kicks ≤ 20° away from the chaser | A ball caught before its hop never turns | Kept |
-| Hollis | Updraft (mid) | The fly rides the park's wind ×1.5 | Calm parks; play the wind | Kept |
-| Reed | Pond Skip (mid) | A chopper whose first hop springs ×2.2 | Glove it before it springs | Kept |
+### Queen Vale: the Aurora Rink's figure-skating champion
 
-### Konga: new options (the first proposal is withdrawn)
+- **Look:** Pink and ice blue skating jersey; Skate-blade cleats; An aurora ribbon sash that trails on every move; Ice tiara in place of the crown. Tell language: ribbon trails, crystal chimes, a rink spotlight.
+- **Original-IP distance:** A pink princess in a crown is the mushroom kingdom's; a skating champion with an ice tiara and aurora ribbons is the rink's own.
+- **Star Pitch: Charmball**, accepted. ×0.9 speed; the wobble swells to its widest at mid-flight, then settles onto the aimed crossing by 0.85 of the flight. Tell: The ribbon traces the sway. Counterplay: Wait out the sway; the settled ball is the real read.
+- **Star Swing: Spotlight** (was Heart swing), accepted. Exit ×1.05; the rink spotlight dazzles the nearest fielder, who pauses 0.8 s. Tell: A spotlight cone on that fielder. Counterplay: Other fielders back the dazzled one up.
+- **Field:** Snap Throw (shared pool).
 
-| Kind | Option | Effect | Counterplay |
-| --- | --- | --- | --- |
-| Pitch | Barrel Lob | A high rainbow arc that drops steeply through the zone on the ordinary time; its shadow marks the crossing on the plate | Read the shadow; the steep fall punishes a late read, not a good one |
-| Pitch | Heavy Barrel | A ball put in play off it staggers the batter-runner 0.5 s out of the box; a Perfect shrugs it off | Square it up |
-| Swing | Ground Pound | On contact the stomp roots every infielder for 0.3 s | Outfielders are untouched; a ball in the air loses the effect |
-| Swing | Rolling Barrel | A grounder that does not slow on the grass; it keeps its exit speed until a glove or the wall stops it | A body in front; the roll is straight and true, never a bad hop |
+### Zig: the funfair chameleon
+
+- **Look:** Turret eyes that swivel on their own (they replace the goggle discs); A curled tail; Skin cycles through the Carnival's rainbow bands; A ticket-stub bandolier. Tell language: colour cycling, a coaster clack, a calliope toot.
+- **Original-IP distance:** A small green tongue-catcher reads as the dinosaur sidekick; turret eyes, a curled tail and skin that cycles the fair's colours make a chameleon of the fair.
+- **Star Pitch: Loop-the-Loop** (was Prismball), new. Mid-flight the ball runs one full vertical loop, 4 ft across, like a coaster; then it goes on to its aimed crossing on the ordinary time. Tell: A coaster-track trail and a clack. Counterplay: The loop is always at the same point; time the exit, not the loop.
+- **Star Swing: Spinning Top** (was Shell swing), new. A grounder that lands and spins in place for 0.8 s, then rolls on at half speed; Zig's legs beat the late charge. Tell: The ball spins like a top and whistles. Counterplay: Charge at contact; the ball is standing still.
+- **Field:** Lick Catch (shared pool).
+
+### Brondo: the rooftop hustler
+
+- **Look:** Gold and charcoal pinstripe; Gold-rimmed shades and a toothpick; Rolled sleeves on the cube torso; A deck of cards in the back pocket. Tell language: shuffling cards, a coin flip.
+- **Original-IP distance:** A greedy yellow brute reads as the plumber's rival; a smooth card sharp with shades and a pinstripe vest does not.
+- **Star Pitch: Phonyball**, accepted. Shows one side early, switches late. Tell: A card flip at the switch. Counterplay: Read the switch.
+- **Star Swing: Double Deal** (was Phony swing), accepted. Exit ×1.1; one decoy ball flies beside the real one until the apex. Tell: The decoy is a card-back ball. Counterplay: Fielders read the real ball at the apex.
+- **Field:** Laser (shared pool).
+
+### Konga: the canopy's storm drummer
+
+- **Look:** Brown with moss green; A leaf crown; Vines wound on the long arms; Drum marks on the chest that glow on a swing; Barrel Bat becomes an ironwood log. Tell language: a thunder roll, falling leaves, a vine.
+- **Original-IP distance:** A big ape with barrels reads as the jungle king of the other game. The barrels go; vines, leaves and thunder stay.
+- **Star Pitch: Vine Swing** (was Caskball), new. The ball starts well outside the zone and swings in on one pendulum arc from a pivot above; it crosses on the aimed spot on the ordinary time. Tell: A vine drawn from the pivot to the ball. Counterplay: The vine shows the pivot; the arc is exact.
+- **Star Swing: Lightning Liner** (was Cask swing), new. Exit ×1.2 on a liner; the ball jags sideways twice, up to 3 ft each, and lands on the spot a straight line would. Tell: A bolt trail, then thunder. Counterplay: Play the landing, not the flight; a glove at the end of the line takes it.
+- **Field:** Clamber (shared pool).
+
+### Ashlord: the forge warlord of the volcano
+
+- **Look:** Black iron and ember purple, with glowing cracks; A forge helm with a chimney (the horns go); A leather apron with glowing rivets (the cape goes); Anvil-heavy boots; tongs on the back; Furnace Club stays. Tell language: an anvil clang, a glow that cools to iron.
+- **Original-IP distance:** A horned, spiked fire king reads as the turtle king. A blacksmith warlord with a forge helm, an apron and tongs keeps the menace and loses the resemblance.
+- **Star Pitch: Anvil** (was Skullball), new. ×1.2 speed, glowing; at 70 % of the flight it clangs and turns to cold iron, then drops up to 1.5 ft below its aimed height by the plate. Tell: The clang and the colour change. Counterplay: The clang comes first; aim low.
+- **Star Swing: Hot Iron** (was Furnace), new. Exit ×1.25; the ball stays molten for 2 s after contact. A glove that holds it more than 0.5 s in that time drops it at its feet. Tell: The ball glows and hisses until it cools. Counterplay: Throw it at once, or let it cool on a hop; a caught fly is still an out.
+- **Field:** Laser (shared pool).
+
+### Elder Fenn: the old sea turtle of the cove
+
+- **Look:** Sage shell with barnacles; the shell is the brim; Cream beard; Driftwood staff, slung; A fishing-net shawl. Tell language: sea mist, a conch hum.
+- **Original-IP distance:** A walking turtle with a spiked shell is the turtle king's army; a barnacled sea-turtle fisherman with a driftwood staff is the cove's own.
+- **Star Pitch: Sea Mist** (was Fogball), accepted. ×0.82 speed; on contact a 12 ft mist disc settles on home for 2 s and the batter-runner moves ×0.8 inside it. Tell: Mist rolls out of the ball on contact. Counterplay: Hit it far enough that the extra step does not matter.
+- **Star Swing: Driftwood Reach** (was Staff swing), accepted. Exit ×1.08; the contact oval is ×1.4 tall (the staff reaches). Tell: The oval stretches up and down. Counterplay: Real contact is still needed; wide pitches still beat it.
+- **Field:** Snap Throw (shared pool).
+
+### Sable: the desert coyote trickster
+
+- **Look:** Coyote ears; A rust-striped poncho and a sand scarf; Bone-bead wristbands; Heat shimmer rises off the shoulders at rest. Tell language: heat shimmer, a dry rattle.
+- **Original-IP distance:** A trickster coyote is folklore, not a game mascot. Keep the ears soft, not a cartoon road-runner chaser.
+- **Star Pitch: Mirage** (was Mirage Ball), changed. The ball vanishes into heat shimmer for the middle third of its flight; its shadow keeps crossing the dirt; it reappears for the last third. Tell: The shimmer and the shadow. Counterplay: Follow the shadow; the ball comes back where it points.
+- **Star Swing: Quicksand** (was Sidewinder), changed. A grounder's first landing opens an 8 ft sand swirl for 2 s; a fielder inside it moves ×0.5. Tell: The swirl spins on the grass. Counterplay: Go round it, or take the ball past it.
+- **Field:** Snap Throw (shared pool).
+
+### Hollis: the summit mountaineer
+
+- **Look:** Navy and white with signal-red straps; A climbing harness and a coiled rope; Snow goggles pushed up; Frost on the shoulders. Tell language: a rope creak, a gust, a snow flurry.
+- **Original-IP distance:** Original.
+- **Star Pitch: Belay** (was Rockfall), changed. At mid-flight the ball catches on a rope and hangs 0.15 s, then runs on to the plate, making up the time. Tell: The rope snaps taut. Counterplay: Time the second half, not the first.
+- **Star Swing: Summit Gust** (was Updraft), changed. At its apex the fly catches a mountain gust and carries 15 % farther along its own line, in any park and any wind. Tell: A snow flurry bursts at the apex. Counterplay: Outfielders back up when the flurry bursts; the new landing is shown by its shadow.
+- **Field:** Clamber (shared pool).
+
+### Reed: the marsh frog
+
+- **Look:** Green with lotus pink; Reed-woven wristbands; Webbed cleats; A throat pouch that puffs on every star action. Tell language: a croak, ripples, splash rings.
+- **Original-IP distance:** Original.
+- **Star Pitch: Skipping Stone** (was Leapfrog), changed. The pitch skips twice on the dirt in front of the plate, each skip lower, and pops up into the zone on its aimed crossing on the ordinary time. Tell: A splash ring at each skip. Counterplay: The second skip sets the height.
+- **Star Swing: Leapfrog** (was Pond Skip), changed. A liner that hops 5 ft over the first infielder's glove it reaches, then drops back to its line. Tell: A croak at the hop. Counterplay: An infielder playing back takes it after the hop; the outfield plays it clean.
+- **Field:** Lick Catch (shared pool).
+
+### Every row passes
+
+- **Timing window.** Every Star Pitch keeps the ordinary timing window; a path or speed change is the whole challenge.
+- **Contact is contact.** No pitch turns contact into a miss; no swing makes a miss into contact.
+- **Geometry decides.** No roll anywhere. A drop, a stall or a slow comes from a rule number and a position.
+- **Two seconds.** Every bend ends within 2 s of the pitch or the contact.
+- **Counterplay.** Every row names what beats it.
+- **Fair to the CPU.** An effect that hides or fakes the ball (Mirage, Phonyball, Double Deal) costs a CPU the same read it costs a player.
+- **Distinct.** No two captains share a family; role players keep the generic specials.
+- **Ids stay.** Content ids stay stable; a new name is a display name.
 
 ### Field abilities: one shared pool (AB-12)
 
@@ -168,4 +234,5 @@ The pool starts with these four. The rest (Grow, Withdraw, Spin Check, Sand Scoo
 | AB-C1 … C10 | Gameplay | One per captain: Star Pitch and Star Swing as accepted, data rows, scenario rows, the lesson |
 | AB-C13 | Gameplay | The field pool: every character carries one of the four; the others leave the roster data, their lessons and scenario rows |
 | AB-C11 | Presentation | Tells for every new effect: VFX slots first, then the book pages |
+| AB-C14 | Art | One child per captain for the new theme: catalog slots and extras first, then stills; each waits for the gates `docs/decisions/plan-world.md` names |
 | AB-C12 | Balance | Only when Jack starts it: prices and tiers against play |
