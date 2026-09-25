@@ -26,7 +26,11 @@ public sealed partial class Match
     /// the live ball, the trace, the presentation — reads this one, so no seat can play a hazard the
     /// others do not, and nothing reads a night block but the resolution.
     /// </summary>
-    public Park Park { get; }
+    /// <summary>
+    /// The park as played (FD-11, FD-10): the night block and the hazards switch resolved. At a park with a wind schedule its
+    /// <see cref="Park.WindMph"/> and <see cref="Park.WindDeg"/> turn before each inning's first pitch (<see cref="TurnWind"/>).
+    /// </summary>
+    public Park Park { get; private set; }
     public bool Night { get; }
     /// <summary>
     /// Park hazards on (the default) or off (FD-10, §14, SF-24). Off removes the instances whose
@@ -145,6 +149,7 @@ public sealed partial class Match
         Innings = innings;
         Seed = seed;
         _streams = new MatchStreams(seed);
+        TurnWind();
         // Both resolvers play on the match's resolved table (§0.3, FD-03, FR-01), never the catalog's
         // global one: the at-bat's own flight and the fielding preview are the first ball of a play, so a
         // park that names its air has to reach them the same way it reaches the live ball's continuation.
@@ -1736,6 +1741,18 @@ public sealed partial class Match
         }
         Inning++;
         Top = true;
+        TurnWind();
+    }
+
+    /// <summary>
+    /// A park's wind schedule (§6.1): the inning's wind, drawn before its first pitch from the match's own wind stream. At a park
+    /// without one nothing is drawn and the park's fixed wind stands, bit for bit.
+    /// </summary>
+    void TurnWind()
+    {
+        if (Park.Environment?.WindSchedule is not { } schedule) return;
+        var (mph, deg) = schedule.Turn(_streams.Wind.NextDouble(), _streams.Wind.NextDouble(), Night);
+        Park = Park with { WindMph = mph, WindDeg = deg };
     }
 
     /// <summary>Mercy (§1): the side that just batted trails by the table's runs, from its first inning on, in a game long enough.</summary>

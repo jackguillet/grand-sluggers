@@ -79,7 +79,8 @@ The park file is `crystal-rink` (its id); the name a player reads is Aurora Rink
 
 - Faction: Peak Guard (Hollis). Region: the high peaks.
 - Surface: grass. Air: thin (`dragMul` 0.9), flies carry, so the fences stand deep (240 / 296 / 240).
-- Gimmick: mountain gusts that turn the wind each inning (a later environment rule; not built). Night: stronger gusts.
+- Gimmick: **mountain gusts** (`environment.windSchedule`): before each inning the wind turns to a seeded bearing and 3–14 mph; the card names it and the line under the scorebug reads the inning's wind.
+- Night: stronger gusts (×1.4).
 
 ## Haunt Manor
 

@@ -377,7 +377,9 @@ public static partial class BroadcastHud
         string AwayName,
         string HomeName,
         IReadOnlyList<RunnerPip> Runners,
-        bool StarsEnabled);
+        bool StarsEnabled,
+        /// <summary>The inning's wind under the bug at a park whose wind turns each inning (§6.1); empty everywhere else.</summary>
+        string Wind = "");
 
     /// <summary>
     /// One live runner on the mini diamond (spec §15, #606): who, the bag they started this play on (0 is the
@@ -427,7 +429,8 @@ public static partial class BroadcastHud
             match.Away.Name,
             match.Home.Name,
             RunnerPips(match),
-            match.StarsEnabled);
+            match.StarsEnabled,
+            match.Park.Environment?.WindSchedule is null ? "" : Front.CarnivalFront.WindLine(match.Park).TrimEnd('.').ToUpperInvariant());
     }
 
     /// <summary>Booklet Game Rules spread. Copy a stranger can read without F2.</summary>

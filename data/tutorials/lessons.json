@@ -3303,6 +3303,31 @@
       "tests": [
         "HazardLessonTests"
       ]
+    },
+    {
+      "id": "T-H11",
+      "revision": 1,
+      "mechanics": [
+        "fields.wind-schedule"
+      ],
+      "title": "read the gusts",
+      "category": "fielding",
+      "status": "planned",
+      "issue": 1133,
+      "reason": "Needs a fly fixture at Summit Park under a turned wind, read off the bug's wind line before the pitch; the wind is drawn per inning, so the lesson pins a seed",
+      "profiles": [
+        "shipped"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-H01",
+      "objective": "manual-ground-possession",
+      "controls": [
+        "control:fielding/Take the glove"
+      ],
+      "tests": [
+        "HazardLessonTests"
+      ]
     }
   ],
   "setups": [
