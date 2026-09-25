@@ -72,7 +72,8 @@ The park file is `crystal-rink` (its id); the name a player reads is Aurora Rink
 
 - Faction: Dune Nomads (Sable). Region: the desert canyon.
 - Surface: hard-pan (the dirt row). Tall 14-ft canyon-rock walls. Air: hot and dry (`dragMul` 0.97), flies carry a little.
-- Gimmick: dust devils, a drifting redirect of a ball in flight (a later pattern; not built). Night: clear air, no dust devils.
+- Gimmick: **dust devils**, two drifting discs (`dust_devil`, pattern `drift`) that wander the outfield on a seeded path; a fly through one is pushed 10 ft sideways. A grounder and the fielders are untouched.
+- Night: clear air, no dust devils (the night block's `without`).
 
 ## Summit Park
 

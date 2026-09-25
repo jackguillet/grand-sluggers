@@ -55,10 +55,12 @@ public sealed class HazardPlacementTests
         var measured = 0;
         foreach (var id in Game.ParkPickOrder)
         {
-            var park = PlayedPark.Of(Game.Parks[id], night: true, hazards: true, Game.Rules.Hazards);
-            for (var i = 0; i < park.Hazards.Count; i++)
+            // Every instance the park stands, day or night: the day's (a type night clears included) and the night block's.
+            var authored = Game.Parks[id];
+            var all = authored.Hazards.Concat(authored.Night?.Hazards ?? []).ToList();
+            for (var i = 0; i < all.Count; i++)
             {
-                var h = park.Hazards[i];
+                var h = all[i];
                 foreach (var disc in new[] { h.Radius, ParkHazards.NightDiscFt(h.Radius, Game.Rules.Hazards.Of(h.Type)) })
                 {
                     var crossings = HazardPlacement.Crossings(h.X, h.Z, disc, Game.Rules.Infield);
@@ -71,7 +73,7 @@ public sealed class HazardPlacementTests
             }
         }
         // Every hazard of every park was measured, not just the ones FD-19-R1 moved (the marsh's three lily pads too).
-        Assert.Equal(31, measured);
+        Assert.Equal(33, measured);
 
         // Finding 31, measured: the breath at its night disc.
         var breath = Game.Parks[ParkId.Ember].Hazards.Single(h => h.Type == HazardType.FireBreath);

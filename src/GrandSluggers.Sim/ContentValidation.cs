@@ -596,7 +596,8 @@ public static class ContentDataValidator
         ValidateParkFoulAndStarts(row.Source, p, fence, errors);
         for (var i = 0; i < (p.Hazards?.Count ?? 0); i++)
             ValidateHazard(row.Source, $"park '{p.Id}' hazard[{i}]", p.Hazards![i], hazards, infield, nightOnly: false, errors);
-        ValidateParkNight(row.Source, p.Id, p.Night, hazards, infield, errors);
+        ValidateParkNight(row.Source, p.Id, p.Night, hazards, infield, errors,
+            new HashSet<string>((p.Hazards ?? []).Where(h => h is not null).Select(h => h!.Type), StringComparer.Ordinal));
     }
 
     /// <summary>
@@ -658,17 +659,22 @@ public static class ContentDataValidator
     /// nothing is refused as well: it changes nothing, and a dead block is how a misspelled one would read.
     /// </summary>
     static void ValidateParkNight(
-        string source, string id, ParkNightDto? night, HazardRules hazards, InfieldRules infield, List<string> errors)
+        string source, string id, ParkNightDto? night, HazardRules hazards, InfieldRules infield, List<string> errors,
+        HashSet<string> dayTypes)
     {
         if (night is null) return;
-        if ((night.Hazards?.Count ?? 0) == 0)
+        if ((night.Hazards?.Count ?? 0) == 0 && (night.Without?.Count ?? 0) == 0)
         {
             errors.Add($"{source}: park '{id}' night names nothing; a night block carries the park's night-only "
-                + "hazards (FD-11) — remove the empty block");
+                + "hazards or the day types night clears (FD-11) — remove the empty block");
             return;
         }
-        for (var i = 0; i < night.Hazards!.Count; i++)
-            ValidateHazard(source, $"park '{id}' night.hazards[{i}]", night.Hazards[i], hazards, infield, nightOnly: true, errors);
+        for (var i = 0; i < (night.Hazards?.Count ?? 0); i++)
+            ValidateHazard(source, $"park '{id}' night.hazards[{i}]", night.Hazards![i], hazards, infield, nightOnly: true, errors);
+        // A cleared type must be one the day stands: clearing nothing is a dead rule, the way a misspelling would read.
+        foreach (var type in night.Without ?? [])
+            if (!dayTypes.Contains(type))
+                errors.Add($"{source}: park '{id}' night.without names '{type}', which is not one of the park's day hazard types");
     }
 
     /// <summary>
@@ -691,6 +697,8 @@ public static class ContentDataValidator
         if (!double.IsFinite(h.X) || !double.IsFinite(h.Z) || !double.IsFinite(h.Radius) || h.Radius < 0) return;
         var atNight = ParkHazards.NightDiscFt(h.Radius, row);
         var disc = nightOnly ? atNight : Math.Max(h.Radius, atNight);
+        // A drift wanders: every point of its path stays off the lanes, so its disc is measured with its whole travel.
+        if (row.Pattern == HazardPattern.Drift) disc += row.TravelFt ?? 0;
         var crossings = HazardPlacement.Crossings(h.X, h.Z, disc, infield);
         if (crossings.Count == 0) return;
         var what = string.Join(", ", crossings.Select(c =>
@@ -1348,7 +1356,7 @@ internal sealed class ParkDto
 /// look fields — the view outside the stadium, F6-c's — and defines none. Inside the strict park read, so
 /// any other key (a rule, a number, a misspelling) is refused by name, with the reason.
 /// </summary>
-[OnlyKeys("night keeps the stadium lights, so a night block names the park's night-only hazards (and, once "
+[OnlyKeys("night keeps the stadium lights, so a night block names the park's night-only hazards, the day hazard types the night clears (and, once "
     + "F6-c defines them, the view outside the stadium) and never a rule of the at-bat, the flight, the ground "
     + "or the bodies (FD-11-R2)")]
 internal sealed class ParkNightDto
@@ -1356,8 +1364,11 @@ internal sealed class ParkNightDto
     /// <summary>The night-only instances, each validated like a day instance and each a hazard the switch removes.</summary>
     public List<HazardDto?>? Hazards { get; set; }
 
+    /// <summary>The day's hazard types the night clears (the dust devils: clear night air). Each must be a type the day authors.</summary>
+    public List<string>? Without { get; set; }
+
     /// <summary>Only after <see cref="ContentDataValidator"/> has accepted the block, which is when a catalog is built.</summary>
-    public ParkNight ToNight() => new(ParkDto.ToHazards(Hazards));
+    public ParkNight ToNight() => new(ParkDto.ToHazards(Hazards), Without is { Count: > 0 } w ? w.ToArray() : null);
 }
 
 /// <summary>

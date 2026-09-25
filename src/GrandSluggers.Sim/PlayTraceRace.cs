@@ -47,7 +47,9 @@ public enum PlayTraceMarkKind
     /// <summary>The ball caromed off a solid body or mover (F4-f): <see cref="PlayTraceMark.Hazard"/> is the body, at the rim point.</summary>
     BodyCarom,
     /// <summary>A surge band's wave started carrying the rolling ball (§14): <see cref="PlayTraceMark.Hazard"/> is the band.</summary>
-    BallCarried
+    BallCarried,
+    /// <summary>A drifting disc started pushing the ball in flight (§14): <see cref="PlayTraceMark.Hazard"/> is the disc where it stood.</summary>
+    BallPushed
 }
 
 /// <summary>T is the simulation execution clock. LowerT bounds sampled runner arrivals; animation release is unobserved.</summary>

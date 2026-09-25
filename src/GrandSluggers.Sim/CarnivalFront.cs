@@ -318,6 +318,7 @@ public static partial class CarnivalFront
             HazardType.LilyPad => "Lily pads drift across the outfield: a roller bounces off them.",
             HazardType.Tide => $"The tide washes the outfield corners every {row.PeriodSec ?? 0:0.#} s: a roller drifts toward the line"
                 + (row.NightRadiusMul > 1 ? ", farther in at night." : "."),
+            HazardType.DustDevil => $"Dust devils wander the outfield: a fly through one is pushed {row.PushFt ?? 0:0.#} ft sideways.",
             _ => null
         };
     }

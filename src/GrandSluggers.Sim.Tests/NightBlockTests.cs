@@ -63,9 +63,12 @@ public sealed class NightBlockTests
             Assert.Null(dayMatch.Park.Night);
             Assert.Null(nightMatch.Park.Night);
             Assert.Equal(park.Hazards, dayMatch.Park.Hazards);
-            Assert.Equal(park.Hazards.Concat(night), nightMatch.Park.Hazards);
+            // Night adds the block's instances and clears the day types it names (the mesa's dust devils), nothing else.
+            var cleared = park.Night?.Without ?? [];
+            var tonight = park.Hazards.Where(h => !cleared.Contains(h.Type)).Concat(night).ToList();
+            Assert.Equal(tonight, nightMatch.Park.Hazards);
             // The same instances, not copies: the resolution moves no hazard and resizes none.
-            Assert.All(nightMatch.Park.Hazards, h => Assert.Contains(park.Hazards.Concat(night), a => ReferenceEquals(a, h)));
+            Assert.All(nightMatch.Park.Hazards, h => Assert.Contains(tonight, a => ReferenceEquals(a, h)));
             Assert.Equal(park with { Night = null }, dayMatch.Park with { Hazards = park.Hazards });
             Assert.Equal(park with { Night = null }, nightMatch.Park with { Hazards = park.Hazards });
             // Night reaches no rule (FD-11-R2): the same table, by reference at a park with no air of its own, by value at
@@ -80,11 +83,12 @@ public sealed class NightBlockTests
                 continue;
             }
             withBlock++;
-            Assert.NotEmpty(night);
+            Assert.True(night.Count > 0 || cleared.Count > 0, id);
             Assert.All(night, h => Assert.DoesNotContain(dayMatch.Park.Hazards, d => ReferenceEquals(d, h)));
         }
-        // Not vacuous: Funfair's mouths are a night block, and nothing else is yet.
-        Assert.Equal(1, withBlock);
+        // Not vacuous: Funfair's mouths are a night block, and Sunscorch's clear night air takes the dust devils away.
+        Assert.Equal(2, withBlock);
+        Assert.Equal([HazardType.DustDevil], content.Parks[ParkId.Sunscorch].Night!.Without);
         Assert.Equal(
             ["L", "C", "R"],
             content.Parks[ParkId.Funfair].Night!.Hazards.Select(h => h.Type == HazardType.Chomper ? h.Tag : "not a chomper"));
@@ -183,7 +187,7 @@ public sealed class NightBlockTests
         {
             var refusal = Assert.Single(errors, e => e.Contains($": night.{key} is not a key", StringComparison.Ordinal));
             Assert.StartsWith(funfair + ": ", refusal, StringComparison.Ordinal);
-            Assert.Contains("the keys of parkNight are [hazards]", refusal, StringComparison.Ordinal);
+            Assert.Contains("the keys of parkNight are [hazards, without]", refusal, StringComparison.Ordinal);
             Assert.Contains("never a rule of the at-bat, the flight, the ground or the bodies (FD-11-R2)", refusal, StringComparison.Ordinal);
         }
         Assert.Contains(errors, e => e.StartsWith(funfair + ": night.hazards[0].nightOnly is not a key this file declares; the keys of hazard are [",

@@ -16,8 +16,9 @@ public sealed class HazardTellTests
         Assert.Equal(new LiveStamp("STAR!", StampAnchor.Dirt), PlayStamp.HazardTell(LiveEvent.RewardHit));
         Assert.Equal(new LiveStamp("BONK!", StampAnchor.Dirt), PlayStamp.HazardTell(LiveEvent.BodyCarom));
         Assert.Equal(new LiveStamp("SURF'S UP!", StampAnchor.Dirt), PlayStamp.HazardTell(LiveEvent.BallCarried));
+        Assert.Equal(new LiveStamp("WHOOSH!", StampAnchor.Dirt), PlayStamp.HazardTell(LiveEvent.BallPushed));
         foreach (var other in Enum.GetValues<LiveEvent>().Except([LiveEvent.BodySlowed, LiveEvent.BallRedirected, LiveEvent.RewardHit, LiveEvent.BodyCarom,
-                     LiveEvent.BallCarried]))
+                     LiveEvent.BallCarried, LiveEvent.BallPushed]))
             Assert.Null(PlayStamp.HazardTell(other));
     }
 }

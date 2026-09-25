@@ -43,7 +43,7 @@ public sealed class HazardsOffTests
         // The catch stealer retired into the redirect (FD-09-R2, F4-c); the solid body and the mover act since F4-f.
         Assert.Equal(
             new[] { HazardPattern.StatusVolume, HazardPattern.BallRedirect, HazardPattern.RewardTarget, HazardPattern.SolidBody, HazardPattern.TimedMover,
-                HazardPattern.Surge },
+                HazardPattern.Surge, HazardPattern.Drift },
             HazardPattern.Hazards);
         // Every pattern in the closed set is on one side or the other, and the other side is exactly these two.
         Assert.Equal(new[] { HazardPattern.WallTrait, HazardPattern.Decoration },

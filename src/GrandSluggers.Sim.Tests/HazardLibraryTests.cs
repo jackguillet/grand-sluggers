@@ -53,7 +53,7 @@ public sealed class HazardLibraryTests
     [Fact]
     public void EveryLibraryIdHasOneAuthoredRowAndNoRowIsAnythingElse()
     {
-        Assert.Equal(14, HazardType.All.Count);
+        Assert.Equal(15, HazardType.All.Count);
         Assert.Equal(HazardType.All, Table.Hazards.Authored);
 
         var properties = typeof(HazardRules).GetProperties(BindingFlags.Public | BindingFlags.Instance)

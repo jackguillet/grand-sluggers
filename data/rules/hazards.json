@@ -135,5 +135,9 @@
   // seeded offset a play) the wave is in for 4 s, and a ball rolling at or below 0.5 ft inside the band drifts toward the
   // nearer foul line at 3 ft/s, 12 ft at most per band and never across the line. A ball in the air and every body are
   // untouched. High tide (night) reaches 1.4 times as far in.
-  "tide": { "pattern": "surge", "nightRadiusMul": 1.4, "reachPadFt": 0, "heightFt": 0.5, "periodSec": 12, "surgeSec": 4, "carryFt": 12 }
+  "tide": { "pattern": "surge", "nightRadiusMul": 1.4, "reachPadFt": 0, "heightFt": 0.5, "periodSec": 12, "surgeSec": 4, "carryFt": 12 },
+  // Sunscorch Mesa's dust devils (#1154, WD-09 C): a disc that wanders up to 30 ft each way from its spot on a 14 s clock
+  // (seeded phases a play). A ball in flight between 3 and 60 ft that passes inside it is pushed 10 ft sideways, away from
+  // the devil's middle, spread over 0.4 s; once a play per devil. A grounder and every body are untouched.
+  "dustDevil": { "pattern": "drift", "nightRadiusMul": 1, "reachPadFt": 0, "floorFt": 3, "topFt": 60, "periodSec": 14, "travelFt": 30, "pushFt": 10, "pushSec": 0.4 }
 }

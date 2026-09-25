@@ -25,6 +25,7 @@ public sealed class HazardLessonTests
     [InlineData("T-H03", ParkId.Funfair)]
     [InlineData("T-H04", ParkId.Canopy)]
     [InlineData("T-H09", ParkId.Coconut)]
+    [InlineData("T-H10", ParkId.Sunscorch)]
     public void EachLessonPlaysAtItsParkAndIsEarnedByTheRead(string id, string park)
     {
         var run = Start(id);
@@ -34,7 +35,7 @@ public sealed class HazardLessonTests
     }
 
     [Theory]
-    [InlineData("T-H01")] [InlineData("T-H02")] [InlineData("T-H03")] [InlineData("T-H04")] [InlineData("T-H09")]
+    [InlineData("T-H01")] [InlineData("T-H02")] [InlineData("T-H03")] [InlineData("T-H04")] [InlineData("T-H09")] [InlineData("T-H10")]
     public void DeadInputNeverEarnsTheLesson(string id)
     {
         var run = Start(id);
@@ -69,7 +70,7 @@ public sealed class HazardLessonTests
                 if (run.Lesson.Objective == "hazard-dodge-catch") { if (!live.HoldsBall) pad = Fly(run, live, around: read == Read.Patient); }
                 else
                 {
-                    var acted = live.RedirectsThisPlay.Count > 0 || live.CaromsThisPlay.Count > 0 || live.CarriesThisPlay.Count > 0
+                    var acted = live.RedirectsThisPlay.Count > 0 || live.CaromsThisPlay.Count > 0 || live.CarriesThisPlay.Count > 0 || live.PushesThisPlay.Count > 0
                         || run.Lesson.Objective == "manual-ground-possession";
                     if (!acted && read == Read.Patient) pad = new LivePadInput(StickY: -1);
                     if (acted || read == Read.Eager) pad = Toward(live.BallX - live.GloveX, live.BallZ - live.GloveZ, south: true);

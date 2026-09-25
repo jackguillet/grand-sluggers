@@ -16,7 +16,8 @@
     "acUnit": "ac-unit",
     "tree": "jungle-tree",
     "lilyPad": "lily-pad",
-    "tide": "tide-wave"
+    "tide": "tide-wave",
+    "dustDevil": "dust-devil"
   },
   "rings": {
     "statusVolume": "#1A1A22",
@@ -24,6 +25,7 @@
     "rewardTarget": "#FFCC40",
     "solidBody": "#3A3A40",
     "timedMover": "#E83850",
-    "surge": "#38B8E8"
+    "surge": "#38B8E8",
+    "drift": "#D89048"
   }
 }

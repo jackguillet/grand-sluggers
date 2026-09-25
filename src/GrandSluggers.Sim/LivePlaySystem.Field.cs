@@ -126,7 +126,9 @@ public enum LiveEvent
     /// <summary>A throw command was accepted; transfer begins now, ThrowPop marks actual release.</summary>
     ThrowCommitted,
     /// <summary>A surge band's wave started carrying the rolling ball this frame (§14): <see cref="LivePlaySystem.CarriesThisPlay"/>.</summary>
-    BallCarried
+    BallCarried,
+    /// <summary>A drifting disc started pushing the ball in flight this frame (§14): <see cref="LivePlaySystem.PushesThisPlay"/>.</summary>
+    BallPushed
 }
 
 /// <summary>
@@ -489,6 +491,7 @@ public sealed partial class LivePlaySystem
         _reward = null;
         _caromsThisPlay.Clear();
         BeginSurges();
+        BeginDrifts();
         _caromLock = null;
         _scoreTold.Clear();
         Pitch = command.Pitch;
@@ -698,6 +701,7 @@ public sealed partial class LivePlaySystem
             ReadBallHazards(dt);
             ReadFirstHopKick();
             ReadSurges(dt);
+            ReadDrifts(dt);
         }
 
         _dive.Tick(dt);
