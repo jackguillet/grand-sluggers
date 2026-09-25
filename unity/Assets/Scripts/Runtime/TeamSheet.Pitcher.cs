@@ -26,26 +26,26 @@ namespace GrandSluggers.UnityClient
             GUI.matrix = Matrix4x4.Scale(new Vector3(Screen.width / 1280f, Screen.height / 800f, 1));
             Fill(PitcherWindow, Ink);
             Border(PitcherWindow, new Color(.40f, .55f, .53f), 2);
-            Label(138, 114, 900, 24, "P" + (seat + 1) + "  /  DEFENSE", _small);
-            Label(138, 145, 960, 42, "Arrange defense", _title);
-            Label(138, 192, 980, 26, match.Pitcher.Name + " on the mound  ·  " + BroadcastHud.ArmLine(match.PitcherStamina, match.Rules), _body);
+            Label(138, 114, 900, 24, CarnivalFront.DefenseStep(seat), _small);
+            Label(138, 145, 960, 42, CarnivalFront.DefenseTitle, _title);
+            Label(138, 192, 980, 26, CarnivalFront.OnTheMound(match.Pitcher.Name, BroadcastHud.ArmLine(match.PitcherStamina, match.Rules)), _body);
             GUI.DrawTexture(PitcherField, _field);
             var chosen = pick.Current;
             foreach (var candidate in pick.Candidates)
                 PitcherPortrait(candidate.Who, candidate.Pos, candidate.Who.Id == chosen.Who.Id,
                     match.Chemistry.Between(chosen.Who, candidate.Who), pick.PickedPosition == candidate.Pos);
             Fill(PitcherCard, new Color(.075f, .115f, .14f));
-            Label(PitcherCard.x + 16, PitcherCard.y + 10, 348, 22, chosen.Pos + "  /  PLAYER CARD", _small);
+            Label(PitcherCard.x + 16, PitcherCard.y + 10, 348, 22, CarnivalFront.PlayerCardHead(chosen.Pos), _small);
             CardDetails(chosen.Who, PitcherCard);
             Label(746, 492, 350, 28, BroadcastHud.ArmLine(match.StaminaOf(chosen.Who), match.Rules), _heading);
-            Label(746, 524, 350, 26, (chosen.Who.Throws == Hand.L ? "Throws left" : "Throws right") + "  ·  "
-                + BroadcastHud.PitcherPitches(chosen.Who.Repertoire, match.Rules.Pitching.Families), _body);
+            Label(746, 524, 350, 26, CarnivalFront.ThrowsLine(chosen.Who.Throws,
+                BroadcastHud.PitcherPitches(chosen.Who.Repertoire, match.Rules.Pitching.Families)), _body);
             var note = new GUIStyle(_body) { wordWrap = true };
             Label(746, 556, 350, 50, pick.Notice, note);
-            Label(138, 650, 550, 24, "CHEMISTRY WITH YOUR FOCUS  ·  Good / Poor / Neutral", _small);
-            Label(138, 677, 550, 24, "Stick / D-pad  Move · South  Pick & swap", _body);
-            PitcherButton(PitcherConfirm, !match.CanSwapPitcher ? "Pitcher changed this half" : "West  Quick swap to mound", false);
-            PitcherButton(PitcherCancel, pick.PickedPosition != null ? "East  Cancel pick" : "East  Close", false);
+            Label(138, 650, 550, 24, CarnivalFront.ChemistryKey, _small);
+            Label(138, 677, 550, 24, CarnivalFront.DefenseHelp, _body);
+            PitcherButton(PitcherConfirm, CarnivalFront.SwapButton(match.CanSwapPitcher), false);
+            PitcherButton(PitcherCancel, CarnivalFront.DefenseCancel(pick.PickedPosition != null), false);
             GUI.matrix = old;
         }
 
@@ -59,8 +59,7 @@ namespace GrandSluggers.UnityClient
             Label(r.x, r.y - 2, r.width, 18, pos, _mark);
             Portrait(who, new Rect(r.x + 10, r.y + 14, r.width - 20, 42));
             Label(r.x - 14, r.y + 54, r.width + 28, 18, who.Name, _mark);
-            Label(r.x - 10, r.y + 71, r.width + 20, 16, picked ? "PICKED" : selected ? "INSPECT"
-                : chemistry == Chemistry.Good ? "Good" : chemistry == Chemistry.Bad ? "Poor" : "Neutral", _mark);
+            Label(r.x - 10, r.y + 71, r.width + 20, 16, picked ? CarnivalFront.Picked : selected ? CarnivalFront.Inspect : CarnivalFront.ChemistryWord(chemistry), _mark);
         }
 
         static void PitcherButton(Rect r, string text, bool primary)

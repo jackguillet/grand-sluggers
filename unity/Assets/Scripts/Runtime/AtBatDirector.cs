@@ -460,7 +460,7 @@ namespace GrandSluggers.UnityClient
             if (set && _match.PitchSetup.Committed) return BroadcastHud.ShortFamily(_match.FamilyAt(_pitchSelect)) + " · " + BroadcastHud.PitchCommitted;
             return BroadcastHud.PitcherExtra(
                 _starPitch && HumanPitches,
-                set ? BroadcastHud.ShortFamily(_match.FamilyAt(_pitchSelect)) + " · West cycle" : null,
+                set ? BroadcastHud.PitchCycle(BroadcastHud.ShortFamily(_match.FamilyAt(_pitchSelect))) : null,
                 set && _swapPick == null && _match.CanArrangeDefense);
         }
 

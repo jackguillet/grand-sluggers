@@ -62,7 +62,7 @@ namespace GrandSluggers.UnityClient
                     : HowToPlay.TutorialAttemptTitle(run.Lesson.Id, run.Successes), _bookTitle);
                 TutorialText(left, HowToPlay.TutorialTitle(run.Lesson.Id), HowToPlay.TutorialGoal(run.Lesson.Id),
                     HowToPlay.TutorialControls(run.Lesson.Id, profile));
-                TutorialText(right, feedback ? "" : "THE SETUP", feedback
+                TutorialText(right, feedback ? "" : HowToPlay.TutorialSetupHeader, feedback
                     ? HowToPlay.TutorialFeedbackText(run.Feedback.Code) : HowToPlay.TutorialSetup(run.Lesson.Id, profile), feedback ? "" : HowToPlay.TutorialRule);
                 var n = feedback ? 3 : 2;
                 TutorialButton(0, n, HowToPlay.TutorialButton(feedback ? run.Feedback.Success && !run.Passed ? -7 : -6 : -2));

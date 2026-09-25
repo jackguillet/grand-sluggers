@@ -1,3 +1,4 @@
+using System.Linq;
 using GrandSluggers.Sim;
 using GrandSluggers.Sim.Front;
 using UnityEngine;
@@ -25,23 +26,21 @@ namespace GrandSluggers.UnityClient
         {
             var old = Begin();
             Fill(new Rect(270, 290, 740, 180), Ink);
-            Text(300, 315, 680, 48, "CONNECT A CONTROLLER", _title);
-            Text(300, 378, 680, 54, "Plug in or pair a controller to play. Two controllers play together.", _label);
+            Text(300, 315, 680, 48, CarnivalFront.ConnectTitle, _title);
+            Text(300, 378, 680, 54, CarnivalFront.ConnectBody, _label);
             GUI.matrix = old;
         }
         public static void TitleMenu(int focus)
         {
             var old = Begin();
-            FocusRows(40, 235, 410, focus, new[] { "Exhibition", "Tutorials", "Controls", "Quit" });
+            FocusRows(40, 235, 410, focus, CarnivalFront.TitleMenu.ToArray());
             GUI.matrix = old;
         }
         public static void FieldFocus(int focus, string park, bool night, bool hazards, bool versus, bool home)
         {
             var old = Begin();
-            FocusRows(864, 270, 392, focus, new[] { "Stadium: " + park, "Time: " + (night ? "Night" : "Day"),
-                "Hazards: " + (hazards ? "On" : "Off"), "Players: " + (versus ? "2 controllers" : "1 vs CPU"),
-                "P1 side: " + (home ? "Home" : "Away"), "Choose captains" });
-            Text(40, 688, 1130, 65, "Up/down choose • Left/right change • South confirm • East back", _label);
+            FocusRows(864, 270, 392, focus, CarnivalFront.StadiumRows(park, night, hazards, versus, home));
+            Text(40, 688, 1130, 65, CarnivalFront.StadiumHelp, _label);
             GUI.matrix = old;
         }
         public static void LiveOrders(string runners, int target)
@@ -56,7 +55,7 @@ namespace GrandSluggers.UnityClient
             if (target >= 0)
             {
                 Fill(new Rect(700, 680, 556, 52), Ink);
-                Text(712, 684, 532, 44, target == 0 ? "Right stick: choose base • RT throw" : "THROW " + (target == 4 ? "HOME" : target + "B") + " • RT", _label);
+                Text(712, 684, 532, 44, BroadcastHud.SetupThrow(target), _label);
             }
             GUI.matrix = old;
         }

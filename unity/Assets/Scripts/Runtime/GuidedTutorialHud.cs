@@ -17,7 +17,7 @@ namespace GrandSluggers.UnityClient
                 : HowToPlay.TutorialAttemptTitle(run.Lesson.Id, run.Successes), _bookTitle);
             TutorialText(Region(1), HowToPlay.TutorialTitle(run.Lesson.Id), HowToPlay.TutorialGoal(run.Lesson.Id),
                 HowToPlay.TutorialControls(run.Lesson.Id));
-            TutorialText(Region(2), feedback ? success ? "GOOD WORK" : "TRY AGAIN" : "THE SETUP",
+            TutorialText(Region(2), feedback ? HowToPlay.TutorialVerdict(success) : HowToPlay.TutorialSetupHeader,
                 feedback ? HowToPlay.TutorialFeedbackText(run.Feedback?.Code ?? "guided-complete") : HowToPlay.TutorialSetup(run.Lesson.Id),
                 feedback ? "" : HowToPlay.TutorialRule);
             var count = feedback ? 3 : 2;
