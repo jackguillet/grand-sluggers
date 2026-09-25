@@ -158,7 +158,7 @@ public sealed class CpuPitcherScenarioTests
             }
         }
 
-        Assert.Equal(25, pitchers);
+        Assert.Equal(_shipped.Characters.Count, pitchers);
         // Every family in the library came up somewhere across the roster, so the row weights are
         // not quietly collapsing onto the fastball.
         Assert.Equal(PitchFamily.All.OrderBy(f => f, StringComparer.Ordinal),

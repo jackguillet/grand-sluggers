@@ -14,6 +14,9 @@
     { "id": "vo-konga", "slot": "data/art/audio-clips/vo-konga.wav", "bus": "vo" },
     { "id": "vo-ashlord", "slot": "data/art/audio-clips/vo-ashlord.wav", "bus": "vo" },
     { "id": "vo-fenn", "slot": "data/art/audio-clips/vo-fenn.wav", "bus": "vo" },
+    { "id": "vo-sable", "slot": "data/art/audio-clips/vo-sable.wav", "bus": "vo" },
+    { "id": "vo-hollis", "slot": "data/art/audio-clips/vo-hollis.wav", "bus": "vo" },
+    { "id": "vo-reed", "slot": "data/art/audio-clips/vo-reed.wav", "bus": "vo" },
     { "id": "banana", "slot": "data/art/audio-clips/banana.wav", "bus": "sfx" },
     { "id": "rocket", "slot": "data/art/audio-clips/rocket.wav", "bus": "sfx" },
     { "id": "pow", "slot": "data/art/audio-clips/pow.wav", "bus": "sfx" }

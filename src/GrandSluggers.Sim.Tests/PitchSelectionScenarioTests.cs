@@ -28,7 +28,7 @@ public sealed class PitchSelectionScenarioTests
     /// <summary>A table that authors the whole library, so the cycle is the full accepted order (P1-d's future).</summary>
     static IReadOnlyList<string> AllAuthored => PitchFamily.All;
 
-    /// <summary>The 25 shipped characters in a stable order: left and right hands, captains and role players.</summary>
+    /// <summary>Every shipped character in a stable order: left and right hands, captains and role players.</summary>
     IReadOnlyList<Character> Roster => _content.Characters.Values.OrderBy(c => c.Id, StringComparer.Ordinal).ToList();
 
     // ---------------------------------------------------------------------------------
@@ -39,7 +39,7 @@ public sealed class PitchSelectionScenarioTests
     public void S101_PressesWalkTheWholeRepertoireAndWrapForEveryShippedPitcher()
     {
         var roster = Roster;
-        Assert.Equal(25, roster.Count);
+        Assert.Equal(_content.Characters.Count, roster.Count);
         Assert.Contains(roster, c => c.Throws == Hand.L);
         Assert.Contains(roster, c => c.Throws == Hand.R);
         Assert.Contains(roster, c => c.Captain);

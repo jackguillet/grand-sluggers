@@ -63,7 +63,9 @@ public class MotionStyleTests
             var who = _content.Must(id);
             var style = Art.StyleOf(who);
             Assert.NotNull(style);
-            Assert.True(signatures.Add(style!.Signature), $"{id} shares a signature beat");
+            // A captain whose class borrows a style (owedStyle) shares its lender's signature until its own takes exist.
+            if (!_content.Rules.BodyClasses.Of(who.BodyClass).BorrowsStyle)
+                Assert.True(signatures.Add(style!.Signature), $"{id} shares a signature beat");
             foreach (var verb in new[] { Motion.Verb.Cheer, Motion.Verb.Idle, Motion.Verb.Run, Motion.Verb.ChargeSwing, Motion.Verb.ChargePitch })
             {
                 var hand = Motion.UsesBattingHand(verb) ? who.Bats : who.Throws;
@@ -74,6 +76,9 @@ public class MotionStyleTests
         // The style comes from the body class (data/rules/body-classes.json motionStyle); a role player plays its class's.
         foreach (var who in _content.Characters.Values)
             Assert.Equal(_content.Rules.BodyClasses.Of(who.BodyClass).MotionStyle, Art.StyleOf(who)!.Id);
+        // The captains who owe their own style and signature beat (#1148): named, so the debt cannot grow unseen.
+        Assert.Equal(["sable", "hollis", "reed"],
+            _content.CaptainIds.Where(id => _content.Rules.BodyClasses.Of(_content.Must(id).BodyClass).BorrowsStyle));
         // A hand-built body with no class plays the shared takes.
         Assert.Null(Art.StyleOf(_content.Must("rio") with { BodyClass = "" }));
     }
@@ -86,6 +91,9 @@ public class MotionStyleTests
         var rows = classes.Classes.ToList();
         var typo = classes with { Classes = [rows[0] with { MotionStyle = "harbour-kid" }, .. rows.Skip(1)] };
         Assert.Contains(ArtCatalog.StyleLinkErrors(Art.Styles, typo), e => e.Contains("harbour-kid"));
+        // A borrow ends when the owed style exists.
+        var paid = classes with { Classes = [.. rows.Select(r => r.Id == "hopper" ? r with { OwedStyle = "speed" } : r)] };
+        Assert.Contains(ArtCatalog.StyleLinkErrors(Art.Styles, paid), e => e.Contains("owes style 'speed', which now exists"));
         var orphan = classes with { Classes = rows.Where(r => r.MotionStyle != "turtle").ToList() };
         Assert.Contains(ArtCatalog.StyleLinkErrors(Art.Styles, orphan), e => e.Contains("turtle"));
         var reserved = Art.Styles.Select(s => s.Id == "turtle" ? s with { Reserved = true } : s).ToList();
