@@ -1,10 +1,9 @@
 {
   "chase": {
-    // #718 (F693-02-pursuit-*): a Run-5 body runs 18.0 ft/s. CH-10: the gap between the fastest and the slowest body on the
-    // roster (Run 9, Run 2) is about 1.25x — 20.32 / 16.26 ft/s — where 12.4 + 1.12 x Run gave 1.54x (22.48 / 14.64). Run 5 is
-    // unchanged. Proposed band 1.20-1.30, a trial until Jack accepts one.
-    "baseFtPerSec": 15.1,
-    "ftPerSecPerRun": 0.58,
+    // #718 (F693-02-pursuit-*): the whole speed curve x 18 / 30.5, so a Run-5 body runs 18.0 ft/s where it ran 30.5 and the
+    // spread between characters is kept (1.12 / 12.4 against the full-size 1.9 / 21). The floor scales with it.
+    "baseFtPerSec": 12.4,
+    "ftPerSecPerRun": 1.12,
     "frozenMul": 0.45,
     "minFtPerSec": 4.72,
     "stepStopFt": 0.35,

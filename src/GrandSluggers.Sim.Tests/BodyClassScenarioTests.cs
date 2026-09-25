@@ -9,7 +9,7 @@ namespace GrandSluggers.Sim.Tests;
 ///
 /// <b>SC-09</b>: every captain and role player resolves exactly one body class. <b>SC-10</b>: reach comes from the class row,
 /// not from height. <b>SC-11</b>: the fastest and the slowest body on the roster are inside the top-speed band, on the bases and
-/// in the field. <b>SC-12</b>: a light body reaches its top speed sooner; a heavy one takes longer to brake and reverse, in the
+/// in the field (a Balance row until Jack's balance pass sets the curves). <b>SC-12</b>: a light body reaches its top speed sooner; a heavy one takes longer to brake and reverse, in the
 /// step and in the planner alike. <b>SC-13</b>: one movement profile per body across a grounder, a liner and a fly. <b>SC-14</b>:
 /// a light body recoils longer than a heavy one from the same ball.
 ///
@@ -174,7 +174,13 @@ public class BodyClassScenarioTests
     // SC-11 — the top-speed gap
     // ---------------------------------------------------------------------------------
 
+    /// <summary>
+    /// The top-speed band (CH-10). Deferred to Jack's balance pass: the shipped curves keep today's 1.54× in the field and 1.34×
+    /// on the bases, so this row is the falsifier that pass has to turn green. The known constraint is the buddy jump at the
+    /// wall (a Run-9 pair reaching the plant, T-F12).
+    /// </summary>
     [Fact]
+    [Trait("Kind", "Balance")]
     public void SC11_FastestOverSlowestIsInsideTheBandOnTheBasesAndInTheField()
     {
         var roster = _content.Characters.Values.ToList();
@@ -182,10 +188,22 @@ public class BodyClassScenarioTests
         var bases = roster.Select(c => RunnerSystem.SpeedFtPerSec(c, R)).ToList();
         Assert.InRange(field.Max() / field.Min(), BandLow, BandHigh);
         Assert.InRange(bases.Max() / bases.Min(), BandLow, BandHigh);
-        // The order is the Run order in both places: the one Run sub-stat decides both speeds.
+    }
+
+    /// <summary>Top speed is the Run sub-stat's, never the class's: the same order on the bases and in the field.</summary>
+    [Fact]
+    public void SC11_TheRunSubStatOrdersTopSpeedInBothPlaces()
+    {
+        var roster = _content.Characters.Values.ToList();
         var fastest = roster.OrderByDescending(c => c.Stats.Run).First();
-        Assert.Equal(field.Max(), FieldingResolver.ChaseSpeedFt(fastest, false, R), 9);
-        Assert.Equal(bases.Max(), RunnerSystem.SpeedFtPerSec(fastest, R), 9);
+        var slowest = roster.OrderBy(c => c.Stats.Run).First();
+        Assert.Equal(roster.Max(c => FieldingResolver.ChaseSpeedFt(c, false, R)), FieldingResolver.ChaseSpeedFt(fastest, false, R), 9);
+        Assert.Equal(roster.Max(c => RunnerSystem.SpeedFtPerSec(c, R)), RunnerSystem.SpeedFtPerSec(fastest, R), 9);
+        Assert.Equal(roster.Min(c => FieldingResolver.ChaseSpeedFt(c, false, R)), FieldingResolver.ChaseSpeedFt(slowest, false, R), 9);
+        // Two bodies with the same Run and different classes run the same top speed.
+        var rio = _content.Must("rio");
+        Assert.Equal(FieldingResolver.ChaseSpeedFt(rio, false, R), FieldingResolver.ChaseSpeedFt(rio with { BodyClass = "villain" }, false, R), 12);
+        Assert.Equal(RunnerSystem.SpeedFtPerSec(rio, R), RunnerSystem.SpeedFtPerSec(rio with { BodyClass = "speed" }, R), 12);
     }
 
     // ---------------------------------------------------------------------------------

@@ -41,7 +41,7 @@ public sealed class BallDashTests
 
         // The carry speed: the boost for a holder, the very same double for everyone else.
         var v = FieldingResolver.ChaseSpeedFt(zig, false, Game.Rules);
-        Assert.Equal(20.32, v, 9);
+        Assert.Equal(22.48, v, 9);
         Assert.Equal(v * 1.20, FieldingResolver.CarrySpeedFt(dart, v, Game.Rules), 12);
         Assert.Equal(v, FieldingResolver.CarrySpeedFt(zig, v, Game.Rules));
 
@@ -64,7 +64,7 @@ public sealed class BallDashTests
         var track = Push(live, frames: 24);
         double Speed(int k) => Diamond.Dist(track[k].X, track[k].Z, track[k + 1].X, track[k + 1].Z) / Frame;
 
-        Assert.Equal(20.32, rated, 9);
+        Assert.Equal(22.48, rated, 9);
         var rampFrames = BodyClasses.Ramp(Game.Must(shortstop), Game.Rules).AccelSec / Frame;
         var half = (int)Math.Round(rampFrames / 2) - 1;
         var full = (int)Math.Floor(rampFrames) - 1;
@@ -93,7 +93,7 @@ public sealed class BallDashTests
         var preview = match.PreviewHit(hit);
         Assert.Equal("1B", preview.Position);
         var rated = FieldingResolver.ChaseSpeedFt(Game.Must(first), false, match.Rules);
-        Assert.Equal(20.32, rated, 9);
+        Assert.Equal(22.48, rated, 9);
         var rampFrames = BodyClasses.Ramp(Game.Must(first), match.Rules).AccelSec / Frame;
         var half = (int)Math.Round(rampFrames / 2) - 1;
         var full = (int)Math.Floor(rampFrames) - 1;

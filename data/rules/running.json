@@ -1,10 +1,7 @@
 {
   "bagSec": {
-    // CH-10: seconds per base = baseSec - Run x secPerRun. Run 5 stays 2.95 s; the fastest and slowest body on the roster
-    // (Run 9, Run 2) are 2.58 / 3.23 s, about 1.25x, where 3.55 - 0.12 x Run gave 1.34x (2.47 / 3.31). A trial until Jack
-    // accepts one.
-    "baseSec": 3.41,
-    "secPerRun": 0.092,
+    "baseSec": 3.55,
+    "secPerRun": 0.12,
     "minSec": 2.45,
     "maxSec": 3.65,
     "dashMul": 0.12,
