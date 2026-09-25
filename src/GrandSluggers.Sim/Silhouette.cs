@@ -59,6 +59,29 @@ public static class Silhouette
     public static readonly BuildChannel TorsoBuild = new("torso", 0.94, 0.5, 0.84, 1.32);
     public static IReadOnlyList<BuildChannel> BuildChannels { get; } = [HeadBuild, ArmsBuild, TorsoBuild];
 
+    /// <summary>
+    /// Style channels (CH-12, SC-08): the motion style names the scale (<see cref="MotionStyle.Reach"/>), not the proportions.
+    /// Reach stretches the arm pieces; the style's own takes move the elbow and wrist to meet them, so a reach style owns
+    /// every clip. Neutral and gain are 1: the scale is the style's number itself.
+    /// </summary>
+    public static readonly BuildChannel ReachBuild = new("reach", 1, 1, 0.90, 1.30);
+    /// <summary>The shoes grow about the sole center; no take changes.</summary>
+    public static readonly BuildChannel BootsBuild = new("boots", 1, 1, 0.85, 1.40);
+    public static IReadOnlyList<BuildChannel> StyleChannels { get; } = [ReachBuild, BootsBuild];
+
+    /// <summary>Shape-key name → weight 0..1 for a motion style's channels; Unity multiplies by 100.</summary>
+    public static IReadOnlyList<(string Key, double Weight)> StyleWeights(MotionStyle? style)
+    {
+        var list = new List<(string, double)>(4);
+        foreach (var (channel, scale) in new[] { (ReachBuild, style?.Reach ?? 1), (BootsBuild, style?.Boots ?? 1) })
+        {
+            var (up, down) = channel.Weights(scale);
+            list.Add((channel.UpKey, up));
+            list.Add((channel.DownKey, down));
+        }
+        return list;
+    }
+
     /// <summary>The neck top, where the head bone starts: the head build's pivot.</summary>
     public static readonly Vec3 HeadPivot = new(0, 3.68, 0.05);
 

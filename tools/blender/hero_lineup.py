@@ -212,6 +212,7 @@ def main(argv):
     p.add_argument("--out", required=True)
     p.add_argument("--repo", default=str(HERE.parents[2]), help="Checkout whose body script and data are drawn.")
     p.add_argument("--prefix", default="dcc-lineup")
+    p.add_argument("--beat", default="idle", help="idle, run, stance, windup or signature: each captain in its motion style's beat.")
     args = p.parse_args(argv)
     repo = Path(args.repo).resolve()
     out = Path(args.out).resolve()
@@ -230,13 +231,53 @@ def main(argv):
     arm = body.build_scene()
     has_build = hasattr(body, "set_build")
 
-    def pose(c):
+    styles = getattr(takes, "STYLE_POSES", None)
+    by_body = getattr(takes, "STYLE_DOC", {}).get("byBody", {}) if styles else {}
+
+    def place(c, beat):
+        """Pose the captain in its motion style's beat (the shared take on a tree without styles), at unit scale."""
+        arm.scale = (1.0, 1.0, 1.0)
+        where = arm.location.copy()
+        arm.location = (0.0, 0.0, 0.0)
+        style = by_body.get(c["id"]) if styles else None
+        if has_build:
+            try:
+                body.set_build(body.build_scale(c["proportions"]), reset=True)
+            except TypeError:  # a tree before the style channels
+                body.set_build(body.build_scale(c["proportions"]))
+        if styles:
+            takes.use_style(style)
+            body.set_build(body.build_scale(c["proportions"]))
+        sp = styles[style] if style else None
+        if beat == "idle":
+            pz = takes.pose_at(sp["idle"] if sp else takes.IDLE, 0.0, True, True, 2.0)
+            takes.apply_pose(arm, pz)
+            if sp:
+                takes.ground_hop(arm, pz)
+        elif beat == "run":
+            keys = takes._stride(1.0, takes.RUN_DUR, sp["gait"]) if sp else takes.RUN
+            takes.apply_pose(arm, takes.pose_at(keys, takes.RUN_DUR * 0.1, True, True, takes.RUN_DUR))
+        elif beat == "stance":
+            takes.pose_swing_frame(arm, 0.075, "swing-charge")
+        elif beat == "windup":
+            takes.baseball_frame("pitch-charge")(arm, 0.0)
+        elif beat == "signature":
+            keys, dur = sp["signature"] if sp else (takes.CHEER, 0.8)
+            pz = takes.pose_at(keys, dur / 2, True, True, dur)
+            takes.apply_pose(arm, pz)
+            if sp:
+                takes.ground_hop(arm, pz)
+        else:
+            raise RuntimeError(f"unknown beat {beat}")
+        if styles:
+            takes.ACTIVE["style"] = None  # the pose is set; keep its build on the mesh
         scale = root_scale(c["proportions"])
         arm.scale = (scale[0], scale[2], scale[1])  # Unity (x, y, z) -> Blender (x, z, y)
-        if has_build:
-            body.set_build(body.build_scale(c["proportions"]))
-        takes.apply_pose(arm, takes.pose_at(takes.IDLE, 0.0, True, True, 2.0))
+        arm.location = where
         bpy.context.view_layer.update()
+
+    def pose(c, beat="idle"):
+        place(c, beat)
         deps = bpy.context.evaluated_depsgraph_get()
         top = 0.0
         for ob in bpy.data.objects:
@@ -247,6 +288,8 @@ def main(argv):
             top = max([top] + [(ev.matrix_world @ v.co).z for v in mesh.vertices])
             ev.to_mesh_clear()
         return top
+
+
 
     tops = {}
     for c in captains:
@@ -268,7 +311,7 @@ def main(argv):
         tiles = []
         for c in captains:
             arm.location = (0, 0, 0)
-            pose(c)
+            pose(c, args.beat)
             paint(None if flat else palette.roles(c["faction"]))
             tag = None if flat else label(f"{c['name']}  {tops[c['id']]:.2f} ft", (0, -1.6, -0.2), 0.34)
             if tag is not None and view != "front":
@@ -289,7 +332,7 @@ def main(argv):
         canvas = background(GAME_H, GAME_W, BLACK_BG if flat else PALETTE_BG)
         n = len(captains)
         for i, c in enumerate(captains):
-            pose(c)
+            pose(c, args.beat)
             arm.location = ((i - (n - 1) / 2) * GAME_SPACING, 0, 0)  # +X is screen right from -Y
             paint(None if flat else palette.roles(c["faction"]))
             over(canvas, render(work / f"{c['id']}-game-{'black' if flat else 'palette'}.png"))

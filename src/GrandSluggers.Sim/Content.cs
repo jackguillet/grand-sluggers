@@ -145,6 +145,8 @@ public sealed class ContentCatalog
         var shots = CameraShots.Load(root);
         var feel = FeelTable.Load(root);
         var art = ArtCatalog.Load(root);
+        // The walk / run take reads the body's own pursuit profile (#1111): the rules' chase speeds and the feel share.
+        art.Gait = new GaitProfile(rules, feel.GaitRunOfPursuit);
         var starPitches = new Dictionary<string, StarPitchSkill>(StringComparer.OrdinalIgnoreCase);
         foreach (var (id, dto) in data.StarSkills.Pitches ?? [])
             if (dto is not null) starPitches[id] = dto.ToPitch();

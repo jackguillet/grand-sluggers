@@ -36,6 +36,7 @@ import hero_shared_blockout as body  # noqa: E402
 FPS = 60
 RUN_HZ = 2.55
 RUN_DUR = 1 / RUN_HZ
+WALK_DUR = RUN_DUR / 0.55
 JUMP_DUR = 0.55
 JUMP_PEAK = 4.2
 HOLD = 0.20
@@ -47,6 +48,29 @@ MIRROR = {name: (("r" if name[0] == "l" else "l") + name[1:]
           for name in body.BONES}
 ORDER = tuple(body.BONES)
 REFLECT = Matrix(((-1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1)))
+
+# Motion styles (CH-12, CF-5): data/art/clips.json `styles`. A style re-bakes the
+# styled clips from this one pose table with its own gait, idle, stance, windup
+# and signature beat (STYLE_POSES below), into `{out}/styles/{id}/{clip}`. A
+# style whose `reach` is not 1 moves the elbow and wrist in every take, so it
+# re-bakes every clip.
+REPO = Path(__file__).resolve().parents[2]
+CLIPS_DOC = jsonc.load(REPO / "data/art/clips.json")
+STYLE_DOC = CLIPS_DOC["styles"]
+STYLE_ROWS = {row["id"]: row for row in STYLE_DOC["rows"]}
+STYLED_CLIPS = tuple(STYLE_DOC["clips"])
+STYLE_FOLDER = "styles"
+# The style being baked (None: the shared takes) and the joint offsets its reach keys.
+ACTIVE = {"style": None}
+REACH = {"elbow": 0.0, "wrist": 0.0}
+
+
+def use_style(style: str | None):
+    """Pose the scene for a style: its build channels on the mesh, its reach on the joints."""
+    ACTIVE["style"] = style
+    row = STYLE_ROWS[style] if style else {"reachScale": 1.0, "bootsScale": 1.0}
+    body.set_build({"reach": float(row["reachScale"]), "boots": float(row["bootsScale"])})
+    REACH["elbow"], REACH["wrist"] = body.reach_offsets(float(row["reachScale"]))
 
 
 # ---------------------------------------------------------------- body terms
@@ -91,8 +115,8 @@ def _blend_pose(a: dict, b: dict, u: float) -> dict:
     out = {}
     bones = set(a) | set(b)
     for bone in bones:
-        if bone == "lift":
-            out["lift"] = _lerp(a.get("lift", 0.0), b.get("lift", 0.0), u)
+        if bone in ("lift", "hop"):
+            out[bone] = _lerp(a.get(bone, 0.0), b.get(bone, 0.0), u)
             continue
         ta = a.get(bone, {})
         tb = b.get(bone, {})
@@ -127,7 +151,7 @@ def clear_pose(arm):
 def apply_pose(arm, pose: dict):
     clear_pose(arm)
     for bone, terms in pose.items():
-        if bone == "lift":
+        if bone in ("lift", "hop"):
             continue
         pb = arm.pose.bones[bone]
         pb.rotation_mode = "XYZ"
@@ -136,7 +160,25 @@ def apply_pose(arm, pose: dict):
     if lift:
         # root points up: bone-local Y is world Z.
         arm.pose.bones["root"].location = (0.0, lift, 0.0)
+    if REACH["elbow"] or REACH["wrist"]:
+        # A reach style: the elbow slides down the upper arm and the wrist down the forearm
+        # (bone-local Y runs down the bone), where the stretched arm pieces end.
+        for side in ("l", "r"):
+            arm.pose.bones[side + "Fore"].location = (0.0, REACH["elbow"], 0.0)
+            arm.pose.bones[side + "Wrist"].location = (0.0, REACH["wrist"], 0.0)
     bpy.context.view_layer.update()
+
+
+def ground_hop(arm, pose: dict):
+    """Stand the lowest sole on the dirt, then lift by the pose's `hop` (air, world units)."""
+    ground_support(arm)
+    hop = pose.get("hop", 0.0)
+    if hop:
+        root = arm.pose.bones["root"]
+        matrix = root.matrix.copy()
+        matrix.translation.z += hop
+        root.matrix = matrix
+        bpy.context.view_layer.update()
 
 
 def center(name: str) -> Vector:
@@ -212,29 +254,54 @@ CHARM = [
 ]
 
 
-def _stride(amp: float, duration: float):
+# A gait in body terms. The defaults are the shared run; a motion style overrides
+# some of them (STYLE_POSES). `gallop` swings both arms together, twice a cycle.
+GAIT = dict(lean=10.0, leanAmp=6.0, spine=0.0, turn=16.0, tilt=0.0, head=2.0, headTurn=6.0,
+            armBase=0.0, armFwd=50.0, armBack=58.0, armAbduct=8.0, gallop=False,
+            foreBase=8.0, foreFwd=36.0, foreBack=16.0, forePass=20.0,
+            thighBase=0.0, thighFwd=54.0, thighBack=38.0, thighPass=8.0, thighAbduct=0.0,
+            shinLead=10.0, shinBase=6.0, kick=52.0, kickPass=40.0,
+            bounce=0.10, bouncePass=0.16, liftBase=0.0)
+
+
+def _stride(amp: float, duration: float, gait: dict | None = None):
     """One gait cycle. Phase 0: left foot planted forward, right arm forward."""
-    plant = K(torso=spine(10 + 6 * amp, 16 * amp), head=spine(2, 6 * amp),
-              lUpper=limb(-58 * amp, 8), rUpper=limb(50 * amp, 8), lFore=limb(16), rFore=limb(36 * amp + 8),
-              lThigh=limb(54 * amp), rThigh=limb(-38 * amp), lShin=limb(10), rShin=limb(52 * amp + 6),
-              lift=0.10 * amp)
-    passing = K(torso=spine(12 + 6 * amp, 0), head=spine(2, 0),
-                lUpper=limb(-4, 8), rUpper=limb(-4, 8), lFore=limb(20), rFore=limb(20),
-                lThigh=limb(8 * amp), rThigh=limb(8 * amp), lShin=limb(10), rShin=limb(40 * amp + 6),
-                lift=0.16 * amp)
-    other = K(torso=spine(10 + 6 * amp, -16 * amp), head=spine(2, -6 * amp),
-              lUpper=limb(50 * amp, 8), rUpper=limb(-58 * amp, 8), lFore=limb(36 * amp + 8), rFore=limb(16),
-              lThigh=limb(-38 * amp), rThigh=limb(54 * amp), lShin=limb(52 * amp + 6), rShin=limb(10),
-              lift=0.10 * amp)
-    passing2 = K(torso=spine(12 + 6 * amp, 0), head=spine(2, 0),
-                 lUpper=limb(-4, 8), rUpper=limb(-4, 8), lFore=limb(20), rFore=limb(20),
-                 lThigh=limb(8 * amp), rThigh=limb(8 * amp), lShin=limb(40 * amp + 6), rShin=limb(10),
-                 lift=0.16 * amp)
-    return [(0.0, plant), (duration * 0.25, passing), (duration * 0.5, other), (duration * 0.75, passing2)]
+    g = {**GAIT, **(gait or {})}
+
+    def plant(lead: str):
+        trail = "r" if lead == "l" else "l"
+        sign = 1.0 if lead == "l" else -1.0
+        if g["gallop"]:
+            arms = {lead + "Upper": limb(g["armBase"] - g["armBack"] * amp, g["armAbduct"]),
+                    trail + "Upper": limb(g["armBase"] - g["armBack"] * amp, g["armAbduct"]),
+                    lead + "Fore": limb(g["foreBack"]), trail + "Fore": limb(g["foreBack"])}
+        else:
+            arms = {lead + "Upper": limb(g["armBase"] - g["armBack"] * amp, g["armAbduct"]),
+                    trail + "Upper": limb(g["armBase"] + g["armFwd"] * amp, g["armAbduct"]),
+                    lead + "Fore": limb(g["foreBack"]), trail + "Fore": limb(g["foreFwd"] * amp + g["foreBase"])}
+        return K(torso=spine(g["lean"] + g["leanAmp"] * amp, sign * g["turn"] * amp, sign * g["tilt"] * amp),
+                 spine=spine(g["spine"]), head=spine(g["head"], sign * g["headTurn"] * amp), **arms,
+                 **{lead + "Thigh": limb(g["thighBase"] + g["thighFwd"] * amp, g["thighAbduct"]),
+                    trail + "Thigh": limb(g["thighBase"] - g["thighBack"] * amp, g["thighAbduct"]),
+                    lead + "Shin": limb(g["shinLead"]), trail + "Shin": limb(g["kick"] * amp + g["shinBase"])},
+                 lift=g["bounce"] * amp + g["liftBase"])
+
+    def passing(stance: str):
+        swing = "r" if stance == "l" else "l"
+        arm = g["armBase"] + g["armFwd"] * amp if g["gallop"] else g["armBase"] - 4
+        return K(torso=spine(g["lean"] + 2 + g["leanAmp"] * amp, 0), spine=spine(g["spine"]), head=spine(g["head"], 0),
+                 lUpper=limb(arm, g["armAbduct"]), rUpper=limb(arm, g["armAbduct"]),
+                 lFore=limb(g["forePass"]), rFore=limb(g["forePass"]),
+                 lThigh=limb(g["thighBase"] + g["thighPass"] * amp, g["thighAbduct"]),
+                 rThigh=limb(g["thighBase"] + g["thighPass"] * amp, g["thighAbduct"]),
+                 **{stance + "Shin": limb(g["shinLead"]), swing + "Shin": limb(g["kickPass"] * amp + g["shinBase"])},
+                 lift=g["bouncePass"] * amp + g["liftBase"])
+
+    return [(0.0, plant("l")), (duration * 0.25, passing("l")), (duration * 0.5, plant("r")), (duration * 0.75, passing("r"))]
 
 
 RUN = _stride(1.0, RUN_DUR)
-WALK = _stride(0.45, RUN_DUR / 0.55)
+WALK = _stride(0.45, WALK_DUR)
 
 
 def _jump_keys():
@@ -257,6 +324,209 @@ def _jump_keys():
 
 
 JUMP = _jump_keys()
+
+
+# ---------------------------------------------------------------- motion styles
+#
+# One row per style id in data/art/clips.json. A style is this pose table's
+# dimension, not a second one: its gait is GAIT with overrides, its idle and its
+# signature beat are keys like IDLE, its batting stance and its windup are
+# deltas on the shared swing and pitch keys that fade out before the contract
+# keys (contact, release), so every hand, bat and release contract still holds.
+# Idles and signatures stand on the dirt (ground_hop); `hop` is air.
+
+def add_terms(pose: dict, delta: dict, w: float = 1.0) -> dict:
+    """pose + w x delta, term by term (body terms, lift and hop)."""
+    out = {b: (dict(v) if isinstance(v, dict) else v) for b, v in pose.items()}
+    for bone, terms in delta.items():
+        if not isinstance(terms, dict):
+            out[bone] = out.get(bone, 0.0) + w * terms
+            continue
+        row = out.setdefault(bone, {})
+        for k, v in terms.items():
+            row[k] = row.get(k, 0.0) + w * v
+    return out
+
+
+# Weights: the stance delta is whole through the swing's ready and load keys and
+# gone by Contact; the windup delta is whole through the leg lift and gone by Release.
+def stance_weight(t: float) -> float:
+    return 1.0 if t <= 0.15 else max(0.0, 1.0 - (t - 0.15) / 0.15)
+
+
+def windup_weight(t: float) -> float:
+    return 1.0 if t <= 0.18 else max(0.0, 1.0 - (t - 0.18) / 0.24)
+
+
+STYLE_POSES = {
+    # Rio: the harbor kid is the neutral toy, eager on the balls of the feet.
+    "harbor-kid": dict(
+        gait={},
+        idle=[
+            (0.00, K(torso=spine(8), head=spine(-2, 0), lUpper=limb(10, 14), rUpper=limb(10, 14), lFore=limb(16), rFore=limb(16),
+                     lThigh=limb(12, 4), rThigh=limb(12, 4), lShin=limb(22), rShin=limb(22))),
+            (0.50, K(torso=spine(10), head=spine(-4, 12), lUpper=limb(14, 16), rUpper=limb(14, 16), lFore=limb(22), rFore=limb(22),
+                     lThigh=limb(18, 4), rThigh=limb(18, 4), lShin=limb(32), rShin=limb(32))),
+            (1.00, K(torso=spine(8), head=spine(-2, 0), lUpper=limb(10, 14), rUpper=limb(10, 14), lFore=limb(16), rFore=limb(16),
+                     lThigh=limb(12, 4), rThigh=limb(12, 4), lShin=limb(22), rShin=limb(22))),
+            (1.50, K(torso=spine(10), head=spine(-4, -12), lUpper=limb(14, 16), rUpper=limb(14, 16), lFore=limb(22), rFore=limb(22),
+                     lThigh=limb(18, 4), rThigh=limb(18, 4), lShin=limb(32), rShin=limb(32))),
+        ],
+        stance={},
+        windup={}, kick=1.0,
+        # Fist pump: the bat hand punches the sky, twice a second.
+        signature=([
+            (0.00, K(torso=spine(-4), head=spine(-10), rUpper=limb(150, 20), rFore=limb(40), lUpper=limb(20, 20), lFore=limb(70),
+                     lThigh=limb(6), rThigh=limb(6), lShin=limb(10), rShin=limb(10))),
+            (0.25, K(torso=spine(-8), head=spine(-16), rUpper=limb(172, 10), rFore=limb(4), lUpper=limb(26, 22), lFore=limb(80),
+                     lThigh=limb(0), rThigh=limb(0), lShin=limb(2), rShin=limb(2), hop=0.18)),
+        ], 0.5),
+    ),
+    # Vale: tall and showy. Chin up, hand on the hip, the prancing high-knee run.
+    "pageant": dict(
+        gait=dict(lean=2, leanAmp=2, spine=-4, head=-8, headTurn=10, turn=10, armBase=6, armFwd=30, armBack=30,
+                  armAbduct=26, foreBase=20, foreFwd=10, foreBack=30, forePass=30, thighFwd=66, thighBack=30,
+                  thighPass=22, kick=64, kickPass=62, bounce=0.14, bouncePass=0.22),
+        idle=[
+            (0.00, K(pelvis=spine(0, 0, 5), torso=spine(-2, 0, -8), spine=spine(-4), head=spine(-8, 14, 6),
+                     lUpper=limb(-18, 50, 60), lFore=limb(95), rUpper=limb(4, 14), rFore=limb(26),
+                     lThigh=limb(2, 3), rThigh=limb(14, -6), lShin=limb(4), rShin=limb(28))),
+            (1.00, K(pelvis=spine(0, 0, 6), torso=spine(-2, 0, -9), spine=spine(-4), head=spine(-10, -4, 2),
+                     lUpper=limb(-18, 52, 60), lFore=limb(98), rUpper=limb(6, 16), rFore=limb(34),
+                     lThigh=limb(2, 3), rThigh=limb(16, -6), lShin=limb(4), rShin=limb(32))),
+        ],
+        stance=K(torso=spine(-3), spine=spine(-3), head=spine(-5), lThigh=limb(-6, -4), rThigh=limb(-6, -4),
+                 lShin=limb(-10), rShin=limb(-10)),
+        windup=K(lUpper=limb(0, 40), head=spine(-8), torso=spine(-3)), kick=1.3,
+        # Crowd wave: the glove hand high, sweeping side to side, the hip swung the other way.
+        signature=([
+            (0.00, K(pelvis=spine(0, 0, 4), torso=spine(-4, 0, -6), head=spine(-10, 10, 8), lUpper=limb(160, 34), lFore=limb(30),
+                     rUpper=limb(-14, 44, 60), rFore=limb(95), lThigh=limb(2), rThigh=limb(12, -4), lShin=limb(4), rShin=limb(24))),
+            (0.45, K(pelvis=spine(0, 0, 4), torso=spine(-4, 0, -6), head=spine(-10, -6, 8), lUpper=limb(160, 4), lFore=limb(10),
+                     rUpper=limb(-14, 44, 60), rFore=limb(95), lThigh=limb(2), rThigh=limb(12, -4), lShin=limb(4), rShin=limb(24))),
+        ], 0.9),
+    ),
+    # Zig: small and fast. Pumping arms at ninety degrees, a hard lean, legs a blur; hops on the toes when still.
+    "speed": dict(
+        gait=dict(lean=24, leanAmp=6, head=-12, turn=10, armFwd=70, armBack=70, armAbduct=10, foreBase=80, foreFwd=10,
+                  foreBack=92, forePass=86, thighFwd=72, thighBack=46, thighPass=24, kick=100, kickPass=92,
+                  bounce=0.06, bouncePass=0.10),
+        idle=[
+            (0.00, K(torso=spine(14), head=spine(-8), lUpper=limb(24, 12), rUpper=limb(24, 12), lFore=limb(84), rFore=limb(84),
+                     lThigh=limb(16, 6), rThigh=limb(16, 6), lShin=limb(28), rShin=limb(28))),
+            (0.25, K(torso=spine(12), head=spine(-10, 6), lUpper=limb(30, 12), rUpper=limb(18, 12), lFore=limb(90), rFore=limb(80),
+                     lThigh=limb(8, 6), rThigh=limb(8, 6), lShin=limb(14), rShin=limb(14), hop=0.10)),
+            (0.50, K(torso=spine(14), head=spine(-8), lUpper=limb(24, 12), rUpper=limb(24, 12), lFore=limb(84), rFore=limb(84),
+                     lThigh=limb(16, 6), rThigh=limb(16, 6), lShin=limb(28), rShin=limb(28))),
+            (0.75, K(torso=spine(12), head=spine(-10, -6), lUpper=limb(18, 12), rUpper=limb(30, 12), lFore=limb(80), rFore=limb(90),
+                     lThigh=limb(8, 6), rThigh=limb(8, 6), lShin=limb(14), rShin=limb(14), hop=0.10)),
+            (1.00, K(torso=spine(14), head=spine(-8), lUpper=limb(24, 12), rUpper=limb(24, 12), lFore=limb(84), rFore=limb(84),
+                     lThigh=limb(16, 6), rThigh=limb(16, 6), lShin=limb(28), rShin=limb(28))),
+            (1.25, K(torso=spine(12), head=spine(-10, 6), lUpper=limb(30, 12), rUpper=limb(18, 12), lFore=limb(90), rFore=limb(80),
+                     lThigh=limb(8, 6), rThigh=limb(8, 6), lShin=limb(14), rShin=limb(14), hop=0.10)),
+            (1.50, K(torso=spine(14), head=spine(-8), lUpper=limb(24, 12), rUpper=limb(24, 12), lFore=limb(84), rFore=limb(84),
+                     lThigh=limb(16, 6), rThigh=limb(16, 6), lShin=limb(28), rShin=limb(28))),
+            (1.75, K(torso=spine(12), head=spine(-10, -6), lUpper=limb(18, 12), rUpper=limb(30, 12), lFore=limb(80), rFore=limb(90),
+                     lThigh=limb(8, 6), rThigh=limb(8, 6), lShin=limb(14), rShin=limb(14), hop=0.10)),
+        ],
+        stance=K(torso=spine(12), head=spine(-8), lThigh=limb(14, 2), rThigh=limb(14, 2), lShin=limb(22), rShin=limb(22)),
+        windup=K(torso=spine(8), lUpper=limb(0, -10)), kick=0.8,
+        # Victory hops: both fists up, three quick hops.
+        signature=([
+            (0.00, K(torso=spine(4), head=spine(-12), lUpper=limb(150, 30), rUpper=limb(150, 30), lFore=limb(30), rFore=limb(30),
+                     lThigh=limb(20), rThigh=limb(20), lShin=limb(36), rShin=limb(36))),
+            (0.15, K(torso=spine(-6), head=spine(-18), lUpper=limb(170, 22), rUpper=limb(170, 22), lFore=limb(6), rFore=limb(6),
+                     lThigh=limb(4), rThigh=limb(4), lShin=limb(10), rShin=limb(10), hop=0.35)),
+        ], 0.3),
+    ),
+    # Brondo: wide and heavy. Arms held out by the bulk, a stomping side-to-side run.
+    "brick": dict(
+        gait=dict(lean=6, spine=-4, turn=6, tilt=7, armBase=4, armFwd=22, armBack=22, armAbduct=38, foreBase=30, foreFwd=10,
+                  foreBack=30, forePass=34, thighAbduct=10, thighFwd=36, thighBack=24, thighPass=6, kick=34, kickPass=30,
+                  shinLead=14, bounce=0.02, bouncePass=0.12, liftBase=-0.05),
+        idle=[
+            (0.00, K(torso=spine(0, 0, 2), spine=spine(-5), head=spine(-4), lUpper=limb(8, 36), rUpper=limb(8, 36),
+                     lFore=limb(34), rFore=limb(34), lThigh=limb(10, 16), rThigh=limb(10, 16), lShin=limb(16), rShin=limb(16))),
+            (1.00, K(torso=spine(0, 0, -2), spine=spine(-7), head=spine(-5, 6), lUpper=limb(10, 40), rUpper=limb(10, 40),
+                     lFore=limb(40), rFore=limb(40), lThigh=limb(12, 16), rThigh=limb(12, 16), lShin=limb(18), rShin=limb(18))),
+        ],
+        stance=K(torso=spine(4), lThigh=limb(8, 12), rThigh=limb(8, 12), lShin=limb(14), rShin=limb(14)),
+        windup=K(torso=spine(-8), lUpper=limb(0, 14)), kick=0.7,
+        # Double flex: elbows out, fists up, chest out; pulse.
+        signature=([
+            (0.00, K(spine=spine(-6), torso=spine(-4), head=spine(-8), lUpper=limb(10, 86), rUpper=limb(10, 86),
+                     lFore=limb(96), rFore=limb(96), lThigh=limb(10, 16), rThigh=limb(10, 16), lShin=limb(16), rShin=limb(16))),
+            (0.35, K(spine=spine(-9), torso=spine(-6), head=spine(-12), lUpper=limb(14, 92), rUpper=limb(14, 92),
+                     lFore=limb(118), rFore=limb(118), lThigh=limb(14, 16), rThigh=limb(14, 16), lShin=limb(22), rShin=limb(22))),
+        ], 0.7),
+    ),
+    # Konga: the ape. Long arms hanging from a hunch, bowed legs, a knuckle gallop.
+    "ape": dict(
+        gait=dict(lean=28, leanAmp=4, spine=10, head=-34, turn=8, tilt=5, gallop=True, armBase=34, armFwd=30, armBack=30,
+                  armAbduct=16, foreBase=6, foreFwd=4, foreBack=8, forePass=8, thighAbduct=14, thighBase=14, thighFwd=40,
+                  thighBack=26, thighPass=10, shinLead=30, shinBase=30, kick=40, kickPass=30, bounce=0.14,
+                  bouncePass=0.06, liftBase=-0.12),
+        idle=[
+            (0.00, K(torso=spine(28, 0, 4), spine=spine(10), head=spine(-32, 6), lUpper=limb(34, 16), rUpper=limb(30, 16),
+                     lFore=limb(6), rFore=limb(8), lThigh=limb(18, 14), rThigh=limb(18, 14), lShin=limb(32), rShin=limb(32))),
+            (1.00, K(torso=spine(28, 0, -4), spine=spine(10), head=spine(-32, -6), lUpper=limb(30, 16), rUpper=limb(34, 16),
+                     lFore=limb(8), rFore=limb(6), lThigh=limb(18, 14), rThigh=limb(18, 14), lShin=limb(32), rShin=limb(32))),
+        ],
+        stance=K(torso=spine(14), spine=spine(4), head=spine(-2), lThigh=limb(10, 8), rThigh=limb(10, 8),
+                 lShin=limb(14), rShin=limb(14)),
+        windup=K(torso=spine(16), spine=spine(6), head=spine(-18)), kick=0.9,
+        # Chest thump: hunched, the hands beat the chest in turn.
+        signature=([
+            (0.00, K(torso=spine(10), spine=spine(4), head=spine(-18), lUpper=limb(62, 18), rUpper=limb(40, 30),
+                     lFore=limb(112), rFore=limb(70), lThigh=limb(16, 14), rThigh=limb(16, 14), lShin=limb(28), rShin=limb(28))),
+            (0.20, K(torso=spine(8), spine=spine(2), head=spine(-22), lUpper=limb(40, 30), rUpper=limb(62, 18),
+                     lFore=limb(70), rFore=limb(112), lThigh=limb(16, 14), rThigh=limb(16, 14), lShin=limb(28), rShin=limb(28))),
+        ], 0.4),
+    ),
+    # Ashlord: the villain. Upright, chest out, fists on the hips, heavy boots planted; a slow marching run.
+    "villain": dict(
+        gait=dict(lean=0, leanAmp=2, spine=-4, head=-6, turn=6, armFwd=18, armBack=18, armAbduct=16, foreBase=30, foreFwd=30,
+                  foreBack=34, forePass=34, thighFwd=44, thighBack=34, thighPass=4, kick=26, kickPass=24, shinLead=4,
+                  bounce=0.03, bouncePass=0.06),
+        idle=[
+            (0.00, K(spine=spine(-5), torso=spine(-3), head=spine(-8, 0), lUpper=limb(-16, 48, 60), rUpper=limb(-16, 48, 60),
+                     lFore=limb(96), rFore=limb(96), lThigh=limb(0, 10), rThigh=limb(0, 10), lShin=limb(2), rShin=limb(2))),
+            (1.00, K(spine=spine(-6), torso=spine(-4), head=spine(-10, 14), lUpper=limb(-16, 50, 60), rUpper=limb(-16, 50, 60),
+                     lFore=limb(98), rFore=limb(98), lThigh=limb(0, 10), rThigh=limb(0, 10), lShin=limb(2), rShin=limb(2))),
+        ],
+        stance=K(torso=spine(-4), spine=spine(-3), head=spine(-6), lThigh=limb(-8, 6), rThigh=limb(-8, 6),
+                 lShin=limb(-14), rShin=limb(-14)),
+        windup=K(torso=spine(-6), head=spine(-6), lShin=limb(-18)), kick=1.2,
+        # The villain laugh: head back, arms thrown wide, the shoulders shaking.
+        signature=([
+            (0.00, K(spine=spine(-8), torso=spine(-8, 0, 2), head=spine(-26), lUpper=limb(30, 74), rUpper=limb(30, 74),
+                     lFore=limb(24), rFore=limb(24), lThigh=limb(0, 10), rThigh=limb(0, 10), lShin=limb(2), rShin=limb(2))),
+            (0.15, K(spine=spine(-10), torso=spine(-10, 0, -2), head=spine(-30), lUpper=limb(36, 80), rUpper=limb(36, 80),
+                     lFore=limb(18), rFore=limb(18), lThigh=limb(0, 10), rThigh=limb(0, 10), lShin=limb(2), rShin=limb(2))),
+        ], 0.3),
+    ),
+    # Fenn: the elder turtle. Stooped, hands clasped behind, a short quick shuffle.
+    "turtle": dict(
+        gait=dict(lean=20, leanAmp=2, spine=12, head=-24, turn=6, armBase=-34, armFwd=6, armBack=6, armAbduct=12,
+                  foreBase=64, foreFwd=0, foreBack=64, forePass=64, thighFwd=28, thighBack=18, thighPass=6, kick=26,
+                  kickPass=22, shinLead=14, shinBase=10, bounce=0.03, bouncePass=0.05, liftBase=-0.04),
+        idle=[
+            (0.00, K(torso=spine(18), spine=spine(12), head=spine(-24, 0), lUpper=limb(-40, -6, 70), rUpper=limb(-40, -6, 70),
+                     lFore=limb(70), rFore=limb(70), lThigh=limb(8, 4), rThigh=limb(8, 4), lShin=limb(14), rShin=limb(14))),
+            (1.00, K(torso=spine(20), spine=spine(12), head=spine(-20, 10, 4), lUpper=limb(-40, -6, 70), rUpper=limb(-40, -6, 70),
+                     lFore=limb(72), rFore=limb(72), lThigh=limb(10, 4), rThigh=limb(10, 4), lShin=limb(18), rShin=limb(18))),
+        ],
+        stance=K(torso=spine(12), spine=spine(8), head=spine(-2), lThigh=limb(6), rThigh=limb(6), lShin=limb(8), rShin=limb(8)),
+        windup=K(torso=spine(14), head=spine(-14)), kick=0.6,
+        # Slow clap: stooped, the hands meet in front, twice a second.
+        signature=([
+            (0.00, K(torso=spine(16), spine=spine(10), head=spine(-18), lUpper=limb(44, 34), rUpper=limb(44, 34),
+                     lFore=limb(62), rFore=limb(62), lThigh=limb(8, 4), rThigh=limb(8, 4), lShin=limb(14), rShin=limb(14))),
+            (0.30, K(torso=spine(18), spine=spine(10), head=spine(-20), lUpper=limb(46, 8), rUpper=limb(46, 8),
+                     lFore=limb(66), rFore=limb(66), lThigh=limb(8, 4), rThigh=limb(8, 4), lShin=limb(14), rShin=limb(14))),
+        ], 0.6),
+    ),
+}
 
 # Named default motion data; both hands are baked from this one source.
 BASEBALL = jsonc.load(Path(__file__).resolve().parents[2] / "data/art/baseball-takes.json")
@@ -401,6 +671,7 @@ def solve_two_bone(arm, fore: str, hand_target: Vector, pole: Vector):
     with the elbow toward `pole`. Deterministic; no constraint evaluation.
     Returns the miss distance."""
     upper = ARM_PARENT[fore]
+    upper_len = ARM_UPPER_LEN + REACH["elbow"]
     shoulder = (arm.matrix_world @ arm.pose.bones[upper].head).copy()
     # Include the authored wrist articulation in the effector offset. The
     # solver remains two-bone, but the hands no longer freeze to the forearm.
@@ -408,7 +679,7 @@ def solve_two_bone(arm, fore: str, hand_target: Vector, pole: Vector):
     effector_len = hand_in_fore.length
     to_target = hand_target - shoulder
     reach = to_target.length
-    max_reach = ARM_UPPER_LEN + effector_len - 1e-4
+    max_reach = upper_len + effector_len - 1e-4
     if reach > max_reach:
         to_target = to_target.normalized() * max_reach
         reach = max_reach
@@ -418,9 +689,9 @@ def solve_two_bone(arm, fore: str, hand_target: Vector, pole: Vector):
     if v.length < 1e-6:
         v = Vector((0.0, 0.0, -1.0)) - u * Vector((0.0, 0.0, -1.0)).dot(u)
     v.normalize()
-    cos_a = max(-1.0, min(1.0, (ARM_UPPER_LEN ** 2 + reach ** 2 - effector_len ** 2) / (2 * ARM_UPPER_LEN * reach)))
+    cos_a = max(-1.0, min(1.0, (upper_len ** 2 + reach ** 2 - effector_len ** 2) / (2 * upper_len * reach)))
     sin_a = math.sqrt(max(0.0, 1 - cos_a * cos_a))
-    elbow = shoulder + (u * cos_a + v * sin_a) * ARM_UPPER_LEN
+    elbow = shoulder + (u * cos_a + v * sin_a) * upper_len
     hinge = u.cross(v).normalized()
     # Effector direction from the elbow, then the forearm Y axis so that
     # R_f · HAND_IN_FORE lands on the target: rotate the effector back by the
@@ -509,7 +780,12 @@ def ground_support(arm):
 def pose_swing_frame(arm, t, clip=SWING_SLAP):
     swing = SWINGS[clip]
     times = swing["times"]
-    apply_pose(arm, pose_at([(k, swing["legs"][k]) for k in times], t, ease=False, loop=False, duration=SWING_FINISH))
+    keys = [(k, swing["legs"][k]) for k in times]
+    # A style's batting stance: its delta on the ready and load keys, gone by Contact.
+    stance = STYLE_POSES[ACTIVE["style"]]["stance"] if ACTIVE["style"] else {}
+    if stance:
+        keys = [(k, add_terms(pose, stance, stance_weight(k))) for k, pose in keys]
+    apply_pose(arm, pose_at(keys, t, ease=False, loop=False, duration=SWING_FINISH))
     ground_support(arm)
     batting_stance.author_visible_stance(arm, t, bats=batting_stance.BATS_RIGHT, **STANCE_LANDMARKS)
     targets = {name: batting_stance.unity_to_dcc(v, normalize=False)
@@ -620,7 +896,8 @@ def assert_reflected(right: dict, left: dict, clip: str, t: float):
 
 class Take:
     def __init__(self, clip, keys=None, duration=None, loop=False, handed=False, ease=True,
-                 mark=None, sheet_times=None, sink=0.0, custom=None, validate=None, view="three-quarter"):
+                 mark=None, sheet_times=None, sink=0.0, custom=None, validate=None, view="three-quarter",
+                 ground=False, contracts=(), style=None):
         self.clip = clip
         self.view = view
         self.keys = keys or []
@@ -633,6 +910,40 @@ class Take:
         self.sink = sink
         self.custom = custom
         self.validate = validate
+        # Idles and signature beats stand on the dirt: the lowest sole is grounded each frame, then `hop` lifts.
+        self.ground = ground
+        # The named per-frame contracts `validate` holds (the receipt lists them; cli art compares a style's with the shared take's).
+        self.contracts = tuple(contracts)
+        self.style = style
+
+    @property
+    def folder(self) -> str:
+        """Where the take's files sit under the clip root: '' for a shared take, `styles/{id}` for a style's."""
+        return f"{STYLE_FOLDER}/{self.style}" if self.style else ""
+
+    @property
+    def label(self) -> str:
+        return f"{self.style}/{self.clip}" if self.style else self.clip
+
+
+def validate_sockets(arm, clip, t, bats):
+    """Every take, every frame: the glove binds sit on the wrists and the release sockets on the rendered palms,
+    so a ball caught or thrown leaves the drawn hand (a reach style moves the joints; this holds them to the mesh)."""
+    for side in ("l", "r"):
+        if (arm.pose.bones[side + "Glove"].head - arm.pose.bones[side + "Wrist"].head).length > .001:
+            raise RuntimeError(f"{clip} {bats} {side}Glove left the wrist at {t:.3f}")
+        if (arm.pose.bones[side + "Release"].head - center(side + "Hand")).length > .002:
+            raise RuntimeError(f"{clip} {bats} {side}Release left the palm at {t:.3f}")
+
+
+def catch_validate(arm, t, bats):
+    """The catch reaches up: at the hold both drawn hands are above the head's center."""
+    if t < HOLD - 0.5 / FPS:
+        return
+    head = center("headMesh").z
+    for hand in ("lHand", "rHand"):
+        if center(hand).z < head:
+            raise RuntimeError(f"catch {bats}: {hand} is below the head at the hold ({center(hand).z:.2f} vs {head:.2f})")
 
 
 def frame_times(take):
@@ -722,47 +1033,65 @@ def export_take(arm, action, take, out_dir: Path, name: str):
     return path
 
 
+def _sha256(path: Path) -> str:
+    import hashlib
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
 def bake(arm, take: Take, out_dir: Path, sheets: Path | None, resources: Path | None):
+    """Pose, falsify and export one take (and its baked mirror). Returns the receipt rows, one per file."""
     import clay
     scene = bpy.context.scene
     scene.render.fps = FPS
     if arm.animation_data is None:
         arm.animation_data_create()
     arm.animation_data.action = None
+    use_style(take.style)
     rest = rest_matrices(arm)
     frames = frame_times(take)
     matrices = {}
     snaps = {}
     locals_r = {}
     tiles = []
+    folder = out_dir / take.folder
+    folder.mkdir(parents=True, exist_ok=True)
+    sheet_dir = (sheets / take.folder) if sheets is not None else None
+    action_name = take.label.replace("/", ".")
 
     def want_tile(t):
-        return sheets is not None and any(abs(t - st) < 0.5 / FPS for st in take.sheet_times)
+        return sheet_dir is not None and any(abs(t - st) < 0.5 / FPS for st in take.sheet_times)
 
     def fail_sheet():
-        if sheets is not None and tiles:
-            clay.sheet(tiles, sheets / f"{take.clip}-FAILED.png", columns=min(5, len(tiles)))
+        if sheet_dir is not None and tiles:
+            clay.sheet(tiles, sheet_dir / f"{take.clip}-FAILED.png", columns=min(5, len(tiles)))
+
+    def check(t, bats):
+        if take.validate is not None:
+            take.validate(arm, t, bats)
+        validate_sockets(arm, take.label, t, bats)
 
     for frame, t in frames:
         if take.custom is not None:
             take.custom(arm, t)
         else:
-            apply_pose(arm, pose_at(take.keys, t, take.ease, take.loop, take.duration))
+            pose = pose_at(take.keys, t, take.ease, take.loop, take.duration)
+            apply_pose(arm, pose)
+            if take.ground:
+                ground_hop(arm, pose)
         review_equipment(take.clip)
         if want_tile(t):
-            tiles.append(clay.render(sheets / f"{take.clip}-{t:.2f}.png", take.view, 360, 480))
+            tiles.append(clay.render(sheet_dir / f"{take.clip}-{t:.2f}.png", take.view, 360, 480))
         try:
-            if take.validate is not None:
-                take.validate(arm, t, batting_stance.BATS_RIGHT)
-            validate_feet_on_ground(arm, take.clip, t, take.sink)
+            check(t, batting_stance.BATS_RIGHT)
+            validate_feet_on_ground(arm, take.label, t, take.sink)
         except Exception:
             fail_sheet()
             raise
         matrices[frame] = snapshot_matrices(arm)
         snaps[frame] = landmark_snapshot()
         locals_r[frame] = local_snapshot(arm)
-    right = write_action(arm, take.clip, frames, locals_r)
-    outputs = [export_take(arm, right, take, out_dir, take.clip)]
+    right = write_action(arm, action_name, frames, locals_r)
+    outputs = [export_take(arm, right, take, folder, take.clip)]
     arm.animation_data.action = None
 
     if take.handed:
@@ -771,28 +1100,32 @@ def bake(arm, take: Take, out_dir: Path, sheets: Path | None, resources: Path | 
             reflect_pose(arm, matrices[frame], rest)
             review_equipment(take.clip, left=True)
             if want_tile(t):
-                tiles.append(clay.render(sheets / f"{take.clip}-L-{t:.2f}.png", clay.mirror_view(take.view), 360, 480))
+                tiles.append(clay.render(sheet_dir / f"{take.clip}-L-{t:.2f}.png", clay.mirror_view(take.view), 360, 480))
             try:
-                assert_reflected(snaps[frame], landmark_snapshot(), take.clip, t)
-                if take.validate is not None:
-                    take.validate(arm, t, batting_stance.BATS_LEFT)
+                assert_reflected(snaps[frame], landmark_snapshot(), take.label, t)
+                check(t, batting_stance.BATS_LEFT)
             except Exception:
                 fail_sheet()
                 raise
             locals_l[frame] = local_snapshot(arm)
-        left = write_action(arm, take.clip + "-L", frames, locals_l)
-        outputs.append(export_take(arm, left, take, out_dir, take.clip + "-L"))
+        left = write_action(arm, action_name + "-L", frames, locals_l)
+        outputs.append(export_take(arm, left, take, folder, take.clip + "-L"))
         arm.animation_data.action = None
 
-    if sheets is not None and tiles:
-        clay.sheet(tiles, sheets / f"{take.clip}.png", columns=min(5, len(tiles)))
+    if sheet_dir is not None and tiles:
+        clay.sheet(tiles, sheet_dir / f"{take.clip}.png", columns=min(5, len(tiles)))
+    contracts = ["feet", "sockets", *take.contracts] + (["reflection"] if take.handed else [])
+    rows = []
     for out in outputs:
-        print("take", out.name, out.stat().st_size)
+        print("take", take.folder + "/" + out.name if take.folder else out.name, out.stat().st_size)
         if resources is not None:
-            resources.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(out, resources / out.name)
+            (resources / take.folder).mkdir(parents=True, exist_ok=True)
+            shutil.copy2(out, resources / take.folder / out.name)
+        rel = f"{take.folder}/{out.name}" if take.folder else out.name
+        rows.append({"file": rel, "sha256": _sha256(out), "frames": len(frames), "contracts": sorted(contracts)})
     clear_pose(arm)
-    return outputs
+    use_style(None)
+    return rows
 
 
 def swing_frame(clip):
@@ -871,9 +1204,27 @@ def solve_leg(arm, side, ankle):
     bpy.context.view_layer.update()
 
 
+def styled_windup(keys):
+    """A style's windup: its pose delta and leg-kick height on the keys before Release, gone by Release."""
+    style = ACTIVE["style"]
+    if not style:
+        return keys
+    sp = STYLE_POSES[style]
+    out = []
+    for k in keys:
+        w = windup_weight(k["t"])
+        kick = 1.0 + (sp["kick"] - 1.0) * w
+        feet = dict(k["feet"])
+        x, y, z = feet["left"]
+        feet["left"] = [x, y, 0.24 + (z - 0.24) * kick]
+        out.append({**k, "pose": add_terms(k["pose"], sp["windup"], w), "feet": feet})
+    return out
+
+
 def baseball_frame(clip):
-    row=BASEBALL_TAKES[clip];keys=row["keys"];times=[k["t"] for k in keys]
+    row=BASEBALL_TAKES[clip];times=[k["t"] for k in row["keys"]]
     def custom(arm,t):
+        keys=styled_windup(row["keys"])
         apply_pose(arm,pose_at([(k["t"],k["pose"]) for k in keys],t,True,False,row["duration"]))
         index,u=batting_stance.span_at(t,times);u=_smooth(u)
         a=keys[index]["feet"];b=keys[min(index+1,len(keys)-1)]["feet"]
@@ -902,33 +1253,63 @@ def baseball_validate(clip):
     return validate
 
 
-TAKES = [
-    Take("idle", IDLE, duration=2.0, loop=True),
-    Take("field", FIELD, duration=2.0, loop=True, sink=0.2),
-    Take("cheer", CHEER, duration=0.8, loop=True),
-    Take("charm", CHARM, duration=1.2, loop=True),
-    Take("walk", WALK, duration=RUN_DUR / 0.55, loop=True, sink=0.3),
-    Take("run", RUN, duration=RUN_DUR, loop=True, sink=0.3),
-    Take("jump", JUMP, duration=JUMP_DUR, sink=0.2),
-    *[Take(row["id"], [(k["t"],k["pose"]) for k in row["keys"]], duration=row["duration"],
-           handed=True, mark=row["releaseAt"], custom=baseball_frame(row["id"]), validate=baseball_validate(row["id"]), sink=.3, view="three-quarter-right")
-      for row in BASEBALL["takes"]],
-    # Slap and charge (#613): both meet the ball at Contact and end on the held finish (#583).
-    *[Take(clip, None, view="three-quarter-right", duration=SWING_FINISH, handed=True, ease=False, mark=SWING_CONTACT,
-           custom=swing_frame(clip), validate=swing_validate(clip), sheet_times=SWINGS[clip]["times"], sink=0.2)
-      for clip in (SWING_SLAP, SWING_CHARGE)],
-    Take("checkSwing", None, view="three-quarter-right", duration=HOLD, handed=True, custom=held_swing_frame(0.20), validate=None,
-         sheet_times=[0.0], sink=0.2),
-    Take("bunt", None, view="three-quarter-right", duration=HOLD, handed=True, custom=bunt_frame, validate=bunt_validate, sheet_times=[0.0], sink=0.6),
-    Take("miss", None, view="three-quarter-right", duration=HOLD, handed=True, custom=miss_frame, sheet_times=[0.0], sink=0.2),
-    Take("catch", CATCH, duration=HOLD),
-    Take("dive", DIVE, duration=HOLD, sink=1.0),
-    Take("crouch", CROUCH, duration=HOLD, sink=0.8),
-    Take("stealLead", STEAL_LEAD, duration=HOLD, sink=0.8),
-    Take("spin", SPIN, duration=HOLD),
-    Take("scoop", SCOOP, duration=0.50, mark=0.22, sink=0.9),
-    Take("slide", SLIDE, duration=0.40, mark=0.18, sink=1.2),
-]
+def all_takes(style: str | None = None):
+    """Every clip's take. With a style, the styled clips carry its gait, idle, stance, windup and signature beat
+    (the stance and windup are applied in pose_swing_frame / baseball_frame while the style is active)."""
+    sp = STYLE_POSES[style] if style else None
+    gait = sp["gait"] if sp else None
+    signature, signature_dur = sp["signature"] if sp else (CHEER, 0.8)
+    return [
+        Take("idle", sp["idle"] if sp else IDLE, duration=2.0, loop=True, ground=sp is not None),
+        Take("field", FIELD, duration=2.0, loop=True, sink=0.2),
+        # A style's cheer is its captain's signature beat (the home run and the win play Cheer).
+        Take("cheer", signature, duration=signature_dur, loop=True, ground=sp is not None),
+        Take("charm", CHARM, duration=1.2, loop=True),
+        Take("walk", _stride(0.45, WALK_DUR, gait), duration=WALK_DUR, loop=True, sink=0.3),
+        Take("run", _stride(1.0, RUN_DUR, gait), duration=RUN_DUR, loop=True, sink=0.3),
+        Take("jump", JUMP, duration=JUMP_DUR, sink=0.2),
+        *[Take(row["id"], [(k["t"],k["pose"]) for k in row["keys"]], duration=row["duration"],
+               handed=True, mark=row["releaseAt"], custom=baseball_frame(row["id"]), validate=baseball_validate(row["id"]), sink=.3,
+               view="three-quarter-right", contracts=("release",))
+          for row in BASEBALL["takes"]],
+        # Slap and charge (#613): both meet the ball at Contact and end on the held finish (#583).
+        *[Take(clip, None, view="three-quarter-right", duration=SWING_FINISH, handed=True, ease=False, mark=SWING_CONTACT,
+               custom=swing_frame(clip), validate=swing_validate(clip), sheet_times=SWINGS[clip]["times"], sink=0.2,
+               contracts=("swing",))
+          for clip in (SWING_SLAP, SWING_CHARGE)],
+        Take("checkSwing", None, view="three-quarter-right", duration=HOLD, handed=True, custom=held_swing_frame(0.20), validate=None,
+             sheet_times=[0.0], sink=0.2),
+        Take("bunt", None, view="three-quarter-right", duration=HOLD, handed=True, custom=bunt_frame, validate=bunt_validate,
+             sheet_times=[0.0], sink=0.6, contracts=("bunt",)),
+        Take("miss", None, view="three-quarter-right", duration=HOLD, handed=True, custom=miss_frame, sheet_times=[0.0], sink=0.2),
+        Take("catch", CATCH, duration=HOLD, validate=catch_validate, contracts=("catch",)),
+        Take("dive", DIVE, duration=HOLD, sink=1.0),
+        Take("crouch", CROUCH, duration=HOLD, sink=0.8),
+        Take("stealLead", STEAL_LEAD, duration=HOLD, sink=0.8),
+        Take("spin", SPIN, duration=HOLD),
+        Take("scoop", SCOOP, duration=0.50, mark=0.22, sink=0.9),
+        Take("slide", SLIDE, duration=0.40, mark=0.18, sink=1.2),
+    ]
+
+
+def style_takes(style: str):
+    """A style's own takes: the styled clips, or every clip when its reach moves the joints."""
+    owns_all = abs(float(STYLE_ROWS[style]["reachScale"]) - 1.0) > 1e-9
+    takes = []
+    for take in all_takes(style):
+        if owns_all or take.clip in STYLED_CLIPS:
+            take.style = style
+            takes.append(take)
+    return takes
+
+
+TAKES = all_takes()
+if set(STYLE_POSES) != set(STYLE_ROWS):
+    raise RuntimeError(f"STYLE_POSES {sorted(STYLE_POSES)} must match clips.json styles {sorted(STYLE_ROWS)}")
+if not set(STYLED_CLIPS) <= {t.clip for t in TAKES}:
+    raise RuntimeError(f"clips.json styles.clips names a clip no take bakes: {sorted(set(STYLED_CLIPS) - {t.clip for t in TAKES})}")
+
+
 
 
 def add_review_equipment(arm):
@@ -962,12 +1343,34 @@ def review_equipment(clip, left=False):
 
 
 
+def write_receipt(path: Path, rows: list):
+    """Merge this bake's rows into the takes receipt: per file its SHA-256, frame count and the per-frame contracts
+    it passed. cli art refuses a take whose bytes no receipt row vouches for."""
+    import json
+    doc = {"notes": "Written by tools/blender/hero_shared_takes.py; do not edit. One row per baked take file under "
+                    "unity/Assets/Art/Animation/Clips: its SHA-256, frames and the per-frame contracts it passed. "
+                    "cli art checks every catalog take against it.", "takes": []}
+    if path.exists():
+        doc["takes"] = json.loads(path.read_text()).get("takes", [])
+    by_file = {row["file"]: row for row in doc["takes"]}
+    for row in rows:
+        by_file[row["file"]] = row
+    doc["takes"] = [by_file[k] for k in sorted(by_file)]
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(doc, indent=2) + "\n")
+    print("receipt", path, len(rows), "rows")
+
+
 def main(argv):
     p = argparse.ArgumentParser()
     p.add_argument("--out", required=True)
     p.add_argument("--resources", default="")
     p.add_argument("--sheets", default="")
-    p.add_argument("--only", default="")
+    p.add_argument("--only", default="", help="Clip ids to bake (default: every clip).")
+    p.add_argument("--styles", default="all", help="'all' (shared and every style), 'none' (shared only), 'only' "
+                                                   "(every style, no shared), or style ids.")
+    p.add_argument("--receipt", default="", help="Receipt JSON (default: data/art/takes-receipt.json when --out is "
+                                                 "the catalog clip folder, else <out>/takes-receipt.json).")
     p.add_argument("--blend", default="", help="Save editable rig, mesh, props and baked actions for inspection.")
     args = p.parse_args(argv)
     out = Path(args.out).resolve()
@@ -975,14 +1378,31 @@ def main(argv):
     resources = Path(args.resources).resolve() if args.resources else None
     sheets = Path(args.sheets).resolve() if args.sheets else None
     only = {s.strip() for s in args.only.split(",") if s.strip()}
+    catalog = (REPO / "unity/Assets/Art/Animation/Clips").resolve()
+    receipt = Path(args.receipt).resolve() if args.receipt else (
+        REPO / "data/art/takes-receipt.json" if out == catalog else out / "takes-receipt.json")
+    if args.styles == "all":
+        shared, styles = True, list(STYLE_ROWS)
+    elif args.styles == "none":
+        shared, styles = True, []
+    elif args.styles == "only":
+        shared, styles = False, list(STYLE_ROWS)
+    else:
+        shared, styles = False, [s.strip() for s in args.styles.split(",") if s.strip()]
+        unknown = [s for s in styles if s not in STYLE_ROWS]
+        if unknown:
+            raise RuntimeError(f"unknown styles {unknown}; clips.json has {sorted(STYLE_ROWS)}")
     arm = body.build_scene()
     add_review_equipment(arm)
     assert_conventions(arm)
     print("conventions ok")
-    for take in TAKES:
+    queue = (TAKES if shared else []) + [take for style in styles for take in style_takes(style)]
+    rows = []
+    for take in queue:
         if only and take.clip not in only:
             continue
-        bake(arm, take, out, sheets, resources)
+        rows.extend(bake(arm, take, out, sheets, resources))
+    write_receipt(receipt, rows)
     if args.blend:
         arm.animation_data.action=bpy.data.actions.get(SWING_SLAP)
         bpy.context.scene.frame_start=1

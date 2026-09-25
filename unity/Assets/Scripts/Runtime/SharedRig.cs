@@ -38,7 +38,7 @@ namespace GrandSluggers.UnityClient
 
         static bool _missingReported;
 
-        public static Chain Spawn(Transform parent, Character who, SkinSlot skin)
+        public static Chain Spawn(Transform parent, Character who, SkinSlot skin, MotionStyle style = null)
         {
             var spec = Silhouette.Proportions(who);
             var scale = Silhouette.SharedRootScale(spec);
@@ -53,13 +53,13 @@ namespace GrandSluggers.UnityClient
             body.localScale = chain.BaseScale;
 
             var prefab = ArtBinder.LoadSharedRigPrefab();
-            if (prefab == null || !TryBind(chain, prefab, who, skin))
+            if (prefab == null || !TryBind(chain, prefab, who, skin, style))
                 BuildPlaceholder(chain, who);
             AttachRing(chain);
             return chain;
         }
 
-        static bool TryBind(Chain chain, GameObject prefab, Character who, SkinSlot skin)
+        static bool TryBind(Chain chain, GameObject prefab, Character who, SkinSlot skin, MotionStyle style)
         {
             var go = UnityEngine.Object.Instantiate(prefab, chain.Body, false);
             go.name = "rig";
@@ -120,7 +120,7 @@ namespace GrandSluggers.UnityClient
             chain.Animator = animator;
 
             Paint(go, who.Faction);
-            ApplyBuild(go, Silhouette.Proportions(who));
+            ApplyBuild(go, Silhouette.Proportions(who), style);
             HideLookRays(go.transform);
             AttachExtras(chain, who, skin);
             return true;
@@ -131,9 +131,11 @@ namespace GrandSluggers.UnityClient
         /// the sim's (<see cref="Silhouette.BuildWeights"/>), so the drawn head, arms and torso are the measured ones.
         /// No bone moves; the takes stay shared. A body FBX without the keys draws the neutral toy and says so.
         /// </summary>
-        internal static void ApplyBuild(GameObject go, Silhouette.Spec spec)
+        internal static void ApplyBuild(GameObject go, Silhouette.Spec spec, MotionStyle style = null)
         {
-            var weights = Silhouette.BuildWeights(spec);
+            // The style channels (reach, boots) come from the motion style; its takes move the joints to meet reach.
+            var weights = new List<(string, double)>(Silhouette.BuildWeights(spec));
+            weights.AddRange(Silhouette.StyleWeights(style));
             var found = 0;
             foreach (var smr in go.GetComponentsInChildren<SkinnedMeshRenderer>(true))
             {

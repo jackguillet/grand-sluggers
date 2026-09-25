@@ -40,6 +40,7 @@ Art sessions walk named checkpoints. Name the stage, stop at its checkpoint, and
 | a face, toe, landmark | `hero_shared_blockout.py` |
 | a captain's hat, snout, cape | catalog slot in `extras.json` / `hero_shared_extras.py`. Do not list it on a skin until it reads as a toy (#687) |
 | a pose or timing | `hero_shared_takes.py` pose table; markers in `Motion.Clips` and `data/art/clips.json` |
+| a motion style (run, idle, stance, windup, signature) | `STYLE_POSES` in `hero_shared_takes.py`, its row in `clips.json` `styles`; look in the lab lineup `tools/dcc-still.sh lineup` (every beat) |
 | the swing grip or stance | `SwingPresentation.Keys` / `data/art/batting-stance.json`, then re-bake |
 | which hand plays which file | `Motion.ClipFile` (do not special-case a captain) |
 

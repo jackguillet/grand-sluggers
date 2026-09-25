@@ -48,6 +48,14 @@ namespace GrandSluggers.UnityClient
         Vector3 _ground;
         bool _hasGround;
         float _speed;
+        /// <summary>The body's motion style (CH-12): its own run, walk, idle, stance, windup and signature takes, and its reach and boots.</summary>
+        MotionStyle _style;
+        Silhouette.Spec _spec;
+        /// <summary>Above this ground speed the body plays the run take (<see cref="Gait.RunFloorFt"/>, #1111); NaN without a gait profile.</summary>
+        double _runFloorFt = double.NaN;
+        /// <summary>The run and walk loops' phases: they advance with the ground the body covers (SC-21), not with time.</summary>
+        double _runPhase, _walkPhase;
+        bool _gaitMissingReported;
 
         public string Id => _id;
         public Motion.Verb Current => _verb;
@@ -160,8 +168,12 @@ namespace GrandSluggers.UnityClient
             var dt = Time.deltaTime;
             if (_hasGround && dt > 1e-5f)
             {
-                var inst = Vector3.Distance(ground, _ground) / dt;
+                var step = Vector3.Distance(ground, _ground);
+                var inst = step / dt;
                 _speed = Mathf.Lerp(_speed, inst, 0.4f);
+                // Stride rate follows ground speed (CH-12, SC-21): the loops turn by the ground covered on the sim's positions.
+                _runPhase = Gait.Advance(_runPhase, step, Gait.CycleFt(_style?.RunCycle ?? Gait.SharedRunCycle, _spec));
+                _walkPhase = Gait.Advance(_walkPhase, step, Gait.CycleFt(_style?.WalkCycle ?? Gait.SharedWalkCycle, _spec));
             }
             _hasGround = true;
             _ground = ground;
@@ -234,7 +246,10 @@ namespace GrandSluggers.UnityClient
             _batsLeft = who.Bats == Hand.L;
             _throwsLeft = who.Throws == Hand.L;
             var skin = ArtBinder.Art != null ? ArtBinder.SkinOf(who) : default;
-            _chain = SharedRig.Spawn(transform, who, skin);
+            _style = ArtBinder.Art?.StyleOf(who);
+            _spec = Silhouette.Proportions(who);
+            _runFloorFt = ArtBinder.Art?.Gait?.RunFloorFt(who) ?? double.NaN;
+            _chain = SharedRig.Spawn(transform, who, skin, _style);
             _body = _chain.Body;
             _root = _chain.Root;
             _baseScale = _chain.BaseScale;
@@ -342,7 +357,10 @@ namespace GrandSluggers.UnityClient
             var hand = Motion.UsesBattingHand(verb)
                 ? (_batsLeft ? Hand.L : Hand.R)
                 : (_throwsLeft ? Hand.L : Hand.R);
-            var file = Motion.ClipFile(cue.Clip, hand);
+            // The body's style's own take when it has one (CH-12), else the shared take.
+            var file = Motion.ClipFor(verb, hand, _style, _charge);
+            // A moving loop's time is its ground phase (SC-21); a still is cut at its pose time.
+            var gaitPhase = verb == Motion.Verb.Run ? _runPhase : verb == Motion.Verb.Walk ? _walkPhase : -1.0;
             var time = cue.Clock switch
             {
                 Motion.Clock.World => (double)_t,
@@ -366,11 +384,15 @@ namespace GrandSluggers.UnityClient
                     }
                     clip = ArtBinder.LoadClip("idle");
                     time = _t;
+                    gaitPhase = -1.0;
                 }
                 if (clip != null)
                 {
                     var length = Mathf.Max(clip.length, 1e-4f);
-                    var sample = cue.Clock == Motion.Clock.World && Motion.TryClip(cue.Clip, out var slot) && slot.Loop
+                    // A moving loop is as far through its cycle as the ground it has covered; a still is cut at its pose time.
+                    var sample = gaitPhase >= 0 && !_snap
+                        ? (float)(gaitPhase * length)
+                        : cue.Clock == Motion.Clock.World && Motion.TryClip(cue.Clip, out var slot) && slot.Loop
                         ? (float)(time % length)
                         : Mathf.Clamp((float)time, 0f, length);
                     _player.Play(clip, sample, _snap ? 0f : FadeSeconds);
@@ -395,13 +417,17 @@ namespace GrandSluggers.UnityClient
         {
             if (verb is not (Motion.Verb.Idle or Motion.Verb.Field or Motion.Verb.Walk or Motion.Verb.Run))
                 return verb;
-            // The backpedal (§8.2) is the short steps under a fly, never the sprint cycle run in reverse.
-            if (_heading.Source == BodyFacing.Source.Backpedal && _speed > CartoonJuice.WalkFtPerSec) return Motion.Verb.Walk;
-            if (_speed > CartoonJuice.RunFtPerSec) return Motion.Verb.Run;
-            if (_speed > CartoonJuice.WalkFtPerSec) return Motion.Verb.Walk;
-            if (verb is Motion.Verb.Walk or Motion.Verb.Run)
-                return _heldGlove ? Motion.Verb.Field : Motion.Verb.Idle;
-            return verb;
+            if (double.IsNaN(_runFloorFt) && !_gaitMissingReported)
+            {
+                Debug.LogError("no gait profile for " + _id + ": every moving body runs (ContentCatalog sets ArtCatalog.Gait)");
+                _gaitMissingReported = true;
+            }
+            var still = verb is Motion.Verb.Walk or Motion.Verb.Run
+                ? (_heldGlove ? Motion.Verb.Field : Motion.Verb.Idle)
+                : verb;
+            // The run floor is the body's own pursuit profile (#1111); the backpedal (§8.2) is the short steps under a fly.
+            return Gait.Locomotion(_speed, double.IsNaN(_runFloorFt) ? 0 : _runFloorFt,
+                _heading.Source == BodyFacing.Source.Backpedal, still);
         }
     }
 }

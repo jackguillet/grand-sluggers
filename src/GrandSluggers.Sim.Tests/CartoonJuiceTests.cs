@@ -27,7 +27,7 @@ public class CartoonJuiceTests
         Assert.True(CartoonJuice.StandingStill(0));
         Assert.True(CartoonJuice.StandingStill(2));
         Assert.False(CartoonJuice.StandingStill(8));
-        Assert.False(CartoonJuice.StandingStill(CartoonJuice.RunFtPerSec));
+        Assert.False(CartoonJuice.StandingStill(CartoonJuice.WalkFtPerSec + 0.5));
     }
 
     [Fact]
