@@ -39,5 +39,23 @@
   "fieldTells": {
     "diveGetUpSec": 0.20,
     "braceSquash": 0.16
+  },
+  // Juice by weight (CH-13, CF-6): one row per body class in data/rules/body-classes.json, keyed by the class id (not by its
+  // knockbackMul, which is a rule a balance pass may move). Heavy: a longer wind-up (anticipationSec), a longer hold on its own
+  // contact (hitStopMul x solidFreeze / smashFreeze) and catch (catchStopSec), a low flat squash and a slow settle. Light: a short
+  // wind-up, a fast overshoot (settleHalfCycles 3) and a tall stretch (settleStretch). harbor-kid is the juice every body had
+  // before classes, so Rio looks the same. The hit-stop holds the sim for whole frames; the drawn clocks creep at
+  // hitStopCreepMul. Presentation only: no number here reaches the sim.
+  "weightJuice": {
+    "hitStopCreepMul": 0.12,
+    "classes": [
+      { "class": "speed",      "anticipationSec": 0.06, "anticipationSquash": 0.04, "hitStopMul": 0.75, "catchStopSec": 0.00,  "settleSec": 0.16, "settleSquash": 0.06, "settleHalfCycles": 3, "settleStretch": 1.8 },
+      { "class": "pageant",    "anticipationSec": 0.10, "anticipationSquash": 0.04, "hitStopMul": 0.85, "catchStopSec": 0.00,  "settleSec": 0.20, "settleSquash": 0.06, "settleHalfCycles": 3, "settleStretch": 1.5 },
+      { "class": "harbor-kid", "anticipationSec": 0.14, "anticipationSquash": 0.00, "hitStopMul": 1.00, "catchStopSec": 0.00,  "settleSec": 0.24, "settleSquash": 0.00, "settleHalfCycles": 2, "settleStretch": 1.0 },
+      { "class": "ape",        "anticipationSec": 0.20, "anticipationSquash": 0.08, "hitStopMul": 1.30, "catchStopSec": 0.045, "settleSec": 0.36, "settleSquash": 0.10, "settleHalfCycles": 2, "settleStretch": 0.6 },
+      { "class": "turtle",     "anticipationSec": 0.22, "anticipationSquash": 0.08, "hitStopMul": 1.30, "catchStopSec": 0.045, "settleSec": 0.40, "settleSquash": 0.09, "settleHalfCycles": 1, "settleStretch": 0.5 },
+      { "class": "brick",      "anticipationSec": 0.22, "anticipationSquash": 0.09, "hitStopMul": 1.35, "catchStopSec": 0.05,  "settleSec": 0.40, "settleSquash": 0.11, "settleHalfCycles": 2, "settleStretch": 0.5 },
+      { "class": "villain",    "anticipationSec": 0.26, "anticipationSquash": 0.10, "hitStopMul": 1.40, "catchStopSec": 0.06,  "settleSec": 0.45, "settleSquash": 0.12, "settleHalfCycles": 1, "settleStretch": 0.4 }
+    ]
   }
 }

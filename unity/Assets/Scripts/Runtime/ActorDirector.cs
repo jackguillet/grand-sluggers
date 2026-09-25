@@ -33,6 +33,7 @@ namespace GrandSluggers.UnityClient
             Steal.UpdateInset(_match != null && !_match.Paused && !TutorialModal && !_turntable
                 && (_phase is Phase.Set or Phase.Flight), _match, _content, _feel);
             if (_turntable) return;
+            _juice.Age(dt);
             _used.Clear();
             if (_phase is Phase.Title or Phase.Select)
             {
@@ -202,7 +203,9 @@ namespace GrandSluggers.UnityClient
                 hero.SetGear(_match.OffenseBat, _match.DefenseGlove);
                 hero.SetHeld(false, true);
                 var brace = FielderTells.Brace(_owed, kv.Key, _match.Rules.Fielding.Recoil.CapSec, _feel.FieldTells);
-                hero.SetBrace(new Vector3((float)brace.X, (float)brace.Y, (float)brace.Z));
+                // Juice by weight (CH-13): the thrower's load before the release, the catcher's settle after the glove.
+                var toRelease = _throwing && kv.Key == _throwFromPos ? _match.LivePlay.ThrowReleaseSec - _throwT : double.NaN;
+                hero.SetBrace(Vector3.Scale(new Vector3((float)brace.X, (float)brace.Y, (float)brace.Z), _juice.Wrapper(who, toRelease, _feel)));
                 if (kv.Key == "P" && _phase is Phase.Set or Phase.Flight)
                     // The drawn rubber, not the match's: a hand's is the match's exactly, and the
                     // CPU's walks to it over SET instead of teleporting on the release frame (§4.8).
@@ -294,6 +297,9 @@ namespace GrandSluggers.UnityClient
                         (float)HomeSet.BatterBodyX(batter.Bats, _match.BatterOffsetX),
                         0,
                         (float)HomeSet.BatterZ), new Vector3(0, 0, 1), pinned: true);
+                // Juice by weight (CH-13): the load before the swing's contact mark, the settle after the contact.
+                var toContact = presentingSwing && !float.IsNaN(_swingContactSec) ? _swingContactSec - _committedSwingT : double.NaN;
+                bHero.SetBrace(_juice.Wrapper(batter, toContact, _feel));
                 if (bPose == Motion.Verb.Swing && presentingSwing)
                     bHero.SampleMotion((float)AtBatMotion.CommittedSwingSample(_committedSwingT, swingTakeSec), dt);
                 else bHero.Tick(dt);
