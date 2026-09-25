@@ -107,7 +107,7 @@ namespace GrandSluggers.UnityClient
         float _pitchCharge;
         float _pitchPast;
         internal float _breakX { get => Play.BreakX; set => Play.BreakX = value; }
-        float _dash01;
+        float _dash01 { get => Live.Dash01; set => Live.Dash01 = value; }
         internal float _t;
         float _pip;
         internal PitchCommand _pitch { get => Play.Pitch; set => Play.Pitch = value; }
@@ -135,7 +135,7 @@ namespace GrandSluggers.UnityClient
         bool _freezeCam;
         float _aimX, _aimY;
         internal Sample[] _path { get => Play.Path; set => Play.Path = value; }
-        internal Vector3 _ball;
+        internal Vector3 _ball { get => Play.Ball; set => Play.Ball = value; }
         // The live play as the client mirrors it (LiveFieldState); these names forward to it (#1042).
         internal readonly LiveFieldState Live = new LiveFieldState();
         internal double _fx { get => Live.GloveX; set => Live.GloveX = value; } internal double _fz { get => Live.GloveZ; set => Live.GloveZ = value; }
@@ -243,7 +243,7 @@ namespace GrandSluggers.UnityClient
             _cam.Cut("title");
             _flow = new FlowDirector(this);
             _atBat = new AtBatDirector(this);
-            _inPlay = new InPlayDirector(this);
+            _inPlay = new InPlayDirector(Scene, Play, Live, this, transform);
             _actors = new ActorDirector(this);
         }
 

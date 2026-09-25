@@ -16,7 +16,7 @@ namespace GrandSluggers.UnityClient
         public void Tick(float dt) { _play.TickAtBat(dt); }
     }
 
-    public sealed partial class MatchDirector
+    public sealed partial class MatchDirector : IInPlayHost
     {
         internal ChargeButtonState _pitchButton;
 
@@ -853,7 +853,7 @@ namespace GrandSluggers.UnityClient
         internal void StartFly(AtBatResult hit, bool alreadyLive = false)
         {
             _phase = Phase.InPlay;
-            _liveBeganFrame = Time.frameCount;
+            _inPlay.Began();
             _t = 0;
             _path = null;
             // Every batted ball — foul territory included (§7.11) — is one live ball the sim plays out.
@@ -917,5 +917,68 @@ namespace GrandSluggers.UnityClient
             return run.IsGameContactLesson ? run.Match.LivePlay.Active
                 : hit != null && hit.InPlay && finished == null;
         }
+
+        // The live play (#1042): InPlayDirector owns the play; the pads, the seats, the items and the result beat are the flow's.
+        /// <summary>The sim's seat table for this half. Training seats come from the coach; a match derives them from (half, home/away, pads).</summary>
+        LiveSeats LiveSeatsNow() => TrainingOn
+            ? new LiveSeats(HumanBats, HumanPitches, PlayerMustField, Versus: false)
+            : _match != null ? GrandSluggers.Sim.LiveSeats.For(LiveSeats, _match.Top) : GrandSluggers.Sim.LiveSeats.CpuOnly;
+
+        internal LivePadInput FieldInput()
+        {
+            var pad = FieldPad;
+            // The calibrated radial stick (#718) reads the device coordinate before any dead zone, handed to the sim once.
+            var radial = _match != null;
+            var eastFree = CancelFree(pad);
+            var cancel = eastFree && pad.EastDown && (_phase == Phase.Flight || _match.LivePlay.CanCancelThrow);
+            if (cancel) pad.ClearThrowTarget();
+            return new LivePadInput(
+                radial ? pad.PursuitX : pad.StickX, radial ? pad.PursuitY : pad.StickY,
+                SouthDown: pad.BallDown && pad.ThrowBag > 0, WestDown: pad.JumpDown && TriggerFree(pad, BuntSide.First),
+                EastDown: pad.EastDown && eastFree && !cancel, EastHeld: pad.EastHeld && eastFree && !cancel,
+                Cutoff: pad.Cutoff, Swap: pad.SwapPitcher,
+                Attack: pad.Attack && TriggerFree(pad, BuntSide.Third), KeysBag: pad.ThrowBag,
+                Cancel: cancel, Device: pad.Index, ExplicitTarget: true, CloseResponse: pad.SouthDown);
+        }
+
+        /// <summary>Selection is a right-stick flick; the movement stick never issues a runner order.</summary>
+        LivePadInput RunInput()
+        {
+            var pad = RunPad;
+            return new LivePadInput(SouthDown: pad.SouthDown,
+                WestDown: pad.WestDown && TriggerFree(pad, BuntSide.Third), Orders: pad.RunnerOrders);
+        }
+
+        /// <summary>A frame of the live play, for the editor gates that drive it.</summary>
+        internal void TickLive(float dt) => _inPlay.Tick(dt);
+        internal PlayKind LiveKind() => _inPlay.LiveKind();
+        void StartRunnerPlay(PlayEvent pitch) => _inPlay.StartRunnerPlay(pitch);
+        void SyncFromLive() => _inPlay.SyncFromLive();
+        void AimLive() => _inPlay.AimLive();
+        Character PlayFielder() => _inPlay.PlayFielder();
+        bool BuddySet => _inPlay.BuddySet;
+        (double X, double Z) WallPlant(FieldingPreview pre) => _inPlay.WallPlant(pre);
+
+        LivePadInput IInPlayHost.FieldInput() => FieldInput();
+        LivePadInput IInPlayHost.RunInput() => RunInput();
+        void IInPlayHost.ClearThrowTarget() => FieldPad.ClearThrowTarget();
+        LiveSeats IInPlayHost.LiveSeatsNow() => LiveSeatsNow();
+        JuiceDirector IInPlayHost.Juice => _juice;
+        TutorialSession IInPlayHost.FieldLesson => TutorialOn ? _coach.Tutorial : null;
+        void IInPlayHost.OnFieldResult(FieldingResult result) => _coach?.OnField(result, _match);
+        void IInPlayHost.TickItem(float dt) => TickItem(dt);
+        bool IInPlayHost.ItemFlying => _itemFlying;
+        void IInPlayHost.ItemSmashed()
+        {
+            _itemFlying = false;
+            _itemId = "";
+            _items?.Hide();
+        }
+        void IInPlayHost.Banner() => Banner();
+        void IInPlayHost.BeginResult() => BeginResult();
+        Vector3 IInPlayHost.SmashLook() => SmashLook();
+        float IInPlayHost.Smash { get => _smash; set => _smash = value; }
+        string IInPlayHost.Sub { set => _sub = value; }
+        void IInPlayHost.RestartClock() => _t = 0;
     }
 }

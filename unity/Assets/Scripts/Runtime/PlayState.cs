@@ -28,6 +28,8 @@ namespace GrandSluggers.UnityClient
         public bool PitchAir { get; set; }
         /// <summary>Seconds since contact.</summary>
         public float Flight { get; set; }
+        /// <summary>Where the ball is drawn this frame.</summary>
+        public Vector3 Ball { get; set; }
         /// <summary>Where the ball left the pitcher's hand.</summary>
         public Vector3 ReleaseFrom { get; set; }
 
