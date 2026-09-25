@@ -308,10 +308,7 @@ namespace GrandSluggers.UnityClient
             if (_phase == Phase.Select)
                 CaptainSheet.Draw(_captains, _content, Controls.Pad2.Present);
             else if (_phase == Phase.Field)
-            {
-                HudView.Field(ParkId, ParkDisplayName(ParkId), Night, Hazards, FieldHazardsLine(), FieldCardLines());
-                SetupSheet.FieldFocus(_fieldFocus, ParkDisplayName(ParkId), Night, Hazards, _versusWanted, Pad1Home);
-            }
+                DrawField();
             else if (_phase == Phase.Lineup && _lineup != null)
             {
                 if (_lineup.Step == LineupStep.MatchSettings) SetupSheet.Settings(_settings, _lineup, _match);

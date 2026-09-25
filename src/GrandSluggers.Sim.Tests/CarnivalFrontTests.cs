@@ -233,7 +233,7 @@ public class CarnivalFrontTests
         var page = HowToPlay.Pages.Single(p => p.Id == "pause-practice");
         Assert.Contains(page.Lines, l => l.Contains("Hazards    on / off", StringComparison.Ordinal));
         var book = File.ReadAllText(Path.Combine(Catalog.Root.Shipped, "..", "docs", "how-to-play.md"));
-        Assert.Contains("Pick stadium, day/night, hazards, player count", book);
+        Assert.Contains("pick day/night, hazards, player count", book);
         Assert.Contains("Up/down chooses a row", book);
     }
 }
