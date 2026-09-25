@@ -290,7 +290,7 @@ namespace GrandSluggers.UnityClient
             {
                 _pausePad = Controls.Pad2.Start || Controls.Pad2.View ? Controls.Pad2 : Controls.Pad1;
                 _match.SetPaused(true);
-                if (openedPause && GuidedAttempt("T-G06")) GuidedObserve(GuidedAction.CallTimeOpened);
+                if (openedPause) GuidedObserve("T-G06", GuidedAction.CallTimeOpened);
                 _pauseItem = openedHowTo ? 2 : 0;
                 _pauseHowTo = openedHowTo;
                 _pauseFromHowTo = openedHowTo;
@@ -552,7 +552,7 @@ namespace GrandSluggers.UnityClient
                         break;
                     case PauseMenu.Item.HowToPlay:
                         _pauseHowTo = true;
-                        if (GuidedAttempt("T-G06")) GuidedObserve(GuidedAction.BookOpened);
+                        GuidedObserve("T-G06", GuidedAction.BookOpened);
                         _pausePage = 0;
                         _menuX.Catch(_pausePad.MenuAxisX);
                         break;
@@ -596,7 +596,7 @@ namespace GrandSluggers.UnityClient
             _hlPath = null;
             BeginSet();
             _match.SetPaused(false);
-            if (GuidedAttempt("T-G06")) GuidedObserve(GuidedAction.MatchRestarted);
+            GuidedObserve("T-G06", GuidedAction.MatchRestarted);
         }
 
         void PauseToTitle()
@@ -644,7 +644,7 @@ namespace GrandSluggers.UnityClient
             {
                 _deviceRecovery.WaitFor(missing, _match.Paused);
                 _match.SetPaused(true);
-                GuidedSeatLost(missing);
+                _guidedLessons.SeatLost(missing);
                 Controls.TryRecoverMatchSeat(missing);
                 return true;
             }
