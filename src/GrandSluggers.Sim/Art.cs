@@ -211,6 +211,8 @@ public sealed class ArtCatalog
     public ParkLooks Looks { get; }
     /// <summary>How each hazard type is drawn (F6-d, <c>data/art/hazard-actors.json</c>).</summary>
     public HazardActors Actors { get; }
+    /// <summary>Each faction's jersey, accent and skin (<c>data/art/factions.json</c>).</summary>
+    public FactionLooks Factions { get; init; } = null!;
     /// <summary>The character toon's bands and rim (CF-7, <c>data/art/toon.json</c>).</summary>
     public ToonLook Toon { get; init; } = null!;
     public IReadOnlyList<string> Folders { get; }
@@ -453,6 +455,12 @@ public sealed class ArtCatalog
             errors.AddRange(ParkKitSlots.Validate(kitRow, Looks));
         errors.AddRange(Actors.Validate());
         errors.AddRange(ToonLook.Validate(Materials));
+        // Every character's faction has its colors; a faction nobody plays is a stale row.
+        var played = content.Characters.Values.Select(c => c.Faction).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        foreach (var faction in played.OrderBy(f => f, StringComparer.Ordinal))
+            if (Factions.Of(faction) is null) errors.Add("faction colors missing for " + faction + " in data/art/factions.json");
+        foreach (var faction in Factions.Rows.Keys)
+            if (!played.Contains(faction)) errors.Add("faction colors for " + faction + " name a faction no character plays");
 
         foreach (var need in new[] { "bat-perfect", "bat-solid", "bat-cheap", "glove", "throw", "crowd-bed", "crowd-swell" })
         {
@@ -682,6 +690,7 @@ public sealed class ArtCatalog
         {
             ExtrasSlot = extrasFile.Slot,
             Toon = ToonLook.Parse(JsonNode.Parse(File.ReadAllText(Art("toon.json")), documentOptions: nodeOptions), "toon.json"),
+            Factions = FactionLooks.Parse(JsonNode.Parse(File.ReadAllText(Art("factions.json")), documentOptions: nodeOptions), "factions.json"),
             Styles = styles,
             StyledClips = styled,
             StyleSlot = styleDto.Slot,

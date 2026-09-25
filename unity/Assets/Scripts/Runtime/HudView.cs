@@ -14,7 +14,7 @@ namespace GrandSluggers.UnityClient
             _bookHead, _bookHeader, _bookHeaderNumber, _bookNumber, _bookTab, _bookTabSelected, _bookBadge,
             _bookChip, _bookFooter, _bookLineCompact, _stamp;
         static Texture2D _panel, _ink, _starOn, _starOff, _dotOn, _dotOff, _outOn, _outOff, _bar, _white, _bookBack, _bookCard;
-        static Texture2D _spark, _royal, _carnival, _goldrush, _canopy, _ember;
+        static readonly System.Collections.Generic.Dictionary<string, Texture2D> _stripes = new System.Collections.Generic.Dictionary<string, Texture2D>();
 
         public static void Draw(
             Match match, PhaseUi phase, string parkName, string homeCap, string awayCap,
@@ -1146,18 +1146,13 @@ namespace GrandSluggers.UnityClient
         static Texture2D HomeStripe(Match match) => Stripe(match.Home.Captain.Faction);
         static Texture2D AwayStripe(Match match) => Stripe(match.Away.Captain.Faction);
 
+        /// <summary>The score row's stripe: the faction's jersey color (data/art/factions.json), made once per faction.</summary>
         static Texture2D Stripe(string faction)
         {
-            switch (faction)
-            {
-                case "spark": return _spark;
-                case "royal": return _royal;
-                case "carnival": return _carnival;
-                case "goldrush": return _goldrush;
-                case "canopy": return _canopy;
-                case "ember": return _ember;
-                default: return _ink;
-            }
+            var key = faction ?? "";
+            if (!_stripes.TryGetValue(key, out var tex) || tex == null)
+                _stripes[key] = tex = Tex(Colors.Body(key));
+            return tex;
         }
 
         static void Ensure()
@@ -1221,12 +1216,6 @@ namespace GrandSluggers.UnityClient
             _ink = Tex(new Color(1f, 0.82f, 0.2f, 1f));
             _white = Tex(Color.white);
             _bar = Tex(new Color(0.35f, 0.82f, 0.45f, 1f));
-            _spark = Tex(Colors.Spark);
-            _royal = Tex(Colors.Royal);
-            _carnival = Tex(Colors.Carnival);
-            _goldrush = Tex(Colors.Goldrush);
-            _canopy = Tex(Colors.Canopy);
-            _ember = Tex(Colors.EmberFire);
             _starOn = StarTex(new Color(1f, 0.82f, 0.18f, 1f));
             _starOff = StarTex(new Color(1f, 1f, 1f, 0.28f));
             _dotOn = CircleTex(new Color(1f, 0.92f, 0.55f, 1f));

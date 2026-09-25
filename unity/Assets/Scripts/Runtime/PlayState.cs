@@ -35,13 +35,6 @@ namespace GrandSluggers.UnityClient
         /// <summary>The committed swing's clock, and seconds from the press to its take's Contact mark (D13); NaN until a swing commits.</summary>
         public float CommittedSwingT { get; set; } = (float)AtBatMotion.SwingNotStarted;
         public float SwingContactSec { get; set; } = float.NaN;
-        /// <summary>The on-deck item (§12): the pick, its target, and the throw in flight.</summary>
-        public int ItemPick { get; set; }
-        public Character ItemTarget { get; set; }
-        public bool ItemThrown { get; set; }
-        public bool ItemFlying { get; set; }
-        public float ItemFly { get; set; }
-        public string ItemId { get; set; } = "";
         /// <summary>The plate's held buttons (charge, bunt, the special modifier), and the pad index holding the plate, or -1.</summary>
         public PlateButtonsState Plate { get; set; }
         public int PlateSeat { get; set; } = -1;

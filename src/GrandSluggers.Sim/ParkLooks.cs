@@ -216,3 +216,43 @@ public sealed class ParkLooks
 
     internal static InvalidDataException Bad(string at, string what) => new(at + " " + what);
 }
+
+/// <summary>One faction's colors (<c>data/art/factions.json</c>): the jersey, the trim and HUD accent, and the skin tone.</summary>
+public sealed record FactionLook(string Id, LookColor Body, LookColor Accent, LookColor Skin);
+
+/// <summary>
+/// The faction colors (FR-04; <c>data/art/factions.json</c>). Presentation reads a faction's jersey, accent and skin here, never
+/// from a list in code. The reader is strict: an unknown key, a missing key, a bad color or an id twice stops the load.
+/// </summary>
+public sealed class FactionLooks
+{
+    FactionLooks(IReadOnlyDictionary<string, FactionLook> rows) => Rows = rows;
+
+    public IReadOnlyDictionary<string, FactionLook> Rows { get; }
+
+    /// <summary>A faction's colors, or null for a faction the file does not have.</summary>
+    public FactionLook? Of(string? faction) =>
+        faction is not null && Rows.TryGetValue(faction, out var row) ? row : null;
+
+    public static FactionLooks Parse(JsonNode? root, string where)
+    {
+        if (root is not JsonObject top) throw new InvalidDataException(where + " must be an object");
+        foreach (var (key, _) in top)
+            if (key != "factions") throw new InvalidDataException(where + "." + key + " is not a key here");
+        if (top["factions"] is not JsonArray list) throw new InvalidDataException(where + ".factions must be a list");
+        var rows = new Dictionary<string, FactionLook>(StringComparer.OrdinalIgnoreCase);
+        for (var i = 0; i < list.Count; i++)
+        {
+            var at = where + ".factions[" + i + "]";
+            if (list[i] is not JsonObject o) throw new InvalidDataException(at + " must be an object");
+            foreach (var (key, _) in o)
+                if (key is not ("id" or "body" or "accent" or "skin")) throw new InvalidDataException(at + "." + key + " is not a key here");
+            var id = o["id"] is JsonValue v && v.TryGetValue<string>(out var s) && s.Length > 0 ? s : throw new InvalidDataException(at + ".id must be a name");
+            foreach (var key in new[] { "body", "accent", "skin" })
+                if (!o.ContainsKey(key)) throw new InvalidDataException(at + "." + key + " is missing");
+            var row = new FactionLook(id, ParkLooks.Color(o["body"], at + ".body"), ParkLooks.Color(o["accent"], at + ".accent"), ParkLooks.Color(o["skin"], at + ".skin"));
+            if (!rows.TryAdd(id, row)) throw new InvalidDataException(at + ".id repeats faction " + id);
+        }
+        return new FactionLooks(rows);
+    }
+}
