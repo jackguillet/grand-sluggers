@@ -299,7 +299,7 @@ public sealed partial class Match
     public Character Batter => (Top ? AwayOrder : HomeOrder)[Top ? AwayBatter : HomeBatter];
 
     /// <summary>
-    /// The strike zone of the batter at the plate (spec §4.4): knee to chest on the rest body, clamped by
+    /// The strike zone of the batter at the plate (spec §4.4): mid-thigh to chest on the rest body, clamped by
     /// <c>pitching.zone</c>. One zone per batter, the same whoever sits which seat; the pose never moves it.
     /// </summary>
     public BatterZone BatterZone => StrikeZoneGeometry.For(Batter, Rules);

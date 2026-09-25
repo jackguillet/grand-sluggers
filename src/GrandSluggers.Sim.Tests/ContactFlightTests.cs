@@ -140,7 +140,8 @@ public sealed class ContactFlightTests
             false, false, 0, false, false, Bat: game.Bats["harbor-lumber"], PitcherStamina: 80);
         var angles = new List<double>();
         var zone = StrikeZoneGeometry.For(swing.Batter, game.Rules);
-        for (var y = zone.Bottom; y <= zone.Top; y += .025)
+        // Steps of 0.025 reference-zone feet: the same share of any batter's zone (§4.4).
+        for (var y = zone.Bottom; y <= zone.Top; y += .025 * zone.VerticalScale)
         {
             var hit = resolver.Resolve(swing with { CrossingX = 0, CrossingY = y }, Park, new Random(7));
             Assert.NotEqual(ContactQuality.Miss, hit.Quality);

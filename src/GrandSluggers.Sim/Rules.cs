@@ -597,7 +597,7 @@ public sealed record PitchingRules
     public PitchSpeedRules Speed { get; init; } = new();
     public PitchReleaseRules Release { get; init; } = new();
     public PitchFlightRules Flight { get; init; } = new();
-    /// <summary>The safety net on every batter's knee-to-chest zone (spec §4.4, <see cref="StrikeZoneGeometry.For"/>).</summary>
+    /// <summary>The safety net on every batter's thigh-to-chest zone (spec §4.4, <see cref="StrikeZoneGeometry.For"/>).</summary>
     public PitchZoneRules Zone { get; init; } = new();
     public PitchFamilyTable Families { get; init; } = new();
     public StarPitchShapeRules StarShapes { get; init; } = new();
@@ -606,11 +606,10 @@ public sealed record PitchingRules
 }
 
 /// <summary>
-/// The safety net on a batter's zone (spec §4.4): the knee landmark is clamped into
+/// The safety net on a batter's zone (spec §4.4): the mid-thigh landmark is clamped into
 /// [<see cref="BottomMinFt"/>, <see cref="BottomMaxFt"/>], the chest landmark into [<see cref="TopMinFt"/>,
 /// <see cref="TopMaxFt"/>], then the height into [<see cref="HeightMinFt"/>, <see cref="HeightMaxFt"/>] about the
-/// zone's center. Not a design lever: every shipped captain's knee and chest sit inside it. The height floor is what
-/// keeps S-108 true for any body: a family's no-aim crossing sits a fixed share of the zone inside it, and the floor
+/// zone's center. Not a design lever. The height floor is what keeps S-108 true for any body: a family's no-aim crossing sits a fixed share of the zone inside it, and the floor
 /// keeps that share wider than a ball.
 /// </summary>
 public sealed record PitchZoneRules

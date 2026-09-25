@@ -72,7 +72,7 @@ namespace GrandSluggers.UnityClient
         BatterZone? _framed;
 
         /// <summary>
-        /// Draw the white frame at <paramref name="zone"/>: the batter's knee-to-chest zone the sim judges (spec §4.4).
+        /// Draw the white frame at <paramref name="zone"/>: the batter's thigh-to-chest zone the sim judges (spec §4.4).
         /// Moved only when the batter changes; the width never does.
         /// </summary>
         public void Frame(BatterZone zone)

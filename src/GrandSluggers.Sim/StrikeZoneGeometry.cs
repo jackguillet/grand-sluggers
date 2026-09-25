@@ -1,7 +1,7 @@
 namespace GrandSluggers.Sim;
 
 /// <summary>
-/// One batter's strike zone at the plate crossing, in world feet (spec §4.4): from the knee landmark to the chest
+/// One batter's strike zone at the plate crossing, in world feet (spec §4.4): from the mid-thigh landmark to the chest
 /// landmark of the body this batter wears, at the rest rig, clamped by <c>pitching.zone</c>. The width is the plate's
 /// and is the same for every batter (<see cref="StrikeZoneGeometry.HalfWidth"/>); the height scales with the body.
 /// The pose never moves it: it is read from the rest landmarks and the captain's data, never from a take.
@@ -57,22 +57,22 @@ public static class StrikeZoneGeometry
     }
 
     /// <summary>
-    /// This batter's zone: knee to chest from <see cref="Silhouette.Landmarks"/>, so a later build channel flows
-    /// through with no code here, then the <c>pitching.zone</c> safety net.
+    /// This batter's zone: mid-thigh to chest from <see cref="Silhouette.ZoneLandmarks"/>, so a later build channel
+    /// flows through with no code here, then the <c>pitching.zone</c> safety net.
     /// </summary>
     public static BatterZone For(Character batter, RulesTable rules)
     {
-        var (knee, chest, _) = Silhouette.Landmarks(batter);
-        return Clamp(knee, chest, rules.Pitching.Zone);
+        var (thighMid, chest) = Silhouette.ZoneLandmarks(batter);
+        return Clamp(thighMid, chest, rules.Pitching.Zone);
     }
 
     /// <summary>
     /// The safety net (<c>pitching.zone</c>): the bottom and the top each into their band, then the height into its
     /// band about the zone's center. It is not a design lever: every shipped captain sits inside it untouched.
     /// </summary>
-    public static BatterZone Clamp(double kneeFt, double chestFt, PitchZoneRules z)
+    public static BatterZone Clamp(double thighMidFt, double chestFt, PitchZoneRules z)
     {
-        var bottom = Math.Clamp(kneeFt, z.BottomMinFt, z.BottomMaxFt);
+        var bottom = Math.Clamp(thighMidFt, z.BottomMinFt, z.BottomMaxFt);
         var top = Math.Clamp(chestFt, z.TopMinFt, z.TopMaxFt);
         var height = top - bottom;
         var clamped = Math.Clamp(height, z.HeightMinFt, z.HeightMaxFt);

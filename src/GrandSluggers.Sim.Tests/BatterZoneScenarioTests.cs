@@ -6,9 +6,10 @@ using Xunit;
 namespace GrandSluggers.Sim.Tests;
 
 /// <summary>
-/// The knee-to-chest strike zone per batter (spec §4.4, CF-4, CH-06), plan rows SC-15 … SC-19.
+/// The thigh-to-chest strike zone per batter (spec §4.4, CF-4, CH-06), plan rows SC-15 … SC-19.
 ///
-/// <b>SC-15</b>: every captain's zone runs from its knee landmark to its chest landmark, at the fixed half-width.
+/// <b>SC-15</b>: every captain's zone runs from its mid-thigh landmark to its chest landmark, at the fixed half-width;
+/// a body too short for S-108 is grown about its middle by the safety net's height floor.
 /// <b>SC-16</b>: the same pitch aimed at the middle crosses the middle of each batter's own zone.
 /// <b>SC-17</b>: the swing and the stance never move the zone; it is the rest body's.
 /// <b>SC-18</b>: S-108 for every body that can bat: every family, no aim, crosses inside with a ball's radius to spare.
@@ -28,20 +29,50 @@ public sealed class BatterZoneScenarioTests
     IEnumerable<Character> Captains => _content.CaptainIds.Select(_content.Must);
 
     // ---------------------------------------------------------------------------------
-    // SC-15  Knee to chest, fixed width
+    // SC-15  Mid-thigh to chest, fixed width
     // ---------------------------------------------------------------------------------
 
     [Fact]
-    public void SC15_EveryCaptainsZoneRunsFromTheKneeToTheChestAtTheFixedWidth()
+    public void SC15_TheMidThighLandmarkIsHalfwayDownTheThighBoneOfTheRestRig()
+    {
+        var rig = System.Text.Json.Nodes.JsonNode.Parse(File.ReadAllText(Path.Combine(_content.Root.Shipped, "art", "rig.json")))!;
+        var thigh = rig["joints"]!.AsArray().First(j => j!["name"]!.GetValue<string>() == "lThigh")!;
+        var hip = thigh["head"]![2]!.GetValue<double>();
+        var knee = thigh["tail"]![2]!.GetValue<double>();
+        Assert.Equal(Silhouette.KneeY, knee, 9);
+        Assert.Equal((hip + knee) / 2, rig["anatomy"]!["thighMid"]![2]!.GetValue<double>(), 9);
+        Assert.Equal(Silhouette.ThighMidY, (hip + knee) / 2, 9);
+        foreach (var who in Captains)
+        {
+            var spec = Silhouette.Proportions(who);
+            Assert.Equal(Silhouette.ThighMidY * Silhouette.SharedRootScale(spec).Y, Silhouette.ZoneLandmarks(who).ThighMidFt, 9);
+            Assert.True(Silhouette.KneeFt(spec) < Silhouette.ThighMidFt(spec));
+        }
+    }
+
+    [Fact]
+    public void SC15_EveryCaptainsZoneRunsFromMidThighToTheChestAtTheFixedWidth()
     {
         Assert.Equal(7, Captains.Count());
+        var z = R.Pitching.Zone;
         foreach (var who in Captains)
         {
             var zone = StrikeZoneGeometry.For(who, R);
-            var (knee, chest, _) = Silhouette.Landmarks(who);
-            // No shipped captain leans on the safety net: the zone is the body's, exactly.
-            Assert.Equal(knee, zone.Bottom);
-            Assert.Equal(chest, zone.Top);
+            var (thighMid, chest) = Silhouette.ZoneLandmarks(who);
+            Assert.InRange(thighMid, z.BottomMinFt, z.BottomMaxFt);
+            Assert.InRange(chest, z.TopMinFt, z.TopMaxFt);
+            if (chest - thighMid >= z.HeightMinFt)
+            {
+                // The zone is the body's, exactly.
+                Assert.Equal(thighMid, zone.Bottom);
+                Assert.Equal(chest, zone.Top);
+            }
+            else
+            {
+                // A body too short for S-108 keeps its middle and takes the floor's height.
+                Assert.Equal((thighMid + chest) / 2, zone.CenterY, 9);
+                Assert.Equal(z.HeightMinFt, zone.Height, 9);
+            }
             Assert.Equal(0.92, zone.HalfWidth);
             Assert.Equal(StrikeZoneGeometry.HalfWidth, zone.HalfWidth);
             Assert.Equal(HomeSet.PlateW / 2, zone.HalfWidth, 12);
@@ -61,15 +92,15 @@ public sealed class BatterZoneScenarioTests
     }
 
     [Fact]
-    public void SC15_TheClampIsASafetyNetEveryShippedBatterSitsInside()
+    public void SC15_TheClampIsASafetyNet()
     {
         var z = R.Pitching.Zone;
         foreach (var who in _content.Characters.Values)
         {
-            var (knee, chest, _) = Silhouette.Landmarks(who);
-            Assert.InRange(knee, z.BottomMinFt, z.BottomMaxFt);
+            var (thighMid, chest) = Silhouette.ZoneLandmarks(who);
+            Assert.InRange(thighMid, z.BottomMinFt, z.BottomMaxFt);
             Assert.InRange(chest, z.TopMinFt, z.TopMaxFt);
-            Assert.InRange(chest - knee, z.HeightMinFt, z.HeightMaxFt);
+            Assert.True(chest - thighMid <= z.HeightMaxFt, who.Id);
         }
 
         // The net catches a body outside it: the bottom and top land in their bands, the height in its band.
@@ -188,9 +219,9 @@ public sealed class BatterZoneScenarioTests
             Assert.Equal(who.Id, match.Batter.Id);
             Assert.Equal(rest, match.BatterZone);
             _ = swing;
-            // And it is the rest landmarks, the same numbers the still gate measures.
-            var (knee, chest, _) = Silhouette.Landmarks(who);
-            Assert.Equal((knee, chest), (rest.Bottom, rest.Top));
+            // And it is the rest landmarks through the safety net, the same numbers the still gate measures.
+            var (thighMid, chest) = Silhouette.ZoneLandmarks(who);
+            Assert.Equal(StrikeZoneGeometry.Clamp(thighMid, chest, R.Pitching.Zone), rest);
         }
     }
 

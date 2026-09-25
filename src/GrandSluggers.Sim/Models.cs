@@ -624,7 +624,7 @@ public sealed record AtBatResult(
 /// (<see cref="PitchFlight.SweepShiftFt"/>, #818). It is last and defaulted so every positional call
 /// site and every stored command that predates it still reads, as a right-hander's.
 ///
-/// <paramref name="Zone"/> is the batter's knee-to-chest zone this delivery flies at (spec §4.4), stamped by
+/// <paramref name="Zone"/> is the batter's thigh-to-chest zone this delivery flies at (spec §4.4), stamped by
 /// <see cref="Match.PreparePitch"/> from the batter at the plate: the aim center, the family's heights and the
 /// umpire all read it, so one delivery is judged in one zone. Null only off the live path (a probe, a tool, a unit
 /// test), where the flight falls back to <see cref="StrikeZoneGeometry.Reference"/> and counts it.
