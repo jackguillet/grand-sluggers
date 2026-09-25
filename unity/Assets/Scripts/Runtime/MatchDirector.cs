@@ -36,12 +36,7 @@ namespace GrandSluggers.UnityClient
         internal readonly MatchSeatLifecycle _matchSeats = new MatchSeatLifecycle();
         readonly PursuitSeatDirector _seatStick = new PursuitSeatDirector();
         readonly DeviceSeatRecovery _deviceRecovery = new DeviceSeatRecovery();
-        internal LineupScreens _lineup;
         ExhibitionSettings _settings = new ExhibitionSettings();
-        MenuNav.Gate _lineupX;
-        MenuNav.Gate _lineupX2;
-        MenuNav.Gate _lineupY;
-        MenuNav.Gate _lineupY2;
         enum PlayMode { Exhibition, Challenge, Training }
         PlayMode _mode;
         Challenge _campaign;
