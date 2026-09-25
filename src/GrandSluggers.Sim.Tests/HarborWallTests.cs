@@ -51,7 +51,7 @@ public sealed class HarborWallTests
         Assert.True(HarborWall.OutfieldIsTheFence(park));
 
         // The flight's fair fence is the same top.
-        var bounds = FieldBounds.Of(park);
+        var bounds = FieldBounds.Of(park, Rules.Default);
         var fair = bounds.Segments.Where(s => s.Kind == FieldBounds.WallKind.FairFence).ToArray();
         Assert.NotEmpty(fair);
         Assert.All(fair, s => Assert.Equal(HarborWall.OutfieldHeight(park), s.HeightFt, 4));
@@ -78,9 +78,9 @@ public sealed class HarborWallTests
     {
         var park = _content.Parks[id];
         Assert.Equal(4.2f, HarborWall.HipHeight);
-        Assert.Equal(HarborWall.HipHeight, FieldBounds.FoulWallHeightFt, 4);
-        Assert.All(FieldBounds.Of(park).Segments.Where(s => s.Kind == FieldBounds.WallKind.FoulWall),
-            s => Assert.Equal(FieldBounds.FoulWallHeightFt, s.HeightFt, 4));
+        Assert.Equal(HarborWall.HipHeight, FieldBounds.FoulWallHeightFt(Rules.Default), 4);
+        Assert.All(FieldBounds.Of(park, Rules.Default).Segments.Where(s => s.Kind == FieldBounds.WallKind.FoulWall),
+            s => Assert.Equal(FieldBounds.FoulWallHeightFt(Rules.Default), s.HeightFt, 4));
 
         var rail = 0;
         var n = HarborWall.Loop(park).Length;
@@ -120,7 +120,7 @@ public sealed class HarborWallTests
     /// cycle:
     ///
     /// <list type="bullet">
-    /// <item>every drawn vertex lies on <see cref="FieldBounds.Of(Park)"/>'s polygon;</item>
+    /// <item>every drawn vertex lies on <see cref="FieldBounds.Of(Park, Rules.Default)"/>'s polygon;</item>
     /// <item>every drawn span lies on one flight segment and is drawn at that segment's top — the
     /// fence's on a fair span (D15), the rail's on a foul span, all the way to the pole;</item>
     /// <item>every drawn vertex stands at the tallest flight segment it lies on, so a pole is the
@@ -142,7 +142,7 @@ public sealed class HarborWallTests
     public void SF05_TheDrawnWallIsTheFlightWallOnEverySpan(string id)
     {
         var park = _content.Parks[id];
-        var bounds = FieldBounds.Of(park);
+        var bounds = FieldBounds.Of(park, Rules.Default);
         var loop = HarborWall.Loop(park);
         Assert.Equal(HarborWall.WrapSegs, loop.Length);
 
@@ -211,7 +211,7 @@ public sealed class HarborWallTests
             else
             {
                 rail++;
-                Assert.Equal(FieldBounds.FoulWallHeightFt, HarborWall.Height(park, i), 4);
+                Assert.Equal(FieldBounds.FoulWallHeightFt(Rules.Default), HarborWall.Height(park, i), 4);
             }
         }
         return (fair, rail);
@@ -282,7 +282,7 @@ public sealed class HarborWallTests
 
         var loop = HarborWall.Loop(lopsided);
         Assert.Equal(HarborWall.WrapSegs, loop.Length);
-        var bounds = FieldBounds.Of(lopsided);
+        var bounds = FieldBounds.Of(lopsided, Rules.Default);
         var (fair, rail) = AssertDrawnIsFlight(lopsided.Id, lopsided, bounds, loop);
         Assert.Equal(HarborWall.OutfieldSegs + 1, fair);
         Assert.Equal(loop.Length - fair, rail);
@@ -327,7 +327,7 @@ public sealed class HarborWallTests
         var harbor = catalog.Parks[HarborPostcard.ParkId];
         var park = harbor with { Id = "sf05-polyline", Fence = new ParkFence(points) };
         var loop = HarborWall.Loop(park);
-        var bounds = FieldBounds.Of(park);
+        var bounds = FieldBounds.Of(park, Rules.Default);
         var offGrid = points.Count(p => !FieldBounds.FenceBearings(harbor).Contains(p.BearingDeg));
         Assert.Equal(4, offGrid);
         Assert.Equal(HarborWall.WrapSegs + offGrid, loop.Length);

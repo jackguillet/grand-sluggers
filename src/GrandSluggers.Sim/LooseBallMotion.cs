@@ -74,7 +74,7 @@ public sealed class LooseBallMotion
     {
         if (Local)
         {
-            var bob = BallFlight.LocalBobbleTick(zones, rules.Grounds, rules.Fielding.Handling, rules.Flight.Gravity,
+            var bob = BallFlight.LocalBobbleTick(zones, rules, rules.Fielding.Handling, rules.Flight.Gravity,
                 x, y, z, _vx, _vy, _vz, _air, dt);
             (_vx, _vy, _vz, _air) = (bob.VX, bob.VY, bob.VZ, bob.Air);
             if (!_air && _vx == 0 && _vz == 0)
@@ -90,7 +90,7 @@ public sealed class LooseBallMotion
             if (_restAt < 0) _restAt = elapsed;
             return null;
         }
-        var step = BallFlight.OverthrowTick(zones, rules.Grounds, x, z, _vx, _vz, dt);
+        var step = BallFlight.OverthrowTick(zones, rules, x, z, _vx, _vz, dt);
         _vx = step.VX;
         _vz = step.VZ;
         if (step.Speed <= 0) _restAt = elapsed;

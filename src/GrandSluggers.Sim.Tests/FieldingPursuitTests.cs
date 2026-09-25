@@ -25,7 +25,7 @@ public class FieldingPursuitTests
 
             Assert.False(route.AirCatch);
             Assert.True(route.MeetTimeSec > 0, $"{park.Id} {exit} mph {spray}°");
-            Assert.True(FieldBounds.Inside(park, route.X, route.Z));
+            Assert.True(FieldBounds.Inside(park, route.X, route.Z, Rules.Default));
             Assert.True(FieldBounds.DistHome(route.X, route.Z) > FieldBounds.DistHome(early.X, early.Z) + 2,
                 $"route must cut ahead of the live hop: {park.Id} {exit} mph {spray}°");
             // Reachable carries chase.reachSlackFt (0.35 ft) of slack, which is under 0.02 s at the shipped legs. The C80 copy's
@@ -89,7 +89,7 @@ public class FieldingPursuitTests
                 }
             }
             else if (route.Reachable) Assert.True(route.MeetTimeSec >= pre.HangTimeSec);
-            Assert.True(FieldBounds.Inside(park, route.X, route.Z));
+            Assert.True(FieldBounds.Inside(park, route.X, route.Z, Rules.Default));
 
             var at = start;
             const double dt = 1.0 / 60;

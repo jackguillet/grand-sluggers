@@ -198,7 +198,7 @@ public sealed class CompactFieldTests
         Assert.Equal((0, 213.5), Diamond.Positions["CF"]);
 
         var harbor = Game.Parks[ParkId.Harbor];
-        Assert.Equal(213.5, FieldBounds.Clamp(harbor, 0, 213.5).Z, 2);
+        Assert.Equal(213.5, FieldBounds.Clamp(harbor, 0, 213.5, Rules.Default).Z, 2);
         Assert.Equal(66.5, harbor.CenterFenceFt - 213.5, 2);
 
         var tightest = double.MaxValue;
@@ -207,7 +207,7 @@ public sealed class CompactFieldTests
         {
             var park = Game.Parks[id];
             var (x, z) = Game.Rules.Fielders.Spot(pos);
-            Assert.True(FieldBounds.Inside(park, x, z), $"{id} {pos} at ({x}, {z}) does not clear the wall");
+            Assert.True(FieldBounds.Inside(park, x, z, Rules.Default), $"{id} {pos} at ({x}, {z}) does not clear the wall");
             var fence = AtBatResolver.FenceAt(park, Math.Atan2(x, z) * 180 / Math.PI);
             tightest = Math.Min(tightest, fence - Diamond.Dist(0, 0, x, z));
         }

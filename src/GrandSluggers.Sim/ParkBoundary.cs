@@ -70,16 +70,23 @@ public readonly record struct ParkBoundary
     /// </summary>
     public static ParkBoundary Default => From(Rules.Default.Boundary);
 
+    /// <summary>The process-wide edge a park dresses: <see cref="For(Park, RulesTable)"/> on <see cref="Rules.Default"/>.</summary>
+    public static ParkBoundary For(Park park) => For(park, Rules.Default);
+
     /// <summary>
-    /// The boundary a park plays (FD-07 C, F2-d): <see cref="Default"/> with the park's own <see cref="Park.Foul"/> values over
-    /// it. A park that names none is <see cref="Default"/> itself, value for value.
+    /// The boundary a park plays on <paramref name="rules"/> (FD-07 C, F2-d): the table's edge with the park's own
+    /// <see cref="Park.Foul"/> values over it. A park that names none is the table's edge itself, value for value.
     /// </summary>
-    public static ParkBoundary For(Park park) => park.Foul is not { } foul ? Default : Default with
+    public static ParkBoundary For(Park park, RulesTable rules)
     {
-        FoulOffsetFt = foul.OffsetFt ?? Default.FoulOffsetFt,
-        FlareStartFt = foul.FlareStartFt ?? Default.FlareStartFt,
-        RailHeightFt = foul.RailHeightFt ?? Default.RailHeightFt,
-    };
+        var edge = From(rules.Boundary);
+        return park.Foul is not { } foul ? edge : edge with
+        {
+            FoulOffsetFt = foul.OffsetFt ?? edge.FoulOffsetFt,
+            FlareStartFt = foul.FlareStartFt ?? edge.FlareStartFt,
+            RailHeightFt = foul.RailHeightFt ?? edge.RailHeightFt,
+        };
+    }
 
     /// <summary>
     /// A point on the foul rail: <paramref name="alongFt"/> out from home along the line (0 at the

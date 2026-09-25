@@ -230,7 +230,7 @@ public static class FlyCatch
     public static bool PickupInPlay(FieldingPreview pre, Park park, double ballX, double ballZ,
         double hitT, double hangSec, RulesTable rules) =>
         (hitT >= hangSec)
-        && FieldBounds.InPark(park, ballX, ballZ);
+        && FieldBounds.InPark(park, ballX, ballZ, rules);
 
     /// <summary>
     /// What the ball has decided so far. <paramref name="foul"/> is the fair / foul call: the
@@ -276,7 +276,7 @@ public static class FlyCatch
         var raw = atWall ? WallPlant(pre, rules, park) : (X: pre.LandingX, Z: pre.LandingZ);
         return park == null ? raw : FieldingResolver.BuddyJumpOffered(pre)
             ? FieldBounds.ClampFielder(park, raw.X, raw.Z, rules)
-            : FieldBounds.Clamp(park, raw.X, raw.Z);
+            : FieldBounds.Clamp(park, raw.X, raw.Z, rules);
     }
 
     /// <summary>

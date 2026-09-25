@@ -390,24 +390,24 @@ public class FieldingSceneTests
         Assert.Equal(286, ember.CenterFenceFt);
 
         var cf = Diamond.Positions["CF"];
-        Assert.True(FieldBounds.Inside(harbor, cf.X, cf.Z));
-        Assert.True(FieldBounds.Inside(canopy, cf.X, cf.Z));
-        Assert.True(FieldBounds.Inside(harbor, 0, HomeSet.CatcherZ), "catcher stays behind the plate");
+        Assert.True(FieldBounds.Inside(harbor, cf.X, cf.Z, Rules.Default));
+        Assert.True(FieldBounds.Inside(canopy, cf.X, cf.Z, Rules.Default));
+        Assert.True(FieldBounds.Inside(harbor, 0, HomeSet.CatcherZ, Rules.Default), "catcher stays behind the plate");
 
-        var pastHarbor = FieldBounds.Clamp(harbor, 0, 500);
-        var pastCanopy = FieldBounds.Clamp(canopy, 0, 500);
-        Assert.True(FieldBounds.Inside(harbor, pastHarbor.X, pastHarbor.Z));
-        Assert.True(FieldBounds.Inside(canopy, pastCanopy.X, pastCanopy.Z));
+        var pastHarbor = FieldBounds.Clamp(harbor, 0, 500, Rules.Default);
+        var pastCanopy = FieldBounds.Clamp(canopy, 0, 500, Rules.Default);
+        Assert.True(FieldBounds.Inside(harbor, pastHarbor.X, pastHarbor.Z, Rules.Default));
+        Assert.True(FieldBounds.Inside(canopy, pastCanopy.X, pastCanopy.Z, Rules.Default));
         Assert.True(pastHarbor.Z < 280 - FieldBounds.InsideFt + 0.5);
         Assert.True(pastCanopy.Z < pastHarbor.Z - 10,
             "Canopy's shorter fence must clip sooner than Harbor");
-        Assert.False(FieldBounds.Inside(harbor, 0, 500));
-        Assert.False(FieldBounds.Inside(canopy, 0, 500));
+        Assert.False(FieldBounds.Inside(harbor, 0, 500, Rules.Default));
+        Assert.False(FieldBounds.Inside(canopy, 0, 500, Rules.Default));
 
         var rio = _content.Must("rio");
         var deep = FlightFixtures.Preview(rio, "CF", BattedBallClass.Fly, 4.0, 0, 460);
         var plant = FlyCatch.ChaseTarget(deep, Rules.Default, harbor);
-        Assert.True(FieldBounds.Inside(harbor, plant.X, plant.Z),
+        Assert.True(FieldBounds.Inside(harbor, plant.X, plant.Z, Rules.Default),
             "a 460 ft fly chase is the wall, not the seats");
         Assert.True(Diamond.Dist(0, 0, plant.X, plant.Z) < harbor.CenterFenceFt);
 
@@ -415,7 +415,7 @@ public class FieldingSceneTests
         var at = start;
         for (var i = 0; i < 90; i++)
             at = FieldingResolver.StepToward(at.X, at.Z, 0, 520, 28, 1.0 / 30, Rules.Default, harbor);
-        Assert.True(FieldBounds.Of(harbor).Contains(at.X, at.Z), "running at the wall stays inside the field");
+        Assert.True(FieldBounds.Of(harbor, Rules.Default).Contains(at.X, at.Z), "running at the wall stays inside the field");
         var clearance = _content.Rules.Fielding.Chase.WallClearanceFt;
         Assert.InRange(harbor.CenterFenceFt - at.Z, clearance - .01, clearance + .5);
     }

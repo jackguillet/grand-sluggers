@@ -37,7 +37,7 @@ public sealed class CrystalRinkTests(ITestOutputHelper output)
             var d = AtBatResolver.FenceAt(arc, b) - AtBatResolver.FenceAt(Crystal, b);
             Assert.InRange(d, -1e-9, 1.0);
         }
-        var fence = FieldBounds.Of(Crystal).Segments.Where(s => s.Kind == FieldBounds.WallKind.FairFence).ToList();
+        var fence = FieldBounds.Of(Crystal, Rules.Default).Segments.Where(s => s.Kind == FieldBounds.WallKind.FairFence).ToList();
         Assert.NotEmpty(fence);
         Assert.All(fence, s => Assert.Equal(WallMaterial.Glass, WallMaterial.OfSegment(s)));
         Assert.Equal(1.06, Crystal.Environment!.DragMul);

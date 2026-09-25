@@ -58,7 +58,7 @@ public static class FieldingPursuit
                 if (sample.T < nowSec || sample.T < startSec) continue;
                 if (sample.T >= hang) break;
                 if (sample.Height > r.Fielding.Catch.StandingHeightFt) continue;
-                if (!FieldBounds.Inside(park, sample.X, sample.Z)) continue;
+                if (!FieldBounds.Inside(park, sample.X, sample.Z, rules)) continue;
                 var air = Fixed(sample.X, sample.Z, sample.T, startSec, fromX, fromZ, speedFtPerSec, true, ramp, r, preview.CatchRadius);
                 if (air.Reachable) return air;
             }
@@ -95,7 +95,7 @@ public static class FieldingPursuit
             if (sample.Event is SampleEvent.Fence or SampleEvent.Stands) break;
             var air = sample.T < hang;
             if (air ? sample.Height > rules.Fielding.Catch.StandingHeightFt : sample.Height >= rules.Fielding.Catch.TouchScoopY) continue;
-            if (!FieldBounds.Inside(park, sample.X, sample.Z)) continue;
+            if (!FieldBounds.Inside(park, sample.X, sample.Z, rules)) continue;
             first ??= sample;
             var d = Diamond.Dist(fromX, fromZ, sample.X, sample.Z);
             if (d < nearestFt)
@@ -169,7 +169,7 @@ public static class FieldingPursuit
             if (sample.Height >= scoopY) continue;
             // Gone over a wall: nothing past this sample is a pickup.
             if (sample.Event is SampleEvent.Fence or SampleEvent.Stands) break;
-            if (!FieldBounds.Inside(park, sample.X, sample.Z)) continue;
+            if (!FieldBounds.Inside(park, sample.X, sample.Z, rules)) continue;
             var route = Fixed(sample.X, sample.Z, sample.T, startSec, fromX, fromZ, speedFtPerSec, airCatch: false, rampSec, rules);
             lastLegal = route;
             if (route.Reachable) return route;

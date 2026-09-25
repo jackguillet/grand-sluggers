@@ -92,7 +92,7 @@ public sealed class PolylineFenceTests
             Assert.Equal(grid, FieldBounds.FenceBearings(park));
 
             var expected = Old.Polygon(park, ParkBoundary.Default);
-            var actual = FieldBounds.Of(park).Segments;
+            var actual = FieldBounds.Of(park, Rules.Default).Segments;
             Assert.Equal(expected.Count, actual.Count);
             for (var i = 0; i < expected.Count; i++)
             {
@@ -135,7 +135,7 @@ public sealed class PolylineFenceTests
     {
         var catalog = Game;
         var park = Fenced(catalog.Parks[ParkId.Harbor]);
-        var fair = FieldBounds.Of(park).Segments.Where(s => s.Kind == FieldBounds.WallKind.FairFence).ToList();
+        var fair = FieldBounds.Of(park, Rules.Default).Segments.Where(s => s.Kind == FieldBounds.WallKind.FairFence).ToList();
         Assert.Equal(FieldBounds.FenceBearings(park).Count - 1, fair.Count);
         // The fence runs pole to pole: the first piece starts on the left pole, the last ends on the right.
         Assert.Equal(PointAt(park, Fixture[0]), (fair[0].Ax, fair[0].Az));
@@ -185,7 +185,7 @@ public sealed class PolylineFenceTests
         var catalog = Game;
         var arc = catalog.Parks[ParkId.Harbor];
         var park = Fenced(arc);
-        var polygon = FieldBounds.Of(park);
+        var polygon = FieldBounds.Of(park, Rules.Default);
         for (var hundredth = -4500; hundredth <= 4500; hundredth++)
         {
             var bearing = hundredth / 100.0;
@@ -255,7 +255,7 @@ public sealed class PolylineFenceTests
         var inSpeed = Math.Sqrt(inX * inX + inZ * inZ);
         var k = (inSpeed - zones.RowAt(path[hit - 1].X, path[hit - 1].Z, rules.Grounds).Roll.Friction * dt) / inSpeed;
         (inX, inZ) = (inX * k, inZ * k);
-        var crossing = FieldBounds.Of(park).Cross(path[hit - 1].X, path[hit - 1].Z, path[hit - 1].X + inX * dt, path[hit - 1].Z + inZ * dt);
+        var crossing = FieldBounds.Of(park, Rules.Default).Cross(path[hit - 1].X, path[hit - 1].Z, path[hit - 1].X + inX * dt, path[hit - 1].Z + inZ * dt);
         Assert.NotNull(crossing);
         var n = crossing.Value.Segment;
         Assert.Equal(FieldBounds.WallKind.FairFence, n.Kind);
@@ -296,7 +296,7 @@ public sealed class PolylineFenceTests
     {
         var catalog = Game;
         var park = Fenced(catalog.Parks[ParkId.Harbor]);
-        var polygon = FieldBounds.Of(park);
+        var polygon = FieldBounds.Of(park, Rules.Default);
         foreach (var (bearing, top) in new[] { (-38.0, 16.0), (25.0, 9.0) })
         {
             var fence = AtBatResolver.FenceAt(park, bearing);
@@ -456,7 +456,7 @@ public sealed class PolylineFenceTests
         var catalog = Game;
         var rules = catalog.Rules;
         var park = Fenced(catalog.Parks[ParkId.Harbor], halves);
-        var polygon = FieldBounds.Of(park);
+        var polygon = FieldBounds.Of(park, Rules.Default);
         foreach (var s in polygon.Segments)
         {
             var expected = s.Kind == FieldBounds.WallKind.FoulWall ? WallMaterial.Padded
@@ -495,11 +495,11 @@ public sealed class PolylineFenceTests
         var again = arc with { Fence = new ParkFence(Fixture.Select(p => p with { }).ToArray()) };
         Assert.Equal(arc.Id, fenced.Id);
 
-        var plain = FieldBounds.Of(arc);
-        var polygon = FieldBounds.Of(fenced);
+        var plain = FieldBounds.Of(arc, Rules.Default);
+        var polygon = FieldBounds.Of(fenced, Rules.Default);
         Assert.NotSame(plain, polygon);
-        Assert.Same(polygon, FieldBounds.Of(again));
-        Assert.Same(plain, FieldBounds.Of(arc));
+        Assert.Same(polygon, FieldBounds.Of(again, Rules.Default));
+        Assert.Same(plain, FieldBounds.Of(arc, Rules.Default));
         Assert.NotEqual(plain.RadiusAt(0), polygon.RadiusAt(0));
 
         var loop = HarborWall.Loop(fenced);
@@ -509,7 +509,7 @@ public sealed class PolylineFenceTests
 
         // One more point is another field.
         var moved = arc with { Fence = new ParkFence(Fixture.Select((p, i) => i == 4 ? p with { FenceFrac = 0.95 } : p).ToList()) };
-        Assert.NotSame(polygon, FieldBounds.Of(moved));
+        Assert.NotSame(polygon, FieldBounds.Of(moved, Rules.Default));
     }
 
     // ---------------------------------------------------------------------------------
