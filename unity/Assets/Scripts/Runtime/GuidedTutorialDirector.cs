@@ -1,146 +1,119 @@
 using System;
+using System.Collections.Generic;
 using GrandSluggers.Sim;
 using GrandSluggers.Sim.Front;
-using UnityEngine;
 
 namespace GrandSluggers.UnityClient
 {
-    public sealed partial class MatchDirector
+    /// <summary>
+    /// The guided lessons that teach the front of house and the couch (T-G01 lineup, T-G05 two pads, T-G06 Call time and
+    /// its stick and device cards, T-G07 match settings; a real director since #1042). It owns the guided session, the
+    /// player's own Exhibition pick and rules while a lesson borrows the match, and every observation a lesson credits.
+    /// Building the match and the scene stays with the flow; an observation reports whether it opened the lesson's
+    /// feedback, and the flow resets its tutorial card on that.
+    /// </summary>
+    public sealed class GuidedTutorialDirector
     {
-        static bool GuidedLesson(string id) => id is "T-G01" or "T-G05" or "T-G06" or "T-G06-R" or "T-G06-C" or "T-G07";
-        bool GuidedAttempt(string id) => _guided?.Lesson.Id == id && _guided.Phase == TutorialPhase.Attempt;
-        string _guidedHomeCaptain, _guidedAwayCaptain, _guidedPark;
-        bool _guidedNight, _guidedPad1Home;
-        int _guidedSeed;
-        ExhibitionSettings _exhibitionSettings;
-        int _exhibitionInnings;
-        string _exhibitionDifficulty;
+        /// <summary>The pick a guided lesson plays: the player's own Exhibition, remembered on the lesson's first start.</summary>
+        public readonly record struct Pick(string Home, string Away, string Park, bool Night, bool Pad1Home, int Seed);
 
-        void PrepareGuidedTutorial(TutorialLesson lesson)
+        Pick _playerPick;
+        ExhibitionSettings _lentFrom;
+        int _lentInnings;
+        string _lentDifficulty;
+
+        /// <summary>The running guided lesson, or null.</summary>
+        public GuidedTutorialSession Session { get; private set; }
+
+        public static bool IsGuided(string id) => id is "T-G01" or "T-G05" or "T-G06" or "T-G06-R" or "T-G06-C" or "T-G07";
+
+        /// <summary>Lesson <paramref name="id"/> is running and its attempt is open.</summary>
+        public bool Attempt(string id) => Session?.Lesson.Id == id && Session.Phase == TutorialPhase.Attempt;
+
+        /// <summary>
+        /// Start (or restart) <paramref name="lesson"/>. The player's pick is remembered on the lesson's first start and
+        /// played on every retry; the T-G06 lessons play at the training park. Returns the pick the match must use.
+        /// </summary>
+        public Pick Start(TutorialLesson lesson, string profile, TutorialProgress progress, Pick current)
         {
-            if (_guided == null || _guided.Lesson.Id != lesson.Id)
-            {
-                _guidedHomeCaptain = HomeCaptain; _guidedAwayCaptain = AwayCaptain;
-                _guidedPark = ParkId; _guidedNight = Night; _guidedPad1Home = Pad1Home; _guidedSeed = Seed;
-            }
-            _coach?.Stop();
-            ReleaseMatchSeats();
-            _mode = PlayMode.Exhibition;
-            _versusWanted = false;
-            HomeCaptain = _guidedHomeCaptain; AwayCaptain = _guidedAwayCaptain;
-            ParkId = lesson.Id.StartsWith("T-G06", StringComparison.Ordinal) ? Training.ParkId : _guidedPark;
-            Night = _guidedNight; Pad1Home = _guidedPad1Home; Seed = _guidedSeed;
-            _guided = new GuidedTutorialSession(lesson, _tutorials.Profile, _tutorialProgress);
-            _tutorialSaved = false; _tutorialMenu = false; _tutorialUiAge = 0; _tutorialWasModal = true;
-            _match = NewMatch();
-            _phase = Phase.Title;
-            _cam.Play("title");
+            if (Session == null || Session.Lesson.Id != lesson.Id) _playerPick = current;
+            Session = new GuidedTutorialSession(lesson, profile, progress);
+            return lesson.Id.StartsWith("T-G06", StringComparison.Ordinal) ? _playerPick with { Park = Training.ParkId } : _playerPick;
         }
 
-        void BeginGuidedAttempt()
+        /// <summary>The lesson ends (the menu, another lesson, the title).</summary>
+        public void Exit()
         {
-            var onSet = _guided.Lesson.Id.StartsWith("T-G06", StringComparison.Ordinal);
-            var needsPad = _guided.Lesson.Id is "T-G06-R" or "T-G06-C";
-            if (needsPad && Controls.PadCount == 0)
-                return;
-            _lineup = null; // Every lesson attempt needs a fresh roster, unlike Back during setup.
-            if (_guided.Lesson.Id == "T-G07") LendGuidedSettings();
-            _guided.Begin();
-            _tutorialUiAge = 0;
-            Controls.CatchPlay();
-            if (!onSet) { OpenField(); return; }
-            _park.Build(_match.Park, _match.Night, _content.Rules, _content.Feel);
-            _spec.Build(transform); _items.Build(transform); _stars?.Build(transform);
-            _clip = null; _hlPath = null;
-            BeginSet();
+            Session?.Exit();
+            Session = null;
         }
 
-        /// <summary>T-G07 edits a fresh default rule set; the player's own Exhibition rules come back when the lesson ends.</summary>
-        void LendGuidedSettings()
+        /// <summary>Whether the attempt this lesson needs can begin: the pad lessons wait for a controller.</summary>
+        public bool CanBegin(int padCount) => !(Session.Lesson.Id is "T-G06-R" or "T-G06-C" && padCount == 0);
+
+        /// <summary>The T-G06 lessons start at SET; the others open the field.</summary>
+        public bool StartsOnSet => Session.Lesson.Id.StartsWith("T-G06", StringComparison.Ordinal);
+
+        /// <summary>T-G07 edits a fresh default rule set: keep the player's own rules to give back when the lesson ends.</summary>
+        public ExhibitionSettings LendSettings(ExhibitionSettings own, int innings, string difficulty)
         {
-            if (_exhibitionSettings == null)
-            {
-                _exhibitionSettings = _settings; _exhibitionInnings = Innings; _exhibitionDifficulty = Difficulty;
-            }
-            _settings = new ExhibitionSettings();
-            Innings = _settings.Innings; Difficulty = _settings.Difficulty;
+            if (_lentFrom == null) (_lentFrom, _lentInnings, _lentDifficulty) = (own, innings, difficulty);
+            return new ExhibitionSettings();
         }
 
-        void ReturnGuidedSettings()
+        /// <summary>The player's own rules back, or false when none were lent.</summary>
+        public bool ReturnSettings(out ExhibitionSettings own, out int innings, out string difficulty)
         {
-            if (_exhibitionSettings == null) return;
-            _settings = _exhibitionSettings; Innings = _exhibitionInnings; Difficulty = _exhibitionDifficulty;
-            _exhibitionSettings = null;
+            (own, innings, difficulty) = (_lentFrom, _lentInnings, _lentDifficulty);
+            if (_lentFrom == null) return false;
+            _lentFrom = null;
+            return true;
         }
 
-        void GuidedStadiumChosen()
+        /// <summary>Credit <paramref name="action"/> to lesson <paramref name="lesson"/>'s open attempt. True when it opened the feedback.</summary>
+        public bool Observe(string lesson, GuidedAction action) => Attempt(lesson) && Observe(action);
+
+        /// <summary>Credit <paramref name="action"/> to the running lesson. True when it opened the feedback.</summary>
+        public bool Observe(GuidedAction action) =>
+            Session != null && Session.Observe(action) && Session.Phase == TutorialPhase.Feedback;
+
+        /// <summary>T-G07: player 1's settings edit as the rule owner typed it, and whether it cleared a human ready.</summary>
+        public void RuleEdit(int row, LineupSeat seat, string refusal, bool clearedReady)
         {
-            if (GuidedAttempt("T-G07")) GuidedObserve(GuidedAction.StadiumChosen);
+            if (Attempt("T-G07")) Session.ObserveRuleEdit(row, seat, refusal, clearedReady);
         }
 
-        /// <summary>Player 1's settings edit as the rule owner typed it, and whether it cleared a human ready.</summary>
-        void GuidedRuleEdit(int row, LineupSeat seat, string refusal, bool clearedReady)
+        /// <summary>T-G07: a seat's ready on the match-settings step.</summary>
+        public void ReadyChanged(LineupSeat seat, bool onSettings, bool ready)
         {
-            if (GuidedAttempt("T-G07")) _guided.ObserveRuleEdit(row, seat, refusal, clearedReady);
+            if (Attempt("T-G07") && onSettings) Session.ObserveReady(seat, ready);
         }
 
-        void GuidedReadyChanged(LineupSeat seat)
+        /// <summary>T-G07: the match starts from the settings step with these human seats. True when it was observed.</summary>
+        public bool SettingsStart(bool onSettings, IReadOnlyList<LineupSeat> humans)
         {
-            if (GuidedAttempt("T-G07") && _lineup != null && _lineup.Step == LineupStep.MatchSettings)
-                _guided.ObserveReady(seat, _lineup.IsReady(seat));
+            if (!Attempt("T-G07") || !onSettings) return false;
+            Session.ObserveSettingsStart(humans);
+            return true;
         }
 
-        void GuidedSettingsStart()
+        /// <summary>T-G06-R: a seated controller went away.</summary>
+        public void SeatLost(LineupSeat seat)
         {
-            if (!GuidedAttempt("T-G07") || _lineup == null || _lineup.Step != LineupStep.MatchSettings) return;
-            var humans = new System.Collections.Generic.List<LineupSeat>();
-            if (_lineup.HomeSeat != LineupSeat.Cpu) humans.Add(_lineup.HomeSeat);
-            if (_lineup.AwaySeat != LineupSeat.Cpu) humans.Add(_lineup.AwaySeat);
-            _guided.ObserveSettingsStart(humans);
-            _tutorialUiAge = 0; _tutorialSaved = false;
+            if (Attempt("T-G06-R")) Session.ObserveSeatLost(seat);
         }
 
-        /// <summary>Call time's Reset stick card closed (<see cref="PursuitSeatDirector"/>); a recalibrated close is T-G06-C's action.</summary>
-        void StickResetClosed(bool recalibrated)
-        {
-            _t = 0;
-            if (recalibrated && GuidedAttempt("T-G06-C")) GuidedObserve(GuidedAction.StickRecalibrated);
-        }
+        /// <summary>T-G06-R: the lost controller came back. True when that passed the lesson.</summary>
+        public bool SeatRecovered(LineupSeat seat) => Attempt("T-G06-R") && Session.ObserveSeatRecovered(seat);
 
-        void GuidedObserve(GuidedAction action)
-        {
-            if (_guided == null || !_guided.Observe(action) || _guided.Phase != TutorialPhase.Feedback) return;
-            _tutorialUiAge = 0; _tutorialSaved = false;
-            _match.SetPaused(false);
-        }
+        /// <summary>T-G01: player 1 dropped a left-handed hitter into the roster. True when it opened the feedback.</summary>
+        public bool LineupDrop(LineupSeat seat, Character before, bool accepted) =>
+            seat == LineupSeat.Pad1 && accepted && before != null && before.Bats == Hand.L
+            && Observe("T-G01", GuidedAction.LeftHandedRosterDrop);
 
-        void GuidedSeatLost(LineupSeat seat)
-        {
-            if (GuidedAttempt("T-G06-R")) _guided.ObserveSeatLost(seat);
-        }
-
-        void GuidedSeatRecovered(LineupSeat seat)
-        {
-            if (GuidedAttempt("T-G06-R") && _guided.ObserveSeatRecovered(seat))
-            {
-                _tutorialUiAge = 0; _tutorialSaved = false;
-                _match.SetPaused(false);
-            }
-        }
-
-        void GuidedLineupDrop(LineupSeat seat, Character before, bool accepted)
-        {
-            if (GuidedAttempt("T-G01") && seat == LineupSeat.Pad1 && accepted && before != null && before.Bats == Hand.L)
-                GuidedObserve(GuidedAction.LeftHandedRosterDrop);
-        }
-
-        void GuidedSeatsBound()
-        {
-            if (!GuidedAttempt("T-G05") || !_matchSeats.Bound || !LiveSeats.BothHuman) return;
-            var one = Controls.SeatDeviceId(0);
-            var two = Controls.SeatDeviceId(1);
-            if (one.HasValue && two.HasValue && one.Value != two.Value)
-                GuidedObserve(GuidedAction.TwoPhysicalSeatsBound);
-        }
+        /// <summary>T-G05: both seats are human and bound to two different physical controllers. True when it opened the feedback.</summary>
+        public bool SeatsBound(bool bound, bool bothHuman, int? padOne, int? padTwo) =>
+            bound && bothHuman && padOne.HasValue && padTwo.HasValue && padOne.Value != padTwo.Value
+            && Observe("T-G05", GuidedAction.TwoPhysicalSeatsBound);
     }
 }
