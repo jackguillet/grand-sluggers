@@ -192,10 +192,7 @@ public sealed partial class LivePlaySystem
     double _coastBrakeLeft = -1;
 
     // A ball on the ground in nobody's glove and off its batted path: a fumble, an overthrow, a drop at an uncovered bag.
-    bool _loose;
-    double _looseVX;
-    double _looseVZ;
-    double _looseRestAt = -1;
+    readonly LooseBallMotion _looseMotion = new();
 
     // The throw in flight: who threw it, who receives it, who backs it up.
     string _throwerPos = "";
@@ -323,10 +320,6 @@ public sealed partial class LivePlaySystem
     public bool Deflected { get; private set; }
     /// <summary>How squarely the ring met the ball at the last failed take, 1 at the body, 0 at the edge; the branch's fact.</summary>
     public double ErrorObstruction { get; private set; }
-    // The local bobble's ball (F693-02-local-bobble-*): a vertical speed, whether it is in the air, and that this loose ball answers to the bobble's response.
-    double _looseVY;
-    bool _looseAir;
-    bool _looseLocal;
     public bool Bobbling { get; private set; }
     public bool PlayerBobble { get; private set; }
     public bool CatchDive { get; private set; }
@@ -365,7 +358,7 @@ public sealed partial class LivePlaySystem
     /// <summary>The pitch (or the pickoff beat) this runner play completes.</summary>
     public PlayEvent? StealPitch { get; private set; }
     /// <summary>The ball is on the ground in nobody's glove, off its batted path (a fumble, an overthrow, a drop).</summary>
-    public bool LooseBall => _loose;
+    public bool LooseBall => _looseMotion.Active;
     /// <summary>A throw is hanging at an uncovered bag, waiting for the cover (§8.5).</summary>
     public bool Lobbing => Throwing && _lobT > 0;
     /// <summary>A throw missed its cover this play (§8.5): the ERROR.</summary>
@@ -616,9 +609,7 @@ public sealed partial class LivePlaySystem
         HandlingChance = 0;
         Deflected = false;
         ErrorObstruction = 0;
-        _looseVY = 0;
-        _looseAir = false;
-        _looseLocal = false;
+        _looseMotion.Reset();
         _ballPrev = null;
         _ballVel = (0, 0, 0);
         _commands.Reset();
@@ -633,9 +624,6 @@ public sealed partial class LivePlaySystem
         _dropRolled = false;
         _dropped = false;
         _firstGlove = null;
-        _loose = false;
-        _looseVX = _looseVZ = 0;
-        _looseRestAt = -1;
         _gloveLast = ("", 0, 0);
         _lastDt = 0;
         _gloveVel = (0, 0);
@@ -719,7 +707,7 @@ public sealed partial class LivePlaySystem
 
         Advance(LivePlayCommand.Advance(dt, LiveKind(), HoldsBall, Throwing, HoldsBall, Dash01, command.Source, PlayFielder()));
 
-        if (_loose)
+        if (LooseBall)
             TickLooseBall(dt);
         else if (HoldsBall && !Throwing)
         {
@@ -791,7 +779,7 @@ public sealed partial class LivePlaySystem
             if (ThrowT >= ThrowDur && !command.EffectInFlight)
             {
                 if (OnThrowLanded(dt, out var arrived)) return arrived;
-                if (!Throwing && !_loose && IsTime()) return Commit();
+                if (!Throwing && !LooseBall && IsTime()) return Commit();
             }
             return new LivePlayCommandResult(Snapshot);
         }
@@ -809,7 +797,7 @@ public sealed partial class LivePlaySystem
             _events.Add(LiveEvent.WallCarom);
         }
         // Bounced then over the fence (§1): nobody can play it once it is gone; the ground-rule double is committed here.
-        if (Hit is not null && Ball is { GroundRule: true, LeavesT: { } leftAt } && !HoldsBall && !Throwing && !_loose
+        if (Hit is not null && Ball is { GroundRule: true, LeavesT: { } leftAt } && !HoldsBall && !Throwing && !LooseBall
             && ElapsedSeconds >= leftAt + R.Flight.DeadBall.RestHoldSec && !command.EffectInFlight)
             return Commit();
 
@@ -850,7 +838,7 @@ public sealed partial class LivePlaySystem
         // A ball not yet in a glove is chased, on the grass after a drop or a carom as much as before the landing (§7.6, §7.8).
         var chasing = !HoldsBall;
         // A fly or a liner is in the air until it lands; after that (or once loose) it is a pickup.
-        var onTheGround = _loose || ElapsedSeconds >= hang;
+        var onTheGround = LooseBall || ElapsedSeconds >= hang;
         var buddyOn = FieldingResolver.BuddyJumpOffered(pre);
         var needsJump = FlyCatch.NeedsJump(pre);
         var plant = FlyCatch.ChaseTarget(pre, R, Park);
@@ -938,12 +926,12 @@ public sealed partial class LivePlaySystem
             if (onTheGround)
             {
                 // A loose ball (a fumble, an overthrow) is picked up by touching it (fielding.chase.looseScoopFt), never by the catch radius.
-                var dirtStand = _loose ? R.Fielding.Chase.LooseScoopFt : scoopStand;
-                var dirtDive = _loose ? R.Fielding.Chase.LooseScoopFt : FieldingResolver.CatchWindowFt(radius, dive: true, jump: false, R);
-                if (_loose ? FlyCatch.TouchScoop(d, dirtStand, BallY, R)
+                var dirtStand = LooseBall ? R.Fielding.Chase.LooseScoopFt : scoopStand;
+                var dirtDive = LooseBall ? R.Fielding.Chase.LooseScoopFt : FieldingResolver.CatchWindowFt(radius, dive: true, jump: false, R);
+                if (LooseBall ? FlyCatch.TouchScoop(d, dirtStand, BallY, R)
                     : FlyCatch.TouchScoop(pre, Park, BallX, BallZ, BallY, ElapsedSeconds, hang, d, dirtStand, R))
                     TakeBattedBall();
-                var pickupInPlay = _loose || FlyCatch.PickupInPlay(pre, Park, BallX, BallZ, ElapsedSeconds, hang, R);
+                var pickupInPlay = LooseBall || FlyCatch.PickupInPlay(pre, Park, BallX, BallZ, ElapsedSeconds, hang, R);
                 if (pickupInPlay && FlyCatch.PlayerDiveCatch(DiveT > 0, d, dirtStand, dirtDive, BallY, R))
                 {
                     CatchDive = true;
@@ -1064,10 +1052,10 @@ public sealed partial class LivePlaySystem
         // Nothing is force-fed at hang. Dirt scoops keep windowPadFt (the double-play rows).
         if (!HoldsBall && GloveMayTake(GlovePos))
         {
-            if (_loose ? FlyCatch.TouchScoop(cpuDist, R.Fielding.Chase.LooseScoopFt, BallY, R)
+            if (LooseBall ? FlyCatch.TouchScoop(cpuDist, R.Fielding.Chase.LooseScoopFt, BallY, R)
                 : FlyCatch.TouchScoop(pre, Park, BallX, BallZ, BallY, ElapsedSeconds, hang, cpuDist, cpuScoop, R))
                 TakeBattedBall();
-            else if (ElapsedSeconds < hang && !_loose && !_dropped)
+            else if (ElapsedSeconds < hang && !LooseBall && !_dropped)
             {
                 var plant = FlyCatch.ChaseTarget(pre, R, Park);
                 var needsJump = FlyCatch.NeedsJump(pre);
@@ -1196,7 +1184,7 @@ public sealed partial class LivePlaySystem
             NoteSwitchHint(map, Preview, pad);
             if (SelectTakes(pad)) TakeSelect(map, pad);
         }
-        if (_loose)
+        if (LooseBall)
         {
             ChaseLooseBall(dt, map, human ? pad : LivePadInput.Dead);
             if (IsTime()) return Commit();
@@ -1220,7 +1208,7 @@ public sealed partial class LivePlaySystem
     {
         if (Throwing || !_stick.Manual || !CanMove(GlovePos)) return;
         if (!map.TryGetValue(GlovePos, out var glove)) return;
-        var asked = _loose ? null : Preview;
+        var asked = LooseBall ? null : Preview;
         var speed = CarrySpeed(glove, FieldingResolver.ChaseSpeedFt(glove, GlovePos, asked, R, pad.EastHeld));
         var feet = StepStick(GlovePos, (GloveX, GloveZ), _stick.WantX, _stick.WantY, speed, dt, specialSlowed: asked?.Frozen == true);
         GloveX = feet.X;
@@ -1275,7 +1263,7 @@ public sealed partial class LivePlaySystem
         foreach (var r in Runners)
         {
             r.MarkRundown(false);
-            if (!r.Live || !HoldsBall || Throwing || _loose) continue;
+            if (!r.Live || !HoldsBall || Throwing || LooseBall) continue;
             if (r.IsBatter && r.Bag == 0) continue;
             if (r.OverrunProtected || (r.OnBag || r.IsOn(r.Bag)) && !UnentitledNow(r)) continue;
             if (RunnerSystem.ForcedOff(r, Forces.At, Fly) && r.DestBag > r.Bag) continue;
@@ -1723,7 +1711,7 @@ public sealed partial class LivePlaySystem
             var onGrass = Path is null ? PlayKind is PlayKind.Double or PlayKind.Triple : FieldingResolver.OutfieldGrass(GloveX, GloveZ, R);
             ball = new BallSituation(HasBall, false, 0, 0, GloveX, GloveZ, ElapsedSeconds, onGrass, GloveX, GloveZ, carry);
         }
-        else if (_loose)
+        else if (LooseBall)
         {
             var who = GloveChar();
             var speed = FieldingResolver.ChaseSpeedFt(who, Preview.Frozen, R);
@@ -1763,7 +1751,7 @@ public sealed partial class LivePlaySystem
     {
         if (Path is null) return;
         var map = Assigned();
-        if (_loose)
+        if (LooseBall)
         {
             TryHandoffLoose(map);
             if (!CanMove(GlovePos)) return;
@@ -1924,7 +1912,7 @@ public sealed partial class LivePlaySystem
     void ChargeOutfield(double dt)
     {
         if (Preview is null || Hit is null || Path is null) return;
-        if (HoldsBall || Throwing || _loose) return;
+        if (HoldsBall || Throwing || LooseBall) return;
         var live = BallFlight.PointAt(Path, ElapsedSeconds, R);
         var hang = Hang;
         var inAir = FieldingResolver.InAir(Preview, live.Y, ElapsedSeconds, R, hang);
@@ -2000,7 +1988,7 @@ public sealed partial class LivePlaySystem
             var onSquare = squared && BuntDefense.CoverBag(pos, R.Fielding.Bunt) == kv.Key;
             if (!RunnerPlay && !onSquare && ElapsedSeconds < cover.StartSec) continue;
             // A charge body converges on the bunt instead of covering an idle bag (ChargeBunt).
-            if (!HoldsBall && !Throwing && !_loose && BuntChargeBody(pos, map)) continue;
+            if (!HoldsBall && !Throwing && !LooseBall && BuntChargeBody(pos, map)) continue;
             if (!_fielders.TryGetValue(pos, out var at)) continue;
             var goal = Diamond.Bag(kv.Key);
             _fielders[pos] = StepTo(pos, at, goal, CoverSpeed(pos, bodies), cover.StopFt, dt, flat: true);
@@ -2016,7 +2004,7 @@ public sealed partial class LivePlaySystem
     void ChargeBunt(double dt)
     {
         if (Preview is null || Hit is null || Path is null || RunnerPlay) return;
-        if (Ball is not { Shape: BattedBallClass.Bunt } || HoldsBall || Throwing || _loose) return;
+        if (Ball is not { Shape: BattedBallClass.Bunt } || HoldsBall || Throwing || LooseBall) return;
         var b = R.Fielding.Bunt;
         var map = Assigned();
         var covers = CoverMapNow();
@@ -2469,7 +2457,7 @@ public sealed partial class LivePlaySystem
 
     (double X, double Z) SwitchAim(FieldingPreview? pre)
     {
-        if (_loose) return (BallX, BallZ);
+        if (LooseBall) return (BallX, BallZ);
         if (pre is not null && Path is not null)
         {
             var map = Assigned();
@@ -2549,8 +2537,8 @@ public sealed partial class LivePlaySystem
     /// <summary>A human East press lunges sideways toward the ball or its landing point.</summary>
     bool LungeToward(FieldingPreview pre, (double X, double Z) plant)
     {
-        var toX = pre.Grounder || pre.Line || _loose ? BallX : plant.X;
-        var toZ = pre.Grounder || pre.Line || _loose ? BallZ : plant.Z;
+        var toX = pre.Grounder || pre.Line || LooseBall ? BallX : plant.X;
+        var toZ = pre.Grounder || pre.Line || LooseBall ? BallZ : plant.Z;
         return LungeTo(toX, toZ);
     }
 
@@ -2661,7 +2649,7 @@ public sealed partial class LivePlaySystem
     bool GloveMayTake(string pos)
     {
         // Off the bat (§7.11): the batted ball in its flight is no glove's until it has cleared the bat.
-        if (!OffTheBat && !_loose && Path is not null) return false;
+        if (!OffTheBat && !LooseBall && Path is not null) return false;
         if (pos == "P" && ElapsedSeconds + 1e-9 < ReadyAt(pos)) return false;
         if (_items.IsOff(pos)) return false;
         if (Stunned(pos)) return false;   // the fumbler waits out the stun (#721); a helper may take it first
@@ -2673,7 +2661,7 @@ public sealed partial class LivePlaySystem
     bool BuddyReady()
     {
         if (Preview is not { } pre || !FieldingResolver.BuddyJumpOffered(pre)
-            || HoldsBall || _loose || ElapsedSeconds >= Hang || GlovePos != pre.Position
+            || HoldsBall || LooseBall || ElapsedSeconds >= Hang || GlovePos != pre.Position
             || BuddyPos == GlovePos || !FieldingResolver.IsOutfield(BuddyPos)
             || !CanMove(GlovePos) || !CanMove(BuddyPos)
             || !GloveMayTake(GlovePos) || !GloveMayTake(BuddyPos)
@@ -2685,7 +2673,7 @@ public sealed partial class LivePlaySystem
     void TickBuddyPartner(double dt)
     {
         BuddyWindow = false;
-        if (Preview is null || Path is null || HoldsBall || _loose || ElapsedSeconds >= Hang
+        if (Preview is null || Path is null || HoldsBall || LooseBall || ElapsedSeconds >= Hang
             || !FieldingResolver.BuddyJumpOffered(Preview)) return;
         var map = Assigned();
         BuddyPos = PosOf(map, Preview.Buddy!);
@@ -2967,14 +2955,11 @@ public sealed partial class LivePlaySystem
 
     void SetLoose(double x, double z, double vx, double vz)
     {
-        _loose = true;
         _heldSince = -1;
         BallX = x;
         BallZ = z;
         BallY = 0;
-        _looseVX = vx;
-        _looseVZ = vz;
-        _looseRestAt = vx == 0 && vz == 0 ? ElapsedSeconds : -1;
+        _looseMotion.Roll(vx, vz, ElapsedSeconds);
         _trace?.Mark(PlayTraceMarkKind.LooseBall, ElapsedSeconds, GlovePos);
     }
 
@@ -3070,63 +3055,22 @@ public sealed partial class LivePlaySystem
         var (cx, cz) = (Math.Cos(turn), Math.Sin(turn));
         var (ox, oz) = (dx * cx - dz * cz, dx * cz + dz * cx);
         var s = Math.Min(h.BobbleRetain * speed, h.BobbleCapFtPerSec);
-        _loose = true;
-        _looseLocal = true;
-        _looseAir = BallY > 1e-9;
+        _looseMotion.Bobble(ox * s, oz * s, inTheAir: BallY > 1e-9);
         _heldSince = -1;
-        _looseVX = ox * s;
-        _looseVZ = oz * s;
-        _looseVY = 0;
-        _looseRestAt = -1;
         _trace?.Mark(PlayTraceMarkKind.LooseBall, ElapsedSeconds, GlovePos);
         _events.Add(LiveEvent.Bobble);
         Sub = $"{who.Name} bobbles it!";
     }
 
     /// <summary>
-    /// The local bobble's ball (F693-02-local-bobble-vertical-shape, -rebound-ceiling, -restitution, -settling, -ground-horizontal,
-    /// -rolling-deceleration): falls under gravity from the contact, rebounds at 35 % of its downward speed under a six-inch ceiling,
-    /// settles when the next rise would be three inches or less, keeps 90 % of its roll at each impact, and slows at 6 ft/s² on the
-    /// ground to rest. The park's edge stops it. The three ground numbers are the row of the zone the ball is in, each tick (FD-05,
-    /// F3-c: <see cref="BallFlight.LocalBobbleTick"/>); every row carries today's 35 % / 90 % / 6 ft/s².
-    /// </summary>
-    void TickLocalBobble(double dt)
-    {
-        var step = BallFlight.LocalBobbleTick(GroundZones.Of(Park, R), R.Grounds, R.Fielding.Handling, R.Flight.Gravity,
-            BallX, BallY, BallZ, _looseVX, _looseVY, _looseVZ, _looseAir, dt);
-        (BallX, BallY, BallZ) = (step.X, step.Y, step.Z);
-        (_looseVX, _looseVY, _looseVZ, _looseAir) = (step.VX, step.VY, step.VZ, step.Air);
-        if (!_looseAir && _looseVX == 0 && _looseVZ == 0)
-        {
-            if (_looseRestAt < 0) _looseRestAt = ElapsedSeconds;
-        }
-        else _looseRestAt = -1;
-    }
-
-    /// <summary>
-    /// A loose ball rolls to a stop inside the park, at the <c>overthrow</c> deceleration of the ground row of the zone it is in, each
-    /// tick (FD-05, F3-c: <see cref="BallFlight.OverthrowTick"/>).
+    /// One frame of the loose ball (<see cref="LooseBallMotion.Tick"/>): the local bobble falls from the contact, rebounds at 35 % of
+    /// its downward speed under a six-inch ceiling, settles and rolls (F693-02-local-bobble-*); any other loose ball rolls to a stop
+    /// at the <c>overthrow</c> deceleration. The ground numbers are the row of the zone the ball is in, each tick (FD-05, F3-c).
     /// </summary>
     void TickLooseBall(double dt)
     {
-        if (_looseLocal)
-        {
-            TickLocalBobble(dt);
-            return;
-        }
-        var speed = Math.Sqrt(_looseVX * _looseVX + _looseVZ * _looseVZ);
-        if (speed <= 0)
-        {
-            if (_looseRestAt < 0) _looseRestAt = ElapsedSeconds;
-            return;
-        }
-        var step = BallFlight.OverthrowTick(GroundZones.Of(Park, R), R.Grounds, BallX, BallZ, _looseVX, _looseVZ, dt);
-        BallX = step.X;
-        BallZ = step.Z;
-        BallY = 0;
-        _looseVX = step.VX;
-        _looseVZ = step.VZ;
-        if (step.Speed <= 0) _looseRestAt = ElapsedSeconds;
+        if (_looseMotion.Tick(BallX, BallY, BallZ, dt, ElapsedSeconds, GroundZones.Of(Park, R), R) is { } at)
+            (BallX, BallY, BallZ) = at;
     }
 
     /// <summary>The ball lands at the bag. True when the play is decided or waiting on the next press.</summary>
@@ -3310,9 +3254,7 @@ public sealed partial class LivePlaySystem
         _heldSince = ElapsedSeconds;
         Caught = true;
         _gloved = true;
-        _loose = false;
-        _looseVX = _looseVZ = 0;
-        _looseRestAt = -1;
+        _looseMotion.Held();
         _firstGlove ??= GloveChar();
         _trace?.Mark(PlayTraceMarkKind.Possession, ElapsedSeconds, GlovePos);
     }
@@ -3336,7 +3278,7 @@ public sealed partial class LivePlaySystem
     {
         _receivedClean = false;
         var first = !Caught;
-        var wasLoose = _loose;
+        var wasLoose = LooseBall;
         if (first && !wasLoose && Preview is { } preview)
         {
             var who = GloveChar();

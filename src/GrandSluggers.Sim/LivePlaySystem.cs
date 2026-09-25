@@ -764,8 +764,8 @@ public sealed partial class LivePlaySystem
         var nobodyLive = Runners.All(r => !r.Live);
         if (nobodyLive && !Throwing) return true;
         var resting = Path is not null && !HasBall && !Throwing
-                      && (_loose
-                          ? _looseRestAt >= 0 && ElapsedSeconds >= _looseRestAt + _match.Rules.Flight.DeadBall.RestHoldSec
+                      && (LooseBall
+                          ? _looseMotion.RestedFor(ElapsedSeconds, _match.Rules.Flight.DeadBall.RestHoldSec)
                           : ElapsedSeconds >= Rest + _match.Rules.Flight.DeadBall.RestHoldSec);
         if (resting)
             return InPlay.Time(true, false, _match.Outs, true, Runners, _match.Rules);
