@@ -148,15 +148,65 @@ namespace GrandSluggers.UnityClient
             }
         }
 
-        /// <summary>Two-tone ramp fill — Harbor trim and bodies. Falls back to matte Lit.</summary>
+        /// <summary>Kit props (Harbor wood, roofs, crowd figures, toys): the brightened fill in matte Lit. Character bodies draw in <see cref="Body"/>.</summary>
         public static Material Toon(Color color)
         {
             var c = Color.Lerp(color, Color.white, 0.08f);
             c = new Color(Mathf.Min(1f, c.r * 1.18f), Mathf.Min(1f, c.g * 1.12f), Mathf.Min(1f, c.b * 1.08f), 1f);
-            // ToonFill is CG/SRPDefaultUnlit. On llvmpipe it loses Z to URP Lit
-            // grass, so SET from the mound showed only Lit hat brims. Use Lit
-            // until ToonFill is a real URP pass.
+            // ToonFill is a built-in CG shader with a single SRPDefaultUnlit pass: no
+            // DepthOnly, DepthNormals or ShadowCaster pass. The kit keeps matte Lit;
+            // characters use ToonRim, the real URP toon (Body).
             return Lit(c, smooth: 0.04f);
+        }
+
+        static Shader _toonRim;
+        static bool _toonRimMissing;
+
+        /// <summary>The character toon (CF-7), shipped in Resources so a player build carries it.</summary>
+        public static Shader ToonRimShader
+        {
+            get
+            {
+                if (_toonRim != null || _toonRimMissing) return _toonRim;
+                _toonRim = Resources.Load<Shader>("Shaders/ToonRim") ?? Shader.Find("GrandSluggers/ToonRim");
+                if (_toonRim == null || !_toonRim.isSupported)
+                {
+                    Debug.LogWarning("ToonRim shader is missing or unsupported; character bodies draw in matte Lit");
+                    _toonRim = null;
+                    _toonRimMissing = true;
+                }
+                return _toonRim;
+            }
+        }
+
+        /// <summary>
+        /// A character's jersey, trim or flesh (CF-7, CH-14): the ToonRim bands and rim, every number from
+        /// <c>data/art/toon.json</c>. With no catalog bound or no shader it is the matte Lit the body drew before.
+        /// </summary>
+        public static Material Body(Color color)
+        {
+            var toon = ArtBinder.Art?.Toon;
+            var sh = ToonRimShader;
+            if (toon == null || sh == null) return Toon(color);
+            var (r, g, b) = toon.Fill.Of(color.r, color.g, color.b);
+            var m = new Material(sh) { name = "toon-body" };
+            m.SetColor("_BaseColor", new Color((float)r, (float)g, (float)b, 1f));
+            var l = toon.Light;
+            m.SetColor("_ShadeTint", Of(l.Shade));
+            m.SetFloat("_Wrap", (float)l.Wrap);
+            m.SetFloat("_BandAt", (float)l.BandAt);
+            m.SetFloat("_BandSoft", (float)l.BandSoft);
+            m.SetFloat("_ShadowWeight", (float)l.Shadow);
+            m.SetFloat("_SunFull", (float)l.SunFull);
+            m.SetFloat("_SunTint", (float)l.SunTint);
+            m.SetFloat("_Ambient", (float)l.Ambient);
+            var rim = toon.Rim;
+            m.SetColor("_RimColor", Of(rim.Color));
+            m.SetFloat("_RimAt", (float)rim.At);
+            m.SetFloat("_RimSoft", (float)rim.Soft);
+            m.SetFloat("_RimStrength", (float)rim.Strength);
+            m.SetFloat("_RimUp", (float)rim.Up);
+            return m;
         }
 
         public static Material Unlit(Color color, Texture2D tex = null)

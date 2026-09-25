@@ -34,7 +34,8 @@ What was still a prototype skin: portraits in `Resources/Art`, bodies as capsule
 | Portraits | skin `portrait` | `Assets/Art/UI/Portraits/{id}` | `Resources/Art/{id}-hero` |
 | VFX | `data/art/vfx.json` | `Assets/Art/VFX/{id}` | `SpecialFx` primitives |
 | Audio | `data/art/audio.json` (its `slot` is the wav) + `data/art/audio-clips/{id}.wav` | `data/art/audio-clips/{id}.wav` | generated tones in `AudioBus` |
-| Materials | `data/art/materials.json` | `Assets/Art/Materials/{id}` | `Look.Toon` / `ToonFill` |
+| Materials | `data/art/materials.json` | `Assets/Art/Materials/{id}` | `Look.Toon` (matte Lit) for the kit |
+| Character toon | `data/art/toon.json` (bands, rim); `toon-body` names `ToonRim` | `Assets/Resources/Shaders/ToonRim.shader` via `Look.Body` | matte Lit (`Look.Toon`) with no catalog or no shader |
 | Park kits | `data/art/parks.json` | `Assets/Art/Parks/{id}` | `harbor-kit.fbx` bind; else `HarborKit` primitive dress; `ParkView` elsewhere |
 
 Role players inherit the faction body type. **No skin lists extras** until they read as toys (#687). Catalog slots stay. That is how 18 bodies stay cheap.

@@ -211,6 +211,8 @@ public sealed class ArtCatalog
     public ParkLooks Looks { get; }
     /// <summary>How each hazard type is drawn (F6-d, <c>data/art/hazard-actors.json</c>).</summary>
     public HazardActors Actors { get; }
+    /// <summary>The character toon's bands and rim (CF-7, <c>data/art/toon.json</c>).</summary>
+    public ToonLook Toon { get; init; } = null!;
     public IReadOnlyList<string> Folders { get; }
 
     /// <summary>The motion styles (CH-12, <c>clips.json</c> <c>styles.rows</c>).</summary>
@@ -450,6 +452,7 @@ public sealed class ArtCatalog
         foreach (var kitRow in Parks)
             errors.AddRange(ParkKitSlots.Validate(kitRow, Looks));
         errors.AddRange(Actors.Validate());
+        errors.AddRange(ToonLook.Validate(Materials));
 
         foreach (var need in new[] { "bat-perfect", "bat-solid", "bat-cheap", "glove", "throw", "crowd-bed", "crowd-swell" })
         {
@@ -675,6 +678,7 @@ public sealed class ArtCatalog
         return new ArtCatalog(rig, clips, skins, extras, vfx, audio, mats, parks, folders, looks, actors)
         {
             ExtrasSlot = extrasFile.Slot,
+            Toon = ToonLook.Parse(JsonNode.Parse(File.ReadAllText(Art("toon.json")), documentOptions: nodeOptions), "toon.json"),
             Styles = styles,
             StyledClips = styled,
             StyleSlot = styleDto.Slot,
