@@ -241,7 +241,7 @@ public sealed partial class LivePlaySystem
     /// <summary>The glove the player steers could dive now: the same eligibility <c>MovePlayer</c> uses.</summary>
     internal bool CanDiveNow => PlayerFielding && !HoldsBall && !Throwing && CanMove(GlovePos);
     /// <summary>The position whose glove is mid-lunge, or empty.</summary>
-    internal string LungingGlovePos => _lungePos;
+    internal string LungingGlovePos => _dive.LungePos;
     /// <summary>The body on the glove the ball is assigned to now.</summary>
     internal string GloveId => GloveChar().Id;
     /// <summary>The first glove the play assigned the ball to, or empty.</summary>

@@ -182,8 +182,7 @@ public sealed partial class LivePlaySystem
     string _coastPos = "";
     (double X, double Z) _coastVel;
     double _coastT;
-    /// <summary>The body whose lunge armed <see cref="DiveT"/>: the dive is that body's, wherever the ring goes next.</summary>
-    string _lungePos = "";
+    readonly GloveDive _dive = new();
     /// <summary>Each body's velocity under the response law (#718), ft/s. Empty on the shipped table, whose steps are instantaneous.</summary>
     readonly Dictionary<string, (double X, double Z)> _vel = new(StringComparer.OrdinalIgnoreCase);
     /// <summary>The bodies a walker stepped this frame; the rest brake to a stop at the start of the next.</summary>
@@ -302,7 +301,8 @@ public sealed partial class LivePlaySystem
     public string SwitchPos { get; private set; } = "";
     public string BuddyPos { get; private set; } = "";
     public bool BuddyWindow { get; private set; }
-    public double DiveT { get; private set; }
+    /// <summary>The dive's arm window left (<see cref="GloveDive.ArmT"/>).</summary>
+    public double DiveT => _dive.ArmT;
     public double JumpT { get; private set; }
     public double SwapLock { get; private set; }
     /// <summary>The glove's impact recovery left (<see cref="GloveRecoil.T"/>).</summary>
@@ -332,10 +332,10 @@ public sealed partial class LivePlaySystem
     public bool Bobbling { get; private set; }
     public bool PlayerBobble { get; private set; }
     public bool CatchDive { get; private set; }
-    /// <summary>The dive's recovery still owed by <see cref="DivingPos"/> (#719, F693-02-dive-recovery-cost): no move, no throw until it is 0. 0 on the shipped table.</summary>
-    public double DiveRecoveryT { get; private set; }
-    /// <summary>The body paying <see cref="DiveRecoveryT"/>.</summary>
-    public string DivingPos { get; private set; } = "";
+    /// <summary>The dive's recovery still owed by <see cref="DivingPos"/> (<see cref="GloveDive.RecoveryT"/>): no move, no throw until it is 0.</summary>
+    public double DiveRecoveryT => _dive.RecoveryT;
+    /// <summary>The body paying <see cref="DiveRecoveryT"/> (<see cref="GloveDive.DivingPos"/>).</summary>
+    public string DivingPos => _dive.DivingPos;
     // The live ball as the CPU reads it for a dive (#719): last frame's position and the velocity between frames, no resolved path.
     (double X, double Y, double Z)? _ballPrev;
     (double X, double Y, double Z) _ballVel;
@@ -483,7 +483,7 @@ public sealed partial class LivePlaySystem
     bool HumanGlove(string pos) => Seats.HumanFields && string.Equals(pos, GlovePos, StringComparison.OrdinalIgnoreCase);
     /// <summary>The body on the ball: the thrower while a throw is in the air (the YOU ring is already on the receiver), else the glove.</summary>
     string OnBallPos => Throwing && !string.IsNullOrEmpty(_throwerPos) ? _throwerPos : GlovePos;
-    bool CanMove(string pos) => ElapsedSeconds + 1e-9 >= ReadyAt(pos) && !(DiveRecoveryT > 0 && pos == DivingPos)
+    bool CanMove(string pos) => ElapsedSeconds + 1e-9 >= ReadyAt(pos) && !_dive.Recovering(pos)
                                 && !(ImpactRecoil && RecoilT > 0 && pos == GlovePos) && !Stunned(pos);
     /// <summary>The fumbler inside the bobble's stun (#721): no steering, no jump, no dive, no take.</summary>
     bool Stunned(string pos) => StunT > 0 && pos == StunPos;
@@ -613,11 +613,9 @@ public sealed partial class LivePlaySystem
         SwitchPos = "";
         BuddyPos = "";
         BuddyWindow = false;
-        DiveT = JumpT = SwapLock = 0;
+        JumpT = SwapLock = 0;
+        _dive.Reset();
         _recoil.Reset();
-        DiveRecoveryT = 0;
-        DivingPos = "";
-        _lungePos = "";
         StunT = 0;
         StunPos = "";
         HopDifficulty = 0;
@@ -748,22 +746,13 @@ public sealed partial class LivePlaySystem
             ReadBallHazards(dt);
         }
 
-        if (DiveT > 0) DiveT -= dt;
+        _dive.Tick(dt);
         if (JumpT > 0) JumpT -= dt;
         if (SwapLock > 0) SwapLock -= dt;
         _jump.Tick(dt, R.Fielding.Catch);
         // The live ball between frames (#719): what the CPU's dive reads, position and motion, never the resolved path.
         _ballVel = _ballPrev is { } prev ? ((BallX - prev.X) / dt, (BallY - prev.Y) / dt, (BallZ - prev.Z) / dt) : (0, 0, 0);
         _ballPrev = (BallX, BallY, BallZ);
-        if (DiveRecoveryT > 0)
-        {
-            DiveRecoveryT -= dt;
-            if (DiveRecoveryT <= 1e-9)
-            {
-                DiveRecoveryT = 0;
-                DivingPos = "";
-            }
-        }
         if (StunT > 0)
         {
             StunT -= dt;
@@ -947,8 +936,7 @@ public sealed partial class LivePlaySystem
         }
         if (pad.EastDown && CanMove(GlovePos) && LungeToward(pre, plant))
         {
-            DiveT = catchRules.DiveArmSec;
-            PayDive(GlovePos);
+            CommitDive(GlovePos, catchRules.DiveArmSec);
         }
 
         var radius = CatchRadius(map);
@@ -1169,7 +1157,7 @@ public sealed partial class LivePlaySystem
         if (IsTime())
             return Commit();
         if (RecoilT > 0) return null;
-        if (DiveRecoveryT > 0 && DivingPos == GlovePos) return null;   // the dive's recovery (#719): the table waits with the body
+        if (_dive.Recovering(GlovePos)) return null;   // the dive's recovery (#719): the table waits with the body
         // Walking to the bag to step on it or to wait for the body bound there (§10.3, §10.4, S-41).
         if (_cpuWalkBag > 0)
         {
@@ -1872,7 +1860,7 @@ public sealed partial class LivePlaySystem
         // A body in its dive is on the ground: it does not coast. Its last frame can be the lunge — a displacement, not a
         // run — and read as a velocity it slid the diver a hundred feet. The dive's arm window on every table, and the
         // recovery the diver still owes after it (#719).
-        var down = DiveT > 0 && _lungePos == GlovePos || DiveRecoveryT > 0 && DivingPos == GlovePos;
+        var down = _dive.Down(GlovePos);
         if (coast && !down && (_gloveVel.X != 0 || _gloveVel.Z != 0))
         {
             _coastPos = GlovePos;
@@ -2617,7 +2605,7 @@ public sealed partial class LivePlaySystem
         if (Diamond.Dist(GloveX, GloveZ, lunged.X, lunged.Z) < 0.01) return false;
         GloveX = lunged.X;
         GloveZ = lunged.Z;
-        _lungePos = GlovePos;
+        _dive.Lunged(GlovePos);
         _fielders[GlovePos] = (GloveX, GloveZ);
         return true;
     }
@@ -2626,13 +2614,10 @@ public sealed partial class LivePlaySystem
     // The dive is deliberate and costs (#719: F693-02-dive-jump-scoop-reach, -dive-recovery-cost, -cpu-dive-intent, -cpu-dive-intent-policy)
     // ---------------------------------------------------------------------------------
 
-    /// <summary>The dive's cost, owed from the commitment whether the ball comes or not (F693-02-dive-recovery-cost): the later end against anything already owed. Nothing on the shipped table.</summary>
-    void PayDive(string pos)
+    /// <summary>East commits a dive (<see cref="GloveDive.Commit"/>): its cost is owed from the commitment whether the ball comes or not, and a remembered throw press is dropped.</summary>
+    void CommitDive(string pos, double armSec)
     {
-        var cost = FieldingResolver.DiveRecoverySec(GloveChar(), R);
-        if (cost <= 0) return;
-        DiveRecoveryT = Math.Max(DiveRecoveryT, cost);
-        DivingPos = pos;
+        if (!_dive.Commit(pos, armSec, FieldingResolver.DiveRecoverySec(GloveChar(), R))) return;
         _recoveryPress = null;
         _events.Add(LiveEvent.DiveCommit);
     }
@@ -2658,7 +2643,7 @@ public sealed partial class LivePlaySystem
         var pressed = (pad.SouthDown && (!pad.ExplicitTarget || pad.KeysBag > 0 || ThrowBag > 0)) || pad.Cutoff;
         // Nothing releases while the body recovers from a dive, or while it is still in the air after a jumping catch
         // (F693-02-jump-catch-throw-readiness): the landing comes first, and a press inside the buffer waits for it.
-        var recovering = DiveRecoveryT > 0 && DivingPos == GlovePos;
+        var recovering = _dive.Recovering(GlovePos);
         var bracing = ImpactRecoil && RecoilT > 0;   // the ordinary impact recoil (#720) is the same wait
         if (recovering || bracing || Airborne)
         {
