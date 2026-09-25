@@ -1,0 +1,621 @@
+// Rough backdrops (WD-03 A, WD-10 A; #1156): the blockout that stands behind each park's outfield, as data, baked by
+// tools/blender/backdrop_blockout.py into "slot" (and its Resources copy for the player) and drawn by the blockout-backdrop
+// kit builder. Each shape stands at its bearing (0 straight out to centre, + toward right) and distance from home, base on
+// the ground, facing home; sizeFt is width, height, depth; pitchDeg tips it back (a wheel stands on its rim at 90). Rough
+// is enough: this is a greybox for Jack's park sittings, not park art. Harbor's backdrop is its town (harbor-town).
+{
+  "backdrops": [
+    {
+      "park": "crystal-rink",
+      "slot": "Assets/Art/Parks/crystal-rink/backdrop.fbx",
+      "resources": "Art/Parks/crystal-rink/backdrop",
+      "placed": true,
+      "shapes": [
+        {
+          "kind": "cone",
+          "bearingDeg": -40,
+          "distanceFt": 520,
+          "sizeFt": [
+            140,
+            150,
+            140
+          ],
+          "color": "#E8F2FA"
+        },
+        {
+          "kind": "cone",
+          "bearingDeg": -10,
+          "distanceFt": 600,
+          "sizeFt": [
+            200,
+            210,
+            200
+          ],
+          "color": "#F4FAFF"
+        },
+        {
+          "kind": "cone",
+          "bearingDeg": 25,
+          "distanceFt": 560,
+          "sizeFt": [
+            170,
+            170,
+            170
+          ],
+          "color": "#DCEAF6"
+        },
+        {
+          "kind": "cone",
+          "bearingDeg": 50,
+          "distanceFt": 500,
+          "sizeFt": [
+            120,
+            110,
+            120
+          ],
+          "color": "#E8F2FA"
+        },
+        {
+          "kind": "box",
+          "bearingDeg": 0,
+          "distanceFt": 700,
+          "sizeFt": [
+            520,
+            24,
+            6
+          ],
+          "color": "#6AF0B0"
+        }
+      ]
+    },
+    {
+      "park": "funfair-park",
+      "slot": "Assets/Art/Parks/funfair-park/backdrop.fbx",
+      "resources": "Art/Parks/funfair-park/backdrop",
+      "placed": true,
+      "shapes": [
+        {
+          "kind": "cylinder",
+          "bearingDeg": -30,
+          "distanceFt": 470,
+          "sizeFt": [
+            150,
+            6,
+            150
+          ],
+          "color": "#E03A48",
+          "pitchDeg": 90
+        },
+        {
+          "kind": "cone",
+          "bearingDeg": 5,
+          "distanceFt": 440,
+          "sizeFt": [
+            70,
+            60,
+            70
+          ],
+          "color": "#FFC83A"
+        },
+        {
+          "kind": "cone",
+          "bearingDeg": 20,
+          "distanceFt": 460,
+          "sizeFt": [
+            60,
+            52,
+            60
+          ],
+          "color": "#3A7BE0"
+        },
+        {
+          "kind": "box",
+          "bearingDeg": 40,
+          "distanceFt": 480,
+          "sizeFt": [
+            180,
+            50,
+            30
+          ],
+          "color": "#F2E6C8"
+        },
+        {
+          "kind": "box",
+          "bearingDeg": -50,
+          "distanceFt": 430,
+          "sizeFt": [
+            90,
+            30,
+            40
+          ],
+          "color": "#46B45A"
+        }
+      ]
+    },
+    {
+      "park": "rooftop-city",
+      "slot": "Assets/Art/Parks/rooftop-city/backdrop.fbx",
+      "resources": "Art/Parks/rooftop-city/backdrop",
+      "placed": true,
+      "shapes": [
+        {
+          "kind": "box",
+          "bearingDeg": -45,
+          "distanceFt": 480,
+          "sizeFt": [
+            60,
+            190,
+            60
+          ],
+          "color": "#3A3A48"
+        },
+        {
+          "kind": "box",
+          "bearingDeg": -25,
+          "distanceFt": 520,
+          "sizeFt": [
+            70,
+            260,
+            70
+          ],
+          "color": "#2E2E3A"
+        },
+        {
+          "kind": "box",
+          "bearingDeg": -5,
+          "distanceFt": 560,
+          "sizeFt": [
+            80,
+            320,
+            80
+          ],
+          "color": "#44445A"
+        },
+        {
+          "kind": "box",
+          "bearingDeg": 15,
+          "distanceFt": 520,
+          "sizeFt": [
+            60,
+            230,
+            60
+          ],
+          "color": "#34344A"
+        },
+        {
+          "kind": "box",
+          "bearingDeg": 35,
+          "distanceFt": 500,
+          "sizeFt": [
+            70,
+            280,
+            70
+          ],
+          "color": "#2A2A38"
+        },
+        {
+          "kind": "box",
+          "bearingDeg": 52,
+          "distanceFt": 470,
+          "sizeFt": [
+            50,
+            170,
+            50
+          ],
+          "color": "#3E3E4E"
+        }
+      ]
+    },
+    {
+      "park": "canopy-yard",
+      "slot": "Assets/Art/Parks/canopy-yard/backdrop.fbx",
+      "resources": "Art/Parks/canopy-yard/backdrop",
+      "placed": true,
+      "shapes": [
+        {
+          "kind": "cylinder",
+          "bearingDeg": -40,
+          "distanceFt": 420,
+          "sizeFt": [
+            26,
+            110,
+            26
+          ],
+          "color": "#5A3A1E"
+        },
+        {
+          "kind": "sphere",
+          "bearingDeg": -40,
+          "distanceFt": 420,
+          "sizeFt": [
+            130,
+            90,
+            130
+          ],
+          "color": "#2E6A2A"
+        },
+        {
+          "kind": "cylinder",
+          "bearingDeg": -5,
+          "distanceFt": 460,
+          "sizeFt": [
+            32,
+            140,
+            32
+          ],
+          "color": "#5A3A1E"
+        },
+        {
+          "kind": "sphere",
+          "bearingDeg": -5,
+          "distanceFt": 460,
+          "sizeFt": [
+            170,
+            110,
+            170
+          ],
+          "color": "#3A7A30"
+        },
+        {
+          "kind": "cylinder",
+          "bearingDeg": 35,
+          "distanceFt": 430,
+          "sizeFt": [
+            28,
+            120,
+            28
+          ],
+          "color": "#5A3A1E"
+        },
+        {
+          "kind": "sphere",
+          "bearingDeg": 35,
+          "distanceFt": 430,
+          "sizeFt": [
+            150,
+            100,
+            150
+          ],
+          "color": "#2A5E26"
+        }
+      ]
+    },
+    {
+      "park": "ember-keep",
+      "slot": "Assets/Art/Parks/ember-keep/backdrop.fbx",
+      "resources": "Art/Parks/ember-keep/backdrop",
+      "placed": true,
+      "shapes": [
+        {
+          "kind": "cone",
+          "bearingDeg": -20,
+          "distanceFt": 640,
+          "sizeFt": [
+            420,
+            240,
+            420
+          ],
+          "color": "#3A2A28"
+        },
+        {
+          "kind": "cylinder",
+          "bearingDeg": -20,
+          "distanceFt": 650,
+          "sizeFt": [
+            120,
+            20,
+            120
+          ],
+          "color": "#FF5A1A"
+        },
+        {
+          "kind": "cone",
+          "bearingDeg": 30,
+          "distanceFt": 600,
+          "sizeFt": [
+            300,
+            170,
+            300
+          ],
+          "color": "#2E2222"
+        },
+        {
+          "kind": "cylinder",
+          "bearingDeg": -50,
+          "distanceFt": 430,
+          "sizeFt": [
+            40,
+            120,
+            40
+          ],
+          "color": "#4A3A38"
+        },
+        {
+          "kind": "cylinder",
+          "bearingDeg": 50,
+          "distanceFt": 430,
+          "sizeFt": [
+            40,
+            120,
+            40
+          ],
+          "color": "#4A3A38"
+        }
+      ]
+    },
+    {
+      "park": "stillwater-marsh",
+      "slot": "Assets/Art/Parks/stillwater-marsh/backdrop.fbx",
+      "resources": "Art/Parks/stillwater-marsh/backdrop",
+      "placed": true,
+      "shapes": [
+        {
+          "kind": "box",
+          "bearingDeg": 0,
+          "distanceFt": 500,
+          "sizeFt": [
+            900,
+            2,
+            300
+          ],
+          "color": "#2E4A40"
+        },
+        {
+          "kind": "sphere",
+          "bearingDeg": -35,
+          "distanceFt": 440,
+          "sizeFt": [
+            110,
+            80,
+            110
+          ],
+          "color": "#5A7A48"
+        },
+        {
+          "kind": "sphere",
+          "bearingDeg": 20,
+          "distanceFt": 470,
+          "sizeFt": [
+            130,
+            90,
+            130
+          ],
+          "color": "#4E6E40"
+        },
+        {
+          "kind": "cylinder",
+          "bearingDeg": -10,
+          "distanceFt": 420,
+          "sizeFt": [
+            6,
+            40,
+            6
+          ],
+          "color": "#8A9A5A"
+        },
+        {
+          "kind": "cylinder",
+          "bearingDeg": 8,
+          "distanceFt": 420,
+          "sizeFt": [
+            6,
+            46,
+            6
+          ],
+          "color": "#8A9A5A"
+        },
+        {
+          "kind": "cylinder",
+          "bearingDeg": 45,
+          "distanceFt": 410,
+          "sizeFt": [
+            6,
+            38,
+            6
+          ],
+          "color": "#8A9A5A"
+        }
+      ]
+    },
+    {
+      "park": "coconut-cove",
+      "slot": "Assets/Art/Parks/coconut-cove/backdrop.fbx",
+      "resources": "Art/Parks/coconut-cove/backdrop",
+      "placed": true,
+      "shapes": [
+        {
+          "kind": "box",
+          "bearingDeg": 0,
+          "distanceFt": 560,
+          "sizeFt": [
+            1200,
+            2,
+            500
+          ],
+          "color": "#1E90B0"
+        },
+        {
+          "kind": "cylinder",
+          "bearingDeg": -38,
+          "distanceFt": 330,
+          "sizeFt": [
+            6,
+            70,
+            6
+          ],
+          "color": "#8A6238"
+        },
+        {
+          "kind": "sphere",
+          "bearingDeg": -38,
+          "distanceFt": 330,
+          "sizeFt": [
+            50,
+            26,
+            50
+          ],
+          "color": "#2E8A3A"
+        },
+        {
+          "kind": "cylinder",
+          "bearingDeg": 30,
+          "distanceFt": 340,
+          "sizeFt": [
+            6,
+            80,
+            6
+          ],
+          "color": "#8A6238"
+        },
+        {
+          "kind": "sphere",
+          "bearingDeg": 30,
+          "distanceFt": 340,
+          "sizeFt": [
+            54,
+            28,
+            54
+          ],
+          "color": "#2E8A3A"
+        },
+        {
+          "kind": "cone",
+          "bearingDeg": 10,
+          "distanceFt": 780,
+          "sizeFt": [
+            360,
+            120,
+            360
+          ],
+          "color": "#3A8A48"
+        }
+      ]
+    },
+    {
+      "park": "sunscorch-mesa",
+      "slot": "Assets/Art/Parks/sunscorch-mesa/backdrop.fbx",
+      "resources": "Art/Parks/sunscorch-mesa/backdrop",
+      "placed": true,
+      "shapes": [
+        {
+          "kind": "box",
+          "bearingDeg": -35,
+          "distanceFt": 560,
+          "sizeFt": [
+            260,
+            130,
+            160
+          ],
+          "color": "#B85A34"
+        },
+        {
+          "kind": "box",
+          "bearingDeg": 0,
+          "distanceFt": 640,
+          "sizeFt": [
+            340,
+            170,
+            200
+          ],
+          "color": "#A84E2E"
+        },
+        {
+          "kind": "box",
+          "bearingDeg": 40,
+          "distanceFt": 560,
+          "sizeFt": [
+            220,
+            110,
+            150
+          ],
+          "color": "#C0663C"
+        },
+        {
+          "kind": "cylinder",
+          "bearingDeg": -15,
+          "distanceFt": 400,
+          "sizeFt": [
+            10,
+            34,
+            10
+          ],
+          "color": "#4A7A3A"
+        },
+        {
+          "kind": "cylinder",
+          "bearingDeg": 25,
+          "distanceFt": 410,
+          "sizeFt": [
+            10,
+            30,
+            10
+          ],
+          "color": "#4A7A3A"
+        }
+      ]
+    },
+    {
+      "park": "summit-park",
+      "slot": "Assets/Art/Parks/summit-park/backdrop.fbx",
+      "resources": "Art/Parks/summit-park/backdrop",
+      "placed": true,
+      "shapes": [
+        {
+          "kind": "cone",
+          "bearingDeg": -40,
+          "distanceFt": 620,
+          "sizeFt": [
+            320,
+            300,
+            320
+          ],
+          "color": "#E8ECF2"
+        },
+        {
+          "kind": "cone",
+          "bearingDeg": -5,
+          "distanceFt": 720,
+          "sizeFt": [
+            420,
+            420,
+            420
+          ],
+          "color": "#F4F6FA"
+        },
+        {
+          "kind": "cone",
+          "bearingDeg": 35,
+          "distanceFt": 640,
+          "sizeFt": [
+            340,
+            320,
+            340
+          ],
+          "color": "#DCE2EA"
+        },
+        {
+          "kind": "box",
+          "bearingDeg": 15,
+          "distanceFt": 520,
+          "sizeFt": [
+            16,
+            12,
+            10
+          ],
+          "color": "#D83A3A"
+        },
+        {
+          "kind": "box",
+          "bearingDeg": 15,
+          "distanceFt": 520,
+          "sizeFt": [
+            4,
+            4,
+            300
+          ],
+          "color": "#2E3440"
+        }
+      ]
+    }
+  ]
+}

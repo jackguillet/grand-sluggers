@@ -50,13 +50,15 @@ public sealed class ParkKitSlotsTests
         Assert.Equal(ParkKitSlots.HarborTown, harbor.Filler(ParkKitSlots.Backdrop));
         Assert.Equal(ParkKitSlots.HarborFireworks, harbor.Filler(ParkKitSlots.Night));
         Assert.Equal([ParkKitSlots.Props, ParkKitSlots.HazardActors], harbor.Empty);
-        // Every other park: the kit bowl in its own palette; no other dress slot names a builder; light and sky are data.
-        string[] greybox = [ParkKitSlots.Lawn, ParkKitSlots.Dugouts, ParkKitSlots.Wall, ParkKitSlots.Scoreboard,
-            ParkKitSlots.Backdrop, ParkKitSlots.Night, ParkKitSlots.Props];
+        // Every other park: the kit bowl in its own palette, its rough backdrop and night rig from rows; the rest of its dress
+        // is the greybox; light and sky are data.
+        string[] greybox = [ParkKitSlots.Lawn, ParkKitSlots.Dugouts, ParkKitSlots.Wall, ParkKitSlots.Scoreboard, ParkKitSlots.Props];
         foreach (var park in Catalog.Parks.Keys.Where(p => p != ParkId.Harbor))
         {
             Assert.Equal(greybox, Kit(park).Empty);
             Assert.Equal(ParkKitSlots.KitBowl, Kit(park).Filler(ParkKitSlots.Stands));
+            Assert.Equal(ParkKitSlots.BlockoutBackdrop, Kit(park).Filler(ParkKitSlots.Backdrop));
+            Assert.Equal(ParkKitSlots.NightRig, Kit(park).Filler(ParkKitSlots.Night));
             Assert.NotNull(Kit(park).Palette?.Stands);
             Assert.NotNull(Kit(park).Palette?.Track);
             Assert.Equal(ParkKitSlots.ToyActors, Kit(park).Filler(ParkKitSlots.HazardActors));
@@ -65,8 +67,9 @@ public sealed class ParkKitSlotsTests
         }
         // The stands builders are Harbor's bowl and the one park-neutral bowl; no park can name hand-built dress again.
         Assert.Equal([ParkKitSlots.HarborStands, ParkKitSlots.KitBowl], ParkKitSlots.Builders[ParkKitSlots.Stands]);
-        Assert.All(new[] { ParkKitSlots.Backdrop, ParkKitSlots.Night },
-            slot => Assert.Equal(ParkKitSlots.Builders[slot], ParkKitSlots.Builders[slot].Where(b => b.StartsWith("harbor-", StringComparison.Ordinal))));
+        // The backdrop and the night are Harbor's own pieces or the one row-driven builder each; nothing hand-built per park.
+        Assert.Equal([ParkKitSlots.HarborTown, ParkKitSlots.BlockoutBackdrop], ParkKitSlots.Builders[ParkKitSlots.Backdrop]);
+        Assert.Equal([ParkKitSlots.HarborFireworks, ParkKitSlots.NightRig], ParkKitSlots.Builders[ParkKitSlots.Night]);
         Assert.Empty(ParkKitSlots.Builders[ParkKitSlots.Props]);
     }
 

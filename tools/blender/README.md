@@ -48,6 +48,14 @@ The swing solves both hands to `SwingPresentation.Keys` (analytic two-bone IK, d
 
 Look before Unity: the clay sheets are the author's own check, and `tools/dcc-still.sh` is the named DCC still in the PR. Jack's look gate is `docs/screenshot-gate.md`.
 
+## Park backdrops
+
+`backdrop_blockout.py` bakes each park's rough backdrop (WD-03 A) from `data/art/backdrops.json` — boxes, cones, cylinders and spheres at a bearing and distance, base on the ground, facing home — into the row's slot and its Resources copy. The rows are the source: a new shape is a row. `--clay` renders an overhead still per park with home and a 300-ft ring for scale.
+
+```bash
+$B -b --python tools/blender/backdrop_blockout.py -- --repo . [--park coconut-cove] --clay scratchpad/backdrops
+```
+
 ## Harbor kit
 
 `harbor_kit.py` authors the sunken dugout, wall panel, crowd, home plate, and bag. Missing file keeps HarborKit primitives. The diamond comes from `data/rules/infield.json` (bags, mound, grass diamond, back arc), the dugout pad from `data/rules/boundary.json` and the fence from `data/parks/harbor-diamond.json`, so a geometry change is a rebake, not a code edit (#908). The infield dirt is `ParkDiamond`'s outline (the one Unity draws), and the path width, bag pads, home pad and dugout are read from the `const` table of `ParkDiamond.cs` and `HarborDugout.cs` (`sim_consts`), not copied (#928). The clay sheet ends with an overhead of that diamond at a fixed frame. Walk blocking → fill → export → still (Harbor skips motion). One-shotting a kit mesh is a patch.

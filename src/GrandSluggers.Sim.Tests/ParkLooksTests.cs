@@ -35,8 +35,8 @@ public sealed class ParkLooksTests
         {
             [ParkId.Harbor] = "harbor", [ParkId.Crystal] = "ice-garden", [ParkId.Funfair] = "carnival",
             [ParkId.Rooftop] = "neon", [ParkId.Canopy] = "canopy", [ParkId.Ember] = "courtyard",
-            // The four new parks borrow a light and a sky until their own are authored with their greyboxes.
-            [ParkId.Stillwater] = "canopy", [ParkId.Coconut] = "harbor", [ParkId.Sunscorch] = "carnival", [ParkId.Summit] = "harbor",
+            // The four new parks' own, authored with their greyboxes.
+            [ParkId.Stillwater] = "marsh", [ParkId.Coconut] = "island", [ParkId.Sunscorch] = "mesa", [ParkId.Summit] = "summit",
         };
         Assert.Equal(expected.Keys.OrderBy(k => k), Catalog.Parks.Keys.OrderBy(k => k));
         foreach (var (park, look) in expected)
