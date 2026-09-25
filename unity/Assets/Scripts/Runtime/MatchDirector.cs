@@ -80,12 +80,6 @@ namespace GrandSluggers.UnityClient
         /// <summary>The SET defense arrangement window while open; null otherwise.</summary>
         internal DefenseSetupPick _swapPick;
         MenuNav.Gate _swapX, _swapY;
-        int _itemPick { get => Play.ItemPick; set => Play.ItemPick = value; }
-        Character _itemTarget { get => Play.ItemTarget; set => Play.ItemTarget = value; }
-        bool _itemThrown { get => Play.ItemThrown; set => Play.ItemThrown = value; }
-        internal bool _itemFlying { get => Play.ItemFlying; set => Play.ItemFlying = value; }
-        float _itemFly { get => Play.ItemFly; set => Play.ItemFly = value; }
-        string _itemId { get => Play.ItemId; set => Play.ItemId = value; }
         /// <summary>The human batter's held bunt side on this tick (§5.8): the plate's side while squared, else none.</summary>
         internal BuntSide _buntSide;
         /// <summary>The square clock (§7.3): up while the batter is squared (a bunt trigger held, or the CPU batter's square read at SET), back down when released — the bunt tell the defense reads.</summary>
@@ -178,10 +172,6 @@ namespace GrandSluggers.UnityClient
         Controls.Pad BatPad => Pads.BatPad;
         Controls.Pad FieldPad => Pads.FieldPad;
         Controls.Pad RunPad => Pads.RunPad;
-        bool ItemOffered =>
-            HumanBats && _pending != null && _pending.ChemistryItemOffered && !_itemThrown
-            && _phase == Phase.InPlay && !_throwing;
-
         void Start()
         {
             Controls.Initialize();
@@ -382,7 +372,7 @@ namespace GrandSluggers.UnityClient
                 return;
             }
             HudView.Draw(_match, ui, parkName, home.Name, away.Name, _mode == PlayMode.Challenge, PitcherExtra(),
-                StarAsks.PitchShown || StarAsks.SwingShown, _match.StealOn, ItemHud(), _charge, timing,
+                StarAsks.PitchShown || StarAsks.SwingShown, _match.StealOn, Toss.Hud(), _charge, timing,
                 _showTiming && _phase is Phase.Set or Phase.Flight && !TrainingOn, banner, sub, Look.Portrait(HomeCaptain),
                 _mode == PlayMode.Training, TutorialOn ? HowToPlay.TutorialGoal(_coach.Tutorial.Lesson.Id) : TrainingOn ? _coach.Session.Progress : null,
                 _phase == Phase.Title ? Night : _match.Night,
@@ -431,8 +421,8 @@ namespace GrandSluggers.UnityClient
             }
             if (!mutePlay && _phase is Phase.InPlay or Phase.StealThrow)
                 PursuitSeatDirector.DrawUnready(_match, HumanFields);
-            if (!mutePlay && ItemOffered && _itemTarget != null)
-                HudView.ItemPointer(_itemTarget.Name);
+            if (!mutePlay && Toss.Offered && Toss.Target != null)
+                HudView.ItemPointer(Toss.Target.Name);
             if (!mutePlay && _phase == Phase.InPlay && (_caught || _buddy) && !_throwing)
                 HudView.BagTell(_match.LivePlay.CommitBagFor(FieldInput()));
             if (!mutePlay && _phase == Phase.StealThrow && _caught && !_throwing && HumanOwnsThrow)
@@ -708,91 +698,12 @@ namespace GrandSluggers.UnityClient
             _phase = Phase.Result;
             _t = 0;
             _smash = 0;
-            _itemFlying = false;
-            _items?.Hide();
+            Toss.End();
             _zone.Hide();
             _ring?.Hide();
             // Hits/outs stamp on the live field camera. Next pitch SET is BeginSet (#301).
             if (_last == null || !PlayStamp.HoldsLiveCamera(_last.Kind))
                 _cam.Cut(AtBatShots.SetShot(HumanPitches, false, 0, 0, 0, TrainingOn, LiveSeats.Count));
-        }
-
-        void TickItem(float dt)
-        {
-            if (_itemFlying)
-            {
-                _itemFly += dt;
-                if (_itemFly >= (float)_content.Rules.Batting.Items.FlySec) _itemFlying = false;
-            }
-            if (_itemFlying && FieldPad.Attack)
-            {
-                var dest = ItemTargetWorld();
-                var dist = Diamond.Dist(_fx, _fz, dest.x, dest.z);
-                if (FieldDash.DestroysItem(true, true, dist, _content.Rules))
-                {
-                    _match.LivePlay.Apply(LivePlayCommand.SmashItem(_match.LivePlay.Source));
-                    _itemFlying = false;
-                    _itemId = "";
-                    _items?.Hide();
-                    _sub = BroadcastHud.ItemSmashed;
-                    return;
-                }
-            }
-            if (!ItemOffered) return;
-            var pad = RunPad;
-            // LT held for a bunt that made contact is no item modifier until it comes up and is pressed (PH-14-R6).
-            var ltFree = TriggerFree(pad, BuntSide.First);
-            if (pad.ItemCycle != 0)
-                _itemPick = (_itemPick + pad.ItemCycle + ErrorItems.All.Length) % ErrorItems.All.Length;
-            AimItem();
-            if (!TrainingOn)
-                _sub = BroadcastHud.ItemAim(ErrorItems.All[_itemPick]);
-            if (!pad.ItemConfirmWith(ltFree) || _itemTarget == null) return;
-            var id = ErrorItems.All[_itemPick];
-            if (TutorialOn && _coach.Tutorial.IsItemLesson)
-            {
-                if (!_coach.Tutorial.Item(id, _itemTarget.Id)) return;
-            }
-            else _match.LivePlay.Apply(LivePlayCommand.ApplyItem(id, _itemTarget, _match.LivePlay.Source));
-            _itemThrown = true;
-            _itemFlying = true;
-            _itemFly = 0;
-            _itemId = id;
-            _audio?.Item(id);
-            if (!TrainingOn) _sub = "";
-        }
-
-        void AimItem()
-        {
-            var map = _match.DefenseMap;
-            var play = _cpuField != null && _cpuField.Fielder != null ? _cpuField.Fielder
-                : _preview != null ? _preview.Fielder : null;
-            var stick = Mathf.Abs(RunPad.StickX) + Mathf.Abs(RunPad.StickY);
-            if (stick < 0.28f)
-            {
-                _itemTarget = play;
-                return;
-            }
-            var x = RunPad.StickX * 160;
-            var z = 30 + (RunPad.StickY * 0.5f + 0.5f) * 300;
-            var pick = FieldingResolver.NearestGlove(map, x, z, _gloveAt);
-            _itemTarget = pick.Fielder;
-        }
-
-        Vector3 ItemTargetWorld()
-        {
-            if (_itemTarget != null && _heroes.TryGetValue(_itemTarget.Id, out var h) && h != null)
-                return h.transform.position;
-            if (_preview != null)
-                return new Vector3((float)_preview.LandingX, 0, (float)_preview.LandingZ);
-            return new Vector3(0, 0, 80);
-        }
-
-        string ItemHud()
-        {
-            if (ItemOffered) return ErrorItems.All[_itemPick].ToUpperInvariant();
-            if (_itemFlying || _itemThrown) return _itemId.ToUpperInvariant();
-            return "";
         }
 
         static float Bounce(float t)
