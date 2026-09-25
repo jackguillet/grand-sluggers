@@ -63,6 +63,20 @@ public sealed class DirectorRailTests
     }
 
     /// <summary>
+    /// SET clears the pitch and the live play on the objects that own them (<c>PlayState.NewPitch</c>,
+    /// <c>LiveFieldState.NewPitch</c>), so a new field is cleared where it is declared, not in the at-bat.
+    /// </summary>
+    [Fact]
+    public void TheNewPitchClearsStateOnItsOwners()
+    {
+        var atBat = File.ReadAllText(Path.Combine(Scripts, "Runtime", "AtBatDirector.cs"));
+        Assert.Contains("Play.NewPitch();", atBat, StringComparison.Ordinal);
+        Assert.Contains("Live.NewPitch();", atBat, StringComparison.Ordinal);
+        foreach (var owned in new[] { "_gloveAt.Clear()", "_resultBodies = null", "_pending = null", "_closeBag = 0" })
+            Assert.DoesNotContain(owned, atBat, StringComparison.Ordinal);
+    }
+
+    /// <summary>
     /// The scene and the play in flight are two objects MatchDirector owns and hands to directors; its old field names
     /// only forward to them until the last partial leaves. A new scene or play field goes on the object, not here.
     /// </summary>

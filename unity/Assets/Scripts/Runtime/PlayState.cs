@@ -44,6 +44,24 @@ namespace GrandSluggers.UnityClient
         public Vector3 ReleaseFrom { get; set; }
 
         /// <summary>
+        /// A new pitch (SET): no commands, no result, no batted ball, no charge, no break, no swing, no square, and the
+        /// ball back in the hand. The match, the phase, the rubber and the plate's held buttons carry.
+        /// </summary>
+        public void NewPitch()
+        {
+            Charge = 0;
+            BreakX = 0;
+            Swung = false;
+            SquareSec = 0f;
+            Swing = null;
+            Pitch = null;
+            Last = null;
+            Pending = null;
+            Preview = null;
+            PitchAir = false;
+        }
+
+        /// <summary>
         /// The table this match plays on (spec §0.3): the catalog's tables at the match's difficulty rung and
         /// in the match's park (<c>RulesTable.AtLevel(...).AtPark(...)</c>). Every reader that asks the sim
         /// about the ball is handed this, never the catalog's global table, so a park that names an

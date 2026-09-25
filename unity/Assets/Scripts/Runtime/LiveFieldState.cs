@@ -58,5 +58,31 @@ namespace GrandSluggers.UnityClient
         public FieldingResult CpuField { get; set; }
         /// <summary>The typed outcome's bodies at Time (§10.6): the result beat draws these, not the position table.</summary>
         public IReadOnlyList<FieldBody> ResultBodies { get; set; }
+
+        /// <summary>
+        /// A new pitch (SET): nobody fields, nothing is caught or thrown, no close play, no bag stamp, the body timers and
+        /// what each body owes are clear, and the result beat's bodies are gone. The glove ring's wearer carries.
+        /// </summary>
+        public void NewPitch()
+        {
+            PlayerFielding = false;
+            CpuField = null;
+            Throwing = false;
+            ClosePlay = false;
+            CloseIcon = false;
+            CloseBag = 0;
+            CoverPos = "";
+            RecoilT = 0;
+            Bobbling = false;
+            Owed = FielderTells.Owed.None;
+            DiveT = JumpT = SwapLock = 0;
+            GloveAt.Clear();
+            ResultBodies = null;
+            Caught = false;
+            Buddy = false;
+            BagStamp = "";
+            BagStampT = 0;
+            Dash01 = 0;
+        }
     }
 }
