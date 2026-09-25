@@ -24,12 +24,13 @@ public sealed class HazardActors
     public const string AcUnit = "ac-unit";
     public const string JungleTree = "jungle-tree";
     public const string LilyPad = "lily-pad";
+    public const string TideWave = "tide-wave";
 
     /// <summary>The toys presentation can draw. A new toy is a row here and its code.</summary>
     public static IReadOnlyList<string> Builders { get; } =
     [
         FreezeStatue, LavaPit, FireStatue, WarpCan, BarrelCannon, StarBillboard, VineClimb, ChomperMouth, KeepStatue,
-        MidwayTrain, AcUnit, JungleTree, LilyPad
+        MidwayTrain, AcUnit, JungleTree, LilyPad, TideWave
     ];
 
     HazardActors(IReadOnlyDictionary<string, string> toys, IReadOnlyDictionary<string, LookColor> rings)

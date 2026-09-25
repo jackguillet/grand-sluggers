@@ -2364,6 +2364,9 @@ public sealed record HazardRules
     /// <summary>Stillwater Marsh's lily pads: low timed movers that drift across the outfield; a rolling ball caroms off one.</summary>
     public HazardTypeRules LilyPad { get; init; } = new();
 
+    /// <summary>Coconut Cove's tide: a surge band at a foul-side corner that carries a rolling ball toward the line; high tide reaches farther.</summary>
+    public HazardTypeRules Tide { get; init; } = new();
+
     /// <summary>
     /// This table's row for a library id, or null when the data does not author one. Not public:
     /// callers ask <see cref="IsAuthored"/> or take <see cref="Of"/>'s named stop, so an unauthored
@@ -2384,6 +2387,7 @@ public sealed record HazardRules
         HazardType.AcUnit => AcUnit,
         HazardType.Tree => Tree,
         HazardType.LilyPad => LilyPad,
+        HazardType.Tide => Tide,
         _ => null
     };
 
@@ -2446,9 +2450,9 @@ public sealed record HazardRules
                            + $"got '{row.Pattern}'");
                 continue;
             }
-            if (row.NightRadiusMul != 1 && row.Pattern != HazardPattern.StatusVolume)
+            if (row.NightRadiusMul != 1 && row.Pattern is not (HazardPattern.StatusVolume or HazardPattern.Surge))
                 errors.Add($"{source}: {key}.nightRadiusMul is {row.NightRadiusMul}, but only a "
-                           + $"{HazardPattern.StatusVolume} widens at night; give the row that pattern or set it to 1");
+                           + $"{HazardPattern.StatusVolume} or a {HazardPattern.Surge} widens at night; give the row that pattern or set it to 1");
             if (row.ReachPadFt != 0 && row.Pattern != HazardPattern.BallRedirect)
                 errors.Add($"{source}: {key}.reachPadFt is {row.ReachPadFt}, but only a "
                            + $"{HazardPattern.BallRedirect} has a reach pad; give the row that pattern or set it to 0");
@@ -2476,16 +2480,22 @@ public sealed record HazardRules
                            + "below its mouthFt");
             // A solid body and a timed mover (F4-f): both say how tall they stand and how they give the ball back; a mover
             // also says its clock and its run. Nothing else reads these.
+            // A surge (the tide) says how low a ball must roll to be carried (heightFt), its clock (periodSec, surgeSec) and how far
+            // one wave carries a ball (carryFt).
             var solid = row.Pattern is HazardPattern.SolidBody or HazardPattern.TimedMover;
             var mover = row.Pattern == HazardPattern.TimedMover;
-            foreach (var (name, value, needed) in new[] { ("heightFt", row.HeightFt, solid), ("restitution", row.Restitution, solid),
-                         ("periodSec", row.PeriodSec, mover), ("travelFt", row.TravelFt, mover) })
+            var surge = row.Pattern == HazardPattern.Surge;
+            foreach (var (name, value, needed) in new[] { ("heightFt", row.HeightFt, solid || surge), ("restitution", row.Restitution, solid),
+                         ("periodSec", row.PeriodSec, mover || surge), ("travelFt", row.TravelFt, mover),
+                         ("surgeSec", row.SurgeSec, surge), ("carryFt", row.CarryFt, surge) })
             {
                 if (needed && value is null)
                     errors.Add($"{source}: {key} is a {row.Pattern} and must author {name} (F4-f)");
                 if (!needed && value is { } v)
                     errors.Add($"{source}: {key}.{name} is {v}, but a {row.Pattern} does not read it; leave {name} out");
             }
+            if (surge && row.SurgeSec is { } inSec && row.PeriodSec is { } period && inSec >= period)
+                errors.Add($"{source}: {key}.surgeSec is {inSec}, but the wave must go out again inside its periodSec {period}");
             if (row.Restitution is > 1)
                 errors.Add($"{source}: {key}.restitution must be between 0 and 1; got {row.Restitution}");
             if (row.Pattern == HazardPattern.RewardTarget && row.TopFt is null)
@@ -2557,6 +2567,12 @@ public sealed record HazardTypeRules
 
     /// <summary>A <c>timedMover</c> (F4-f): how far to either side of its authored spot it runs, along the fence.</summary>
     [Optional, Positive] public double? TravelFt { get; init; }
+
+    /// <summary>A <c>surge</c>: seconds of each <see cref="PeriodSec"/> the wave is in and carries a rolling ball.</summary>
+    [Optional, Positive] public double? SurgeSec { get; init; }
+
+    /// <summary>A <c>surge</c>: how far one wave carries a rolling ball toward the nearer foul line (never across it).</summary>
+    [Optional, Positive] public double? CarryFt { get; init; }
 }
 
 // ---------------------------------------------------------------------------------------

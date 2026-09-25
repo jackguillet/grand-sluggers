@@ -65,7 +65,8 @@ The park file is `crystal-rink` (its id); the name a player reads is Aurora Rink
 - Faction: Stillwater (Elder Fenn). Region: the island.
 - Surface: **sand** (its own ground row): a grounder rolls shorter and bounces lower than on grass; a body runs as on grass; the fumble numbers are grass's.
 - Fence: a low 6-ft rope-and-post wall. Wind: a 7-mph sea breeze across toward right.
-- Gimmick: the tide, a surge across the outfield corners on a timer (a later pattern; not built).
+- Gimmick: **the tide**, a surge band at each foul-side outfield corner (`tide`, pattern `surge`). Every 12 s from a seeded start the wave is in for 4 s, and a rolling ball in it drifts toward the foul line (12 ft at most, never across). A ball in the air and the fielders are untouched.
+- Night: high tide, the bands reach 1.4 times as far in.
 
 ## Sunscorch Mesa
 
