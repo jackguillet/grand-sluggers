@@ -649,6 +649,130 @@
       ]
     },
     {
+      "file": "styles/climber/cheer.fbx",
+      "sha256": "bd5747b22a5a153723640dee1633480a1b528ce36fdd08ef7f7a53695dff9a43",
+      "frames": 48,
+      "contracts": [
+        "feet",
+        "sockets"
+      ]
+    },
+    {
+      "file": "styles/climber/idle.fbx",
+      "sha256": "59ad5426e6242e0e3c0af5a1d36eab94655b56c3efd45f9422b89e4cef47a149",
+      "frames": 120,
+      "contracts": [
+        "feet",
+        "sockets"
+      ]
+    },
+    {
+      "file": "styles/climber/pitch-L.fbx",
+      "sha256": "e99ab6320a57730525311c728bde8811f6dc9abcc18d2fc464ee95db73a1b658",
+      "frames": 43,
+      "contracts": [
+        "feet",
+        "reflection",
+        "release",
+        "sockets"
+      ]
+    },
+    {
+      "file": "styles/climber/pitch-charge-L.fbx",
+      "sha256": "b20919af564434499fd9e3fd0bdc648cf5046b05c9d85dd18b855d2a7b2d1b08",
+      "frames": 43,
+      "contracts": [
+        "feet",
+        "reflection",
+        "release",
+        "sockets"
+      ]
+    },
+    {
+      "file": "styles/climber/pitch-charge.fbx",
+      "sha256": "52ddb41b458334ad7a712a911870bd3d841958acd0e4c2ff19b56df630ce33cb",
+      "frames": 43,
+      "contracts": [
+        "feet",
+        "reflection",
+        "release",
+        "sockets"
+      ]
+    },
+    {
+      "file": "styles/climber/pitch.fbx",
+      "sha256": "052c24fef35562e34bfac8eae821eab7b5667b1d1fbee2b027f2c017f3a3ef58",
+      "frames": 43,
+      "contracts": [
+        "feet",
+        "reflection",
+        "release",
+        "sockets"
+      ]
+    },
+    {
+      "file": "styles/climber/run.fbx",
+      "sha256": "e22a036e254247097e7dfaf2016f2b4ae8f5c39f791c7de9eb48a05303b0e912",
+      "frames": 24,
+      "contracts": [
+        "feet",
+        "sockets"
+      ]
+    },
+    {
+      "file": "styles/climber/swing-charge-L.fbx",
+      "sha256": "397cd38a7df1e818fcc78f0f0db3d9c510ca114ae0fbd60591586a424edbdaeb",
+      "frames": 37,
+      "contracts": [
+        "feet",
+        "reflection",
+        "sockets",
+        "swing"
+      ]
+    },
+    {
+      "file": "styles/climber/swing-charge.fbx",
+      "sha256": "51e12611f29a248fe5906680ec327e2790ee840cd5b1ba667ff5c83534896d71",
+      "frames": 37,
+      "contracts": [
+        "feet",
+        "reflection",
+        "sockets",
+        "swing"
+      ]
+    },
+    {
+      "file": "styles/climber/swing-slap-L.fbx",
+      "sha256": "86ca8e0abcb2c59f2a457cfea1a53405d015a5fc53133e381aec52fd6001b456",
+      "frames": 37,
+      "contracts": [
+        "feet",
+        "reflection",
+        "sockets",
+        "swing"
+      ]
+    },
+    {
+      "file": "styles/climber/swing-slap.fbx",
+      "sha256": "fb60f89764017ac299bcfb4c0c11ef7fcff4068524da78b85fb080b83919dfdd",
+      "frames": 37,
+      "contracts": [
+        "feet",
+        "reflection",
+        "sockets",
+        "swing"
+      ]
+    },
+    {
+      "file": "styles/climber/walk.fbx",
+      "sha256": "cd93d5ac8dabea67167290287f12ea052f26df4cc7d21209e234ef3ff7a091d3",
+      "frames": 43,
+      "contracts": [
+        "feet",
+        "sockets"
+      ]
+    },
+    {
       "file": "styles/harbor-kid/cheer.fbx",
       "sha256": "3af026ce996d4ec44501e9f24925490221c1e33ff8b89df9491128bd4327f79a",
       "frames": 30,
@@ -766,6 +890,130 @@
     {
       "file": "styles/harbor-kid/walk.fbx",
       "sha256": "a75bd0ae85b7a954f638541fc9278746d2ae92aa69b1005079ed72b0ae5dc14a",
+      "frames": 43,
+      "contracts": [
+        "feet",
+        "sockets"
+      ]
+    },
+    {
+      "file": "styles/hopper/cheer.fbx",
+      "sha256": "f6d09d0d4c3e68982ca932345e2e9e34e95792bc8cc3f2627055ff79cafcc683",
+      "frames": 42,
+      "contracts": [
+        "feet",
+        "sockets"
+      ]
+    },
+    {
+      "file": "styles/hopper/idle.fbx",
+      "sha256": "1cdec7a6384a2e1070408b0a2934bb5733e866e2d15cc36c4a720dd362cc7a87",
+      "frames": 120,
+      "contracts": [
+        "feet",
+        "sockets"
+      ]
+    },
+    {
+      "file": "styles/hopper/pitch-L.fbx",
+      "sha256": "b095435c8b601ebeaee35cb54fa6d8da9c6cbc9e8127bd9c4376c9d22e9cb997",
+      "frames": 43,
+      "contracts": [
+        "feet",
+        "reflection",
+        "release",
+        "sockets"
+      ]
+    },
+    {
+      "file": "styles/hopper/pitch-charge-L.fbx",
+      "sha256": "68cb84f361e1b9fc00f26507916fd8ebf14b28c4740dd93cff1065d53b02d9e5",
+      "frames": 43,
+      "contracts": [
+        "feet",
+        "reflection",
+        "release",
+        "sockets"
+      ]
+    },
+    {
+      "file": "styles/hopper/pitch-charge.fbx",
+      "sha256": "d71b9915d04bf2e12d080c282759ef477192c54b23d5e12c355f2fb5cb98e19f",
+      "frames": 43,
+      "contracts": [
+        "feet",
+        "reflection",
+        "release",
+        "sockets"
+      ]
+    },
+    {
+      "file": "styles/hopper/pitch.fbx",
+      "sha256": "293b01e9e0c37a0ac17f3687a3fb299b92d50a1a3d47c2e1891e5b05b5e71737",
+      "frames": 43,
+      "contracts": [
+        "feet",
+        "reflection",
+        "release",
+        "sockets"
+      ]
+    },
+    {
+      "file": "styles/hopper/run.fbx",
+      "sha256": "f5dff63635e32649214ef5b8472aaad0eec75f7b0d86540ef96c7d7a6e7e3167",
+      "frames": 24,
+      "contracts": [
+        "feet",
+        "sockets"
+      ]
+    },
+    {
+      "file": "styles/hopper/swing-charge-L.fbx",
+      "sha256": "13cbedfca7825154bc88db449a3a67f59a6c6d42467923c6cce09dd30619119c",
+      "frames": 37,
+      "contracts": [
+        "feet",
+        "reflection",
+        "sockets",
+        "swing"
+      ]
+    },
+    {
+      "file": "styles/hopper/swing-charge.fbx",
+      "sha256": "f84d861a035edd7f4cc040c876495e96355c04e5c17d3db5bd1db2216ccaf7bf",
+      "frames": 37,
+      "contracts": [
+        "feet",
+        "reflection",
+        "sockets",
+        "swing"
+      ]
+    },
+    {
+      "file": "styles/hopper/swing-slap-L.fbx",
+      "sha256": "acee9a8590f2bde09f8ecc08c691fd01ec6d700b14856bc2537e522bef52c852",
+      "frames": 37,
+      "contracts": [
+        "feet",
+        "reflection",
+        "sockets",
+        "swing"
+      ]
+    },
+    {
+      "file": "styles/hopper/swing-slap.fbx",
+      "sha256": "cf82c715a13376e0b0dbed9a01c44ffbd62ca8ecfdb3ec6cb4610fe8426152a2",
+      "frames": 37,
+      "contracts": [
+        "feet",
+        "reflection",
+        "sockets",
+        "swing"
+      ]
+    },
+    {
+      "file": "styles/hopper/walk.fbx",
+      "sha256": "b8307bf33ede9c08c2302861ab3aa592435e4c6ea20db07e038157bb4e3b03b3",
       "frames": 43,
       "contracts": [
         "feet",
@@ -1014,6 +1262,130 @@
     {
       "file": "styles/speed/walk.fbx",
       "sha256": "e765d2954a5b6ded7a4218bf47d89ee6f5e1cafd02399af3171c1a2bd4bdff5d",
+      "frames": 43,
+      "contracts": [
+        "feet",
+        "sockets"
+      ]
+    },
+    {
+      "file": "styles/trickster/cheer.fbx",
+      "sha256": "7afecd7bddf3e83ea6e37ab203bff426b2e4b2fec0e95d47c670c657f855125a",
+      "frames": 22,
+      "contracts": [
+        "feet",
+        "sockets"
+      ]
+    },
+    {
+      "file": "styles/trickster/idle.fbx",
+      "sha256": "008b7911ec13186b2a01c81c9ce317b96f0e02df75d30560f467752845d1782a",
+      "frames": 120,
+      "contracts": [
+        "feet",
+        "sockets"
+      ]
+    },
+    {
+      "file": "styles/trickster/pitch-L.fbx",
+      "sha256": "e98249f6153f553b341fa1dfa70c19761d14f2665693c83fe624e09e2bc81ab5",
+      "frames": 43,
+      "contracts": [
+        "feet",
+        "reflection",
+        "release",
+        "sockets"
+      ]
+    },
+    {
+      "file": "styles/trickster/pitch-charge-L.fbx",
+      "sha256": "fc9ad4bd9a8e5cf9b3a3a561471103b66049982d30e4f12b9eb20071d66a84f0",
+      "frames": 43,
+      "contracts": [
+        "feet",
+        "reflection",
+        "release",
+        "sockets"
+      ]
+    },
+    {
+      "file": "styles/trickster/pitch-charge.fbx",
+      "sha256": "38575da3be1049d911582f2f563ff62f4e6104afe4ac03a57742221b5aadf8ce",
+      "frames": 43,
+      "contracts": [
+        "feet",
+        "reflection",
+        "release",
+        "sockets"
+      ]
+    },
+    {
+      "file": "styles/trickster/pitch.fbx",
+      "sha256": "b06653a63390e0c3ed83d65b1886023cbac77ce07f66aa4fa683f8496e956c38",
+      "frames": 43,
+      "contracts": [
+        "feet",
+        "reflection",
+        "release",
+        "sockets"
+      ]
+    },
+    {
+      "file": "styles/trickster/run.fbx",
+      "sha256": "4cb05f001bd8b18e3812888f7d87fae69f1f538385aa93db66cbed2919cc4d6c",
+      "frames": 24,
+      "contracts": [
+        "feet",
+        "sockets"
+      ]
+    },
+    {
+      "file": "styles/trickster/swing-charge-L.fbx",
+      "sha256": "709670644ddb4e24f81a0c6553c22065c64d947aca7d5c73a7dbb253d0353eaa",
+      "frames": 37,
+      "contracts": [
+        "feet",
+        "reflection",
+        "sockets",
+        "swing"
+      ]
+    },
+    {
+      "file": "styles/trickster/swing-charge.fbx",
+      "sha256": "930a684c2e1e3374a0a6669c2eaec8ad9a1cde6e31872e3a3512f12f09e0045e",
+      "frames": 37,
+      "contracts": [
+        "feet",
+        "reflection",
+        "sockets",
+        "swing"
+      ]
+    },
+    {
+      "file": "styles/trickster/swing-slap-L.fbx",
+      "sha256": "a8d02110c4cd2bb59ef1e7b097287bb845de6e4f4bec89f06e00310a00dfe9ea",
+      "frames": 37,
+      "contracts": [
+        "feet",
+        "reflection",
+        "sockets",
+        "swing"
+      ]
+    },
+    {
+      "file": "styles/trickster/swing-slap.fbx",
+      "sha256": "52d117358eed6af86576c47387cf3f9161cce1936418001e7be815fe24b4d54e",
+      "frames": 37,
+      "contracts": [
+        "feet",
+        "reflection",
+        "sockets",
+        "swing"
+      ]
+    },
+    {
+      "file": "styles/trickster/walk.fbx",
+      "sha256": "02106d15aefdbd14af4cecb785dea71d9e2fb782ea3f0e919de2bc292159cabc",
       "frames": 43,
       "contracts": [
         "feet",

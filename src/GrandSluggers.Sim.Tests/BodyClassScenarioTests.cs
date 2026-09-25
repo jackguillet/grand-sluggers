@@ -48,7 +48,7 @@ public class BodyClassScenarioTests
         var own = R.BodyClasses.Classes.Where(k => !k.BorrowsStyle).ToList();
         Assert.Equal(own.Count, own.Select(k => k.MotionStyle).Distinct().Count());
         var borrowers = R.BodyClasses.Classes.Where(k => k.BorrowsStyle).ToList();
-        Assert.Equal(["trickster", "climber", "hopper"], borrowers.Select(k => k.Id));
+        Assert.Empty(borrowers);
         Assert.Equal(borrowers.Count, borrowers.Select(k => k.OwedStyle).Distinct().Count());
         Assert.All(borrowers, k => Assert.DoesNotContain(own, o => o.MotionStyle == k.OwedStyle));
         Assert.InRange(BodyClassLibrary.Capacity, 15, 15);

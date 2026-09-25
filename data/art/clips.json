@@ -279,6 +279,30 @@
         "walkCycle": 2.6,
         "reachScale": 1.0,
         "bootsScale": 1.0
+      },
+      {
+        "id": "trickster",
+        "signature": "heat-haze-shimmy",
+        "runCycle": 5.8,
+        "walkCycle": 3.1,
+        "reachScale": 1.0,
+        "bootsScale": 1.0
+      },
+      {
+        "id": "climber",
+        "signature": "summit-plant",
+        "runCycle": 5.0,
+        "walkCycle": 2.8,
+        "reachScale": 1.0,
+        "bootsScale": 1.0
+      },
+      {
+        "id": "hopper",
+        "signature": "crouch-and-spring",
+        "runCycle": 7.0,
+        "walkCycle": 3.4,
+        "reachScale": 1.0,
+        "bootsScale": 1.0
       }
     ]
   }

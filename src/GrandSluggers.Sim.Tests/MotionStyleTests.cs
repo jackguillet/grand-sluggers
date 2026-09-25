@@ -76,9 +76,9 @@ public class MotionStyleTests
         // The style comes from the body class (data/rules/body-classes.json motionStyle); a role player plays its class's.
         foreach (var who in _content.Characters.Values)
             Assert.Equal(_content.Rules.BodyClasses.Of(who.BodyClass).MotionStyle, Art.StyleOf(who)!.Id);
-        // The captains who owe their own style and signature beat (#1148): named, so the debt cannot grow unseen.
-        Assert.Equal(["sable", "hollis", "reed"],
-            _content.CaptainIds.Where(id => _content.Rules.BodyClasses.Of(_content.Must(id).BodyClass).BorrowsStyle));
+        // No captain owes its own style and signature beat (#1164 paid #1148's three), so every captain has its own.
+        Assert.DoesNotContain(_content.CaptainIds, id => _content.Rules.BodyClasses.Of(_content.Must(id).BodyClass).BorrowsStyle);
+        Assert.Equal(_content.CaptainIds.Count, signatures.Count);
         // A hand-built body with no class plays the shared takes.
         Assert.Null(Art.StyleOf(_content.Must("rio") with { BodyClass = "" }));
     }
