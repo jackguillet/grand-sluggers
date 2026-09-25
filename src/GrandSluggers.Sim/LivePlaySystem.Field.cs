@@ -212,10 +212,8 @@ public sealed partial class LivePlaySystem
     int _relayBag;
     /// <summary>The glove holds a ball it received cleanly from a teammate's throw (#723): Snap Throw's eligibility. A pickup, a bobble, a sail or a hand-off clears it.</summary>
     bool _receivedClean;
-    /// <summary>A human's onward-throw command remembered while the ball is in flight to their receiver (#723), and its age in active seconds.</summary>
-    bool _queuePending;
-    double _queueAge;
-    bool _cancelWasDown;
+    /// <summary>The human's remembered throw presses (#723): the approach, the relay and the recovery.</summary>
+    readonly ThrowCommands _commands = new();
 
     // The CPU glove's decision clock (§8.8): the throw waits for the reaction, then the table runs once per possession.
     double _cpuThrowAt = -1;
@@ -339,10 +337,6 @@ public sealed partial class LivePlaySystem
     // The live ball as the CPU reads it for a dive (#719): last frame's position and the velocity between frames, no resolved path.
     (double X, double Y, double Z)? _ballPrev;
     (double X, double Y, double Z) _ballVel;
-    // A throw press during the dive's recovery, remembered for the last throw.relayBufferSec of it (#719, F693-02-ordinary-recoil-actions).
-    LivePadInput? _recoveryPress;
-    LivePadInput? _approachPress;
-    double _approachAge;
     readonly NormalJump _jump = new();
     /// <summary>The glove is in the air on a normal jump (<see cref="NormalJump.Airborne"/>).</summary>
     public bool Airborne => _jump.Airborne;
@@ -627,9 +621,7 @@ public sealed partial class LivePlaySystem
         _looseLocal = false;
         _ballPrev = null;
         _ballVel = (0, 0, 0);
-        _recoveryPress = null;
-        _approachPress = null;
-        _approachAge = 0;
+        _commands.Reset();
         _jump.Reset();
         Bobbling = false;
         PlayerBobble = false;
@@ -655,9 +647,6 @@ public sealed partial class LivePlaySystem
         _coastBrakePos = "";
         _coastBrakeLeft = -1;
         _receivedClean = false;
-        _queuePending = false;
-        _queueAge = 0;
-        _cancelWasDown = false;
         _throwerPos = "";
         _cutoffPos = "";
         _cutoffSpot = null;
@@ -2397,11 +2386,11 @@ public sealed partial class LivePlaySystem
     // ---------------------------------------------------------------------------------
 
     /// <summary>Whether a queued onward throw waits for the receiver's catch (#723): the HUD's queue tell.</summary>
-    public bool ThrowQueued => _queuePending || _approachPress is not null || _recoveryPress is not null;
+    public bool ThrowQueued => _commands.Queued;
     public bool CanCancelThrow => ThrowQueued || AwaitingRelay;
 
     /// <summary>The bag a queued onward throw would go to — the armed bag, home by default — or 0 when nothing is queued.</summary>
-    public int QueuedThrowBag => _queuePending ? (_relayBag is >= 1 and <= 4 ? _relayBag : 4) : 0;
+    public int QueuedThrowBag => _commands.RelayQueued ? (_relayBag is >= 1 and <= 4 ? _relayBag : 4) : 0;
 
     /// <summary>
     /// While a human's throw flies to the cutoff (F693-03-relay-ownership, -input-buffer, -throw-cancel): a fresh South press is
@@ -2411,51 +2400,14 @@ public sealed partial class LivePlaySystem
     /// </summary>
     void TickThrowQueue(LivePadInput field, double dt)
     {
-        var cancel = field.Cancel && !_cancelWasDown;
-        _cancelWasDown = field.Cancel;
         var t = R.Fielding.Throw;
-        if (_approachPress is not null)
-        {
-            _approachAge += dt;
-            if (cancel || _approachAge > t.RelayBufferSec)
-            {
-                _approachPress = null;
-                _events.Add(LiveEvent.ThrowQueueCleared);
-            }
-            else if (field.KeysBag > 0) _approachPress = _approachPress with { KeysBag = field.KeysBag };
-        }
-        if (cancel) _recoveryPress = null;
-        if (field.ExplicitTarget && !HoldsBall && !Throwing && !RunnerPlay
-            && field.SouthDown && field.KeysBag > 0 && !cancel && t.RelayBufferSec > 0)
-        {
-            _approachPress = field;
-            _approachAge = 0;
-            _events.Add(LiveEvent.ThrowQueued);
-        }
-        if (t.RelayBufferSec <= 0 || !Seats.HumanOwnsThrow)
-        {
-            _queuePending = false;
-            return;
-        }
-        if (_queuePending)
-        {
-            _queueAge += dt;
-            if (cancel || _queueAge > t.RelayBufferSec)
-            {
-                _queuePending = false;
-                _events.Add(LiveEvent.ThrowQueueCleared);
-            }
-        }
-        if (!Throwing || ThrowBag is >= 1 and <= 4) return;
+        var relayInFlight = Throwing && ThrowBag is not (>= 1 and <= 4);
+        _commands.Tick(field, dt, t, mayAim: !HoldsBall && !Throwing && !RunnerPlay, Seats.HumanOwnsThrow, relayInFlight, _events);
+        // The relay's armed bag follows the selectors while the throw flies to the cutter.
+        if (t.RelayBufferSec <= 0 || !Seats.HumanOwnsThrow || !relayInFlight) return;
         var stick = field.StickBag > 0 ? field.StickBag : field.ArrowBag;
         var armed = InPlay.ArmedBag(field.KeysBag, stick, false);
         if (armed > 0) _relayBag = armed;
-        if (field.SouthDown && !cancel)
-        {
-            _queuePending = true;
-            _queueAge = 0;
-            _events.Add(LiveEvent.ThrowQueued);
-        }
     }
 
     /// <summary>Whether a throw to <paramref name="bag"/> is the one Laser is for (F693-03-laser-throw): home, with a live runner on third or on the third–home segment.</summary>
@@ -2618,7 +2570,7 @@ public sealed partial class LivePlaySystem
     void CommitDive(string pos, double armSec)
     {
         if (!_dive.Commit(pos, armSec, FieldingResolver.DiveRecoverySec(GloveChar(), R))) return;
-        _recoveryPress = null;
+        _commands.DropRecovery();
         _events.Add(LiveEvent.DiveCommit);
     }
 
@@ -2631,13 +2583,12 @@ public sealed partial class LivePlaySystem
     {
         if (pad.Cancel)
         {
-            _recoveryPress = null;
+            _commands.DropRecovery();
             return null;
         }
-        if (_approachPress is { } approach)
+        if (_commands.TakeApproach(pad) is { } approach)
         {
-            _approachPress = null;
-            pad = approach with { KeysBag = pad.KeysBag > 0 ? pad.KeysBag : approach.KeysBag };
+            pad = approach;
             if (pad.KeysBag > 0) ThrowBag = pad.KeysBag;
         }
         var pressed = (pad.SouthDown && (!pad.ExplicitTarget || pad.KeysBag > 0 || ThrowBag > 0)) || pad.Cutoff;
@@ -2651,16 +2602,13 @@ public sealed partial class LivePlaySystem
                 Airborne ? R.Fielding.Catch.JumpAirSec - JumpAirT : 0);
             if (pressed && R.Fielding.Throw.RelayBufferSec > 0 && remaining <= R.Fielding.Throw.RelayBufferSec + 1e-9)
             {
-                _recoveryPress = pad;
+                _commands.RememberRecovery(pad);
                 _events.Add(LiveEvent.ThrowQueued);
             }
             return null;
         }
-        if (_recoveryPress is { } remembered)
-        {
-            _recoveryPress = null;
+        if (_commands.TakeRecovery() is { } remembered)
             return remembered;
-        }
         return pressed ? pad : null;
     }
 
@@ -2960,10 +2908,9 @@ public sealed partial class LivePlaySystem
         {
             // The relay is player-owned (F693-03-relay-ownership, #723): the cutoff holds until commanded. A press remembered
             // inside fielding.throw.relayBufferSec fires now; otherwise the armed bag stays armed for the next press.
-            if (_queuePending)
+            if (_commands.TakeRelay())
             {
                 var bag = _relayBag is >= 1 and <= 4 ? _relayBag : 4;
-                _queuePending = false;
                 _relayBag = 0;
                 ThrowBag = bag;
                 BeginThrowToBag(bag);
