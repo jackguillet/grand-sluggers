@@ -126,7 +126,7 @@ namespace GrandSluggers.UnityClient
             }
             var x = runPad.StickX * 160;
             var z = 30 + (runPad.StickY * 0.5f + 0.5f) * 300;
-            Target = FieldingResolver.NearestGlove(map, x, z, _live.GloveAt).Fielder;
+            Target = FieldingResolver.NearestGlove(map, x, z, _play.Match.Rules, _live.GloveAt).Fielder;
         }
 
         /// <summary>Where the item is aimed in the world: the target's body, else the ball's landing, else deep center.</summary>

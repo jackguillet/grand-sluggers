@@ -15,7 +15,7 @@ public class FieldingSceneTests
         foreach (var pos in new[] { "LF", "CF", "RF", "SS", "2B", "C" })
         {
             var p = Diamond.Positions[pos];
-            var picked = FieldingResolver.NearestGlove(assigned, p.X, p.Z);
+            var picked = FieldingResolver.NearestGlove(assigned, p.X, p.Z, match.Rules);
             Assert.Equal(pos, picked.Pos);
             Assert.Equal(assigned[pos].Id, picked.Fielder.Id);
         }
@@ -30,7 +30,7 @@ public class FieldingSceneTests
         foreach (var kv in assigned)
             at[kv.Key] = Diamond.Positions[kv.Key];
         at["1B"] = (200, 10);
-        var picked = FieldingResolver.NearestGlove(assigned, 200, 10, at);
+        var picked = FieldingResolver.NearestGlove(assigned, 200, 10, match.Rules, at);
         Assert.Equal("1B", picked.Pos);
         Assert.Equal(assigned["1B"].Id, picked.Fielder.Id);
     }
@@ -40,8 +40,8 @@ public class FieldingSceneTests
     {
         var match = Match.Slice(_content, seed: 3);
         var cf = Diamond.Positions["CF"];
-        var a = FieldingResolver.NearestGlove(match.Defense.Roster, match.Pitcher, cf.X, cf.Z);
-        var b = FieldingResolver.NearestGlove(FieldingResolver.Assign(match.Defense.Roster, match.Pitcher), cf.X, cf.Z);
+        var a = FieldingResolver.NearestGlove(match.Defense.Roster, match.Pitcher, cf.X, cf.Z, match.Rules);
+        var b = FieldingResolver.NearestGlove(FieldingResolver.Assign(match.Defense.Roster, match.Pitcher), cf.X, cf.Z, match.Rules);
         Assert.Equal(a.Pos, b.Pos);
         Assert.Equal(a.Fielder.Id, b.Fielder.Id);
         Assert.Equal("CF", a.Pos);
@@ -242,7 +242,7 @@ public class FieldingSceneTests
         var assigned = FieldingResolver.Assign(match.Defense.Roster, match.Pitcher);
         // The C80 copy: LF starts at (-77, 175), on top of the shipped ball. The same ball at 0.70 of the depth, in front of LF.
         var (ballX, ballZ) = (-56.0, 126.0);
-        var of = FieldingResolver.NearestOutfielder(assigned, ballX, ballZ);
+        var of = FieldingResolver.NearestOutfielder(assigned, ballX, ballZ, Rules.Default);
         Assert.Equal("LF", of.Pos);
         var start = Diamond.Positions["LF"];
         var speed = FieldingResolver.ChaseSpeedFt(of.Fielder, frozen: false, rules: Rules.Default);

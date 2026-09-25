@@ -94,7 +94,7 @@ public static class PursuitDecider
     /// <summary>A loose ball is the nearest body's (§8.6, §8.7): the backup behind an overthrow, the fielder beside a fumble. The position to hand the glove to, or null.</summary>
     public static string? LooseHandoff(IPursuitView v)
     {
-        var pick = FieldingResolver.NearestGlove(v.Assigned, v.BallX, v.BallZ, v.Bodies);
+        var pick = FieldingResolver.NearestGlove(v.Assigned, v.BallX, v.BallZ, v.Rules, v.Bodies);
         if (pick.Pos == v.GlovePos || string.IsNullOrEmpty(pick.Pos)) return null;
         if (v.KeptOff(pick.Pos)) return null;
         return pick.Pos;

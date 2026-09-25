@@ -44,7 +44,7 @@ public static class StealBreak
         var r = rules;
         var running = Math.Max(0, sinceReleaseSec + BreakBeforeReleaseSec(arm, r));
         var feet = RunnerSystem.SpeedFtPerSec(who, r, 0) * r.Running.Steal.AirSpeedMul * running;
-        return Math.Min(feet, Diamond.Baseline);
+        return Math.Min(feet, DiamondGeometry.Of(r).Baseline);
     }
 
     /// <summary>The body's head start when the ball reaches the plate: the run through the pitch's <paramref name="airSec"/>.</summary>

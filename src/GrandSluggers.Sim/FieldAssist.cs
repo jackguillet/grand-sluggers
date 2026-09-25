@@ -31,14 +31,18 @@ public static class FieldAssist
     public static bool ShowYou(bool humanDefense, string pos) =>
         humanDefense && !string.IsNullOrWhiteSpace(pos);
 
-    public static (double X, double Z) CoverSpot(string pos) => pos switch
+    public static (double X, double Z) CoverSpot(string pos, RulesTable rules)
     {
-        "1B" => Diamond.First,
-        "2B" => Diamond.Second,
-        "3B" => Diamond.Third,
-        "C" => Diamond.Home,
-        _ => Diamond.Positions.TryGetValue(pos, out var at) ? at : Diamond.Rubber
-    };
+        var diamond = DiamondGeometry.Of(rules);
+        return pos switch
+        {
+            "1B" => diamond.First,
+            "2B" => diamond.Second,
+            "3B" => diamond.Third,
+            "C" => Diamond.Home,
+            _ => diamond.Positions.TryGetValue(pos, out var at) ? at : diamond.Rubber
+        };
+    }
 
     /// <summary>
     /// Bag number → the position that covers it when nobody else is on the ball: 1=1B, 2=2B,
@@ -68,8 +72,9 @@ public static class FieldAssist
         double aimZ,
         double stickX,
         double stickY,
-        double stickTake) =>
-        SwapGlove(current, at, aimX, aimZ, stickX, stickY, stickTake);
+        double stickTake,
+        RulesTable rules) =>
+        SwapGlove(current, at, aimX, aimZ, stickX, stickY, stickTake, rules);
 
     /// <summary>
     /// Select / R: stick points at who you want; dead stick takes the next-nearest to the ball.
@@ -82,12 +87,13 @@ public static class FieldAssist
         double ballZ,
         double stickX,
         double stickY,
-        double stickTake)
+        double stickTake,
+        RulesTable rules)
     {
         if (at == null || at.Count == 0) return current;
         var mag = Math.Abs(stickX) + Math.Abs(stickY);
         if (mag >= stickTake)
-            return NearestInDirection(current, at, stickX, stickY);
+            return NearestInDirection(current, at, stickX, stickY, rules);
         return NextNearestToBall(current, at, ballX, ballZ);
     }
 
@@ -95,9 +101,10 @@ public static class FieldAssist
         string current,
         IReadOnlyDictionary<string, (double X, double Z)> at,
         double stickX,
-        double stickY)
+        double stickY,
+        RulesTable rules)
     {
-        var from = At(current, at);
+        var from = At(current, at, rules);
         var mag = Math.Sqrt(stickX * stickX + stickY * stickY);
         if (mag < 0.01) return current;
         var nx = stickX / mag;
@@ -145,9 +152,9 @@ public static class FieldAssist
         return Diamond.Order[(i + 1) % Diamond.Order.Length];
     }
 
-    static (double X, double Z) At(string pos, IReadOnlyDictionary<string, (double X, double Z)> at)
+    static (double X, double Z) At(string pos, IReadOnlyDictionary<string, (double X, double Z)> at, RulesTable rules)
     {
         if (at != null && at.TryGetValue(pos, out var live)) return live;
-        return Diamond.Positions.TryGetValue(pos, out var p) ? p : Diamond.Home;
+        return DiamondGeometry.Of(rules).Positions.TryGetValue(pos, out var p) ? p : Diamond.Home;
     }
 }

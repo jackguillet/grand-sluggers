@@ -607,7 +607,7 @@ public sealed partial class LivePlaySystem
             var homeIsABag = !(runner.IsBatter && runner.Bag == 0);
             // A bag protects a body only when no other runner on it is entitled to it (§9.1, OBR 5.06(a)(2)).
             bool BagProtects(int bag) => ProtectsOn(runner, bag);
-            var under = InPlay.BagUnder(x, z, bags.TagSafeRadiusFt, homeIsABag);
+            var under = InPlay.BagUnder(x, z, bags.TagSafeRadiusFt, _match.Rules, homeIsABag);
             var onBag = under != 0 && BagProtects(under);
             var reach = InPlay.TagReachFt(fielder, _match.Rules, runner.Sliding);
             var tagged = InPlay.Touches(true, false, gloveX, gloveZ, x, z, _match.Rules, onBag, runner.Sliding, fielder);

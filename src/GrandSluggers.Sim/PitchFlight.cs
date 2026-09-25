@@ -15,9 +15,7 @@ namespace GrandSluggers.Sim;
 public static class PitchFlight
 {
     // Plate frame geometry: the normalized aim square and where it sits. Presentation, the
-    // strike frame, and the umpire all share it, so it stays one number like Diamond — which
-    // now reads it from data, so this forwards rather than baking a copy at compile time.
-    public static double MoundZ => Diamond.Mound;
+    // strike frame, and the umpire all share it. The rubber is the table's (DiamondGeometry.Mound).
     public const double PlateScaleX = 1.85;
     /// <summary>Feet of crossing per unit of vertical aim in the reference frame; a batter's zone scales it (§4.4).</summary>
     public const double PlateScaleY = 1.35;
@@ -34,7 +32,7 @@ public static class PitchFlight
     public static (double X, double Y, double Z) Release(RulesTable rules, double rubberX = 0)
     {
         var f = rules.Pitching.Flight;
-        return (rubberX * HomeSet.PitcherWalk + f.ReleaseHandX, f.ReleaseHandY, MoundZ - f.ReleaseTowardPlate);
+        return (rubberX * HomeSet.PitcherWalk + f.ReleaseHandX, f.ReleaseHandY, DiamondGeometry.Of(rules).Mound - f.ReleaseTowardPlate);
     }
 
     /// <summary>
@@ -43,7 +41,7 @@ public static class PitchFlight
     public static double AirSeconds(double mph, RulesTable rules)
     {
         var f = rules.Pitching.Flight;
-        var real = Diamond.Mound / (Math.Max(f.MinMph, mph) * BallFlight.MphToFtPerSec);
+        var real = DiamondGeometry.Of(rules).Mound / (Math.Max(f.MinMph, mph) * BallFlight.MphToFtPerSec);
         return Math.Clamp(real * f.ArcadeScale, f.AirMinSec, f.AirMaxSec);
     }
 
@@ -152,7 +150,7 @@ public static class PitchFlight
     /// </para>
     /// </summary>
     public static double GloveSideSign(Hand throws) =>
-        Math.Sign(Diamond.First.X) * (throws == Hand.L ? -1 : 1);
+        throws == Hand.L ? -1 : 1; // +X is the first-base side on every table
 
     /// <summary>
     /// The family's natural sweep at u, in feet of world X (spec §4.2, #818): nothing until

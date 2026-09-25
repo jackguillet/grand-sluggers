@@ -316,7 +316,7 @@ public sealed partial class TutorialSession
                 var flight = onward!.Flight!;
                 var snap = live.FielderAt(flight.FromPos);
                 var receiver = live.FielderAt(flight.ReceiverPos);
-                var at = Diamond.Bag(4);
+                var at = live.Geometry.Bag(4);
                 var distance = Diamond.Dist(flight.FromX, flight.FromZ, at.X, at.Z);
                 var abilities = Match.Rules.Fielding.Abilities;
                 success = snap?.FieldAbility == FieldAbilityId.SnapThrow && receiver is not null;

@@ -77,7 +77,7 @@ public class PitchTests
         var mid = PitchFlight.Point("fastball", 0.5, rules: Rules.Default);
         var plate = PitchFlight.Point("fastball", 1, rules: Rules.Default);
         Assert.True(rel.X > 1.0, $"release is the hand, not the torso x={rel.X}");
-        Assert.True(rel.Z < PitchFlight.MoundZ, $"release toward the plate z={rel.Z}");
+        Assert.True(rel.Z < Diamond.Mound, $"release toward the plate z={rel.Z}");
         Assert.InRange(plate.X, -0.2, 0.2);
         Assert.True(mid.Y > plate.Y, $"fastball should drop, mid {mid.Y} plate {plate.Y}");
         // The C80 copy's mound is at 8/9 of the distance: halfway is 25.6 ft, inside the same band at 8/9.

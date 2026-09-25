@@ -78,13 +78,16 @@ public static class RunnerAi
 
     /// <summary>
     /// The infield is back (§9.9): one of the four depth infielders meets the ball at or behind his own standard depth from
-    /// home (<see cref="Diamond.Positions"/>). The depth comes from the diamond, so the read holds on any basepath. The
+    /// home (<see cref="DiamondGeometry.Positions"/>). The depth comes from the diamond, so the read holds on any basepath. The
     /// pitcher and the catcher never field at a depth.
     /// </summary>
-    static bool InfieldBack(BallSituation ball) =>
-        ball.Fielder is { } pos && FieldingResolver.IsInfieldDepth(pos)
-        && Diamond.Dist(ball.GloveX, ball.GloveZ, Diamond.Home.X, Diamond.Home.Z)
-            >= Diamond.Dist(Diamond.Positions[pos].X, Diamond.Positions[pos].Z, Diamond.Home.X, Diamond.Home.Z);
+    static bool InfieldBack(BallSituation ball, RulesTable rules)
+    {
+        if (ball.Fielder is not { } pos || !FieldingResolver.IsInfieldDepth(pos)) return false;
+        var depth = DiamondGeometry.Of(rules).Positions[pos];
+        return Diamond.Dist(ball.GloveX, ball.GloveZ, Diamond.Home.X, Diamond.Home.Z)
+            >= Diamond.Dist(depth.X, depth.Z, Diamond.Home.X, Diamond.Home.Z);
+    }
 
     /// <summary>
     /// A grounder "in front" of a runner on second: to the left side, where the fielder looks at
@@ -216,7 +219,7 @@ public static class RunnerAi
                 // A bunt is not the squeeze (§7.3): the runner from third holds until a glove has it; the send is the human's stick.
                 if (ball.Bunt && !ball.Held && !ball.Throwing) return;
                 // The infield-back read is the contact read (where the fielder will field it); once the ball is in a glove the margin decides.
-                var infieldBack = !ball.Held && !ball.Throwing && InfieldBack(ball);
+                var infieldBack = !ball.Held && !ball.Throwing && InfieldBack(ball, r);
                 var go = ctx.Outs == 2 || infieldBack || margin > cpu.ThirdHomeMarginSec + slack;
                 if (go) runner.Send(4);
                 return;

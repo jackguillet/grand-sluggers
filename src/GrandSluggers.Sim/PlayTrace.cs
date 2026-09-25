@@ -91,13 +91,16 @@ public sealed record PlayTraceTick(
     PlayTracePlay Play, IReadOnlyList<PlayTraceFielder>? Fielders = null,
     IReadOnlyList<PlayTraceCoverage>? Coverage = null, bool Paused = false)
 {
-    public static IReadOnlyList<PlayTraceBag> DiamondBags { get; } =
-    [
-        new(1, Diamond.First.X, Diamond.First.Z),
-        new(2, Diamond.Second.X, Diamond.Second.Z),
-        new(3, Diamond.Third.X, Diamond.Third.Z),
+    static readonly System.Runtime.CompilerServices.ConditionalWeakTable<DiamondGeometry, IReadOnlyList<PlayTraceBag>> BagsCache = new();
+
+    /// <summary>The four bags of the match table's diamond, built once per diamond.</summary>
+    public static IReadOnlyList<PlayTraceBag> DiamondBags(DiamondGeometry diamond) => BagsCache.GetValue(diamond, d => new PlayTraceBag[]
+    {
+        new(1, d.First.X, d.First.Z),
+        new(2, d.Second.X, d.Second.Z),
+        new(3, d.Third.X, d.Third.Z),
         new(4, Diamond.Home.X, Diamond.Home.Z)
-    ];
+    });
 
     public static PlayTraceTick Capture(LivePlaySystem live, int i, PlayEvent? completed = null) => new(
         i,
@@ -107,7 +110,7 @@ public sealed record PlayTraceTick(
             live.Throwing ? live.ThrowT : null, live.Throwing ? live.ThrowDur : null),
         new PlayTraceGlove(live.GlovePos, live.GloveX, live.GloveZ, live.TraceHoldsBall),
         live.Runners.Select(r => PlayTraceRunner.Of(r, live.IsSlowed(r))).ToArray(),
-        DiamondBags,
+        DiamondBags(live.Geometry),
         PlayTracePlay.Capture(live, completed), live.TraceFielders(), live.TraceCoverage(), live.Paused);
 }
 
