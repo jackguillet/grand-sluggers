@@ -1329,152 +1329,25 @@ public sealed partial class LivePlaySystem
     }
 
     /// <summary>
-    /// The CPU fielder's decision table (§8.8), computed from the live bodies the moment the throw
-    /// may go: for each bag, <c>margin = runnerArrival − throwArrival</c>; a play is makeable above the
-    /// difficulty's margin. Infielders: the lead force, home, third, first, else hold (or, on the grass,
-    /// throw in ahead of the lead runner). Outfielders: home if a run is at stake, third, second, else
-    /// the cutoff. A throw through the cutoff continues with the cutoff's arm.
+    /// The CPU fielder's decision table (§8.8) runs once for this possession (<see cref="CpuFieldDecider"/>), and the glove does
+    /// what it decided: walks the ball to a bag, throws to a bag (straight or through the cutoff), throws it in, or holds.
     /// </summary>
     void CpuDecide()
     {
         _cpuClock.Decide();
-        var makeable = R.Cpu.Active.MakeableMarginSec;
-        var onGrass = FieldingResolver.OutfieldGrass(GloveX, GloveZ, R);
-        double Margin(int bag)
+        var decision = CpuFieldDecider.Decide(this);
+        switch (decision.Action)
         {
-            var runner = RunnerForBag(bag);
-            if (runner is null || runner.Bag >= bag) return double.NegativeInfinity;
-            if (!runner.Forced || runner.FromBag != bag - 1)
-            {
-                // An unforced runner is a candidate only when their body is bound for the bag.
-                if (!(runner.Advancing && runner.DestBag >= bag && runner.Bag == bag - 1)) return double.NegativeInfinity;
-            }
-            return RunnerSystem.ArrivalSec(runner, bag, ElapsedSeconds, R, Dash01) - CpuPlayArrivalSec(bag);
+            case CpuFieldAction.WalkTo:
+                _cpuWalkBag = decision.Bag;
+                break;
+            case CpuFieldAction.ThrowTo:
+                CpuThrowTo(decision.Bag);
+                break;
+            case CpuFieldAction.ThrowIn:
+                CpuThrowIn();
+                break;
         }
-        bool Makeable(int bag) => Margin(bag) > makeable;
-        // A tag play is worth the throw (§8.8 rules 2–3, §11.3): the bag is played when the ball can land inside the
-        // close margin of the body, even short of the tie band; the mash (third, home) or the tag at the bag decides.
-        // A glove never concedes a bag by holding the ball while the race is that close.
-        bool TagWorthIt(int bag) => !Forces.At(bag) && Margin(bag) > -R.Running.Close.MarginSec;
-        bool PlateWorthIt() => TagWorthIt(4);
-        double DistTo(int bag)
-        {
-            var at = Diamond.Bag(bag);
-            return Diamond.Dist(GloveX, GloveZ, at.X, at.Z);
-        }
-        // The lead forced bag ahead of a forced runner still short of it (second, third, home), or 0.
-        int LeadForce()
-        {
-            for (var bag = 4; bag >= 2; bag--)
-            {
-                if (!Forces.At(bag)) continue;
-                var forced = _match.RunnerAt(bag - 1);
-                if (forced is null || !forced.Live || forced.Bag >= bag) continue;
-                return bag;
-            }
-            return 0;
-        }
-
-        // The doubled-off race (§10.5): a body off its start bag after the catch is a force back there.
-        if (Fly == FlyState.Caught)
-        {
-            Runner? best = null;
-            var bestMargin = double.NegativeInfinity;
-            foreach (var r in Runners)
-            {
-                if (!r.Live || !r.LeftEarly) continue;
-                var margin = RunnerSystem.ReturnSec(r, R, Dash01) - CpuThrowArrivalSec(r.FromBag);
-                if (margin > bestMargin) { bestMargin = margin; best = r; }
-            }
-            if (best is not null && bestMargin > makeable) { CpuPlayAt(best.FromBag); return; }
-        }
-
-        if (!onGrass)
-        {
-            // Two outs (§10.4, S-50): any makeable out ends the inning; the shortest throw among them.
-            if (_match.Outs >= 2)
-            {
-                var pick = 0;
-                var pickDist = double.MaxValue;
-                for (var bag = 1; bag <= 4; bag++)
-                {
-                    var candidate = bag == 1 ? Forces.At(1) : Forces.At(bag) || RunnerForBag(bag) is not null;
-                    if (!candidate || !Makeable(bag)) continue;
-                    var d = DistTo(bag);
-                    if (d < pickDist) { pickDist = d; pick = bag; }
-                }
-                if (pick > 0) { CpuPlayAt(pick); return; }
-                return;
-            }
-            // The bunt (§7.3): the batter at first by default; the lead force only when the bunt came too hard for the
-            // sac (fielding.bunt.hardExitMph) and it is makeable; home on a squeeze only from inside bunt.squeezeHomeFt.
-            // A popped bunt is a pop (§5.8): the catch and the doubled-off race above are its rows.
-            if (Ball is { Shape: BattedBallClass.Bunt })
-            {
-                var b = R.Fielding.Bunt;
-                if (DistTo(4) <= b.SqueezeHomeFt && (Makeable(4) || PlateWorthIt())) { CpuPlayAt(4); return; }
-                if (Hit is not null && BuntDefense.TooHard(Hit, b) && LeadForce() is > 0 and var hardLead && Makeable(hardLead))
-                {
-                    CpuPlayAt(hardLead);
-                    return;
-                }
-                if (Forces.At(1) && Makeable(1)) { CpuPlayAt(1); return; }
-                return;
-            }
-            // 1. The lead forced bag ahead of a forced runner (second, third, home); the batter at first is rule 4.
-            if (LeadForce() is > 0 and var lead && Makeable(lead)) { CpuPlayAt(lead); return; }
-            // 2. Home, 3. third, then second (tags on a runner going): the lead body first, unless a trailing
-            // body's margin is better by running.steal.cpuTrailPreferSec (§11.3, the double steal).
-            var tagBag = 0;
-            var tagMargin = double.NegativeInfinity;
-            var prefer = R.Running.Steal.CpuTrailPreferSec;
-            for (var bag = 4; bag >= 2; bag--)
-            {
-                if (Forces.At(bag)) continue;
-                var m = Margin(bag);
-                if (!(m > makeable || TagWorthIt(bag))) continue;
-                if (tagBag == 0 || m >= tagMargin + prefer)
-                {
-                    tagBag = bag;
-                    tagMargin = m;
-                }
-            }
-            if (tagBag > 0) { CpuPlayAt(tagBag); return; }
-            // 4. First.
-            if (Forces.At(1) && Makeable(1)) { CpuPlayAt(1); return; }
-            // 5. Hold: nobody is out on a throw; Time comes when the bodies settle (§10.6).
-            return;
-        }
-
-        // Outfielders: home if a run is at stake, third, second, else the cutoff.
-        var runAtStake = _match.Outs < 2 || Math.Abs(_match.HomeScore - _match.AwayScore) <= 2;
-        if (runAtStake && (Makeable(4) || PlateWorthIt())) { CpuThrowTo(4); return; }
-        if (Makeable(3)) { CpuThrowTo(3); return; }
-        if (Makeable(2)) { CpuThrowTo(2); return; }
-        CpuThrowIn();
-    }
-
-    /// <summary>
-    /// The play the table chose at <paramref name="bag"/>: step on it when inside fielding.throw.unassistedFt
-    /// (§10.4, S-41); otherwise whoever gets the ball there first makes it — this body's legs, or a throw
-    /// to a cover who must be at the bag to take it (§8.5, §10.3: the catcher walks to the plate on a steal
-    /// of home rather than lobbing at a bag nobody covers).
-    /// </summary>
-    void CpuPlayAt(int bag)
-    {
-        var at = Diamond.Bag(bag);
-        var forceThere = Forces.At(bag) || Runners.Any(r => r.Live && r.LeftEarly && r.FromBag == bag);
-        if (forceThere && Diamond.Dist(GloveX, GloveZ, at.X, at.Z) <= R.Fielding.Throw.UnassistedFt)
-        {
-            _cpuWalkBag = bag;
-            return;
-        }
-        if (CpuWalkSec(bag) <= CpuThrowReadySec(bag))
-        {
-            _cpuWalkBag = bag;
-            return;
-        }
-        CpuThrowTo(bag);
     }
 
     /// <summary>Seconds for this glove to carry the ball to <paramref name="bag"/> at its carry speed (§8.1; Ball Dash's boost included, #718).</summary>
@@ -1496,9 +1369,6 @@ public sealed partial class LivePlaySystem
         var walk = Math.Max(0, Diamond.Dist(coverAt.X, coverAt.Z, at.X, at.Z) - cover.RadiusFt) / Math.Max(1, CoverSpeed(coverPos, Assigned()));
         return Math.Max(CpuThrowArrivalSec(bag), walk);
     }
-
-    /// <summary>Seconds until this glove can have the ball at <paramref name="bag"/> by the quicker of its legs and a throw (§8.8).</summary>
-    double CpuPlayArrivalSec(int bag) => Math.Min(CpuWalkSec(bag), CpuThrowReadySec(bag));
 
     /// <summary>
     /// The CPU's read of a throw to a bag (§8.7, §8.8, #722): straight, or through the cutoff on the line, each on the
