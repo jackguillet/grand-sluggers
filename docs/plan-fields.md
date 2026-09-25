@@ -466,6 +466,8 @@ Area: Legibility. Depends on: FD-02, FD-08. Evidence: SHOW-SZ, SMB-TG.
 
 **Refinement FD-16-R1 — Jack, September 22, 2026: keep the primitive backdrops.** Reply "7. keep" (map §5 Q12). The palace, ferris wheel, skyline, castle and trees stay as named greybox builders behind the backdrop slot, picked by the park's slot data and never by a park id (FR-04). They are greybox, not art.
 
+**Refinement FD-16-R2 — Jack, September 24, 2026: delete the non-Harbor dress builders (#1045, option C).** Supersedes FD-16-R1. The eighteen named builders (the palace, ferris wheel, skyline, castle, trees, tents, pavilions, braziers, follow spot, neon glare, fireflies and the rest) are removed from `ParkView` and from `ParkKitSlots`; the five parks' stands, backdrop, night and props slots are empty and draw the plain greybox stands (FR-13). Per-park light, sky and palette stay data (F6-c), and hazard toys stay behind `hazardActors`. A park's identity comes back only as art, behind #37 and that park's greybox sitting.
+
 **Decision — Jack, September 21, 2026: B.** Accepted as part of the rails set. One park-neutral field kit; parks fill named slots; empty slots draw a complete greybox from data. Harbor fills the slots first with no visual change; the `ParkView` fallback diamond and dress methods retire after that. The slot schema is contract work. No art is commissioned. Full provenance is in the canonical JSON.
 
 Area: Presentation. Depends on: FD-01. Evidence: code maps only.
