@@ -11,6 +11,8 @@ instead of in the editor.
 """
 
 from pathlib import Path
+import json
+import re
 import subprocess
 import unittest
 
@@ -62,3 +64,34 @@ class AssetMetaIdentityTests(unittest.TestCase):
             if not path.with_suffix("").exists()
         ]
         self.assertEqual([], sorted(orphans), ".meta with no matching asset")
+
+
+SIM = "src/GrandSluggers.Sim"
+
+
+class SimPackageMetaTests(unittest.TestCase):
+    """The Sim is a local Unity package, so every import writes a script meta beside each source (#1217). Those guids are
+    read by nothing: no asset references a Sim script (the Sim has noEngineReferences) and every assembly links the Sim
+    by name. So script metas are local and ignored, and these checks keep that safe."""
+
+    def test_no_sim_script_meta_is_tracked(self):
+        tracked = [str(p.relative_to(ROOT)) for p in tracked_metas()
+                   if str(p.relative_to(ROOT)).startswith(SIM + "/") and p.name.endswith(".cs.meta")]
+        self.assertEqual([], sorted(tracked), "Sim script metas are local (.gitignore); git rm --cached them")
+
+    def test_sim_script_metas_are_ignored(self):
+        probe = f"{SIM}/SimScriptMetaProbe.cs.meta"
+        result = subprocess.run(["git", "check-ignore", "-q", "--no-index", probe], cwd=ROOT)
+        self.assertEqual(0, result.returncode, f"{probe} must be ignored by .gitignore")
+
+    def test_the_sim_stays_a_guid_free_package(self):
+        # No engine types in the Sim, so no scene, prefab or asset can hold a Sim script by guid.
+        sim = json.loads((ROOT / SIM / "GrandSluggers.Sim.asmdef").read_text(encoding="utf-8"))
+        self.assertTrue(sim.get("noEngineReferences"), "the Sim asmdef must keep noEngineReferences")
+        # Every Unity assembly references others by name; a GUID: reference would need the tracked guid back.
+        for asmdef in sorted((ROOT / "unity").rglob("*.asmdef")):
+            if "Library" in asmdef.parts or "PackageCache" in asmdef.parts:
+                continue
+            refs = json.loads(re.sub(r"^\s*//.*$", "", asmdef.read_text(encoding="utf-8"), flags=re.M)).get("references", [])
+            by_guid = [r for r in refs if r.startswith("GUID:")]
+            self.assertEqual([], by_guid, f"{asmdef.relative_to(ROOT)} references by GUID; reference assemblies by name")

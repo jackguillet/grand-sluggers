@@ -55,6 +55,12 @@ src/**/bin.meta
 src/**/obj.meta
 src/**/*.csproj.meta
 
+# The Sim is a local Unity package (unity/Packages/manifest.json `file:`), so every import writes a meta beside each
+# source. Nothing references a Sim script by guid (the Sim has noEngineReferences; assemblies link it by name), so
+# script metas stay local; the package-level metas (package.json, the asmdef, csc.rsp, BannedSymbols.txt) are tracked.
+# Rule and checks: tools/tests/test_asset_metas.py (#1217).
+src/GrandSluggers.Sim/**/*.cs.meta
+
 # Python delivery tooling
 __pycache__/
 
