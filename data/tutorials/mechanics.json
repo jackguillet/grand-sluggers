@@ -924,6 +924,13 @@
       "category": "fielding",
       "spec": "gameplay-spec:14",
       "sources": []
+    },
+    {
+      "id": "fields.wind-schedule",
+      "title": "the wind turns each inning",
+      "category": "fielding",
+      "spec": "gameplay-spec:6.1",
+      "sources": []
     }
   ]
 }

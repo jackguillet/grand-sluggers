@@ -122,9 +122,9 @@ public sealed class ScenarioTests
                 if (random.IsMatch(lines[i]))
                     offenders.Add($"{Path.GetFileName(file)}:{i + 1}: {lines[i].Trim()}");
         }
-        // SimRandom.Stream builds each stream; MatchStreams names the five. Nothing else makes a generator.
+        // SimRandom.Stream builds each stream; MatchStreams names the six (the wind's since the Summit gusts). Nothing else makes a generator.
         Assert.All(offenders, o => Assert.True(o.StartsWith("SimRandom.cs:", StringComparison.Ordinal), o));
-        Assert.Equal(5, offenders.Count(o => o.Contains("SimRandom.Stream(seed, \"", StringComparison.Ordinal)));
+        Assert.Equal(6, offenders.Count(o => o.Contains("SimRandom.Stream(seed, \"", StringComparison.Ordinal)));
     }
 
     [Fact]

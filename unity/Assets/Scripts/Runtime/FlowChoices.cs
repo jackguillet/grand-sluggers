@@ -28,6 +28,8 @@ namespace GrandSluggers.UnityClient
         /// <summary>The lineup's match settings; a guided lesson may lend its own in their place.</summary>
         public ExhibitionSettings Settings { get; set; } = new ExhibitionSettings();
         public PracticeLesson PracticePick { get; set; } = PracticeLesson.Pitching;
+        /// <summary>The Challenge run while one is on, its ladder of opponents; null outside Challenge.</summary>
+        public Challenge Campaign { get; set; }
 
         public bool Exhibition => Mode == MatchDirector.PlayMode.Exhibition;
 

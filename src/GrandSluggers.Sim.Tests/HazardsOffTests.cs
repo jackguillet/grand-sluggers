@@ -84,8 +84,11 @@ public sealed class HazardsOffTests
             var off = Match.Exhibition(content, "rio", "ashlord", innings: 3, seed: 7, parkId: id, hazards: false);
             Assert.True(on.Hazards);
             Assert.False(off.Hazards);
-            if (park.Night is null) Assert.Same(park, on.Park);
-            else Assert.Equal(park with { Night = null }, on.Park);
+            // A park whose wind turns each inning (§6.1) plays the inning's wind; read it back as authored to compare the rest.
+            var gusts = park.Environment?.WindSchedule is not null;
+            Park Still(Park p) => p with { WindMph = park.WindMph, WindDeg = park.WindDeg };
+            if (park.Night is null && !gusts) Assert.Same(park, on.Park);
+            else Assert.Equal(park with { Night = null }, Still(on.Park));
 
             var patterns = content.Rules.Hazards;
             Assert.DoesNotContain(off.Park.Hazards, h => HazardPattern.IsHazard(patterns.Of(h.Type).Pattern));
@@ -97,7 +100,7 @@ public sealed class HazardsOffTests
             Assert.Equal(scenery, off.Park.Hazards);
             Assert.All(off.Park.Hazards, h => Assert.Contains(park.Hazards, p => ReferenceEquals(p, h)));
 
-            Assert.Equal(park with { Night = null }, off.Park with { Hazards = park.Hazards });
+            Assert.Equal(park with { Night = null }, Still(off.Park) with { Hazards = park.Hazards });
             Assert.Equal(park.Id, off.Park.Id);
             // The same resolved table: the reference at a park with no air of its own, the same air and libraries at one
             // that names it (Crystal, F9-a), whose table AtPark derives afresh per match.
@@ -110,7 +113,7 @@ public sealed class HazardsOffTests
             kept += off.Park.Hazards.Count;
             // A park with nothing to remove and no night block to resolve plays the catalog's own
             // object: nothing about it moved.
-            if (off.Park.Hazards.Count == park.Hazards.Count && park.Night is null) Assert.Same(park, off.Park);
+            if (off.Park.Hazards.Count == park.Hazards.Count && park.Night is null && !gusts) Assert.Same(park, off.Park);
         }
         // Not vacuous: the switch removes instances, and the scenery it keeps is there to keep.
         Assert.True(removed > 0, content.Root.Provenance);

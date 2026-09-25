@@ -69,8 +69,9 @@ public sealed class NightBlockTests
             Assert.Equal(tonight, nightMatch.Park.Hazards);
             // The same instances, not copies: the resolution moves no hazard and resizes none.
             Assert.All(nightMatch.Park.Hazards, h => Assert.Contains(tonight, a => ReferenceEquals(a, h)));
-            Assert.Equal(park with { Night = null }, dayMatch.Park with { Hazards = park.Hazards });
-            Assert.Equal(park with { Night = null }, nightMatch.Park with { Hazards = park.Hazards });
+            // A park whose wind turns each inning (§6.1) plays the inning's wind; everything else is the authored park.
+            Assert.Equal(park with { Night = null }, dayMatch.Park with { Hazards = park.Hazards, WindMph = park.WindMph, WindDeg = park.WindDeg });
+            Assert.Equal(park with { Night = null }, nightMatch.Park with { Hazards = park.Hazards, WindMph = park.WindMph, WindDeg = park.WindDeg });
             // Night reaches no rule (FD-11-R2): the same table, by reference at a park with no air of its own, by value at
             // one that names it (Crystal, F9-a).
             if (park.Environment is null) Assert.Same(dayMatch.Rules, nightMatch.Rules);
@@ -78,8 +79,11 @@ public sealed class NightBlockTests
 
             if (park.Night is null)
             {
-                Assert.Same(park, dayMatch.Park);
-                Assert.Same(park, nightMatch.Park);
+                if (park.Environment?.WindSchedule is null)
+                {
+                    Assert.Same(park, dayMatch.Park);
+                    Assert.Same(park, nightMatch.Park);
+                }
                 continue;
             }
             withBlock++;

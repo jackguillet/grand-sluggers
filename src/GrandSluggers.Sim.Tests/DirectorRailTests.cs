@@ -3,20 +3,23 @@ using Xunit;
 namespace GrandSluggers.Sim.Tests;
 
 /// <summary>
-/// "Do not grow MatchDirector" as a test (#1042). Each Unity director becomes a real class that owns its state; until
-/// then the files still written as <c>partial class MatchDirector</c> are listed here, and the list only shrinks. A new
-/// partial fails, and <c>MatchDirector.cs</c> may not grow past its ceiling. When a director moves out, delete its row
-/// and lower the ceiling to the new length.
+/// "Do not grow MatchDirector" as a test (#1042). Every Unity director is a real class that owns its state. What is
+/// left is written as <c>partial class MatchDirector</c> in two files: <c>MatchDirector.cs</c> (the frame loop, the HUD
+/// and the pause menu) and <c>MatchDirector.Hosts.cs</c> (the one-line forwarders and each director's host interface).
+/// A new partial fails, and neither file may grow past its ceiling; lower a ceiling when code leaves.
 /// </summary>
 public sealed class DirectorRailTests
 {
     static readonly string[] StillPartial =
     [
-        "FlowDirector.cs", "MatchDirector.cs",
+        "MatchDirector.Hosts.cs", "MatchDirector.cs",
     ];
 
     /// <summary>The line count of <c>MatchDirector.cs</c> may only fall. Lower it with every director that leaves.</summary>
-    const int MatchDirectorCeiling = 725;
+    const int MatchDirectorCeiling = 723;
+
+    /// <summary>The line count of <c>MatchDirector.Hosts.cs</c> may only fall: a host member is a forwarder, never a verb.</summary>
+    const int HostsCeiling = 307;
 
     static string Scripts => Path.GetFullPath(Path.Combine(Shipped.Content.Root.Shipped, "..", "unity", "Assets", "Scripts"));
 
@@ -39,6 +42,9 @@ public sealed class DirectorRailTests
         var lines = File.ReadAllLines(Path.Combine(Scripts, "Runtime", "MatchDirector.cs")).Length;
         Assert.True(lines <= MatchDirectorCeiling,
             $"MatchDirector.cs is {lines} lines, over its ceiling of {MatchDirectorCeiling}: put the code in a director that owns it");
+        var hosts = File.ReadAllLines(Path.Combine(Scripts, "Runtime", "MatchDirector.Hosts.cs")).Length;
+        Assert.True(hosts <= HostsCeiling,
+            $"MatchDirector.Hosts.cs is {hosts} lines, over its ceiling of {HostsCeiling}: put the code in a director that owns it");
     }
 
     [Theory]
@@ -58,6 +64,7 @@ public sealed class DirectorRailTests
     [InlineData("LineupFlow")]
     [InlineData("FrontMenus")]
     [InlineData("TutorialFlow")]
+    [InlineData("FlowDirector")]
     public void TheDirectorIsARealClass(string director)
     {
         var text = File.ReadAllText(Path.Combine(Scripts, "Runtime", director + ".cs"));
