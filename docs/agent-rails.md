@@ -94,16 +94,17 @@ Jack decided on September 22, 2026: **promote** it. The compact-field copy's ord
 
 ✅ **R2 #649 / #656.** OpenGame's Debug Skill, as a catalog.
 
-`data/agent/debug-protocol.json` (name stable) holds entries. Load with `DebugProtocol.Load` or `dotnet run --project src/GrandSluggers.Cli -- protocol`. `cli art` validates it. Code-side defaults are only the load fallback when the file is missing.
+`data/agent/debug-protocol.json` (name stable) holds entries. Load with `DebugProtocol.Load` or `cli protocol --kind gameplay|presentation|art [--full]`: by default the rows for that kind (and the `any` rows) that are not yet promoted, in full; `--full` adds the promoted rows. `cli art` validates it. Code-side defaults are only the load fallback when the file is missing.
 
 | Field | Meaning |
 | --- | --- |
 | `id` | Stable, like `brim-in-plate-lens` |
 | `signature` | What an agent would grep or see (log line, still-gate fail, sitting note) |
 | `stage` | `sim` / `cli-match` / `unity-console` / `still-gate` / `dcc` / `sitting` |
+| `kind` | The session that loads the row: `gameplay` / `presentation` / `art` (AGENTS.md "Session kind"), or `any` for tooling every session meets |
 | `cause` | Root cause from the code map, with `file:line` when known |
 | `fix` | The rail, not the patch |
-| `promoted` | C# or Python `Type.Method`, or repository-relative shell validator entry point (`tools/name.sh`), once it is a gate; else empty. CI verifies the reference exists. |
+| `promoted` | C# or Python `Type.Method`, or repository-relative shell validator entry point (`tools/name.sh`), once it is a gate; else empty. CI verifies the reference exists. Once promoted, `cause` and `fix` are one line each (at most 240 characters): the test is the detail, and the earlier narrative is history in [archive/debug-protocol-narratives.md](archive/debug-protocol-narratives.md). |
 | `issue` | Sitting child or epic that found it |
 | `pr` | PR that verified the fix, once closed |
 

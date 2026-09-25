@@ -98,7 +98,7 @@ If you generate or drop art, fill an existing slot and keep identity across a se
 ## Operating
 
 - One GitHub child issue = one worktree. Never share the main working copy. Never `git add -A`. In Claude Code, `tools/bash_guard.py` (wired in `.claude/settings.json`) refuses `git add -A` / `git add .` and `dotnet test` without `--filter`; other agents follow the rule by hand.
-- Load `data/agent/debug-protocol.json` at session start for the kind you are in (`cli protocol`). After a sitting or a failed still: file, append, promote on the second firing — the rule is `docs/agent-rails.md` §7.
+- Load `data/agent/debug-protocol.json` at session start for the kind you are in (`cli protocol --kind gameplay|presentation|art`: the unpromoted rows in full; `--full` adds the promoted ones). After a sitting or a failed still: file, append, promote on the second firing — the rule is `docs/agent-rails.md` §7.
 - Sim owns baseball. Unity presents. `unity/` Play `HarborDiamond` **is the game**. `GrandSluggers.Play` is a debug sandbox.
 - The game is gamepad only. Pad 1 is player 1; pad 2 is a second gamepad (player 2). There is no keyboard or mouse scheme.
 - Couch copy lives in `HowToPlay` / `CarnivalFront` / `BroadcastHud`, not scattered strings.

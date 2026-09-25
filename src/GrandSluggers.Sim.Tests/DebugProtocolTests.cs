@@ -111,6 +111,49 @@ public sealed class DebugProtocolTests
         Assert.Contains(errors, e => e.Contains("entries[0] 'patch' is not a debug-protocol field", StringComparison.Ordinal));
     }
 
+    [Fact]
+    public void EveryRowNamesTheKindThatLoadsIt()
+    {
+        foreach (var row in DebugProtocol.Load(_root).Entries)
+            Assert.Contains(row.Kind, DebugProtocol.Kinds);
+        var rows = DebugProtocol.Load(_root).Entries;
+        foreach (var kind in new[] { "gameplay", "presentation", "art" })
+            Assert.Contains(rows, r => r.Kind == kind);
+        Assert.All(rows.Where(r => r.Kind == "any"), r => Assert.True(r.LoadedBy("gameplay") && r.LoadedBy("art")));
+    }
+
+    [Fact]
+    public void MissingOrUnknownKindFailsTheValidator()
+    {
+        using var fixture = new ProtocolFixture();
+        fixture.Change(json =>
+        {
+            json["entries"]![0]!.AsObject().Remove("kind");
+            json["entries"]![1]!["kind"] = "tooling";
+        });
+
+        var errors = DebugProtocol.Validate(fixture.Root);
+        Assert.Contains(errors, e => e.Contains("entries[0] kind must not be empty", StringComparison.Ordinal));
+        Assert.Contains(errors, e => e.Contains("kind must be one of [gameplay, presentation, art, any]; got 'tooling'", StringComparison.Ordinal));
+    }
+
+    /// <summary>Once promoted, the test is the detail: the row's cause and fix are one line each (#1057).</summary>
+    [Fact]
+    public void APromotedRowKeepsOneLineOfCauseAndFix()
+    {
+        using var fixture = new ProtocolFixture();
+        fixture.Change(json => json["entries"]![0]!["fix"] = new string('x', DebugProtocol.PromotedLineMax + 1));
+        Assert.Contains(DebugProtocol.Validate(fixture.Root), e => e.Contains("entries[0] fix is promoted, so it is one line", StringComparison.Ordinal));
+
+        using var open = new ProtocolFixture();
+        open.Change(json =>
+        {
+            json["entries"]![0]!["promoted"] = "";
+            json["entries"]![0]!["fix"] = new string('x', DebugProtocol.PromotedLineMax + 1);
+        });
+        Assert.Empty(DebugProtocol.Validate(open.Root));
+    }
+
     sealed class ProtocolFixture : IDisposable
     {
         public ProtocolFixture()
