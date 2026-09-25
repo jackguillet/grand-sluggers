@@ -91,16 +91,20 @@ public sealed class Runner
     /// <summary>The runner tick's read of the share rule this frame (§9.1).</summary>
     internal void MarkUnentitled(bool on) => Unentitled = on;
 
-    public Runner(Character who, int bag)
+    /// <summary>The diamond this runner's path is on: the match table's bags (#1067).</summary>
+    readonly DiamondGeometry _diamond;
+
+    public Runner(Character who, int bag, RulesTable rules)
     {
         Who = who;
+        _diamond = DiamondGeometry.Of(rules);
         Seat(bag);
     }
 
     /// <summary>The batter-runner at contact: from the box, bound for first.</summary>
-    public static Runner BatterRunner(Character who, double startX, double startZ)
+    public static Runner BatterRunner(Character who, double startX, double startZ, RulesTable rules)
     {
-        var r = new Runner(who, 0) { Start = (startX, startZ), DestBag = 1 };
+        var r = new Runner(who, 0, rules) { Start = (startX, startZ), DestBag = 1 };
         return r;
     }
 
@@ -126,13 +130,13 @@ public sealed class Runner
     public int NextBag => Math.Min(4, Bag + 1);
 
     /// <summary>Length of the segment the runner is on: box to first for the batter, 90 ft otherwise.</summary>
-    public double SegmentFt => Bag == 0 ? Math.Max(1, Diamond.Dist(Start.X, Start.Z, Diamond.First.X, Diamond.First.Z)) : Diamond.Baseline;
+    public double SegmentFt => Bag == 0 ? Math.Max(1, Diamond.Dist(Start.X, Start.Z, _diamond.First.X, _diamond.First.Z)) : _diamond.Baseline;
 
     /// <summary>Feet along the whole path, home to home, for ordering and the no-pass rule.</summary>
-    public double Progress => Bag >= 4 ? 4 * Diamond.Baseline : Bag * Diamond.Baseline + Feet * (Diamond.Baseline / SegmentFt);
+    public double Progress => Bag >= 4 ? 4 * _diamond.Baseline : Bag * _diamond.Baseline + Feet * (_diamond.Baseline / SegmentFt);
 
     /// <summary>The mini diamond's read of this body (§15, #606): <see cref="Baserunning.PathPip"/> over the same bag, feet, and overrun <see cref="Position"/> uses.</summary>
-    public (int From, int To, double U) Pip => Baserunning.PathPip(Bag, Feet, SegmentFt, Overrunning ? OverrunFt : 0);
+    public (int From, int To, double U) Pip => Baserunning.PathPip(Bag, Feet, SegmentFt, Overrunning ? OverrunFt : 0, _diamond.Baseline);
 
     public (double X, double Z) Position
     {
@@ -142,14 +146,14 @@ public sealed class Runner
             if (Overrunning && Bag == 1 && Feet <= 0)
             {
                 // Through the bag on the line from home, past first (§9.4).
-                var first = Diamond.First;
+                var first = _diamond.First;
                 var len = Math.Max(1, Diamond.Dist(Diamond.Home.X, Diamond.Home.Z, first.X, first.Z));
                 var ux = (first.X - Diamond.Home.X) / len;
                 var uz = (first.Z - Diamond.Home.Z) / len;
                 return (first.X + ux * OverrunFt, first.Z + uz * OverrunFt);
             }
-            var from = Bag == 0 ? Start : Diamond.Bag(Bag);
-            var to = Diamond.Bag(Bag + 1);
+            var from = Bag == 0 ? Start : _diamond.Bag(Bag);
+            var to = _diamond.Bag(Bag + 1);
             var u = Math.Clamp(Feet / SegmentFt, 0, 1);
             return (from.X + (to.X - from.X) * u, from.Z + (to.Z - from.Z) * u);
         }
@@ -165,7 +169,7 @@ public sealed class Runner
     {
         var at = Position;
         if (!Unentitled || Feet > 0 || Bag is < 1 or > 3 || shareStepFt <= 0) return at;
-        var toward = Bag > FromBag ? Diamond.Bag(Bag - 1) : Diamond.Bag(Bag + 1);
+        var toward = Bag > FromBag ? _diamond.Bag(Bag - 1) : _diamond.Bag(Bag + 1);
         var len = Diamond.Dist(at.X, at.Z, toward.X, toward.Z);
         if (len <= 1e-9) return at;
         var step = Math.Min(shareStepFt, len);
@@ -178,7 +182,7 @@ public sealed class Runner
         if (bag <= Bag) return 0;
         var first = SegmentFt - Feet;
         // Past first on the run-through: the way back to the bag comes first (§9.4).
-        return first + (bag - Bag - 1) * Diamond.Baseline + OverrunFt;
+        return first + (bag - Bag - 1) * _diamond.Baseline + OverrunFt;
     }
 
     /// <summary>Feet back along the path to <see cref="FromBag"/> (the doubled-off race, §10.5): 0 when standing there.</summary>
@@ -186,7 +190,7 @@ public sealed class Runner
     {
         if (!Live || IsBatter) return 0;
         if (Bag < FromBag) return 0;
-        return Feet + (Bag - FromBag) * Diamond.Baseline;
+        return Feet + (Bag - FromBag) * _diamond.Baseline;
     }
 
     /// <summary>Standing on <paramref name="bag"/>: the last bag touched, feet 0. A body through first and coming straight back holds it (§9.4).</summary>
@@ -325,7 +329,7 @@ public sealed class Runner
         Broke = true;
         Held = false;
         DestBag = Math.Min(4, Bag + 1);
-        Feet = Math.Clamp(headStartFt, 0, Diamond.Baseline);
+        Feet = Math.Clamp(headStartFt, 0, _diamond.Baseline);
         Phase = RunnerPhase.Stealing;
     }
     public void RequestSlide() => ForceSlide = true;
@@ -412,7 +416,7 @@ public sealed class Runner
     internal void RetreatToSegmentTop(int bag)
     {
         Bag = bag;
-        Feet = Diamond.Baseline;
+        Feet = _diamond.Baseline;
     }
 }
 

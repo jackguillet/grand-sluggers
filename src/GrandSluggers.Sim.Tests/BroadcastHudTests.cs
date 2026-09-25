@@ -199,18 +199,18 @@ public class BroadcastHudTests
     public void RunnerPipFractionsAreFeetAlongTheSegment_TheBatterRunnerAndTheOverrunIncluded()
     {
         // #606: a runner 45 ft from first toward second is half of 1 → 2. On the C80 copy's 80-ft path half is 40 ft.
-        Assert.Equal((1, 2, 0.5), Baserunning.PathPip(1, 40, Diamond.Baseline, 0));
+        Assert.Equal((1, 2, 0.5), Baserunning.PathPip(1, 40, Diamond.Baseline, 0, Diamond.Baseline));
         // The batter-runner 30 ft out of the box on a 90-ft run is a third of home → first (26.67 ft of 80 on the copy).
-        var batter = Baserunning.PathPip(0, (80.0 / 3.0), Diamond.Baseline, 0);
+        var batter = Baserunning.PathPip(0, (80.0 / 3.0), Diamond.Baseline, 0, Diamond.Baseline);
         Assert.Equal((0, 1), (batter.From, batter.To));
         Assert.Equal(1.0 / 3.0, batter.U, 9);
         // Through first on the run-through: past 1.0 on home → first.
-        var overrun = Baserunning.PathPip(1, 0, Diamond.Baseline, 8);
+        var overrun = Baserunning.PathPip(1, 0, Diamond.Baseline, 8, Diamond.Baseline);
         Assert.Equal((0, 1), (overrun.From, overrun.To));
         Assert.Equal(1.1, overrun.U, 9);
         // Seated is fraction 0 on the bag; home is the end of 3 → 4.
-        Assert.Equal((2, 3, 0.0), Baserunning.PathPip(2, 0, Diamond.Baseline, 0));
-        Assert.Equal((3, 4, 1.0), Baserunning.PathPip(4, 0, Diamond.Baseline, 0));
+        Assert.Equal((2, 3, 0.0), Baserunning.PathPip(2, 0, Diamond.Baseline, 0, Diamond.Baseline));
+        Assert.Equal((3, 4, 1.0), Baserunning.PathPip(4, 0, Diamond.Baseline, 0, Diamond.Baseline));
     }
 
     [Fact]

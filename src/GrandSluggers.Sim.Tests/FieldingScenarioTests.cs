@@ -36,7 +36,7 @@ public sealed class FieldingScenarioTests
         var only = Assert.Single(play.Outcome!.OutsMade);
         Assert.Equal((OutType.ThrowOutAtFirst, 1, 0), (only.Type, only.Bag, only.FromBag));
         // The out is the arrival compare (§10.2): the ball was at first before the body could be.
-        var body = Runner.BatterRunner(batter, HomeSet.BatterBodyX(batter.Bats), HomeSet.BatterZ);
+        var body = Runner.BatterRunner(batter, HomeSet.BatterBodyX(batter.Bats), HomeSet.BatterZ, Rules.Default);
         var batterAt = RunnerSystem.ArrivalSec(body, 1, 0, match.Rules, 0);
         Assert.True(throwLandedAt > 0 && throwLandedAt < batterAt, $"ball at first {throwLandedAt:0.00} vs body {batterAt:0.00}");
         Assert.NotNull(thrown);
@@ -62,7 +62,7 @@ public sealed class FieldingScenarioTests
         if (throwLandedAt > 0)
         {
             var batter = match.Log[^1].Batter;
-            var body = Runner.BatterRunner(batter, HomeSet.BatterBodyX(batter.Bats), HomeSet.BatterZ);
+            var body = Runner.BatterRunner(batter, HomeSet.BatterBodyX(batter.Bats), HomeSet.BatterZ, Rules.Default);
             Assert.True(throwLandedAt >= RunnerSystem.ArrivalSec(body, 1, 0, match.Rules, 0));
         }
     }
@@ -190,7 +190,7 @@ public sealed class FieldingScenarioTests
         var batter = match.Batter;
         var (play, throwLandedAt, _) = RunCpu(match, hit, preview, out var threwTo);
         Assert.True(play.Kind is PlayKind.GroundOut or PlayKind.Single, play.Kind.ToString());
-        var body = Runner.BatterRunner(batter, HomeSet.BatterBodyX(batter.Bats), HomeSet.BatterZ);
+        var body = Runner.BatterRunner(batter, HomeSet.BatterBodyX(batter.Bats), HomeSet.BatterZ, Rules.Default);
         var batterAt = RunnerSystem.ArrivalSec(body, 1, 0, match.Rules, 0);
         if (play.Kind == PlayKind.GroundOut)
         {

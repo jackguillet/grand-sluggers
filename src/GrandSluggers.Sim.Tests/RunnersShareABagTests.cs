@@ -26,7 +26,7 @@ public sealed class RunnersShareABagTests
     /// <summary>A runner from <paramref name="from"/> run all the way onto <paramref name="bag"/> by the tick, next to whoever stands there.</summary>
     Runner RunOnto(List<Runner> runners, int from, int bag, int order, Func<int, bool>? forceAt = null)
     {
-        var trail = new Runner(Who(order), from);
+        var trail = new Runner(Who(order), from, Rules.Default);
         trail.BeginPlay(false, false);
         trail.Send(bag, human: true);
         runners.Add(trail);
@@ -41,7 +41,7 @@ public sealed class RunnersShareABagTests
     [Fact]
     public void ATrailRunnerSentToAnOccupiedBagRunsAllTheWayToIt()
     {
-        var lead = new Runner(Who(2), 2);
+        var lead = new Runner(Who(2), 2, Rules.Default);
         var runners = new List<Runner> { lead };
         var trail = RunOnto(runners, 1, 2, 1);
 
@@ -53,13 +53,13 @@ public sealed class RunnersShareABagTests
     public void NoRunnerPassesABodyBetweenTheBags()
     {
         var rules = Rules.Default;
-        var lead = new Runner(Who(2), 2);
+        var lead = new Runner(Who(2), 2, Rules.Default);
         lead.BeginPlay(false, false);
         lead.Send(3, human: true);
         var runners = new List<Runner> { lead };
         TickUntil(runners, NoForce, () => lead.Feet >= 30);
         lead.Halt();
-        var trail = new Runner(Who(1), 1);
+        var trail = new Runner(Who(1), 1, Rules.Default);
         trail.BeginPlay(false, false);
         trail.Send(3, human: true);
         runners.Add(trail);
@@ -79,9 +79,9 @@ public sealed class RunnersShareABagTests
     {
         // Bases loaded on a grounder: the runner from first is forced to second, and no further. Reaching second ends his force
         // even while the force at third (the runner from second's) still stands.
-        var fromFirst = new Runner(Who(1), 1);
+        var fromFirst = new Runner(Who(1), 1, Rules.Default);
         fromFirst.BeginPlay(true, false);
-        var fromSecond = new Runner(Who(2), 2);
+        var fromSecond = new Runner(Who(2), 2, Rules.Default);
         fromSecond.BeginPlay(true, false);
         var runners = new List<Runner> { fromFirst, fromSecond };
         Func<int, bool> loaded = bag => bag is >= 1 and <= 4;
@@ -98,7 +98,7 @@ public sealed class RunnersShareABagTests
     [Fact]
     public void TheLeadRunnerNotForcedIsEntitledAndTheTrailRunnerIsNot()
     {
-        var lead = new Runner(Who(2), 2);
+        var lead = new Runner(Who(2), 2, Rules.Default);
         var runners = new List<Runner> { lead };
         var trail = RunOnto(runners, 1, 2, 1);
 
@@ -113,9 +113,9 @@ public sealed class RunnersShareABagTests
     [Fact]
     public void TheLeadRunnerForcedOffTheBagLosesItToTheTrailRunner()
     {
-        var lead = new Runner(Who(1), 1);
+        var lead = new Runner(Who(1), 1, Rules.Default);
         lead.BeginPlay(true, false);
-        var trail = Runner.BatterRunner(Who(2), Diamond.Home.X, Diamond.Home.Z);
+        var trail = Runner.BatterRunner(Who(2), Diamond.Home.X, Diamond.Home.Z, Rules.Default);
         var runners = new List<Runner> { lead, trail };
         Func<int, bool> force = bag => bag is 1 or 2;
         // Both stand on first (the batter's bag and the forced runner's start): the force on the lead gives it to the trail.
@@ -159,7 +159,7 @@ public sealed class RunnersShareABagTests
     [Fact]
     public void TimeDoesNotComeWhileTwoRunnersStandOnOneBag()
     {
-        var lead = new Runner(Who(2), 2);
+        var lead = new Runner(Who(2), 2, Rules.Default);
         var runners = new List<Runner> { lead };
         var trail = RunOnto(runners, 1, 2, 1);
         trail.Send(2);
@@ -174,7 +174,7 @@ public sealed class RunnersShareABagTests
     [Fact]
     public void TheCpuRunnerGivesTheBagBackWhenTheBagBehindIsFree()
     {
-        var lead = new Runner(Who(2), 2);
+        var lead = new Runner(Who(2), 2, Rules.Default);
         var runners = new List<Runner> { lead };
         var trail = RunOnto(runners, 1, 2, 1);
         var ball = new BallSituation(true, false, 0, 0, 0, 60, 0, false, 0, 60, 0);
@@ -190,10 +190,10 @@ public sealed class RunnersShareABagTests
     [Fact]
     public void TheCpuRunnerWaitsOnTheBagWhenTheBagBehindIsTaken()
     {
-        var lead = new Runner(Who(3), 2);
-        var behind = new Runner(Who(1), 1);
+        var lead = new Runner(Who(3), 2, Rules.Default);
+        var behind = new Runner(Who(1), 1, Rules.Default);
         var runners = new List<Runner> { lead, behind };
-        var trail = new Runner(Who(2), 1);
+        var trail = new Runner(Who(2), 1, Rules.Default);
         trail.Arrive(2, 0);
         runners.Add(trail);
         RunnerSystem.MarkShares(runners, NoForce, FlyState.None);
@@ -250,7 +250,7 @@ public sealed class RunnersShareABagTests
     public void TwoBodiesOnOneBagDrawApart()
     {
         var feel = _content.Feel;
-        var lead = new Runner(Who(2), 2);
+        var lead = new Runner(Who(2), 2, Rules.Default);
         var runners = new List<Runner> { lead };
         var trail = RunOnto(runners, 1, 2, 1);
         var a = lead.DrawPosition(feel.RunnerShareStepFt);

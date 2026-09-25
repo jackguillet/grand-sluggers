@@ -251,7 +251,7 @@ public sealed class BodyGroundTests : IClassFixture<BodyGroundTests.Roots>
         foreach (var zones in new[] { plain, iced })
         {
             // Through first: out to the bag's overrun length exactly, then straight back.
-            var batter = Runner.BatterRunner(catalog.Must("rio"), HomeSet.BatterX, HomeSet.BatterZ);
+            var batter = Runner.BatterRunner(catalog.Must("rio"), HomeSet.BatterX, HomeSet.BatterZ, Rules.Default);
             var t = 0.0;
             var farthest = 0.0;
             for (var i = 0; i < 400; i++)
@@ -263,7 +263,7 @@ public sealed class BodyGroundTests : IClassFixture<BodyGroundTests.Roots>
             Assert.True(batter.IsOn(1) && !batter.Overrunning);
 
             // Into second with a tag threat: the slide starts at the first frame inside the bag's slide length.
-            var runner = new Runner(catalog.Must("vale"), 1);
+            var runner = new Runner(catalog.Must("vale"), 1, Rules.Default);
             runner.BeginPlay(forced: false, tagAndGo: false);
             runner.Send(2);
             var slide = RunnerSystem.SlideFt(2, zones, rules);
@@ -475,7 +475,7 @@ public sealed class BodyGroundTests : IClassFixture<BodyGroundTests.Roots>
     static List<double> RunnerPath(RulesTable rules, GroundZones? zones)
     {
         var values = new List<double>();
-        var batter = Runner.BatterRunner(Game.Must("rio"), HomeSet.BatterX, HomeSet.BatterZ);
+        var batter = Runner.BatterRunner(Game.Must("rio"), HomeSet.BatterX, HomeSet.BatterZ, Rules.Default);
         var t = 0.0;
         for (var i = 0; i < 400; i++)
         {
@@ -484,7 +484,7 @@ public sealed class BodyGroundTests : IClassFixture<BodyGroundTests.Roots>
             values.Add(batter.OverrunFt);
             values.Add((double)batter.Phase);
         }
-        var runner = new Runner(Game.Must("vale"), 1);
+        var runner = new Runner(Game.Must("vale"), 1, Rules.Default);
         runner.BeginPlay(forced: false, tagAndGo: false);
         runner.Send(2);
         t = 0;

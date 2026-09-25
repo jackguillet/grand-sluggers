@@ -75,4 +75,20 @@ public sealed class DiamondGeometryTests
         Assert.Equal(Diamond.Rubber, OutfieldStarts.Of(park, Table)["P"]);
         Assert.Equal(DiamondGeometry.Of(t).Rubber, OutfieldStarts.Of(park, t)["P"]);
     }
+
+    /// <summary>A runner runs the bags of the table it was seated with: its spot, its path length and its progress are that table's.</summary>
+    [Fact]
+    public void ARunnerRunsItsTablesBags()
+    {
+        var t = Wider();
+        var d = DiamondGeometry.Of(t);
+        var who = Shipped.Content.Must("rio");
+        var onFirst = new Runner(who, 1, t);
+        Assert.Equal(d.First, onFirst.Position);
+        Assert.Equal(d.Baseline, onFirst.SegmentFt);
+        Assert.Equal(d.Baseline, onFirst.Progress);
+        var shipped = new Runner(who, 1, Table);
+        Assert.Equal(Diamond.First, shipped.Position);
+        Assert.NotEqual(shipped.Position, onFirst.Position);
+    }
 }

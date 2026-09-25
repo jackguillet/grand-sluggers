@@ -579,7 +579,7 @@ public sealed class OutsScenarioTests
         // them back, a throw to the bag behind sends them on again — while the other bag is reachable ahead of the
         // ball's next leg. Nothing else in the read changes.
         var who = _content.Must("cinder");
-        var runner = new Runner(who, 1);
+        var runner = new Runner(who, 1, Rules.Default);
         runner.BeginPlay(forced: false, tagAndGo: false);
         runner.Send(2);
         // Past the commit fraction (running.cpu.commitFraction): the ordinary read keeps a body this far along going.

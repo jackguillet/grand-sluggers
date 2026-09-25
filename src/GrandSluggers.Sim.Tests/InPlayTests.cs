@@ -17,13 +17,13 @@ public class InPlayTests
         Assert.True(RunnerSystem.BagSec(dart, rules: Rules.Default) < RunnerSystem.BagSec(brick, rules: Rules.Default), $"dart {RunnerSystem.BagSec(dart, rules: Rules.Default)} vs brondo {RunnerSystem.BagSec(brick, rules: Rules.Default)}");
         var s = Rules.Default.Running.BagSec;
         Assert.Equal(Math.Clamp(s.BaseSec - dart.Stats.Run * s.SecPerRun, s.MinSec, s.MaxSec), RunnerSystem.BagSec(dart, rules: Rules.Default), 6);
-        var righty = Runner.BatterRunner(dart, HomeSet.BatterBodyX(Hand.R), HomeSet.BatterZ);
-        var lefty = Runner.BatterRunner(dart, HomeSet.BatterBodyX(Hand.L), HomeSet.BatterZ);
+        var righty = Runner.BatterRunner(dart, HomeSet.BatterBodyX(Hand.R), HomeSet.BatterZ, Rules.Default);
+        var lefty = Runner.BatterRunner(dart, HomeSet.BatterBodyX(Hand.L), HomeSet.BatterZ, Rules.Default);
         var toFirstR = RunnerSystem.ArrivalSec(righty, 1, 0, rules: Rules.Default);
         var toFirstL = RunnerSystem.ArrivalSec(lefty, 1, 0, rules: Rules.Default);
         Assert.True(toFirstL < toFirstR, $"lefty {toFirstL} vs righty {toFirstR}");
         Assert.InRange(toFirstR - s.BatterStartSec, RunnerSystem.BagSec(dart, rules: Rules.Default) * 0.9, RunnerSystem.BagSec(dart, rules: Rules.Default) * 1.1);
-        var seated = new Runner(dart, 1);
+        var seated = new Runner(dart, 1, Rules.Default);
         Assert.Equal(RunnerSystem.BagSec(dart, rules: Rules.Default), RunnerSystem.ArrivalSec(seated, 2, 0, rules: Rules.Default), 6);
         Assert.Equal(2 * RunnerSystem.BagSec(dart, rules: Rules.Default), RunnerSystem.ArrivalSec(seated, 3, 0, rules: Rules.Default), 6);
         Assert.Equal(0, RunnerSystem.ArrivalSec(seated, 1, 0, rules: Rules.Default));
@@ -33,7 +33,7 @@ public class InPlayTests
     public void DashShortensTheRaceToFirstWithoutTeleporting()
     {
         var dart = _content.Must("dart");
-        var body = Runner.BatterRunner(dart, HomeSet.BatterBodyX(Hand.R), HomeSet.BatterZ);
+        var body = Runner.BatterRunner(dart, HomeSet.BatterBodyX(Hand.R), HomeSet.BatterZ, Rules.Default);
         var still = RunnerSystem.ArrivalSec(body, 1, 0, Rules.Default, 0);
         var dash = RunnerSystem.ArrivalSec(body, 1, 0, Rules.Default, 1);
         Assert.True(dash < still, $"dash {dash} vs {still}");
@@ -301,7 +301,7 @@ public class InPlayTests
         // stood on a bag for timeOnBagSec. The bodies are what Time reads.
         Assert.Equal(1.0, Rules.Default.Running.Bags.TimeOnBagSec);
         var rio = _content.Must("rio");
-        var batter = Runner.BatterRunner(rio, HomeSet.BatterX, HomeSet.BatterZ);
+        var batter = Runner.BatterRunner(rio, HomeSet.BatterX, HomeSet.BatterZ, Rules.Default);
         var runners = new[] { batter };
         Assert.True(InPlay.Time(true, false, 3, true, runners, rules: Rules.Default), "three outs is Time");
         Assert.False(InPlay.Time(false, false, 0, true, runners, rules: Rules.Default), "no ball is not Time");
@@ -335,7 +335,7 @@ public class InPlayTests
         Assert.True(InPlay.Time(true, false, 0, true, runners, rules: Rules.Default));
         Assert.False(InPlay.Time(true, false, 0, false, runners, rules: Rules.Default), "an outfielder holding it on the grass is not Time (§10.6)");
 
-        var third = new Runner(_content.Must("vale"), 3);
+        var third = new Runner(_content.Must("vale"), 3, Rules.Default);
         var two = new[] { batter, third };
         Assert.False(InPlay.Time(true, false, 0, true, two, rules: Rules.Default), "a runner just seated has not settled");
         for (var i = 0; i < 63; i++)
