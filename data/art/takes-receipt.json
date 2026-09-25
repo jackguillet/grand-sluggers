@@ -44,7 +44,7 @@
     },
     {
       "file": "checkSwing-L.fbx",
-      "sha256": "0abde0d2ea3c7df0b56dbdbfebe1f32881608806470447ff5d10f0b75ab956df",
+      "sha256": "cde0ee0bec592b76fe1c0491a0a24b1b11e6c4f72831f2a1a40f123bfbffd332",
       "frames": 13,
       "contracts": [
         "feet",
@@ -54,7 +54,7 @@
     },
     {
       "file": "checkSwing.fbx",
-      "sha256": "87c3eaa50b5d77cfc06efb9eda29e7fe792ae3f8904fc1a37f55b3c8a2f6ba2b",
+      "sha256": "ee59bdb784381eec2232aa7741df30adf048e7b11f9e5a0372af0704254d5eb6",
       "frames": 13,
       "contracts": [
         "feet",
@@ -268,7 +268,7 @@
     },
     {
       "file": "styles/ape/checkSwing-L.fbx",
-      "sha256": "688532d546615f0d83b029ca432b8d77ef10c915a659fb383c7b91a27861c5f9",
+      "sha256": "e16618f07583feb329fd1f79018429e9dd85aa618bb126acf2944fb229f8f1fd",
       "frames": 13,
       "contracts": [
         "feet",
@@ -278,7 +278,7 @@
     },
     {
       "file": "styles/ape/checkSwing.fbx",
-      "sha256": "38fef1d292f3fcd23f7a19b01188814eb177153985eff769d50fbc8965a3f1c9",
+      "sha256": "b49b6c05a56eec8d2e6c1a6347215ad7063d8fc825612d2616e81e8c264c6afb",
       "frames": 13,
       "contracts": [
         "feet",
@@ -451,7 +451,7 @@
     },
     {
       "file": "styles/ape/swing-charge-L.fbx",
-      "sha256": "dd351872928aa221ad890f758af67d5e488d2ffd533c4ab51e88ac045e0f34d2",
+      "sha256": "cb82732af744f58403206aef34d37c6003abc128254c11ca0b2d57e85596ee9f",
       "frames": 37,
       "contracts": [
         "feet",
@@ -462,7 +462,7 @@
     },
     {
       "file": "styles/ape/swing-charge.fbx",
-      "sha256": "7c7af4d69758987105813311f4cc4315058ee91fa7cde04fd5d9fe72c430a74a",
+      "sha256": "50814316a474c22b0593bd7f4cf989e0444a2dc5a1cd8fce4af3e2efefc159ba",
       "frames": 37,
       "contracts": [
         "feet",
@@ -473,7 +473,7 @@
     },
     {
       "file": "styles/ape/swing-slap-L.fbx",
-      "sha256": "3b204bc3ad90d9fe036e69e9534ac2a30448b074ae0533c85954e092f088536c",
+      "sha256": "0d2bad7a0938e4440c22e98ef88a1d65d83f7ebd7f652da6ab3db6722ef23b30",
       "frames": 37,
       "contracts": [
         "feet",
@@ -484,7 +484,7 @@
     },
     {
       "file": "styles/ape/swing-slap.fbx",
-      "sha256": "0c3738459cd7fd69d1f55037d446e2e180853bba34229dbc94fa6f9b58b82d68",
+      "sha256": "dd742e0693235b77576b04a9fbe796a40f851a029ef76f521b4c7e05043b8f1a",
       "frames": 37,
       "contracts": [
         "feet",
@@ -597,7 +597,7 @@
     },
     {
       "file": "styles/brick/swing-charge-L.fbx",
-      "sha256": "26c48e9f9e98ea5652cb275383cc98c99fe9b301c14df3b4f6f229c9edf22411",
+      "sha256": "2bf387001d7502542b83cc87f249d51caeb8a708fbc1a32972fc3b8a3a1ebd7b",
       "frames": 37,
       "contracts": [
         "feet",
@@ -608,7 +608,7 @@
     },
     {
       "file": "styles/brick/swing-charge.fbx",
-      "sha256": "73cc92a8567da72494d13a5f16f2c6e9ddde9006a9aa49ca3138164c800d3cc0",
+      "sha256": "36059b774fee886cd3128dcd2683ddd00ab1fdf1f5d6886de827c0f318bd11c3",
       "frames": 37,
       "contracts": [
         "feet",
@@ -619,7 +619,7 @@
     },
     {
       "file": "styles/brick/swing-slap-L.fbx",
-      "sha256": "d0de6e3e7fa8ede9dc5973bd89b1f5f11bed07c788718ecbc3bcfd22ec6195ea",
+      "sha256": "7a22ce398665829b5fc3425a0b974724e78ec79b8c0b542cf32888c7a1e99a58",
       "frames": 37,
       "contracts": [
         "feet",
@@ -630,7 +630,7 @@
     },
     {
       "file": "styles/brick/swing-slap.fbx",
-      "sha256": "43e33243cf5e2ad0b911633861b02225e9b88be5b7d32466836a1503c07d82fd",
+      "sha256": "46142a05045601a9bfd9cd03cef760289123f8105a97ffebad7de279f8c6a4de",
       "frames": 37,
       "contracts": [
         "feet",
@@ -721,7 +721,7 @@
     },
     {
       "file": "styles/harbor-kid/swing-charge-L.fbx",
-      "sha256": "2df0bbfbf6df816d0b58a3ee592eba6a7bd9534896b3b2860ec232fabf324985",
+      "sha256": "40e0cb17d7297cb33ccf851658f9ae5ce20ad3a878228e9079a6f2c59d4d248c",
       "frames": 37,
       "contracts": [
         "feet",
@@ -732,7 +732,7 @@
     },
     {
       "file": "styles/harbor-kid/swing-charge.fbx",
-      "sha256": "e3305b55c12d656619e197dbbcee0ae35cd33252ea4afe3fc28f1be329207eba",
+      "sha256": "06f25f8fc892ef57fa572b23c0705e65ab2ae52ac960643bcb4613602021ff97",
       "frames": 37,
       "contracts": [
         "feet",
@@ -743,7 +743,7 @@
     },
     {
       "file": "styles/harbor-kid/swing-slap-L.fbx",
-      "sha256": "a184102976f194e98c794a075ea458853c4fa76a23913fcaa7e059c1255da2fc",
+      "sha256": "c2e0088b458011dbe69a87d618b1eea4e98d9b056b951cd5a74596a37339ace2",
       "frames": 37,
       "contracts": [
         "feet",
@@ -754,7 +754,7 @@
     },
     {
       "file": "styles/harbor-kid/swing-slap.fbx",
-      "sha256": "3d2ebac1556203915d03e5b599036c1728c107f317f175102745c9892381d2c2",
+      "sha256": "0f00c1f572b591d779fd09cf3e10cf49412e5c8315cd613b1d24f03d6ec27c6d",
       "frames": 37,
       "contracts": [
         "feet",
@@ -845,7 +845,7 @@
     },
     {
       "file": "styles/pageant/swing-charge-L.fbx",
-      "sha256": "5a84643e809375b737fb9ebdc629b87a81233363b8d0d891cf0de7e829ee2e9d",
+      "sha256": "42c836eb729ea9fe782fe604a6c1d8b884d1b98f1221500a2d176287c92cd485",
       "frames": 37,
       "contracts": [
         "feet",
@@ -856,7 +856,7 @@
     },
     {
       "file": "styles/pageant/swing-charge.fbx",
-      "sha256": "404b31ade9d62daa266e8984246eefee3f2adb7b538a2207af6cbc53e8d0a727",
+      "sha256": "eaaf1402c719fcead5638f8d1b4d38085232a4e2f0d5ccc1b60e5020b69b4396",
       "frames": 37,
       "contracts": [
         "feet",
@@ -867,7 +867,7 @@
     },
     {
       "file": "styles/pageant/swing-slap-L.fbx",
-      "sha256": "5943170c74613f305c7a729a77d916046197c94b4662c5f339cf5345f436a690",
+      "sha256": "f163c110687c8629818649acd87c7bfb792b699367e1c7a75699da09f17464cc",
       "frames": 37,
       "contracts": [
         "feet",
@@ -878,7 +878,7 @@
     },
     {
       "file": "styles/pageant/swing-slap.fbx",
-      "sha256": "76f08f6bb1419d36f6ccef8662535214946ae47d03d86ba40d58651f820d3168",
+      "sha256": "81e9c972b72f60a7e459491cf75550ad21abd5e2c34916e5241bbc1664656424",
       "frames": 37,
       "contracts": [
         "feet",
@@ -969,7 +969,7 @@
     },
     {
       "file": "styles/speed/swing-charge-L.fbx",
-      "sha256": "ffc61ecf5c985581599fb7f5d162bd2a3bb17283856b7be296c7928af8ebd0fc",
+      "sha256": "17f4310165b3762f4af18265718ce86d4ccf4f94c459de4a83c4ca7bba3b455f",
       "frames": 37,
       "contracts": [
         "feet",
@@ -980,7 +980,7 @@
     },
     {
       "file": "styles/speed/swing-charge.fbx",
-      "sha256": "053de5fc6899309c1b7db4004db0492c1f1700b86c2abf78a9c1329d17ca83b9",
+      "sha256": "3c931611d108f6da41a418fff076d84bf71c2f7910e8227f0a7ed43ba630568a",
       "frames": 37,
       "contracts": [
         "feet",
@@ -991,7 +991,7 @@
     },
     {
       "file": "styles/speed/swing-slap-L.fbx",
-      "sha256": "a7680274215228565e5ce2669a01ec31b6d37156fb74c208576bdaed5b3b4188",
+      "sha256": "8a99da95d60923c6064c9c92f17087927f49d8b63cef8a085f44a771efd517bd",
       "frames": 37,
       "contracts": [
         "feet",
@@ -1002,7 +1002,7 @@
     },
     {
       "file": "styles/speed/swing-slap.fbx",
-      "sha256": "74d4806c2aebdd10d2c51e92078dab82a10a424b0b904b4f0081aadf842e66e6",
+      "sha256": "99517ed543c499f4c26ed2754064aeb6971b22a987179628a8a10248a5562e32",
       "frames": 37,
       "contracts": [
         "feet",
@@ -1093,7 +1093,7 @@
     },
     {
       "file": "styles/turtle/swing-charge-L.fbx",
-      "sha256": "9a0260df580a628a780a3a75cf632d2aa83290ef0830a772f46e998fbfa5f07d",
+      "sha256": "f728e1157594bf050a752194d090a1fc5af723e61d07c9f226c4a3d7893e7a76",
       "frames": 37,
       "contracts": [
         "feet",
@@ -1104,7 +1104,7 @@
     },
     {
       "file": "styles/turtle/swing-charge.fbx",
-      "sha256": "78074a3e7670af8f363d1d6c18732d2008b5866c19ae0324d1d061e16ffba191",
+      "sha256": "04d77398c9a13e3f10b0150a0325b8886c08d73acd22112ff42b342c944cde4d",
       "frames": 37,
       "contracts": [
         "feet",
@@ -1115,7 +1115,7 @@
     },
     {
       "file": "styles/turtle/swing-slap-L.fbx",
-      "sha256": "da9c29a46a7e91719b4692e13c225d67f399b6eca8b7c706536890a7b5b30e4b",
+      "sha256": "41f040b5f65e9e61359cd97b8cd41434cf3a144bbfe0ec2bbcaa2068c427a583",
       "frames": 37,
       "contracts": [
         "feet",
@@ -1126,7 +1126,7 @@
     },
     {
       "file": "styles/turtle/swing-slap.fbx",
-      "sha256": "4e28e7e7fb306781b0901715e5b1261e7655809e5255cd6e7f7ab1abac9de592",
+      "sha256": "d66433ffe320aea6adc554f6931325155e958adba5685ea68003c47aebd110c8",
       "frames": 37,
       "contracts": [
         "feet",
@@ -1217,7 +1217,7 @@
     },
     {
       "file": "styles/villain/swing-charge-L.fbx",
-      "sha256": "cdccac1834cf079ae7db2b009333007b6d16054624ee505bead017af47fe4cb9",
+      "sha256": "bd982765326e5a3b4b5d0376896736af123d2c8a333b317ed64894c70a251831",
       "frames": 37,
       "contracts": [
         "feet",
@@ -1228,7 +1228,7 @@
     },
     {
       "file": "styles/villain/swing-charge.fbx",
-      "sha256": "d563f4ab0a6260e45e61ae25b81e7d66b8b760a79340302b91541728b0bc26c2",
+      "sha256": "64340fc460bdea8e1dae9568457895cacddd482fb2a207f3ec27077841dc3c20",
       "frames": 37,
       "contracts": [
         "feet",
@@ -1239,7 +1239,7 @@
     },
     {
       "file": "styles/villain/swing-slap-L.fbx",
-      "sha256": "037245981f5f613775d8eb1e7382d2503ae07a5e9d5fc63656ba5259dc9b0a24",
+      "sha256": "741c94043c4ae5f64f593877dd0c1bc57156f2f6f900ae27d2473ce53de64c68",
       "frames": 37,
       "contracts": [
         "feet",
@@ -1250,7 +1250,7 @@
     },
     {
       "file": "styles/villain/swing-slap.fbx",
-      "sha256": "a018d3e385bb83ec590359a41aacfd3ed79964305dcea65bfe7e7aa1bebfc1e8",
+      "sha256": "68ca3fc4bca672b142e47785baf9c9aa99ccd573a9b563f5a2c0cf78b27878ca",
       "frames": 37,
       "contracts": [
         "feet",
@@ -1270,7 +1270,7 @@
     },
     {
       "file": "swing-charge-L.fbx",
-      "sha256": "030d3385330a095ce18be10c9f033bbd6382d519f6968c704457283fc7c67735",
+      "sha256": "6c503965971ea0fabb2bb56c8424cd01dd93696d9c0d6124b03876e6c038466c",
       "frames": 37,
       "contracts": [
         "feet",
@@ -1281,7 +1281,7 @@
     },
     {
       "file": "swing-charge.fbx",
-      "sha256": "d77f9cf64b7c37ccbac3725878b8db2b00dc5f44e3ab27dbffaa8a19e0f25539",
+      "sha256": "fd4dcfe4b2cf9b55e2e9e447e9f71b7047ff73f71faa9816d06a72b2372b6e32",
       "frames": 37,
       "contracts": [
         "feet",
@@ -1292,7 +1292,7 @@
     },
     {
       "file": "swing-slap-L.fbx",
-      "sha256": "2224dcce0695cf41030c95206db5f3952e7e860f08d1ba518ddee90d66846a30",
+      "sha256": "bd6210a83ea8ff3b8569066c13f6be1146b0e9ae8d192e194605d190726e060a",
       "frames": 37,
       "contracts": [
         "feet",
@@ -1303,7 +1303,7 @@
     },
     {
       "file": "swing-slap.fbx",
-      "sha256": "ffd531d54a79c17e0b4775ccd888b0e937b53a14428e8a1d85e4fb0eb7dee0f7",
+      "sha256": "70a7011f36f8e0003f93392ef101ec0043fa8649c22d6efaace806fedeb54032",
       "frames": 37,
       "contracts": [
         "feet",

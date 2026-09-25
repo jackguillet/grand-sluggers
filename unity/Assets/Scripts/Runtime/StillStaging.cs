@@ -457,12 +457,23 @@ namespace GrandSluggers.UnityClient
             }
             var plateMin = new Vector3(
                 (float)(-HomeSet.PlateW / 2 - physicalBat.BarrelRadius),
-                (float)(SwingPresentation.PlateBandY - 1.2 - physicalBat.BarrelRadius),
+                (float)(SwingPresentation.PlateBandY - SwingPresentation.PlateBandHalf - physicalBat.BarrelRadius),
                 (float)(HomeSet.PlatePointZ - physicalBat.BarrelRadius));
             var plateMax = new Vector3(
                 (float)(HomeSet.PlateW / 2 + physicalBat.BarrelRadius),
-                (float)(SwingPresentation.PlateBandY + 1.2 + physicalBat.BarrelRadius),
+                (float)(SwingPresentation.PlateBandY + SwingPresentation.PlateBandHalf + physicalBat.BarrelRadius),
                 (float)(HomeSet.PlateFrontZ + physicalBat.BarrelRadius));
+            if (beat == "contact"
+                && !SwingPresentation.CutsZonePlane(
+                    new Vec3(physicalBat.BarrelStart.x, physicalBat.BarrelStart.y, physicalBat.BarrelStart.z),
+                    new Vec3(physicalBat.BarrelEnd.x, physicalBat.BarrelEnd.y, physicalBat.BarrelEnd.z),
+                    physicalBat.BarrelRadius))
+                failures.Add(
+                    $"{captain} {power} contact: physical barrel does not cut the zone plane over the plate from "
+                    + $"({physicalBat.BarrelStart.x:0.00}, {physicalBat.BarrelStart.y:0.00}, "
+                    + $"{physicalBat.BarrelStart.z:0.00}) to "
+                    + $"({physicalBat.BarrelEnd.x:0.00}, {physicalBat.BarrelEnd.y:0.00}, "
+                    + $"{physicalBat.BarrelEnd.z:0.00})");
             if (beat == "contact"
                 && !SegmentIntersectsBox(
                     physicalBat.BarrelStart, physicalBat.BarrelEnd, plateMin, plateMax))

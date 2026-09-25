@@ -72,7 +72,16 @@ public static class HomeSet
 
     /// <summary>Third-base box. From behind home the batter sits left of the look.</summary>
     public const double BatterX = -BoxX;
-    public const double BatterZ = 3.0;
+
+    /// <summary>How far behind the middle of the batter's box, toward the catcher, the batter stands (spec §15): the knob.</summary>
+    public const double BatterBehindBoxMid = 3 * Inch;
+
+    /// <summary>
+    /// Where the batter stands along the plate line: just behind the middle of the box
+    /// (<see cref="BoxZ"/> − <see cref="BatterBehindBoxMid"/>). Everything that places, walks, reaches or frames the
+    /// batter reads this.
+    /// </summary>
+    public const double BatterZ = BoxZ - BatterBehindBoxMid;
     public const double BatterWalk = 2.4;
 
     /// <summary>

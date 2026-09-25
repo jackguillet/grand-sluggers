@@ -6,6 +6,22 @@ namespace GrandSluggers.Sim.Tests;
 public class HomeSetTests
 {
     [Fact]
+    public void BatterStandsJustBehindBoxMiddle()
+    {
+        // Across, the middle of the box for either hand; along the plate line, 3 inches behind its middle.
+        Assert.Equal(HomeSet.BoxX, HomeSet.BatterXFor(Hand.L), 12);
+        Assert.Equal(-HomeSet.BoxX, HomeSet.BatterXFor(Hand.R), 12);
+        Assert.Equal((HomeSet.BoxFrontZ + HomeSet.BoxRearZ) / 2, HomeSet.BoxZ, 12);
+        Assert.Equal(3 * HomeSet.Inch, HomeSet.BatterBehindBoxMid, 12);
+        Assert.Equal(HomeSet.BoxZ - HomeSet.BatterBehindBoxMid, HomeSet.BatterZ, 12);
+        Assert.True(HomeSet.BatterZ < HomeSet.BoxZ && HomeSet.BatterZ > HomeSet.BoxRearZ);
+        Assert.Equal(1.67, HomeSet.BatterZ, 9);
+        // The feet stay inside the chalk and the catcher's box does not move.
+        Assert.Equal(HomeSet.BoxRearZ, HomeSet.CatcherBoxFrontZ, 12);
+        Assert.True(HomeSet.FoulLineClearsTheBattersBox());
+    }
+
+    [Fact]
     public void PlateMatchesStrikeZoneWithoutMovingTheBatters()
     {
         Assert.True(HomeSet.FitsStrikeZoneLayout());
