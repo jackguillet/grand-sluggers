@@ -105,6 +105,10 @@ The recommendation is not the decision.
 | AB-12 | Field | Are field abilities per captain? | A distinct per captain · B one shared pool for captains and role players | **Accepted: B** (Jack, 2026-09-25): the pool starts with Snap Throw, Lick Catch, Laser and Clamber |
 | AB-13 | Look | Do the captains' themes and looks follow their abilities? | A yes: each captain gets a theme, look lines and a tell language that match the two Star abilities, and moves away from any look that reads as another game's character · B abilities only | A, in the matrix (direction for the art sessions; art waits for its gates) |
 
+## Rounds 3 and 4 (the live review page)
+
+Round 3 redrafted every theme, name and ability around its captain's home park. Round 4 made Rio the one human captain, carried with his friends from his neighborhood field into the Grand Reach (WD-23 to WD-26 in [plan-world.md](plan-world.md)); every other captain is a human-shaped animal or a made-up creature. The working copy is the review page; this file takes its final state when Jack says it is reviewed. The round 2 matrix below is history.
+
 ## The captain matrix (round 2)
 
 Jack, 2026-09-25: be more creative, add the other three captains, and match each captain's theme and look to the abilities. Accepted rows keep their mechanic and take the new theme and name; ids stay. Numbers are trial starting points. The theme is a direction for the art sessions; art still waits for its gates.

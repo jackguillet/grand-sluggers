@@ -52,6 +52,10 @@ All 22 decisions are accepted. Planning is complete; the children below can be f
 | WD-20 | World | Crystal Rink's colder name | A Aurora Rink · B Glacier Garden · C Polar Palace · D own | **Accepted: A, Aurora Rink** (Jack, 2026-09-25) | 06 | C1 |
 | WD-21 | Captains | Stillwater Marsh's captain; where Kai goes | A Kai to the marsh · B new marsh captain, Kai dropped · C Kai joins Fenn (11 captains) · D own | **Accepted: B, a new marsh captain** (Jack, 2026-09-25) | 07, 11 | C2, C3 |
 | WD-22 | Captains | Stillwater Marsh's new captain | A Reed (frog jumper, Marsh Hoppers) · B Heron (wader, Reedwalkers) · C own | **Accepted: A, Reed** (Jack, 2026-09-25) | 21 | C2 |
+| WD-23 | Story | The frame | A Rio, a human kid, is carried from his neighborhood field into the Grand Reach, and his friends come with him · B no story | **Accepted: A** (Jack, 2026-09-25) | — | C2, C10 |
+| WD-24 | Captains | Who is human? | A only Rio and his friends (the Spark League role players) · B mixed | **Accepted: A**: every other captain and role player is a human-shaped animal or a made-up creature (Jack, 2026-09-25) | 23 | C2, C10 |
+| WD-25 | World | Harbor Diamond | A becomes Rio's neighborhood field, in his own world · B stays a Grand Reach park | **Accepted: A** (Jack, 2026-09-25). Open: its new name, and whether it stays the calibrated control park with today's dimensions (recommended: yes, only the dressing changes) | 23 | C1, C9 |
+| WD-26 | Menu | The neighborhood field on the map | A drawn apart from the Grand Reach, in another dimension, with a way across · B one of the pins | **Accepted: A** (Jack, 2026-09-25). The look of the crossing is open | 17, 25 | C6 |
 
 Nothing is open. Jack's answers WD-13 A and WD-15 A differ from the recommendations.
 
