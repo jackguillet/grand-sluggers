@@ -106,6 +106,7 @@ A throw request never causes a catch or a manual scoop. Controller throws requir
 - Abilities: Laser ×1.25 on a throw home with a live runner on third only; Snap Throw a 0.22-s release after a clean received throw, at ×1.0. ✅ ✅ (F693-03-laser-throw, F693-03-snap-throw):
   in the `c80` copy Laser is **×1.25 and only on a throw home with a live runner on third or the third–home segment** (`abilities.laserHomeOnly` 1 — a cutoff feed never carries it, and the CPU's own forecast strips it the same way), and Snap Throw is a **0.22-s release after a clean received teammate throw** (`abilities.snapReleaseSec`, carried on `ThrowResult.ReleaseSec`) at ×1.0 flight; a pickup, a bobble, a sail or a hand-off clears the eligibility.
   The shipped table keeps ×1.45 everywhere and ×1.22, and its snap release equals its ordinary release, so it is inert there.
+- Long Toss: the holder's comfortable range runs `abilities.longTossRangeFt` (80 ft) further before the long-throw loss starts (`ThrowResult.RangeBonusFt`), so a deep throw keeps its pace; a throw inside the ordinary range is unchanged, and the CPU's forecast and the runner's read carry the same range.
 - The thrower's body: after the throw the fielder **stays where they are**; the receiver at the bag is whoever covers (§8.7). ✅ P4: the YOU ring hands to the receiver at release and follows that body's walk to the bag; the thrower's body stays put (`FieldAssist.AfterThrowPos` is gone).
 - You may **arm a bag before the catch**; the throw fires on South after the catch. ✅
 

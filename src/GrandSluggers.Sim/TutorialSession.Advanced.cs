@@ -253,7 +253,7 @@ public sealed partial class TutorialSession
                     : "Queue the onward throw while the feed flies; retarget or cancel as the lesson asks.");
             return;
         }
-        if (Lesson.Objective == "human-laser-home")
+        if (Lesson.Objective is "human-laser-home" or "human-long-toss")
         {
             var input = _inputs[^1];
             if (input.Source == LivePlayCommandSource.Human && !Demonstration
@@ -270,6 +270,15 @@ public sealed partial class TutorialSession
             var thrower = flight is null ? null : live.FielderAt(flight.FromPos);
             var receiver = flight is null ? null : live.FielderAt(flight.ReceiverPos);
             var eligibleBag = flight?.Bag == 4;
+            if (Lesson.Objective == "human-long-toss")
+            {
+                var tossed = _laserHumanThrow && flight is not null && thrower?.FieldAbility == FieldAbilityId.LongToss
+                    && receiver is not null && eligibleBag && LongTossCarried(flight, thrower!);
+                Finish(tossed, tossed ? "long-toss-home" : "long-toss-not-used",
+                    tossed ? "Your Long Toss reached home past an ordinary arm's range without losing pace."
+                        : "Catch the deep fly with the Long Toss glove, then command the throw home yourself.");
+                return;
+            }
             var success = _laserHumanThrow && flight is not null && thrower?.FieldAbility == FieldAbilityId.Laser
                 && receiver is not null && eligibleBag;
             if (success)
@@ -409,5 +418,22 @@ public sealed partial class TutorialSession
         Finish(succeeded, succeeded ? "wall-rob" : "wall-rob-missed",
             succeeded ? "Your jump took a ball that would have cleared the wall for an out."
                 : "Take the outfield glove and press West in the wall window. The ball must be caught for an out.");
+    }
+
+    /// <summary>
+    /// The Long Toss receipt (§8.5): the throw went further than the thrower's ordinary comfortable range, and it flew on the
+    /// one throw clock with Long Toss's range, so the loss an ordinary arm pays there was not paid.
+    /// </summary>
+    bool LongTossCarried(PlayTraceThrow flight, Character thrower)
+    {
+        var rules = Match.Rules;
+        var t = rules.Fielding.Throw;
+        var at = DiamondGeometry.Of(rules).Bag(flight.Bag);
+        var distance = Diamond.Dist(flight.FromX, flight.FromZ, at.X, at.Z);
+        var ordinaryRange = t.ComfortableRangeFt + t.RangePerArmFt * (thrower.Stats.Arm - InPlay.NeutralArm);
+        if (distance <= ordinaryRange) return false;
+        var expected = InPlay.ThrowSec(distance, new ThrowResult(Chemistry.Neutral, flight.SpeedMul, false, Arm: thrower.Stats.Arm,
+            RangeBonusFt: FieldAbilities.RangeBonusFt(thrower, rules)), rules);
+        return Math.Abs(flight.DurationSec - (expected - t.ReleaseSec)) <= 1e-5;
     }
 }

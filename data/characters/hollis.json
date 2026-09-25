@@ -17,9 +17,9 @@
   "bats": "L",
   "throws": "R",
   "repertoire": ["curveball", "slider"],
-  // Generic library abilities until this captain's own three land (WD-15 A; #1150); never another captain's.
-  "starPitch": "fastball",
-  "starSwing": "fly",
-  "fieldAbility": "dive",
+  // His own three (WD-15 A): Rockfall's float, Updraft's wind, Long Toss's range.
+  "starPitch": "rockfall",
+  "starSwing": "updraft",
+  "fieldAbility": "long-toss",
   "bio": "A mountain climber from the high peaks. Hits it into thin air and lets the wind do the rest."
 }

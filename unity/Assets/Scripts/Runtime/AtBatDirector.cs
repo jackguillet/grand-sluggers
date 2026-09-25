@@ -553,7 +553,7 @@ namespace GrandSluggers.UnityClient
                     _match.Pitcher.Stats.Control, _match.Rules);
             var from = ((double)_relFrom.x, (double)_relFrom.y, (double)_relFrom.z);
             var shown = _cpuSteer != 0 ? _pitch with { BreakX = _breakX } : _pitch;
-            var p = PitchFlight.Point(shown, u, _match.Rules, _match.Pitcher.StarPitch, from);
+            var p = PitchFlight.Point(shown, u, _match.Rules, _match.Pitcher.StarPitch, from, _match.Content.StarSkills);
             _ball = new Vector3((float)p.X, (float)p.Y, (float)p.Z);
             ShowAimTell(HumanPitches ? _pitch : null);
             // The CPU batter commits at the decision instant from the trajectory as it stands (spec §3, §5.9):

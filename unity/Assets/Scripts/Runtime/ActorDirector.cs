@@ -459,7 +459,7 @@ namespace GrandSluggers.UnityClient
                 _scene.Fx.Twin(null, 0, 0);
                 return;
             }
-            var real = PitchFlight.Point(pitch, u, m.Rules, starPitch, from);
+            var real = PitchFlight.Point(pitch, u, m.Rules, starPitch, from, m.Content.StarSkills);
             var at = _play.Ball + new Vector3((float)(t.X - real.X), (float)(t.Y - real.Y), (float)(t.Z - real.Z));
             _scene.Fx.Twin(at, (float)t.Alpha, ToyMesh.BallViewScale(true, at.z));
         }
