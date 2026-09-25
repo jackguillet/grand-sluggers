@@ -26,13 +26,13 @@ Status: **planning. Nothing here is built.** Rails, data and greyboxes may be bu
 
 ## Decision matrix
 
-2 decisions are accepted; 16 are open. The recommendation is not the decision. "Blocks" names the children in [Build order](#build-order).
+3 decisions are accepted; 15 are open. The recommendation is not the decision. "Blocks" names the children in [Build order](#build-order).
 
 | Id | Area | Question | Options | Recommend | Depends on | Blocks |
 | --- | --- | --- | --- | --- | --- | --- |
 | WD-01 | Gating | When does building start? | A after #346 · B rails + greyboxes now, art later · C everything now | **Accepted: B** (Jack, 2026-09-24) | — | all |
 | WD-02 | Gating | Park art order | A keep FD-17 (greybox sittings first) · B art as built | **Accepted: A** (Jack, 2026-09-24) | 01 | C9 |
-| WD-03 | Gating | Backdrops come back? | A kit art · B data greybox now, art later · C none | **B, then A** | 01 | C5, C9 |
+| WD-03 | Gating | Backdrops come back? | A kit art · B data greybox now, art later · C none | **Accepted: A, rough blockout is enough** (Jack, 2026-09-25) | 01 | C5, C9 |
 | WD-04 | Gating | Unlocks | A all open · B unlock by play · C open in Exhibition, unlocks in Challenge | **C** | — | C6 |
 | WD-05 | World | Continent shape and name | A the draft (the Diamond Isles) · B Jack's own | **A** | — | C1, C6 |
 | WD-06 | World | Which ten parks | A the draft ten · B swap in a deferred park · C Jack's list | **A** | 05 | C3 |
@@ -159,11 +159,11 @@ Children after the decisions. One issue and one worktree each. The session kind 
 | C2 New captains in data | Gameplay | Three captains and factions, sub-stats, abilities (reused plus one signature each), chemistry rows, body classes | WD-11 to 15, #1116 |
 | C3 Four new park files | Gameplay | Dimensions, fence, surface, wind, air, hazards from existing patterns; the sand ground row; at Harbor parity; off the base paths | WD-06 to 08 |
 | C4 New patterns | Gameplay | One child each: surge (tide), drifting redirect (dust devils), wind schedule (gusts) | WD-09 |
-| C5 Greyboxes | Presentation | The four new parks in the field kit and the kit bowl; palettes, night looks, greybox backdrops, night rig rows | WD-03, 10 |
+| C5 Greyboxes | Presentation + Art | The four new parks in the field kit and the kit bowl; palettes, night looks, night rig rows; a rough Blender blockout backdrop per park, all ten (WD-03 A: rough is enough) | WD-03, 10 |
 | C6 Continent map picker | Presentation | The map screen, both pads, the book pair | WD-04, 17, 18 |
 | C7 Tutorial coverage | Gameplay | A lesson per new hazard pattern and new ability (`docs/tutorials.md`) | C2, C4 |
 | C8 Greybox sittings | Jack | One park at a time (FD-17) | C5 |
-| C9 Art | Art | Backdrop, night rig, dress and map art, one park at a time after its sitting | WD-02, C8 |
+| C9 Art | Art | Finished backdrop, night rig, dress and map art, one park at a time after its sitting | WD-02, C8 |
 
 Balance (park factors, S-29) runs only when Jack starts it.
 

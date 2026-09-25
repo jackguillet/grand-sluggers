@@ -30,7 +30,7 @@
     "WD-17",
     "WD-18"
   ],
-  "next_decision": "WD-03",
+  "next_decision": "WD-04",
   "brief": "Jack, 2026-09-24: expand to 10 stadiums that make up a continent, each in the region that fits it (ice in a cold place, one in a volcano, one on a tropical island), selectable from the menu; define hazards, night lights and other defining features per stadium; grow to 10 captains, each assigned a field; one field is a tropical beach.",
   "decisions": [
     {
@@ -112,7 +112,7 @@
       "id": "WD-03",
       "area": "Gating",
       "question": "Do backdrops come back?",
-      "status": "open",
+      "status": "accepted",
       "depends_on": [
         "WD-01"
       ],
@@ -140,11 +140,15 @@
         "C5 greyboxes",
         "C9 art"
       ],
-      "selected_option": null,
-      "accepted_scope": null,
-      "decided_by": null,
-      "decided_at": null,
-      "decision_evidence": null
+      "selected_option": "A",
+      "accepted_scope": "Backdrops come back as Blender kit pieces, one per park, in tools/blender (a kit slot, not Unity-only art). A rough blockout is enough; finished art is not required (Jack). Reading recorded for confirmation: a rough blockout backdrop counts as greybox and may be built with the park's greybox (C5); finishing it waits for #346 and the park's sitting (WD-01, WD-02).",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-25",
+      "decision_evidence": {
+        "kind": "conversation",
+        "question": "WD-03: A Blender kit art per park / B Data greybox backdrops now, art later / C No backdrops",
+        "answer_quote": "a. but it doesn't need to be completed work."
+      }
     },
     {
       "id": "WD-04",
@@ -683,6 +687,12 @@
       "who": "Jack",
       "quote": "a",
       "effect": "WD-02 accepted: A."
+    },
+    {
+      "date": "2026-09-25",
+      "who": "Jack",
+      "quote": "a. but it doesn't need to be completed work.",
+      "effect": "WD-03 accepted: A."
     }
   ]
 }
