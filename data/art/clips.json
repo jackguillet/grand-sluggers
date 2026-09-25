@@ -139,6 +139,30 @@
       "playerSlot": "Assets/Resources/Art/Animation/Clips/bunt"
     },
     {
+      "id": "bunt-pull",
+      "loop": false,
+      "handed": true,
+      "events": [],
+      "slot": "Assets/Art/Animation/Clips/bunt-pull",
+      "playerSlot": "Assets/Resources/Art/Animation/Clips/bunt-pull"
+    },
+    {
+      "id": "bunt-push",
+      "loop": false,
+      "handed": true,
+      "events": [],
+      "slot": "Assets/Art/Animation/Clips/bunt-push",
+      "playerSlot": "Assets/Resources/Art/Animation/Clips/bunt-push"
+    },
+    {
+      "id": "swing-letgo",
+      "loop": false,
+      "handed": true,
+      "events": [],
+      "slot": "Assets/Art/Animation/Clips/swing-letgo",
+      "playerSlot": "Assets/Resources/Art/Animation/Clips/swing-letgo"
+    },
+    {
       "id": "miss",
       "loop": false,
       "handed": true,
@@ -161,6 +185,14 @@
       "events": [],
       "slot": "Assets/Art/Animation/Clips/dive",
       "playerSlot": "Assets/Resources/Art/Animation/Clips/dive"
+    },
+    {
+      "id": "dive-air",
+      "loop": false,
+      "handed": false,
+      "events": [],
+      "slot": "Assets/Art/Animation/Clips/dive-air",
+      "playerSlot": "Assets/Resources/Art/Animation/Clips/dive-air"
     },
     {
       "id": "crouch",
@@ -207,6 +239,46 @@
       "footPlantAt": 0.18,
       "slot": "Assets/Art/Animation/Clips/slide",
       "playerSlot": "Assets/Resources/Art/Animation/Clips/slide"
+    },
+    // The steal race (#966): the catcher's receive-to-release, the sweep tag, the head-first slide (reserved until its
+    // runners are chosen) and the runner's reversal.
+    {
+      "id": "catcherThrow",
+      "loop": false,
+      "handed": true,
+      "events": [
+        "Release"
+      ],
+      "releaseAt": 0.3,
+      "slot": "Assets/Art/Animation/Clips/catcherThrow",
+      "playerSlot": "Assets/Resources/Art/Animation/Clips/catcherThrow"
+    },
+    {
+      "id": "tag",
+      "loop": false,
+      "handed": true,
+      "events": [],
+      "slot": "Assets/Art/Animation/Clips/tag",
+      "playerSlot": "Assets/Resources/Art/Animation/Clips/tag"
+    },
+    {
+      "id": "slideHeadFirst",
+      "loop": false,
+      "handed": false,
+      "events": [
+        "FootPlant"
+      ],
+      "footPlantAt": 0.18,
+      "slot": "Assets/Art/Animation/Clips/slideHeadFirst",
+      "playerSlot": "Assets/Resources/Art/Animation/Clips/slideHeadFirst"
+    },
+    {
+      "id": "turnBack",
+      "loop": false,
+      "handed": false,
+      "events": [],
+      "slot": "Assets/Art/Animation/Clips/turnBack",
+      "playerSlot": "Assets/Resources/Art/Animation/Clips/turnBack"
     }
   ],
   "styles": {

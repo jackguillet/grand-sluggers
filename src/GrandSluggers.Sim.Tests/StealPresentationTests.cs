@@ -1,3 +1,4 @@
+using System.Linq;
 using GrandSluggers.Sim;
 using GrandSluggers.Sim.Front;
 using Xunit;
@@ -17,14 +18,81 @@ public sealed class StealPresentationTests
         Assert.False(StealPresentation.BaseThrow(0, bag, true, true, true));
     }
 
+    /// <summary>The ball leaves the hand when the sim says, for the ordinary throw and the catcher's take alike (#966).</summary>
     [Theory]
-    [InlineData(.30)] [InlineData(.22)]
-    public void TheAuthoredReleaseAndFollowThroughTrackThePhysicalPreparation(double preparation)
+    [InlineData(.30, Motion.ThrowRelease)] [InlineData(.22, Motion.ThrowRelease)]
+    [InlineData(.30, Motion.CatcherThrowRelease)] [InlineData(.22, Motion.CatcherThrowRelease)]
+    public void TheAuthoredReleaseAndFollowThroughTrackThePhysicalPreparation(double preparation, double releaseAt)
     {
-        Assert.Equal(0, StealPresentation.ThrowSample(0, preparation));
-        Assert.Equal(Motion.ThrowRelease, StealPresentation.ThrowSample(preparation, preparation), 9);
-        Assert.True(StealPresentation.ThrowSample(preparation / 2, preparation) < Motion.ThrowRelease);
-        Assert.Equal(Motion.ThrowRelease + .1, StealPresentation.ThrowSample(preparation + .1, preparation), 9);
+        Assert.Equal(0, StealPresentation.ThrowSample(0, preparation, releaseAt));
+        Assert.Equal(releaseAt, StealPresentation.ThrowSample(preparation, preparation, releaseAt), 9);
+        Assert.True(StealPresentation.ThrowSample(preparation / 2, preparation, releaseAt) < releaseAt);
+        Assert.Equal(releaseAt + .1, StealPresentation.ThrowSample(preparation + .1, preparation, releaseAt), 9);
+    }
+
+    /// <summary>The catcher's own take is the runner play's; a catcher's throw on a batted ball, and every other thrower's, is the ordinary one.</summary>
+    [Fact]
+    public void OnlyTheCatcherOnTheRunnerPlayThrowsFromTheCatchersTake()
+    {
+        Assert.Equal(Motion.Verb.CatcherThrow, StealPresentation.ThrowVerb("C", runnerPlay: true));
+        Assert.Equal(Motion.Verb.Throw, StealPresentation.ThrowVerb("C", runnerPlay: false));
+        Assert.Equal(Motion.Verb.Throw, StealPresentation.ThrowVerb("SS", runnerPlay: true));
+        Assert.Equal(Motion.Verb.Throw, StealPresentation.ThrowVerb("P", runnerPlay: true));
+    }
+
+    /// <summary>
+    /// The sweep tag (#966) is a picture of the race the sim already runs: a ball on the bag the runner is bound for, while the
+    /// runner is close. A glove off the bag, a runner still far, or a runner already on the bag shows no sweep.
+    /// </summary>
+    [Fact]
+    public void TheSweepTagShowsWhenTheBallWaitsOnTheBagTheRunnerIsBoundFor()
+    {
+        var content = Shipped.Content;
+        var feel = content.Feel;
+        var match = Match.Slice(content, seed: 7);
+        var diamond = DiamondGeometry.Of(match.Rules);
+        match.StationRunner(1, match.AwayOrder[1]);
+        match.StartStealAt(1);
+        var runner = match.Runners.Single(r => !r.IsBatter);
+        var second = diamond.Bag(2);
+        match.PitchSetup.Advance(.1);
+        Assert.Equal(2, StealPresentation.BoundFor(runner));
+        Assert.False(StealPresentation.Tagging(second.X, second.Z, match.Runners, diamond, feel.TagStandFt, feel.TagWindowFt));
+        var seen = false;
+        for (var i = 0; i < 600 && !seen; i++)
+        {
+            match.PitchSetup.Advance(1.0 / 60);
+            var (x, z) = runner.Position;
+            var close = Diamond.Dist(x, z, second.X, second.Z) <= feel.TagWindowFt;
+            Assert.Equal(close && !runner.IsOn(2),
+                StealPresentation.Tagging(second.X, second.Z, match.Runners, diamond, feel.TagStandFt, feel.TagWindowFt));
+            Assert.False(StealPresentation.Tagging(second.X + feel.TagStandFt + 1, second.Z, match.Runners, diamond,
+                feel.TagStandFt, feel.TagWindowFt));
+            seen = close;
+        }
+        Assert.True(seen, "the stealing runner never came within the tag window of second");
+    }
+
+    /// <summary>A runner that reverses plants and turns for the take's length, then runs back; a runner that never advanced does not.</summary>
+    [Fact]
+    public void AReversingRunnerTurnsBackThenRuns()
+    {
+        var match = Match.Slice(Shipped.Content, seed: 7);
+        match.StationRunner(1, match.AwayOrder[1]);
+        match.StartStealAt(1);
+        match.PitchSetup.Advance(.5);
+        var runner = match.Runners.Single(r => !r.IsBatter);
+        var before = runner.Phase;
+        Assert.True(match.ReturnToBagAt(1));
+        match.PitchSetup.Advance(1.0 / 60);
+        Assert.Equal(RunnerPhase.Returning, runner.Phase);
+        Assert.True(StealPresentation.TurnedBack(before, runner.Phase));
+        Assert.False(StealPresentation.TurnedBack(RunnerPhase.OnBag, RunnerPhase.Returning));
+        Assert.False(StealPresentation.TurnedBack(RunnerPhase.Returning, RunnerPhase.Returning));
+        Assert.Equal(Motion.Verb.TurnBack, StealPresentation.RunnerVerb(runner, 0));
+        Assert.Equal(Motion.Verb.TurnBack, StealPresentation.RunnerVerb(runner, Motion.TurnBackDur - .01));
+        Assert.Equal(Motion.Verb.Run, StealPresentation.RunnerVerb(runner, Motion.TurnBackDur));
+        Assert.Equal(Motion.Verb.Run, StealPresentation.RunnerVerb(runner, -1));
     }
 
     [Theory]

@@ -132,9 +132,13 @@ namespace GrandSluggers.UnityClient
                     else if (_live.JumpT > 0) pose = who.FieldAbility == FieldAbilityId.Clamber ? Motion.Verb.Clamber : Motion.Verb.Jump;
                     else if ((_live.Caught || _live.Buddy) && !_live.Throwing && CarryingOnTheStick(kv.Key))
                         pose = Motion.Verb.Run;
+                    // The sweep tag (#966): the ball on a bag with a runner coming into it.
+                    else if (_live.Caught && StealPresentation.Tagging(x, z, _play.Match.Runners,
+                                 DiamondGeometry.Of(_play.Match.Rules), _scene.Feel.TagStandFt, _scene.Feel.TagWindowFt))
+                        pose = Motion.Verb.Tag;
                     else if (_live.Caught && _play.Preview != null && _play.Preview.Grounder) pose = Motion.Verb.Scoop;
                     else if (_live.Caught || _live.Buddy) pose = Motion.Verb.Catch;
-                    else if (_live.DiveT > 0) pose = Motion.Verb.Dive;
+                    else if (_live.DiveT > 0) pose = Motion.Verb.DiveAir;
                     else if (_play.Preview != null && _play.Path != null)
                     {
                         var fromX = x;
@@ -182,7 +186,7 @@ namespace GrandSluggers.UnityClient
                 if (kv.Key == "C" && _play.Phase is MatchDirector.Phase.Set or MatchDirector.Phase.Flight)
                     pose = Motion.Verb.Crouch;
                 if (_live.Throwing && kv.Key == _live.ThrowFromPos)
-                    pose = Motion.Verb.Throw;
+                    pose = StealPresentation.ThrowVerb(kv.Key, _play.Phase == MatchDirector.Phase.StealThrow);
                 if (_live.Throwing && !string.IsNullOrEmpty(_live.CoverPos) && kv.Key == _live.CoverPos)
                     pose = Motion.Verb.Catch;
                 // A body paying for the ball shows it whoever holds the ring (#719–#721): the fumbler's stun (never the
@@ -219,8 +223,9 @@ namespace GrandSluggers.UnityClient
                     DefenseFacing(kv.Key, x, z, highlighted && !buddyPartner));
                 if (pose == Motion.Verb.ThrowPitch && _play.Phase == MatchDirector.Phase.Flight)
                     hero.SampleMotion((float)Motion.PitchRelease + _play.Flight, dt);
-                else if (pose == Motion.Verb.Throw && _live.Throwing && kv.Key == _live.ThrowFromPos)
-                    hero.SampleMotion((float)StealPresentation.ThrowSample(_live.ThrowT, _play.Match.LivePlay.ThrowReleaseSec), dt);
+                else if (pose is Motion.Verb.Throw or Motion.Verb.CatcherThrow && _live.Throwing && kv.Key == _live.ThrowFromPos)
+                    hero.SampleMotion((float)StealPresentation.ThrowSample(_live.ThrowT, _play.Match.LivePlay.ThrowReleaseSec,
+                        Motion.Mark(pose, Motion.ClipEvent.Release)), dt);
                 else hero.Tick(dt);
             }
 
@@ -270,14 +275,16 @@ namespace GrandSluggers.UnityClient
                 // Use the committed charge after release, including CPU swings.
                 var swingCharge = bPose == Motion.Verb.Swing && _play.Swing != null
                     ? (float)_play.Swing.Charge01
+                    : bPose == Motion.Verb.LetGo ? _host.Batter.LetGoCharge
                     : _host.HumanBats ? _play.Charge : 0f;
+                bHero.SetBuntSide(_host.Batter.ShowingSide);
                 bHero.SetPose(bPose, swingCharge);
                 if (presentingSwing) bHero.SetSwingContact(_play.SwingContactSec);
                 bHero.SetChargeRing((_play.Phase is MatchDirector.Phase.Set or MatchDirector.Phase.Flight) && _host.HumanBats && _host.PlateSwingArmed
                     ? _play.Charge : 0f);
                 bHero.SetGear(_play.Match.OffenseBat, _play.Match.DefenseGlove);
                 var batting = bPose is Motion.Verb.ChargeSwing or Motion.Verb.Swing
-                    or Motion.Verb.CheckSwing or Motion.Verb.Bunt or Motion.Verb.Miss;
+                    or Motion.Verb.CheckSwing or Motion.Verb.Bunt or Motion.Verb.Miss or Motion.Verb.LetGo;
                 bHero.SetHeld(batting, false);
                 bHero.SetHighlight(false);
                 if (racing)
@@ -385,7 +392,7 @@ namespace GrandSluggers.UnityClient
                 return Motion.Verb.Swing;
             }
             // (_play.SquareSec > 0f) (§5.8, §7.3): the bat is on the plane before the pitch — the tell the defense and the pitcher read.
-            if (_play.Phase is MatchDirector.Phase.Set or MatchDirector.Phase.Flight) return _host.SquaredNow ? Motion.Verb.Bunt : Motion.Verb.ChargeSwing;
+            if (_play.Phase is MatchDirector.Phase.Set or MatchDirector.Phase.Flight) return _host.Batter.SquaredNow ? Motion.Verb.Bunt : _host.Batter.LettingGo ? Motion.Verb.LetGo : Motion.Verb.ChargeSwing;
             return Motion.Verb.Idle;
         }
 
@@ -423,7 +430,7 @@ namespace GrandSluggers.UnityClient
         {
             if (caught) return pre.Grounder ? Motion.Verb.Scoop : Motion.Verb.Catch;
             var a = who.FieldAbility;
-            if (a == FieldAbilityId.Dive && pre.Grounder) return Motion.Verb.Dive;
+            if (a == FieldAbilityId.Dive && pre.Grounder) return Motion.Verb.DiveAir;
             if (a == FieldAbilityId.Burrow && pre.Grounder) return Motion.Verb.Dive;
             if (a == FieldAbilityId.SuperJump && pre.HomeRunLikely) return Motion.Verb.Jump;
             if (a == FieldAbilityId.Clamber && pre.HomeRunLikely) return Motion.Verb.Clamber;
@@ -495,9 +502,7 @@ namespace GrandSluggers.UnityClient
             {
                 next = diamond.Bag(state.DestBag >= state.Bag + 1 ? Math.Min(state.Bag + 1, 4) : state.Bag);
                 if (state.Phase == RunnerPhase.Returning) next = diamond.Bag(state.Bag);
-                pose = state.Sliding ? Motion.Verb.Slide
-                    : state.Moving && !state.Held ? Motion.Verb.Run
-                    : Motion.Verb.Idle;
+                pose = StealPresentation.RunnerVerb(state, TurnBackClock(state));
             }
             h.SetPose(pose);
             h.SetGear(_play.Match.OffenseBat, _play.Match.DefenseGlove);
@@ -507,6 +512,19 @@ namespace GrandSluggers.UnityClient
             h.Place(new Vector3((float)spot.X, 0, (float)spot.Z),
                 new Vector3((float)(next.X - spot.X), 0, (float)(next.Z - spot.Z)));
             h.Tick(Time.deltaTime);
+        }
+
+        /// <summary>Each runner's last phase and the seconds since it last turned back (-1: not since it appeared), #966.</summary>
+        readonly Dictionary<string, (RunnerPhase Phase, float Since)> _turns = new Dictionary<string, (RunnerPhase, float)>();
+
+        float TurnBackClock(Runner runner)
+        {
+            var since = _turns.TryGetValue(runner.Who.Id, out var last)
+                ? StealPresentation.TurnedBack(last.Phase, runner.Phase) ? 0f
+                : last.Since >= 0 ? last.Since + Time.deltaTime : -1f
+                : -1f;
+            _turns[runner.Who.Id] = (runner.Phase, since);
+            return since;
         }
 
         void PlaceSelectRoster()
@@ -577,7 +595,8 @@ namespace GrandSluggers.UnityClient
         bool HumanBats { get; }
         bool HumanPitches { get; }
         bool HumanOwnsThrow { get; }
-        bool SquaredNow { get; }
+        /// <summary>What the batter's body shows at the plate: the square and its side, and a let-go.</summary>
+        IBatterTells Batter { get; }
         bool PlateSwingArmed { get; }
         float PitchCharge { get; }
         string ShownPitchType { get; }

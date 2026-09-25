@@ -7,7 +7,7 @@ public readonly record struct RigBoneMap(string Id, IReadOnlyList<string> Bones,
 /// <summary>One clip file slot. Left-handed takes sit next to the right-handed file as <c>{id}-L</c>.</summary>
 public readonly record struct ClipSlot(
     string Id, bool Loop, bool Handed, IReadOnlyList<string> Events, string Slot, string PlayerSlot,
-    double ContactAt, double ReleaseAt, double FootPlantAt, double FinishAt = 0);
+    double ContactAt, double ReleaseAt, double FootPlantAt, double FinishAt = 0, string? StandIn = null);
 
 public readonly record struct SkinSlot(
     string Id, string BodyType, bool Captain, IReadOnlyList<string> Extras, string? Portrait, string Palette);
@@ -381,6 +381,22 @@ public sealed class ArtCatalog
                 errors.Add("clip " + need.Id + " finishAt " + clip.FinishAt + " must be " + need.FinishAt);
             if (need.FinishAt > 0 && Math.Abs(need.FinishAt - need.Duration) > 1e-6)
                 errors.Add("clip " + need.Id + " held finish " + need.FinishAt + " must be its last second " + need.Duration);
+            // Catalog first, then the take (#966): a stand-in slot plays an authored clip and has no files of its own yet;
+            // the take that fills it drops the stand-in in the same change.
+            if (!string.Equals(clip.StandIn, need.StandIn, StringComparison.Ordinal))
+                errors.Add("clip " + need.Id + " standIn " + (clip.StandIn ?? "none") + " must be " + (need.StandIn ?? "none"));
+            if (need.StandIn is { } standIn)
+            {
+                if (!Motion.TryClip(standIn, out var standInClip) || standInClip.StandIn != null)
+                    errors.Add("clip " + need.Id + " stands in with " + standIn + ", which is not an authored clip");
+                foreach (var hand in clip.Handed ? new[] { Hand.R, Hand.L } : new[] { Hand.R })
+                {
+                    var (slot, playerSlot) = ClipFiles(clip, hand);
+                    if (File.Exists(Unity(content.Root, slot)) || File.Exists(Unity(content.Root, playerSlot)))
+                        errors.Add("clip " + need.Id + " has its own take at " + slot + "; drop its standIn");
+                }
+                continue;
+            }
             foreach (var hand in clip.Handed ? new[] { Hand.R, Hand.L } : new[] { Hand.R })
             {
                 var (slot, playerSlot) = ClipFiles(clip, hand);
@@ -661,7 +677,8 @@ public sealed class ArtCatalog
         var clipDto = DataJson.Require<ClipsFile>(Art("clips.json"));
         var clips = (clipDto.Clips ?? []).Select(c =>
             new ClipSlot(c.Id, c.Loop, c.Handed, c.Events ?? [], c.Slot, c.PlayerSlot,
-                c.ContactAt, c.ReleaseAt, c.FootPlantAt, c.FinishAt)).ToList();
+                c.ContactAt, c.ReleaseAt, c.FootPlantAt, c.FinishAt,
+                string.IsNullOrEmpty(c.StandIn) ? null : c.StandIn)).ToList();
 
         var skinDto = DataJson.Require<SkinsFile>(Art("skins.json"));
         var skins = new Dictionary<string, SkinSlot>(StringComparer.OrdinalIgnoreCase);
@@ -692,7 +709,8 @@ public sealed class ArtCatalog
         var actors = HazardActors.Parse(JsonNode.Parse(File.ReadAllText(Art("hazard-actors.json")), documentOptions: nodeOptions), "hazard-actors.json");
         var styleDto = clipDto.Styles ?? new StylesDto();
         var styled = styleDto.Clips ?? [];
-        var motionIds = Motion.ClipIds;
+        // A stand-in slot has no take yet, so no style owns one of it either (#966).
+        var motionIds = Motion.Clips.Where(c => c.StandIn == null).Select(c => c.Id).ToArray();
         var styles = (styleDto.Rows ?? []).Select(s =>
         {
             var owned = Math.Abs(s.ReachScale - 1) > 1e-9 ? motionIds : (IReadOnlyList<string>)styled;
@@ -785,6 +803,7 @@ public sealed class ArtCatalog
         public double FinishAt { get; set; }
         public double ReleaseAt { get; set; }
         public double FootPlantAt { get; set; }
+        public string? StandIn { get; set; }
     }
 
     sealed class SkinsFile { public List<SkinDto>? Skins { get; set; } }

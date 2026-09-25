@@ -1,3 +1,4 @@
+using System.Linq;
 using Xunit;
 using GrandSluggers.Sim;
 
@@ -33,10 +34,56 @@ public class MotionTests
     }
 
     [Fact]
+    public void TheSquaredTakeShowsTheHeldSideForEitherHand()
+    {
+        // PH-14-R3: third is a right-handed batter's pull field and a left-handed batter's push field; the lefty file is the mirror.
+        Assert.Equal("bunt-pull", Motion.ClipFor(Motion.Verb.Bunt, Hand.R, null, bunt: BuntSide.Third));
+        Assert.Equal("bunt-push", Motion.ClipFor(Motion.Verb.Bunt, Hand.R, null, bunt: BuntSide.First));
+        Assert.Equal("bunt-push-L", Motion.ClipFor(Motion.Verb.Bunt, Hand.L, null, bunt: BuntSide.Third));
+        Assert.Equal("bunt-pull-L", Motion.ClipFor(Motion.Verb.Bunt, Hand.L, null, bunt: BuntSide.First));
+        Assert.Equal("bunt", Motion.ClipFor(Motion.Verb.Bunt, Hand.R, null));
+        // The side only picks the squared take.
+        Assert.Equal("swing-slap", Motion.ClipFor(Motion.Verb.Swing, Hand.R, null, bunt: BuntSide.Third));
+    }
+
+    [Fact]
+    public void TheLetGoStartsOnTheDiscardedLoadAndMatchesItsTake()
+    {
+        // PH-13-R1: a full load lets go from the coil, no load starts on the stance, a partial load part-way in.
+        Assert.Equal(0, Motion.LetGoStartAt(1), 9);
+        Assert.Equal(Motion.LetGoReturnAt, Motion.LetGoStartAt(0), 9);
+        Assert.Equal(Motion.LetGoReturnAt * 0.4, Motion.LetGoStartAt(0.6), 9);
+        Assert.Equal(Motion.Clock.Verb, Motion.CueFor(Motion.Verb.LetGo).Clock);
+        Assert.True(Motion.UsesBattingHand(Motion.Verb.LetGo));
+        // The take's numbers are the data the bake reads: it walks the charge take from its coil to its no-charge stance.
+        var path = Path.Combine(Shipped.Content.Root.Shipped, "art", "baseball-takes.json");
+        var letGo = System.Text.Json.Nodes.JsonNode.Parse(File.ReadAllText(path))!["letGo"]!;
+        Assert.Equal(Motion.LetGoDur, letGo["duration"]!.GetValue<double>(), 9);
+        Assert.Equal(Motion.LetGoReturnAt, letGo["returnAt"]!.GetValue<double>(), 9);
+        Assert.Equal(Motion.SwingChargeClip, letGo["source"]!.GetValue<string>());
+        Assert.Equal(SwingPresentation.HeldLoadAt(1), letGo["fromAt"]!.GetValue<double>(), 9);
+        Assert.Equal(SwingPresentation.HeldLoadAt(0), letGo["toAt"]!.GetValue<double>(), 9);
+    }
+
+    [Fact]
+    public void TheDiveInFlightIsItsOwnHeldTake()
+    {
+        // The lunge plays the layout off the dirt; the ground dive stays the recovery and the knockback's.
+        var air = Motion.CueFor(Motion.Verb.DiveAir);
+        Assert.Equal(Motion.DiveAirClip, air.Clip);
+        Assert.Equal(Motion.Clock.Verb, air.Clock);
+        Assert.True(Motion.Holds(Motion.Verb.DiveAir));
+        Assert.NotEqual(Motion.CueFor(Motion.Verb.Dive).Clip, air.Clip);
+        Assert.False(Motion.IsHanded(Motion.DiveAirClip));
+    }
+
+    [Fact]
     public void HandedTakesAreExactlyTheHittingAndThrowingOnes()
     {
         var handed = Motion.Clips.Where(c => c.Handed).Select(c => c.Id).ToHashSet();
-        Assert.Equal(new HashSet<string> { "swing-slap", "swing-charge", "pitch", "pitch-charge", "throw", "checkSwing", "bunt", "miss" }, handed);
+        // The catcher's throw and the sweep tag are the throwing hand's too (#966).
+        Assert.Equal(new HashSet<string> { "swing-slap", "swing-charge", "pitch", "pitch-charge", "throw", "checkSwing", "bunt", "bunt-pull", "bunt-push", "swing-letgo", "miss",
+            "catcherThrow", "tag" }, handed);
         foreach (var verb in Motion.Verbs)
         {
             var clip = Motion.CueFor(verb).Clip;
@@ -100,5 +147,38 @@ public class MotionTests
         Assert.Equal(1 / Motion.RunHz, run.Duration, 8);
         Assert.True(Motion.TryClip("walk", out var walk));
         Assert.True(walk.Duration > run.Duration, "a walk cycle is slower than a run cycle");
+    }
+
+    /// <summary>
+    /// Catalog first, then the take (#966): a stand-in slot plays an authored clip until its own lands, every file, marker and
+    /// hold the stand-in's, and the stand-in is never itself a stand-in.
+    /// </summary>
+    [Fact]
+    public void AStandInSlotPlaysAnAuthoredClipUntilItsOwnTakeLands()
+    {
+        foreach (var clip in Motion.Clips.Where(c => c.StandIn != null))
+        {
+            Assert.True(Motion.TryClip(clip.StandIn!, out var played), clip.Id + " stands in with an unknown clip");
+            Assert.Null(played.StandIn);
+            Assert.Equal(played.Id, Motion.PlayedId(clip.Id));
+        }
+        // The steal race's takes have landed (#966): each plays its own file, both hands where handed, on its own marker.
+        Assert.Equal("catcherThrow-L", Motion.ClipFile(Motion.Verb.CatcherThrow, Hand.R, Hand.L));
+        Assert.Equal("tag-L", Motion.ClipFile(Motion.Verb.Tag, Hand.R, Hand.L));
+        Assert.Equal("slideHeadFirst", Motion.ClipFile(Motion.Verb.SlideHeadFirst, Hand.R, Hand.R));
+        Assert.Equal("turnBack", Motion.ClipFile(Motion.Verb.TurnBack, Hand.R, Hand.R));
+        Assert.Equal(Motion.CatcherThrowRelease, Motion.Mark(Motion.Verb.CatcherThrow, Motion.ClipEvent.Release));
+        Assert.Equal("idle", Motion.PlayedId("idle"));
+    }
+
+    /// <summary>The head-first slide is a style of slide, never a faster one: its slot's length and plant are the feet-first slide's.</summary>
+    [Fact]
+    public void TheHeadFirstSlideKeepsTheFeetFirstSlidesClock()
+    {
+        Assert.True(Motion.TryClip("slide", out var feetFirst));
+        Assert.True(Motion.TryClip("slideHeadFirst", out var headFirst));
+        Assert.Equal(feetFirst.Duration, headFirst.Duration);
+        Assert.Equal(feetFirst.Mark, headFirst.Mark);
+        Assert.Equal(feetFirst.MarkAt, headFirst.MarkAt);
     }
 }
