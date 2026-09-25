@@ -30,14 +30,14 @@
     "WD-17",
     "WD-18"
   ],
-  "next_decision": "WD-01",
+  "next_decision": "WD-02",
   "brief": "Jack, 2026-09-24: expand to 10 stadiums that make up a continent, each in the region that fits it (ice in a cold place, one in a volcano, one on a tropical island), selectable from the menu; define hazards, night lights and other defining features per stadium; grow to 10 captains, each assigned a field; one field is a tropical beach.",
   "decisions": [
     {
       "id": "WD-01",
       "area": "Gating",
       "question": "When does building start?",
-      "status": "open",
+      "status": "accepted",
       "depends_on": [],
       "options": [
         {
@@ -62,11 +62,15 @@
       "blocks": [
         "all children"
       ],
-      "selected_option": null,
-      "accepted_scope": null,
-      "decided_by": null,
-      "decided_at": null,
-      "decision_evidence": null
+      "selected_option": "B",
+      "accepted_scope": "Plan now. Build now: the world data rail, the new captains in data, the four new park files, the new hazard patterns, the greyboxes and the map picker. No park, backdrop or map art until Jack passes #346; a park's art still waits for its greybox sitting (FD-17, WD-02 open). AGENTS.md carries the scope line.",
+      "decided_by": "Jack",
+      "decided_at": "2026-09-24",
+      "decision_evidence": {
+        "kind": "conversation",
+        "question": "WD-01: A plan now, build after #346 / B rails and greyboxes now, art after #346 / C everything now",
+        "answer_quote": "B"
+      }
     },
     {
       "id": "WD-02",
@@ -663,6 +667,12 @@
       "who": "Jack",
       "quote": "pick a new name instead of mario. but otherwise i like it. let's create a matrix to track all these decisions and expand on details.",
       "effect": "The beach captain's draft name changed to Kai. Feedback on the draft as a whole; no decision is recorded as accepted from it. This register and the expanded plan were written."
+    },
+    {
+      "date": "2026-09-24",
+      "who": "Jack",
+      "quote": "B",
+      "effect": "WD-01 accepted: B. AGENTS.md gains the world scope line."
     }
   ]
 }

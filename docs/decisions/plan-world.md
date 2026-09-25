@@ -1,6 +1,6 @@
 # Plan: the world — ten stadiums on one continent, ten captains
 
-Status: **planning. Nothing here is built.** The decisions are open until Jack answers them, one at a time. Tracker: #1133. Register (canonical, with every option's trade-off): [world-decisions.json](../research/world-decisions.json). Ids: **WD-01 … WD-18**.
+Status: **planning. Nothing here is built.** WD-01 is accepted (B: rails, data and greyboxes may be built now; art waits for #346). The other decisions are open until Jack answers them, one at a time. Tracker: #1133. Register (canonical, with every option's trade-off): [world-decisions.json](../research/world-decisions.json). Ids: **WD-01 … WD-18**.
 
 ## What Jack asked for
 
@@ -26,11 +26,11 @@ Status: **planning. Nothing here is built.** The decisions are open until Jack a
 
 ## Decision matrix
 
-Status is **open** for all eighteen. The recommendation is not the decision. "Blocks" names the children in [Build order](#build-order).
+One decision is accepted; seventeen are open. The recommendation is not the decision. "Blocks" names the children in [Build order](#build-order).
 
 | Id | Area | Question | Options | Recommend | Depends on | Blocks |
 | --- | --- | --- | --- | --- | --- | --- |
-| WD-01 | Gating | When does building start? | A after #346 · B rails + greyboxes now, art later · C everything now | **B** | — | all |
+| WD-01 | Gating | When does building start? | A after #346 · B rails + greyboxes now, art later · C everything now | **Accepted: B** (Jack, 2026-09-24) | — | all |
 | WD-02 | Gating | Park art order | A keep FD-17 (greybox sittings first) · B art as built | **A** | 01 | C9 |
 | WD-03 | Gating | Backdrops come back? | A kit art · B data greybox now, art later · C none | **B, then A** | 01 | C5, C9 |
 | WD-04 | Gating | Unlocks | A all open · B unlock by play · C open in Exhibition, unlocks in Challenge | **C** | — | C6 |
