@@ -13,6 +13,7 @@ public static class FieldAbilityId
     public const string Grow = "grow";
     public const string Laser = "laser";
     public const string LickCatch = "lick-catch";
+    public const string LongToss = "long-toss";
     public const string SandScoop = "sand-scoop";
     public const string SnapThrow = "snap-throw";
     public const string SpinCheck = "spin-check";
@@ -20,7 +21,7 @@ public static class FieldAbilityId
     public const string Withdraw = "withdraw";
 
     public static readonly IReadOnlyList<string> All =
-        [BallDash, Burrow, Clamber, Dive, Grow, Laser, LickCatch, SandScoop, SnapThrow, SpinCheck, SuperJump, Withdraw];
+        [BallDash, Burrow, Clamber, Dive, Grow, Laser, LickCatch, LongToss, SandScoop, SnapThrow, SpinCheck, SuperJump, Withdraw];
 }
 
 /// <summary>One defensive verb per character — the Sluggers "who you are on defense."</summary>
@@ -107,9 +108,17 @@ public static class FieldAbilities
         };
     }
 
-    /// <summary>The thrower's arm and ability on a chemistry throw: one speed multiplier the one throw clock reads (§8.5), and the arm rating its range is measured from.</summary>
+    /// <summary>Long Toss (§8.5): the feet its holder's comfortable range reaches past the arm's own before a long throw loses pace; 0 for every other thrower.</summary>
+    public static double RangeBonusFt(Character c, RulesTable rules) =>
+        c.FieldAbility == FieldAbilityId.LongToss ? rules.Fielding.Abilities.LongTossRangeFt : 0;
+
+    /// <summary>The thrower's arm and ability on a chemistry throw: one speed multiplier the one throw clock reads (§8.5), the arm rating its range is measured from, and Long Toss's reach past it.</summary>
     public static ThrowResult ApplyThrow(Character from, ThrowResult throwRes, RulesTable rules) =>
-        throwRes with { SpeedMul = throwRes.SpeedMul * ThrowMul(from, rules) * InPlay.ArmMul(from, rules), Arm = from.Stats.Arm };
+        throwRes with
+        {
+            SpeedMul = throwRes.SpeedMul * ThrowMul(from, rules) * InPlay.ArmMul(from, rules), Arm = from.Stats.Arm,
+            RangeBonusFt = RangeBonusFt(from, rules)
+        };
 }
 
 public static class ErrorItems

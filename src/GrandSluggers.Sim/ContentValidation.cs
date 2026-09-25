@@ -251,6 +251,10 @@ public static class ContentDataValidator
                     errors.Add($"{source}: star pitch '{key}' twin needs offsetFt > 0 and 0 <= fadeFrom < fadeTo <= {PitchTwin.GoneBy.ToString(CultureInfo.InvariantCulture)}");
                 if (value.FirstHopKickDeg is not null)
                     errors.Add($"{source}: star pitch '{key}' cannot carry firstHopKickDeg; it is a swing's");
+                if (value.WindMul is not null)
+                    errors.Add($"{source}: star pitch '{key}' cannot carry windMul; it is a swing's");
+                if (value.Float is { } rise && (rise.RiseFt <= 0 || rise.RiseFt > PitchFloatLimits.MaxRiseFt || rise.DropFrom <= 0 || rise.DropFrom >= 1))
+                    errors.Add($"{source}: star pitch '{key}' float needs 0 < riseFt <= {PitchFloatLimits.MaxRiseFt.ToString(CultureInfo.InvariantCulture)} and 0 < dropFrom < 1");
             }
             else
             {
@@ -262,6 +266,10 @@ public static class ContentDataValidator
                     errors.Add($"{source}: star swing '{key}' firstHopKickDeg must be greater than 0 and at most {StarSwingSkill.MaxKickDeg.ToString(CultureInfo.InvariantCulture)}; got {value.FirstHopKickDeg}");
                 if (value.Twin is not null)
                     errors.Add($"{source}: star swing '{key}' cannot carry a twin; it is a pitch's");
+                if (value.Float is not null)
+                    errors.Add($"{source}: star swing '{key}' cannot carry a float; it is a pitch's");
+                if (value.WindMul is not null && (value.WindMul < 0 || value.WindMul > StarSwingSkill.MaxWindMul))
+                    errors.Add($"{source}: star swing '{key}' windMul must be between 0 and {StarSwingSkill.MaxWindMul.ToString(CultureInfo.InvariantCulture)}; got {value.WindMul}");
             }
         }
         return ids;
@@ -1513,17 +1521,29 @@ internal sealed class StarSkillDto
     public bool Fragments { get; set; }
     /// <summary>A pitch's faint twin (<see cref="PitchTwin"/>); pitches only.</summary>
     public PitchTwinDto? Twin { get; set; }
+    /// <summary>A pitch's float (<see cref="PitchFloat"/>); pitches only.</summary>
+    public PitchFloatDto? Float { get; set; }
     /// <summary>A swing's ball kicks this many degrees off its first hop (<see cref="StarSwingSkill.FirstHopKickDeg"/>); swings only.</summary>
     public double? FirstHopKickDeg { get; set; }
+    /// <summary>A swing's ball rides the park's wind this many times as hard (<see cref="StarSwingSkill.WindMul"/>); swings only.</summary>
+    public double? WindMul { get; set; }
     /// <summary>The cost tier (PH-16-R7): one of <see cref="StarTierRules.Ids"/>. Required.</summary>
     public string? Tier { get; set; }
 
     public StarPitchSkill ToPitch() => new(Id, Name, Kind, SpeedMul ?? 1.0, StaminaCost ?? 0,
         LateBreak, Decoy, OnCatch, Tier ?? StarTierRules.LowId,
-        Twin is null ? null : new PitchTwin(Twin.OffsetFt, Twin.FadeFrom, Twin.FadeTo));
+        Twin is null ? null : new PitchTwin(Twin.OffsetFt, Twin.FadeFrom, Twin.FadeTo),
+        Float is null ? null : new PitchFloat(Float.RiseFt, Float.DropFrom));
 
     public StarSwingSkill ToSwing() => new(Id, Name, Kind, ExitVeloMul ?? 1.0, LaunchDeg, Terrain,
-        FielderPauseSec ?? 0, InfieldChaos, Decoy, Fragments, Tier ?? StarTierRules.LowId, FirstHopKickDeg ?? 0);
+        FielderPauseSec ?? 0, InfieldChaos, Decoy, Fragments, Tier ?? StarTierRules.LowId, FirstHopKickDeg ?? 0,
+        WindMul ?? 1);
+}
+
+internal sealed class PitchFloatDto
+{
+    public double RiseFt { get; set; }
+    public double DropFrom { get; set; }
 }
 
 internal sealed class PitchTwinDto

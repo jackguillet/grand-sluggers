@@ -16,6 +16,8 @@
     { "id": "staff-swing", "slot": "Assets/Art/VFX/staff-swing", "kind": "field" },
     { "id": "mirageball", "slot": "Assets/Art/VFX/mirageball", "kind": "ball" },
     { "id": "sidewinder", "slot": "Assets/Art/VFX/sidewinder", "kind": "field" },
+    { "id": "rockfall", "slot": "Assets/Art/VFX/rockfall", "kind": "ball" },
+    { "id": "updraft", "slot": "Assets/Art/VFX/updraft", "kind": "field" },
     { "id": "fastball", "slot": "Assets/Art/VFX/fastball", "kind": "ball" },
     { "id": "changeup", "slot": "Assets/Art/VFX/changeup", "kind": "ball" },
     { "id": "breaker", "slot": "Assets/Art/VFX/breaker", "kind": "ball" },

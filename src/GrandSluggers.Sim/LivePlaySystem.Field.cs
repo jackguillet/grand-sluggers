@@ -1415,7 +1415,8 @@ public sealed partial class LivePlaySystem
 
     /// <summary>The arm alone (no chemistry roll): the fielder's own estimate of a throw to <paramref name="bag"/> (0 for a cutoff feed), with the ability the command allows there and Snap Throw's release when the thrower holds a received ball (#723).</summary>
     ThrowResult ArmOnly(Character who, int bag, bool receivedClean) =>
-        new(Chemistry.Neutral, InPlay.ArmMul(who, R) * AbilityMul(who, bag), false, Arm: who.Stats.Arm, ReleaseSec: SnapRelease(who, receivedClean));
+        new(Chemistry.Neutral, InPlay.ArmMul(who, R) * AbilityMul(who, bag), false, Arm: who.Stats.Arm, ReleaseSec: SnapRelease(who, receivedClean),
+            RangeBonusFt: FieldAbilities.RangeBonusFt(who, R));
 
     /// <summary>
     /// The CPU's forecast of a throw from <paramref name="from"/> to <paramref name="to"/>: the arm and ability exactly, and
@@ -1469,7 +1470,8 @@ public sealed partial class LivePlaySystem
         var pairPart = real.SpeedMul / armPart;
         var speed = (1 + level.RunnerReadsArm * (armPart - 1)) * pairPart;
         var arm = (int)Math.Round(InPlay.NeutralArm + level.RunnerReadsArm * (who.Stats.Arm - InPlay.NeutralArm));
-        return new ThrowResult(Chemistry.Neutral, speed, false, Arm: arm);
+        return new ThrowResult(Chemistry.Neutral, speed, false, Arm: arm,
+            RangeBonusFt: level.RunnerReadsArm * FieldAbilities.RangeBonusFt(who, R));
     }
 
     /// <summary>The runner's clock (§9.9): <see cref="RunnerThrowSec"/> with the body at <paramref name="pos"/> as the thrower — whoever holds the ball next.</summary>
@@ -1918,7 +1920,7 @@ public sealed partial class LivePlaySystem
         var before = BallFlight.PointAt(Path, Math.Max(0, t - dt), R);
         var (vx, vy, vz) = ((BallX - before.X) / dt, (BallY - before.Y) / dt, (BallZ - before.Z) / dt);
         if (SolidBodies.Carom(_solids, t, BallX, BallY, BallZ, vx, vz) is not { } hit) return;
-        Path = BallFlight.Continue(Path, t, hit.X, BallY, hit.Z, hit.Vx, vy, hit.Vz, Hit.LaunchDeg, Hit.ExitVeloMph, Park, R);
+        Path = BallFlight.Continue(Path, t, hit.X, BallY, hit.Z, hit.Vx, vy, hit.Vz, Hit.LaunchDeg, Hit.ExitVeloMph, Park, R, Hit.WindMul);
         Ball = BattedBall.Reread(Path, Hit.ExitVeloMph, Hit.LaunchDeg, Ball.Shape == BattedBallClass.Bunt, Park, R);
         (BallX, BallZ) = (hit.X, hit.Z);
         _ballPrev = null;
@@ -1963,7 +1965,7 @@ public sealed partial class LivePlaySystem
         var (vx, vz) = ((BallX - before.X) / dt, (BallZ - before.Z) / dt);
         var (x, y, z, ox, oy, oz) = BallHazards.Launch(exit, vx, vz);
         var entry = (X: BallX, Z: BallZ);
-        Path = BallFlight.Continue(Path, t, x, y, z, ox, oy, oz, Hit.LaunchDeg, Hit.ExitVeloMph, Park, R);
+        Path = BallFlight.Continue(Path, t, x, y, z, ox, oy, oz, Hit.LaunchDeg, Hit.ExitVeloMph, Park, R, Hit.WindMul);
         Ball = BattedBall.Reread(Path, Hit.ExitVeloMph, Hit.LaunchDeg, Ball.Shape == BattedBallClass.Bunt, Park, R);
         (BallX, BallY, BallZ) = (x, y, z);
         _ballPrev = null;
@@ -2739,7 +2741,7 @@ public sealed partial class LivePlaySystem
         var s = retention * speed;
         if (Path is not null && Hit is not null)
         {
-            Path = BallFlight.Continue(Path, ElapsedSeconds, BallX, BallY, BallZ, ox * s, retention * vy, oz * s, Hit.LaunchDeg, Hit.ExitVeloMph, Park, R);
+            Path = BallFlight.Continue(Path, ElapsedSeconds, BallX, BallY, BallZ, ox * s, retention * vy, oz * s, Hit.LaunchDeg, Hit.ExitVeloMph, Park, R, Hit.WindMul);
             if (Ball is not null) Ball = BattedBall.Reread(Path, Hit.ExitVeloMph, Hit.LaunchDeg, Ball.Shape == BattedBallClass.Bunt, Park, R);
             _ballPrev = null;
         }

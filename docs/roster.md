@@ -102,7 +102,7 @@ Names are working titles. Replace freely; keep the *roles*.
 ### Hollis — Peak Guard
 
 - Bars: Pitch 6 / Bat 8 / Field 5 / Run 4. Body class `climber` (borrows Brondo's takes until its own style exists).
-- Star abilities: owed (#1150); until then the generic Star Fastball, Star Fly and Dive.
+- Star abilities: Rockfall (floats high, drops onto its crossing late), Updraft (the fly rides the wind half again as hard) and Long Toss (a deep throw keeps its pace 80 ft further).
 - Signature bat: Summit Axe. Bats/throws: L/R. Role players: Flint, Cairn, Scree.
 
 ### Reed — Marsh Hoppers

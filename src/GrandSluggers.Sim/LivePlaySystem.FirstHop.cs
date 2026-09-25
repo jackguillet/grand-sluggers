@@ -43,7 +43,7 @@ public sealed partial class LivePlaySystem
         var turn = FirstHopTurnDeg(vx, vz, now.X, now.Z, away.X, away.Z, swing.FirstHopKickDeg);
         var r = turn * Math.PI / 180;
         var (kx, kz) = (vx * Math.Cos(r) - vz * Math.Sin(r), vx * Math.Sin(r) + vz * Math.Cos(r));
-        Path = BallFlight.Continue(Path, t, now.X, now.Y, now.Z, kx, vy, kz, Hit.LaunchDeg, Hit.ExitVeloMph, Park, R);
+        Path = BallFlight.Continue(Path, t, now.X, now.Y, now.Z, kx, vy, kz, Hit.LaunchDeg, Hit.ExitVeloMph, Park, R, Hit.WindMul);
         Ball = BattedBall.Reread(Path, Hit.ExitVeloMph, Hit.LaunchDeg, false, Park, R);
         (BallX, BallY, BallZ) = now;
         _ballPrev = null;

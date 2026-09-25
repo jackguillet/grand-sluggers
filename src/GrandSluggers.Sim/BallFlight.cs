@@ -45,10 +45,12 @@ public static class BallFlight
         Integrate(exitMph, launchDeg, 0, windMph, (0, 1), null, null, rules);
 
     /// <summary>The clipped path in this park: 3-D, the park's directional wind, the fence and the foul walls, on the park's ground zones.</summary>
-    public static IReadOnlyList<Sample> Trajectory(double exitMph, double launchDeg, double sprayDeg, Park park, RulesTable rules)
+    /// <remarks><paramref name="windMul"/> scales the park's wind on this one ball (<see cref="AtBatResult.WindMul"/>); 1 is every ordinary ball.</remarks>
+    public static IReadOnlyList<Sample> Trajectory(double exitMph, double launchDeg, double sprayDeg, Park park, RulesTable rules,
+        double windMul = 1)
     {
         var r = rules;
-        return Integrate(exitMph, launchDeg, sprayDeg, park.WindMph, park.WindDirection, FieldBounds.Of(park, r), GroundZones.Of(park, r), r);
+        return Integrate(exitMph, launchDeg, sprayDeg, park.WindMph * windMul, park.WindDirection, FieldBounds.Of(park, r), GroundZones.Of(park, r), r);
     }
 
     static IReadOnlyList<Sample> Integrate(
@@ -78,12 +80,12 @@ public static class BallFlight
     /// <paramref name="vz"/>) measured in play seconds, on the same time scale the hit had. A deflected ball is a batted ball still.
     /// </summary>
     public static IReadOnlyList<Sample> Continue(IReadOnlyList<Sample> path, double fromT, double x, double y, double z,
-        double vx, double vy, double vz, double launchDeg, double exitMph, Park park, RulesTable rules)
+        double vx, double vy, double vz, double launchDeg, double exitMph, Park park, RulesTable rules, double windMul = 1)
     {
         var r = rules;
         var f = r.Flight;
-        var wx = park.WindMph * MphToFtPerSec * f.WindMul * park.WindDirection.X;
-        var wz = park.WindMph * MphToFtPerSec * f.WindMul * park.WindDirection.Z;
+        var wx = park.WindMph * windMul * MphToFtPerSec * f.WindMul * park.WindDirection.X;
+        var wz = park.WindMph * windMul * MphToFtPerSec * f.WindMul * park.WindDirection.Z;
         var scale = f.TimeScaleFor(launchDeg, exitMph, r);
         var list = new List<Sample>(512);
         foreach (var s in path)

@@ -13,7 +13,27 @@ public sealed record StarPitchSkill(
     /// <summary>The cost tier (<see cref="StarTierRules"/>, PH-16-R7): stars.json prices it.</summary>
     string Tier = StarTierRules.LowId,
     /// <summary>A faint second ball drawn beside the real one early in the flight, or null (§13).</summary>
-    PitchTwin? Twin = null);
+    PitchTwin? Twin = null,
+    /// <summary>A path that floats high early and drops onto the unchanged crossing late, or null (§13).</summary>
+    PitchFloat? Float = null);
+
+/// <summary>
+/// A star pitch's float (spec §13): the ball rises up to <see cref="RiseFt"/> above its ordinary path, highest at
+/// <see cref="DropFrom"/> of the flight, then drops back onto the ordinary path by the plate. The crossing — what the
+/// umpire, the bat and the CPU judge — is the ordinary one; only the look of the flight bends.
+/// </summary>
+public sealed record PitchFloat(double RiseFt, double DropFrom)
+{
+    /// <summary>The height over the ordinary path at <paramref name="u"/>: up along a quarter sine, down along a parabola, exactly 0 at the plate.</summary>
+    public double Lift(double u)
+    {
+        u = Math.Clamp(u, 0, 1);
+        if (u >= 1) return 0;
+        if (u <= DropFrom) return RiseFt * Math.Sin(Math.PI / 2 * u / DropFrom);
+        var d = (u - DropFrom) / (1 - DropFrom);
+        return RiseFt * (1 - d * d);
+    }
+}
 
 /// <summary>
 /// A star pitch's twin (spec §13): a faint second ball <see cref="OffsetFt"/> to the far side of the zone from the real
@@ -47,8 +67,13 @@ public sealed record StarSwingSkill(
     /// <summary>
     /// A fair ball off this swing turns this many degrees at its first hop, away from the fielder chasing it (§13); 0 is none.
     /// </summary>
-    double FirstHopKickDeg = 0)
+    double FirstHopKickDeg = 0,
+    /// <summary>How strongly the park's wind acts on this swing's ball (§13, <see cref="AtBatResult.WindMul"/>); 1 is the ordinary ball.</summary>
+    double WindMul = 1)
 {
+    /// <summary>The largest wind factor a row may name: the wind may carry a star ball twice as far, never more.</summary>
+    public const double MaxWindMul = 2;
+
     /// <summary>The largest kick a row may name: a hop, not a U-turn.</summary>
     public const double MaxKickDeg = 45;
 }
@@ -118,6 +143,10 @@ public static class StarSkills
     public static double SwingExitMul(string? starSwing, StarSkillTable? table = null) =>
         StarSkillTable.Or(table).Swing(starSwing)?.ExitVeloMul ?? 1.0;
 
+    /// <summary>How strongly the park's wind acts on a star swing's ball (§13); 1 for a swing whose row names none.</summary>
+    public static double SwingWindMul(string? starSwing, StarSkillTable? table = null) =>
+        StarSkillTable.Or(table).Swing(starSwing)?.WindMul ?? 1.0;
+
     /// <summary>A role player's star swing names its launch; a captain's keeps the swing's own.</summary>
     public static double? SwingLaunchDeg(string? starSwing, StarSkillTable? table = null) =>
         StarSkillTable.Or(table).Swing(starSwing)?.LaunchDeg;
@@ -145,4 +174,10 @@ public static class StarSkills
     /// </summary>
     public static double SpectacleSeconds(string? id) =>
         string.IsNullOrEmpty(id) ? 0 : 2.0;
+}
+
+/// <summary>The float's bound (§13): a rise, not a lob over the backstop.</summary>
+public static class PitchFloatLimits
+{
+    public const double MaxRiseFt = 4;
 }

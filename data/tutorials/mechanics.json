@@ -576,6 +576,15 @@
       ]
     },
     {
+      "id": "ability.long-toss",
+      "title": "long-toss",
+      "category": "fielding",
+      "spec": "gameplay-spec:8.5",
+      "sources": [
+        "ability:long-toss"
+      ]
+    },
+    {
       "id": "star-pitch.heatball",
       "title": "heatball",
       "category": "special",
@@ -675,6 +684,15 @@
       ]
     },
     {
+      "id": "star-pitch.rockfall",
+      "title": "rockfall",
+      "category": "special",
+      "spec": "gameplay-spec:13",
+      "sources": [
+        "star-pitch:rockfall"
+      ]
+    },
+    {
       "id": "star-swing.heat-swing",
       "title": "heat-swing",
       "category": "special",
@@ -771,6 +789,15 @@
       "spec": "gameplay-spec:13",
       "sources": [
         "star-swing:sidewinder"
+      ]
+    },
+    {
+      "id": "star-swing.updraft",
+      "title": "updraft",
+      "category": "special",
+      "spec": "gameplay-spec:13",
+      "sources": [
+        "star-swing:updraft"
       ]
     },
     {

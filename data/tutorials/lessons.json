@@ -2067,6 +2067,33 @@
       ]
     },
     {
+      "id": "T-A-long-toss",
+      "revision": 1,
+      "mechanics": [
+        "ability.long-toss"
+      ],
+      "title": "Long Toss",
+      "category": "fielding",
+      "status": "implemented",
+      "issue": 1150,
+      "reason": "Headless Long Toss throw exercise; standalone learning gate pending",
+      "profiles": [
+        "shipped"
+      ],
+      "requires": [
+        "long-toss"
+      ],
+      "prerequisites": [],
+      "setup": "T-A-long-toss",
+      "objective": "human-long-toss",
+      "controls": [
+        "control:fielding/Throw"
+      ],
+      "tests": [
+        "TutorialAdvancedFieldTests"
+      ]
+    },
+    {
       "id": "T-SP-heatball",
       "revision": 4,
       "mechanics": [
@@ -2342,6 +2369,31 @@
       ]
     },
     {
+      "id": "T-SP-rockfall",
+      "revision": 4,
+      "mechanics": [
+        "star-pitch.rockfall"
+      ],
+      "title": "Star pitch: rockfall",
+      "category": "special",
+      "status": "implemented",
+      "issue": 1150,
+      "reason": "Headless authored star exercise; standalone learning gate pending",
+      "profiles": [
+        "shipped"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-SP-rockfall",
+      "objective": "star-pitch",
+      "controls": [
+        "control:pitching/Star pitch"
+      ],
+      "tests": [
+        "TutorialSpecialTests"
+      ]
+    },
+    {
       "id": "T-SS-heat-swing",
       "revision": 4,
       "mechanics": [
@@ -2608,6 +2660,31 @@
       "requires": [],
       "prerequisites": [],
       "setup": "T-SS-sidewinder",
+      "objective": "star-swing",
+      "controls": [
+        "control:batting/Star swing"
+      ],
+      "tests": [
+        "TutorialSpecialTests"
+      ]
+    },
+    {
+      "id": "T-SS-updraft",
+      "revision": 4,
+      "mechanics": [
+        "star-swing.updraft"
+      ],
+      "title": "Star swing: updraft",
+      "category": "special",
+      "status": "implemented",
+      "issue": 1150,
+      "reason": "Headless authored star exercise; standalone learning gate pending",
+      "profiles": [
+        "shipped"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-SS-updraft",
       "objective": "star-swing",
       "controls": [
         "control:batting/Star swing"
@@ -5259,6 +5336,39 @@
       "pitcherId": "sable"
     },
     {
+      "id": "T-SP-rockfall",
+      "policy": "cpu-take",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hollis"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {},
+      "startingStars": 3,
+      "skill": "rockfall",
+      "pitcherId": "hollis"
+    },
+    {
       "id": "T-SS-heat-swing",
       "policy": "cpu-strike",
       "seed": 1,
@@ -5630,6 +5740,40 @@
       "startingStars": 3,
       "skill": "sidewinder",
       "batterId": "sable",
+      "seat": "offense"
+    },
+    {
+      "id": "T-SS-updraft",
+      "policy": "cpu-strike",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "hollis"
+      ],
+      "runners": [],
+      "balls": {},
+      "startingStars": 3,
+      "skill": "updraft",
+      "batterId": "hollis",
       "seat": "offense"
     },
     {
@@ -6358,6 +6502,45 @@
         }
       },
       "skill": "sand-scoop"
+    },
+    {
+      "id": "T-A-long-toss",
+      "policy": "airborne",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "marlow",
+        "grit",
+        "frost",
+        "basil",
+        "hollis",
+        "gull"
+      ],
+      "away": [
+        "zig",
+        "boom",
+        "cinder",
+        "soot",
+        "konga",
+        "ashlord",
+        "nugget",
+        "dart",
+        "rio"
+      ],
+      "runners": [
+        3
+      ],
+      "balls": {
+        "shipped": {
+          "carryFt": 245,
+          "exitMph": 0,
+          "launchDeg": 34,
+          "sprayDeg": 0
+        }
+      }
     },
     {
       "id": "T-D06",

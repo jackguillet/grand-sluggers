@@ -314,7 +314,7 @@ public sealed class Game : IDisposable
     {
         _flightAge += dt;
         var u = Math.Clamp(_flightAge / _pitchDur, 0, 1);
-        var p = PitchFlight.Point(_pitch!, u, _match.Rules, _match.Pitcher.StarPitch);
+        var p = PitchFlight.Point(_pitch!, u, _match.Rules, _match.Pitcher.StarPitch, skills: _match.Content.StarSkills);
         var x = (float)p.X;
         var y = (float)p.Y;
         var z = (float)p.Z;

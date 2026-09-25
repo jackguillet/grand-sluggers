@@ -87,7 +87,7 @@ public static class PitchFlight
     /// <summary>The same delivered ball is used by rendering, contact and the umpire.</summary>
     public static (double X, double Y, double Z) Point(PitchCommand pitch, double u,
         RulesTable rules,
-        string? starPitchId = null, (double X, double Y, double Z)? from = null)
+        string? starPitchId = null, (double X, double Y, double Z)? from = null, StarSkillTable? skills = null)
     {
         var r = rules;
         u = Math.Clamp(u, 0, 1);
@@ -95,6 +95,9 @@ public static class PitchFlight
         var p = Point(pitch.Type, u, r, pitch.AimX, pitch.AimY, pitch.BreakX * pitch.BreakMul,
             pitch.RubberX, from, ChargeFeel.IsCharge(pitch.Charge01), pitch.Throws, zone);
         if (!pitch.Star) return p;
+        // A row's own path shape (§13): the float rises early and lands on the crossing the pitch was always going to make.
+        if (StarSkillTable.Or(skills).Pitch(starPitchId)?.Float is { } rise && rise.Lift(u) is var lift and not 0)
+            p = (p.X, p.Y + lift * zone.VerticalScale, p.Z);
         var st = r.Pitching.StarShapes;
         return starPitchId switch
         {
@@ -129,7 +132,7 @@ public static class PitchFlight
         if (!pitch.Star || StarSkillTable.Or(skills).Pitch(starPitchId)?.Twin is not { } twin) return null;
         var alpha = twin.Alpha(Math.Clamp(u, 0, 1));
         if (alpha <= 0) return null;
-        var real = Point(pitch, u, rules, starPitchId, from);
+        var real = Point(pitch, u, rules, starPitchId, from, skills);
         var side = Crossing(pitch, rules, starPitchId).X >= 0 ? -1 : 1;
         return (real.X + side * twin.OffsetFt, real.Y, real.Z, alpha);
     }
