@@ -19,6 +19,8 @@ Each replacement effect for a pitch that lost its window penalty is its own revi
 | Shell / Staff swing | Infield chaos: the first bounce is randomized ±30° | |
 | Phony swing | Decoy ball; the real one shows at the apex | |
 | Cask swing | Fragments: two decoy balls fall with it | |
+| Mirage Ball | A faint twin (`twin`) flies `offsetFt` to the far half of the zone from the real crossing, full until `fadeFrom` of the flight and gone by `fadeTo`, never later than half the flight. The real ball is the pitch as thrown; the umpire, the bat and the CPU read only it. Picking the real ball before the twin fades is the counterplay | |
+| Sidewinder | A fair ball off the swing turns `firstHopKickDeg` (≤ 45°) at its first ground contact, away from the fielder the play sent after it, and runs on the shared ground physics; every chaser re-plans. A ball caught before its hop never turns | |
 | Role players | Star fastball / change / breaker; star grounder / fly / line | |
 
 Star skills cannot produce a free home run; the exit multipliers are capped so a Perfect charged star swing at Bat 10 clears Harbor's 400 only with a Perfect. ✅ by tuning.

@@ -567,6 +567,15 @@
       ]
     },
     {
+      "id": "ability.sand-scoop",
+      "title": "sand-scoop",
+      "category": "fielding",
+      "spec": "gameplay-spec:8.4",
+      "sources": [
+        "ability:sand-scoop"
+      ]
+    },
+    {
       "id": "star-pitch.heatball",
       "title": "heatball",
       "category": "special",
@@ -657,6 +666,15 @@
       ]
     },
     {
+      "id": "star-pitch.mirageball",
+      "title": "mirageball",
+      "category": "special",
+      "spec": "gameplay-spec:13",
+      "sources": [
+        "star-pitch:mirageball"
+      ]
+    },
+    {
       "id": "star-swing.heat-swing",
       "title": "heat-swing",
       "category": "special",
@@ -744,6 +762,15 @@
       "spec": "gameplay-spec:13",
       "sources": [
         "star-swing:line"
+      ]
+    },
+    {
+      "id": "star-swing.sidewinder",
+      "title": "sidewinder",
+      "category": "special",
+      "spec": "gameplay-spec:13",
+      "sources": [
+        "star-swing:sidewinder"
       ]
     },
     {

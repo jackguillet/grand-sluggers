@@ -10,7 +10,7 @@ Reviewed 2026-09-25 at `e7af5433`.
 - **One diamond: 80-ft basepaths.** The compact profile (C80) is the shipped game; its numbers are the defaults in `data/`. The specials and special statuses play as authored, outside that contract.
 - **Pitching and hitting:** five pitch families selected before the charge, one shared swing window, the stick shapes only a bunt and a Star Swing, a CPU pitcher and batter on human inputs ([decisions](decisions/plan-pitching-hitting.md); the implementation ledger is history in the archive).
 - **Fields rails:** park schema, boundary and polyline fence, ground and wall libraries, park environment, hazards as live events with a hazards-off option, one field kit, look gates ([decisions](decisions/plan-fields.md); the implementation ledger is history in the archive). Harbor is the only park with art.
-- **Tutorials:** `cli tutorials` is the live count (108 lessons implemented on 2026-09-23). They play from **Tutorials** on the title menu ([tutorials.md](tutorials.md)).
+- **Tutorials:** `cli tutorials` is the live count (111 lessons implemented on 2026-09-25). They play from **Tutorials** on the title menu ([tutorials.md](tutorials.md)).
 - **Authored sound:** bat crack, glove pop and crowd bed are authored clips in `data/art/audio.json` slots.
 
 ## Trials

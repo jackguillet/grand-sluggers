@@ -80,6 +80,7 @@ After the first surface contact, possession is a pickup and cannot retire the ba
 | Buddy Jump | North with both good-chem outfielders beneath the live ball (within 4 ft in XZ) | rob ≤ 18 ft; both bodies |
 | Dive | East tap | Up to 8 ft sideways relative to facing home plate, toward the ball’s side; +2 ft reach, ball < 7.5 ft; 0.60 s recovery at Field 1. No forward/backward dive, and no CPU dive |
 | Grow / Lick (ability) | passive | +6 / +3 ft catch radius, window +0.08 |
+| Sand Scoop (ability) | passive | +8 ft ground reach (`fielding.abilities.sandScoopFt`) for a ball at or below 1 ft (`sandScoopMaxFt`) at the take, and a scoop that low never bobbles; nothing in the air |
 
 Buddy Jump is offered only when both outfielders have a reachable pursuit route to the wall plant before the ball crosses the fence. The buddy plant is at the legal wall clearance (`fielding.chase.wallClearanceFt`, 2 ft inside the fence), where the ball can pass overhead. The partner uses its own reaction delay, run speed, acceleration and live movement constraints.
 Activation requires both bodies within `fielding.catch.buddyPlantFt` (4 ft) of the plant **and** the live ball's ground position, before fence crossing and inside the jump window. The live ball must be above the bodies and no higher than the local fence top plus the 18-ft buddy reach. Human and CPU use the same gate; neither body snaps to the plant. A missing or late partner cannot grant buddy reach or a Buddy Jump feat; an independently legal solo rob remains possible.

@@ -7,6 +7,9 @@ public static partial class HowToPlay
         if (id == "T-A-burrow") return new("Scoop with Burrow", "Collect a grounder at the outer edge of Burrow's reach.",
             "Soot starts at shortstop. Steer toward the grounder on the left side; scoop it at the edge of your reach so Burrow makes the difference.",
             "Use the left stick to take over shortstop and meet the ground ball at the edge of your reach.");
+        if (id == "T-A-sand-scoop") return new("Scoop with Sand Scoop", "Scoop a low grounder at the outer edge of Sand Scoop's reach.",
+            "Sable starts at shortstop. Steer toward the grounder on the left side and meet it low, at the edge of your reach, so Sand Scoop makes the difference.",
+            "Use the left stick to take over shortstop and meet the rolling ball at the edge of your reach.");
         var ability = id switch
         {
             "T-F16" or "T-A-grow" => "Grow",

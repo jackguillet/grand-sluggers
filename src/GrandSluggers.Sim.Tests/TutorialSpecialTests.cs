@@ -8,9 +8,9 @@ public sealed class TutorialSpecialTests
     static readonly ContentCatalog Control = Shipped.Content;
     static readonly string[] StarLessons = ["T-P09", "T-B09",
         "T-SP-heatball", "T-SP-charmball", "T-SP-prismball", "T-SP-phonyball", "T-SP-caskball",
-        "T-SP-skullball", "T-SP-fogball", "T-SP-fastball", "T-SP-changeup", "T-SP-breaker",
+        "T-SP-skullball", "T-SP-fogball", "T-SP-fastball", "T-SP-changeup", "T-SP-breaker", "T-SP-mirageball",
         "T-SS-heat-swing", "T-SS-heart-swing", "T-SS-shell-swing", "T-SS-phony-swing",
-        "T-SS-cask-swing", "T-SS-furnace", "T-SS-staff-swing", "T-SS-ground", "T-SS-fly", "T-SS-line"];
+        "T-SS-cask-swing", "T-SS-furnace", "T-SS-staff-swing", "T-SS-sidewinder", "T-SS-ground", "T-SS-fly", "T-SS-line"];
     static readonly string[] ItemLessons = ["T-X01", "T-I-banana", "T-I-rocket", "T-I-pow"];
     public static IEnumerable<object[]> Cases => from profile in new[] { "shipped" }
         from lesson in StarLessons select new object[] { profile, lesson };

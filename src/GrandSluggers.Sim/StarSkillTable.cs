@@ -11,7 +11,24 @@ public sealed record StarPitchSkill(
     bool Decoy,
     string? OnCatch,
     /// <summary>The cost tier (<see cref="StarTierRules"/>, PH-16-R7): stars.json prices it.</summary>
-    string Tier = StarTierRules.LowId);
+    string Tier = StarTierRules.LowId,
+    /// <summary>A faint second ball drawn beside the real one early in the flight, or null (§13).</summary>
+    PitchTwin? Twin = null);
+
+/// <summary>
+/// A star pitch's twin (spec §13): a faint second ball <see cref="OffsetFt"/> to the far side of the zone from the real
+/// crossing, flying beside the real ball at full strength until <see cref="FadeFrom"/> of the flight and gone by
+/// <see cref="FadeTo"/>. It is drawn only: the umpire, the bat and the CPU read the one real ball.
+/// </summary>
+public sealed record PitchTwin(double OffsetFt, double FadeFrom, double FadeTo)
+{
+    /// <summary>The twin is gone by half the flight at the latest: the hitter judges one ball in the second half.</summary>
+    public const double GoneBy = 0.5;
+
+    /// <summary>How strongly the twin shows at <paramref name="u"/> of the flight: 1, fading linearly to 0.</summary>
+    public double Alpha(double u) =>
+        u <= FadeFrom ? 1 : u >= FadeTo ? 0 : 1 - (u - FadeFrom) / (FadeTo - FadeFrom);
+}
 
 /// <summary>A captain's star swing (data/abilities/star-skills.json, spec §13).</summary>
 public sealed record StarSwingSkill(
@@ -26,7 +43,15 @@ public sealed record StarSwingSkill(
     bool Decoy,
     bool Fragments,
     /// <summary>The cost tier (<see cref="StarTierRules"/>, PH-16-R7): stars.json prices it.</summary>
-    string Tier = StarTierRules.LowId);
+    string Tier = StarTierRules.LowId,
+    /// <summary>
+    /// A fair ball off this swing turns this many degrees at its first hop, away from the fielder chasing it (§13); 0 is none.
+    /// </summary>
+    double FirstHopKickDeg = 0)
+{
+    /// <summary>The largest kick a row may name: a hop, not a U-turn.</summary>
+    public const double MaxKickDeg = 45;
+}
 
 /// <summary>
 /// The star skills as loaded from JSON. The JSON is the only copy (spec §13): no C# switch may

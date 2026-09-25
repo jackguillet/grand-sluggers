@@ -246,6 +246,11 @@ public static class ContentDataValidator
                     errors.Add($"{source}: star pitch '{key}' speedMul must be greater than 0; got {value.SpeedMul?.ToString(CultureInfo.InvariantCulture) ?? "null"}");
                 if (value.StaminaCost is null || value.StaminaCost < 0)
                     errors.Add($"{source}: star pitch '{key}' staminaCost must be at least 0; got {value.StaminaCost?.ToString(CultureInfo.InvariantCulture) ?? "null"}");
+                // The twin is gone before the zone (§13): the hitter judges the one real ball in the second half of every flight.
+                if (value.Twin is { } twin && (twin.OffsetFt <= 0 || twin.FadeFrom < 0 || twin.FadeTo <= twin.FadeFrom || twin.FadeTo > PitchTwin.GoneBy))
+                    errors.Add($"{source}: star pitch '{key}' twin needs offsetFt > 0 and 0 <= fadeFrom < fadeTo <= {PitchTwin.GoneBy.ToString(CultureInfo.InvariantCulture)}");
+                if (value.FirstHopKickDeg is not null)
+                    errors.Add($"{source}: star pitch '{key}' cannot carry firstHopKickDeg; it is a swing's");
             }
             else
             {
@@ -253,6 +258,10 @@ public static class ContentDataValidator
                     errors.Add($"{source}: star swing '{key}' exitVeloMul must be greater than 0; got {value.ExitVeloMul?.ToString(CultureInfo.InvariantCulture) ?? "null"}");
                 if (value.LaunchDeg is not null && (value.LaunchDeg < 0 || value.LaunchDeg > 60))
                     errors.Add($"{source}: star swing '{key}' launchDeg must be between 0 and 60; got {value.LaunchDeg}");
+                if (value.FirstHopKickDeg is not null && (value.FirstHopKickDeg <= 0 || value.FirstHopKickDeg > StarSwingSkill.MaxKickDeg))
+                    errors.Add($"{source}: star swing '{key}' firstHopKickDeg must be greater than 0 and at most {StarSwingSkill.MaxKickDeg.ToString(CultureInfo.InvariantCulture)}; got {value.FirstHopKickDeg}");
+                if (value.Twin is not null)
+                    errors.Add($"{source}: star swing '{key}' cannot carry a twin; it is a pitch's");
             }
         }
         return ids;
@@ -1502,12 +1511,24 @@ internal sealed class StarSkillDto
     public double? FielderPauseSec { get; set; }
     public bool InfieldChaos { get; set; }
     public bool Fragments { get; set; }
+    /// <summary>A pitch's faint twin (<see cref="PitchTwin"/>); pitches only.</summary>
+    public PitchTwinDto? Twin { get; set; }
+    /// <summary>A swing's ball kicks this many degrees off its first hop (<see cref="StarSwingSkill.FirstHopKickDeg"/>); swings only.</summary>
+    public double? FirstHopKickDeg { get; set; }
     /// <summary>The cost tier (PH-16-R7): one of <see cref="StarTierRules.Ids"/>. Required.</summary>
     public string? Tier { get; set; }
 
     public StarPitchSkill ToPitch() => new(Id, Name, Kind, SpeedMul ?? 1.0, StaminaCost ?? 0,
-        LateBreak, Decoy, OnCatch, Tier ?? StarTierRules.LowId);
+        LateBreak, Decoy, OnCatch, Tier ?? StarTierRules.LowId,
+        Twin is null ? null : new PitchTwin(Twin.OffsetFt, Twin.FadeFrom, Twin.FadeTo));
 
     public StarSwingSkill ToSwing() => new(Id, Name, Kind, ExitVeloMul ?? 1.0, LaunchDeg, Terrain,
-        FielderPauseSec ?? 0, InfieldChaos, Decoy, Fragments, Tier ?? StarTierRules.LowId);
+        FielderPauseSec ?? 0, InfieldChaos, Decoy, Fragments, Tier ?? StarTierRules.LowId, FirstHopKickDeg ?? 0);
+}
+
+internal sealed class PitchTwinDto
+{
+    public double OffsetFt { get; set; }
+    public double FadeFrom { get; set; }
+    public double FadeTo { get; set; }
 }

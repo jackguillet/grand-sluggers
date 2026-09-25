@@ -356,6 +356,7 @@ namespace GrandSluggers.UnityClient
                 swingAt = bat.transform.position + Vector3.up * 3.2f;
             _scene.Fx.Tick(dt, _play.Ball, _play.Phase == MatchDirector.Phase.Flight, _play.Phase == MatchDirector.Phase.InPlay,
                 _play.Pitch != null && _play.Pitch.Star, starPitch, starSwing ?? "", burn, frags, swingAt);
+            PlaceTwin(starPitch);
             var flash = _play.Phase == MatchDirector.Phase.InPlay && _inPlay.BuddySet && !_live.Buddy && !_live.Throwing;
             var flashAt = Vector3.zero;
             if (flash && !string.IsNullOrEmpty(_live.BuddyPos) && _live.GloveAt.TryGetValue(_live.BuddyPos, out var planted))
@@ -437,6 +438,32 @@ namespace GrandSluggers.UnityClient
         }
 
         /// <summary>A live runner where the play left them (§10.6): on the bag they hold, or on the path at the third out.</summary>
+        /// <summary>
+        /// A star pitch's twin (spec §13), while the pitch is in the air: the sim's offset from the real ball, laid on the ball
+        /// as drawn, at the sim's strength. Every pitch without a twin, and every frame after it fades, hides it.
+        /// </summary>
+        void PlaceTwin(string starPitch)
+        {
+            var pitch = _play.Pitch;
+            var m = _play.Match;
+            if (_play.Phase != MatchDirector.Phase.Flight || pitch == null || !pitch.Star || m == null || _play.PitchDur <= 0)
+            {
+                _scene.Fx.Twin(null, 0, 0);
+                return;
+            }
+            var u = Mathf.Clamp01(_play.Flight / _play.PitchDur);
+            var from = ((double)_play.ReleaseFrom.x, (double)_play.ReleaseFrom.y, (double)_play.ReleaseFrom.z);
+            var twin = PitchFlight.Twin(pitch, u, m.Rules, starPitch, m.Content.StarSkills, from);
+            if (twin is not { } t)
+            {
+                _scene.Fx.Twin(null, 0, 0);
+                return;
+            }
+            var real = PitchFlight.Point(pitch, u, m.Rules, starPitch, from);
+            var at = _play.Ball + new Vector3((float)(t.X - real.X), (float)(t.Y - real.Y), (float)(t.Z - real.Z));
+            _scene.Fx.Twin(at, (float)t.Alpha, ToyMesh.BallViewScale(true, at.z));
+        }
+
         void PlaceBodyAtTime(FieldBody b)
         {
             var h = Hero(b.Who);

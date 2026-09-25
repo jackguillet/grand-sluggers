@@ -8,17 +8,69 @@ using UnityEngine;
 
 namespace GrandSluggers.UnityClient
 {
-    /// <summary>Set, pitch, swing, contact. Out/safe stay in Sim.</summary>
-    public sealed class AtBatDirector
+    /// <summary>
+    /// Set, pitch, swing, contact (#1042): the at-bat's own state — the mound's charge button and pitch selection, the
+    /// CPU's delivery, the batter's charge and bunt side, the plate's step, the special's requests. Out/safe stay in Sim.
+    /// The SET → contact sequence still runs on <see cref="MatchDirector"/> and moves here next.
+    /// </summary>
+    internal sealed class AtBatDirector
     {
-        readonly MatchDirector _play;
-        public AtBatDirector(MatchDirector play) { _play = play; }
-        public void Tick(float dt) { _play.TickAtBat(dt); }
+        /// <summary>The mound's charge button, its fill and its seconds past full. Fields: the charge step writes them by ref.</summary>
+        public ChargeButtonState PitchButton;
+        public float PitchCharge;
+        public float PitchPast;
+        /// <summary>The batter's seconds past a full charge.</summary>
+        public float ChargePast;
+
+        /// <summary>This frame's plate input and step, read at the plate plane and at contact.</summary>
+        public PlateInput PlateInput;
+        public PlateButtonsStep PlateStep;
+
+        /// <summary>
+        /// The mound's pre-charge family selection (spec §3, PH-02-R3/R4/R5). The state is the
+        /// client's; the step that moves it is the sim's (<see cref="Match.SelectPitch"/>).
+        /// </summary>
+        public PitchSelectionState PitchSelect;
+
+        /// <summary>
+        /// The CPU's delivery, decided at the top of SET (§4.8, PH-18-R1) so the body has SET to
+        /// walk to the rubber it solved for. Null in a tutorial, whose pitch is scripted.
+        /// </summary>
+        public PitchCommand CpuPitch;
+
+        /// <summary>The direction that CPU delivery holds the stick, drawn a frame at a time in flight.</summary>
+        public int CpuSteer;
+
+        /// <summary>The human batter's held bunt side on this tick (§5.8): the plate's side while squared, else none.</summary>
+        public BuntSide BuntSide;
+
+        /// <summary>The special's modifier, the requests and the unavailable tell (spec §12).</summary>
+        public readonly StarRequests StarAsks = new StarRequests();
+
+        /// <summary>
+        /// A new pitch (SET): no charge on either button, the fastball unlocked (PH-02-R5: nothing on the shared screen
+        /// marks the active family, so the player counts presses from a known start every time), no CPU delivery, no bunt
+        /// side, no special asked.
+        /// </summary>
+        public void NewPitch()
+        {
+            PitchCharge = 0;
+            ChargePast = 0;
+            PitchButton = default;
+            PitchSelect = PitchSelectionState.Reset;
+            CpuPitch = null;
+            CpuSteer = 0;
+            BuntSide = BuntSide.None;
+            StarAsks.NewPitch();
+            PitchPast = 0;
+        }
     }
 
     public sealed partial class MatchDirector : IInPlayHost, IActorHost, IItemHost, IDefenseSwapHost, IRunnerPlayHost, ISetCameraHost
     {
-        internal ChargeButtonState _pitchButton;
+        /// <summary>The at-bat's own state (#1042); these names forward to it.</summary>
+        internal readonly AtBatDirector AtBat = new AtBatDirector();
+        internal ChargeButtonState _pitchButton { get => AtBat.PitchButton; set => AtBat.PitchButton = value; }
 
         /// <summary>
         /// The batting seat's plate buttons (spec §5.1, §5.8): the swing button, the two bunt triggers and the East / G
@@ -29,24 +81,12 @@ namespace GrandSluggers.UnityClient
         internal PlateButtonsState _plate { get => Play.Plate; set => Play.Plate = value; }
         /// <summary>The pad index whose buttons <see cref="_plate"/> holds; -1 for none (a CPU batter).</summary>
         int _plateSeat { get => Play.PlateSeat; set => Play.PlateSeat = value; }
-        /// <summary>This frame's plate input and step, read at the plate plane and at contact.</summary>
-        PlateInput _plateInput;
-        PlateButtonsStep _plateStep;
+        PlateInput _plateInput { get => AtBat.PlateInput; set => AtBat.PlateInput = value; }
+        PlateButtonsStep _plateStep { get => AtBat.PlateStep; set => AtBat.PlateStep = value; }
 
-        /// <summary>
-        /// The mound's pre-charge family selection (spec §3, PH-02-R3/R4/R5). The state is the
-        /// client's; the step that moves it is the sim's (<see cref="Match.SelectPitch"/>).
-        /// </summary>
-        PitchSelectionState _pitchSelect;
-
-        /// <summary>
-        /// The CPU's delivery, decided at the top of SET (§4.8, PH-18-R1) so the body has SET to
-        /// walk to the rubber it solved for. Null in a tutorial, whose pitch is scripted.
-        /// </summary>
-        PitchCommand _cpuPitch;
-
-        /// <summary>The direction that CPU delivery holds the stick, drawn a frame at a time in flight.</summary>
-        int _cpuSteer;
+        PitchSelectionState _pitchSelect { get => AtBat.PitchSelect; set => AtBat.PitchSelect = value; }
+        PitchCommand _cpuPitch { get => AtBat.CpuPitch; set => AtBat.CpuPitch = value; }
+        int _cpuSteer { get => AtBat.CpuSteer; set => AtBat.CpuSteer = value; }
 
         /// <summary>
         /// The rubber the <b>body</b> stands on this frame, in rubber units. A hand's is the match's,
@@ -56,8 +96,7 @@ namespace GrandSluggers.UnityClient
         /// </summary>
         float _moundX { get => Play.MoundX; set => Play.MoundX = value; }
 
-        /// <summary>The special's modifier, the requests and the unavailable tell (spec §12).</summary>
-        internal readonly StarRequests StarAsks = new StarRequests();
+        internal StarRequests StarAsks => AtBat.StarAsks;
 
         internal void TickAtBat(float dt)
         {
@@ -110,23 +149,13 @@ namespace GrandSluggers.UnityClient
             _t = 0;
             Play.NewPitch();
             Live.NewPitch();
-            _pitchCharge = 0;
-            _chargePast = 0;
-            _pitchButton = default;
+            AtBat.NewPitch();
             Steal.NewPitch();
             // The next pitch (§5.8): the must-release, the spent triggers and a spent cancel carry; a hold must come up.
             _plate = _plate.NextPitch();
-            // Fastball, unlocked, at every SET entry (PH-02-R5): nothing on the shared screen marks
-            // the active family, so the player counts presses from a known start every time.
-            _pitchSelect = PitchSelectionState.Reset;
-            _cpuPitch = null;
-            _cpuSteer = 0;
             Swap.Close();
             if (_match != null) _match.Dash01 = 0;
             _match?.LivePlay.Apply(LivePlayCommand.Reset());
-            _buntSide = BuntSide.None;
-            StarAsks.NewPitch();
-            _pitchPast = 0;
             Toss.Reset();
             _items?.Hide();
             _banner = _sub = "";
@@ -162,7 +191,7 @@ namespace GrandSluggers.UnityClient
                 // The window owns this frame, including its open/close edge. No pickoff,
                 // rubber walk, steal or banked charge can leak through a menu action.
                 TickChargeButton(dt, _feel.PitchChargeSeconds, mound,
-                    ref _pitchButton, ref _pitchCharge, ref _pitchPast, accepting: false);
+                    ref AtBat.PitchButton, ref AtBat.PitchCharge, ref AtBat.PitchPast, accepting: false);
                 _pitchSelect = _pitchSelect with { Locked = false };
                 if (HumanBats) TickPlate(dt, accepting: false, commits: false);
                 _charge = _chargePast = 0;
@@ -175,7 +204,7 @@ namespace GrandSluggers.UnityClient
             var prevPitchButton = _pitchButton;
             if (HumanPitches)
                 pitchButton = TickChargeButton(dt, _feel.PitchChargeSeconds, mound,
-                    ref _pitchButton, ref _pitchCharge, ref _pitchPast,
+                    ref AtBat.PitchButton, ref AtBat.PitchCharge, ref AtBat.PitchPast,
                     _t >= (float)_feel.PitcherReadySeconds && !Swap.Open);
             else
                 _pitchCharge = Mathf.Clamp01(_t / Mathf.Max(0.12f, (float)_feel.PitcherReadySeconds));

@@ -13,13 +13,14 @@ public static class FieldAbilityId
     public const string Grow = "grow";
     public const string Laser = "laser";
     public const string LickCatch = "lick-catch";
+    public const string SandScoop = "sand-scoop";
     public const string SnapThrow = "snap-throw";
     public const string SpinCheck = "spin-check";
     public const string SuperJump = "super-jump";
     public const string Withdraw = "withdraw";
 
     public static readonly IReadOnlyList<string> All =
-        [BallDash, Burrow, Clamber, Dive, Grow, Laser, LickCatch, SnapThrow, SpinCheck, SuperJump, Withdraw];
+        [BallDash, Burrow, Clamber, Dive, Grow, Laser, LickCatch, SandScoop, SnapThrow, SpinCheck, SuperJump, Withdraw];
 }
 
 /// <summary>One defensive verb per character — the Sluggers "who you are on defense."</summary>
@@ -46,11 +47,22 @@ public static class FieldAbilities
     public static double FlyRangeBonus(Character c, RulesTable rules) =>
         c.FieldAbility == FieldAbilityId.SuperJump ? rules.Fielding.Abilities.SuperJumpFlyRangeFt : 0;
 
-    public static double GroundRangeBonus(Character c, RulesTable rules) => c.FieldAbility switch
+    /// <summary>
+    /// The extra reach on a ball hit on the ground (§8.4): Dive / Burrow on every grounder, Sand Scoop only while the ball is
+    /// at or below <c>sandScoopMaxFt</c> (<paramref name="ballY"/>, the ball's height now).
+    /// </summary>
+    public static double GroundRangeBonus(Character c, RulesTable rules, double ballY = 0) => c.FieldAbility switch
     {
         FieldAbilityId.Dive or FieldAbilityId.Burrow => rules.Fielding.Abilities.DiveGroundRangeFt,
+        FieldAbilityId.SandScoop when ballY <= rules.Fielding.Abilities.SandScoopMaxFt => rules.Fielding.Abilities.SandScoopFt,
         _ => 0
     };
+
+    /// <summary>
+    /// Sand Scoop's sure hands (§8.4): a ball the glove scoops at or below <c>sandScoopMaxFt</c> never bobbles, whatever the hop.
+    /// </summary>
+    public static bool SureScoop(Character c, RulesTable rules, double ballY) =>
+        c.FieldAbility == FieldAbilityId.SandScoop && ballY <= rules.Fielding.Abilities.SandScoopMaxFt;
 
     public static double ThrowMul(Character c, RulesTable rules)
     {
