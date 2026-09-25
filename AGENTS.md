@@ -5,7 +5,7 @@ Grand Sluggers is a **complete, polished party baseball game** we will still wan
 ## Start here
 
 1. Read this file.
-2. Read only the sections of `docs/gameplay-spec.md` your change touches.
+2. Read only the spec files your change touches: `docs/spec/NN-*.md`, one per section of `docs/gameplay-spec.md` (the index). Scenarios are `docs/spec/appendix-b-scenarios.md`.
 3. Look up the other docs when the work needs them. Research reports (`docs/research-*.md`, `docs/research/`, for example `docs/research-game-feel-708.md`) and handoffs are reference, not required reading.
 
 Where to look things up. Vision: `docs/vision.md`. Look: `docs/look.md`. Couch map: `docs/how-to-play.md`. **Rules of play: `docs/gameplay-spec.md`** (when code and spec disagree, the code is wrong). Sequence: `docs/roadmap.md`. How a phase runs: `docs/playbook.md`. **How agents work: `docs/agent-rails.md`** (when a session and that document disagree, the session is wrong). Silhouettes: `docs/silhouette-bible.md`. Art slots: `docs/art-rails.md`. Characters and motion: `docs/character-motion.md`. Fields: `docs/plan-fields.md` (#814).
@@ -45,7 +45,7 @@ Behavior docs stay. Bookkeeping and balance run on demand. Contract: `docs/agent
 - A PR is done when it compiles, the breakage suite is green in CI on its final head, and the human gates that apply are noted.
 - **Do not balance the game until Jack says he wants to.** Balance means the full test suite (Actions → Full tests, on GitHub too, not only locally), the `Kind=Balance` tests, S-29 and cohort bands, park-factor reports, flight probes and evidence seals. Constant balancing costs too much time. A PR that moves a feel or rule number, even a tuning PR, names the move in its body and stops at the breakage suite. Jack starts a balance pass; then run Full tests (`balance_only` for the balance set only).
 - A feature PR does not reseal the evidence seals, edit a `trials/` twin, or touch a decision register or an implementation ledger. One batched docs PR updates registers and ledgers at a phase checkpoint or when Jack asks.
-- A behavior change updates its rule in `docs/gameplay-spec.md` in the same PR. Write the rule, not the provenance: no PR numbers, no "✅ (#nnn, PR #nnn)". Existing provenance stays.
+- A behavior change updates its rule in its `docs/spec/` file in the same PR. Keep every spec line at 600 characters or fewer (`SpecLineLengthTests`). Write the rule, not the provenance: no PR numbers, no "✅ (#nnn, PR #nnn)". Existing provenance stays.
 - A debug-protocol row is for a novel failure signature only.
 - There is one diamond: 80-ft basepaths. Its numbers are the defaults in `data/`.
 

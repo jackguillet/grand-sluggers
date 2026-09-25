@@ -28,7 +28,7 @@ Tracker #39 is the older checklist. Many of its children shipped as first-pass. 
 
 ## Scale and pace foundation (#693)
 
-The sitting found contact and throws too fast. This is a coupled game contract, not a local park shrink. [Research](research-game-feel-693.md), [decision register and staged work](plan-game-feel-693.md), and [gameplay-spec D19](gameplay-spec.md#02-field-proportions-and-race-calibration--d19-693) govern this work. Compare Wii and GameCube before choosing; collect proportions and full race timings, then accept targets, calibrate gameplay, present the approved race, and re-sit in the standalone. Many trial anchors and their implementations have since landed; the decision plan distinguishes accepted, measured and deferred work. Final promotion and human acceptance remain open. Harbor Exhibition retains priority; this does not start more parks or deferred modes.
+The sitting found contact and throws too fast. This is a coupled game contract, not a local park shrink. [Research](research-game-feel-693.md), [decision register and staged work](plan-game-feel-693.md), and [gameplay-spec D19](spec/00-decisions.md#02-field-proportions-and-race-calibration--d19-693) govern this work. Compare Wii and GameCube before choosing; collect proportions and full race timings, then accept targets, calibrate gameplay, present the approved race, and re-sit in the standalone. Many trial anchors and their implementations have since landed; the decision plan distinguishes accepted, measured and deferred work. Final promotion and human acceptance remain open. Harbor Exhibition retains priority; this does not start more parks or deferred modes.
 
 ## How we use coding agents
 
