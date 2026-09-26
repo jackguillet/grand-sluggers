@@ -99,7 +99,7 @@ The recommendation is not the decision.
 | AB-06 | Swings | Who gets a contact-area swing (PH-16-R2)? | A a duplicated swing · B per captain · C not yet | **Accepted: B, per captain** (Jack, 2026-09-25): Fenn and Rio below |
 | AB-07 | Field | Spin Check (#1010) | A redesign as a live, geometric rail · B retire it | Settled by AB-12: not in the starting pool |
 | AB-08 | Field | The three copies of the catch-radius bonus | Settled by AB-12: not in the starting pool | — |
-| AB-09 | Tiers | Which captains hold top-tier specials? | A keep Rio, Konga, Ashlord · B re-tier | **Accepted: every captain Star Pitch and Star Swing costs 2 stars (mid) for now; no captain carries the top tier** (Jack, 2026-09-25). Role players stay low (1). The prices and the top tier return in the balance child |
+| AB-09 | Tiers | Which captains hold top-tier specials? | A keep Rio, Konga, Ashlord · B re-tier | **Accepted: tiers are retired** (Jack, 2026-09-25). A captain's Star Pitch and Star Swing cost 2 stars; a sidekick's generic specials cost 1. The price follows who carries the special, not a tier; the balance child may revisit the numbers. Spec §12's tier rows, `star-skills.json` `tier` and the top-tier validator go in AB-C0 |
 | AB-10 | Role players | Generic low-tier specials | A keep the six generics · B faction-flavoured variants | A |
 | AB-11 | Tutorials | Lessons | A every changed ability updates its lesson in the same child (the tutorial rule) | A |
 | AB-12 | Field | Are field abilities per captain? | A distinct per captain · B one shared pool for captains and role players | **Accepted: B** (Jack, 2026-09-25): the pool starts with Snap Throw, Lick Catch, Laser and Clamber |
@@ -234,7 +234,7 @@ The pool starts with these four. The rest (Grow, Withdraw, Spin Check, Sand Scoo
 
 | Child | Kind | Scope |
 | --- | --- | --- |
-| AB-C0 | Gameplay | The rules AB-01 and AB-02 settle: spec §8.6 and §13, and a validator that refuses a shared effect family if AB-02 is A |
+| AB-C0 | Gameplay | The rules AB-01, AB-02 and AB-09 settle: spec §8.6, §12 and §13; a validator that refuses a shared effect family between captains; tiers out of `star-skills.json` and `stars.json`, with one price for a captain's special and one for a sidekick's |
 | AB-C1 … C10 | Gameplay | One per captain: Star Pitch and Star Swing as accepted, data rows, scenario rows, the lesson |
 | AB-C13 | Gameplay | The field pool: every character carries one of the four; the others leave the roster data, their lessons and scenario rows |
 | AB-C11 | Presentation | Tells for every new effect: VFX slots first, then the book pages |
