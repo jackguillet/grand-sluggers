@@ -1294,6 +1294,8 @@ internal sealed class CharacterDto
     public string Bio { get; set; } = "";
     /// <summary>A captain's identity (#1032): its team's name, its signature bat, its body on the shared rig. A role player names none.</summary>
     public string? TeamName { get; set; }
+    /// <summary>The name a tight tile shows when the full name will not fit (the captain board); null is the full name.</summary>
+    public string? ShortName { get; set; }
     public string? SignatureBat { get; set; }
     public ProportionsDto? Proportions { get; set; }
     /// <summary>A sidekick's species (WD-27, <c>data/world/species.json</c>): its body. Required on a sidekick; a captain names none.</summary>
@@ -1308,6 +1310,7 @@ internal sealed class CharacterDto
         BodyClass = BodyClass ?? "",
         Repertoire = ParseRepertoire(),
         TeamName = TeamName,
+        ShortName = ShortName ?? "",
         SignatureBat = SignatureBat,
         BodyType = Captain ? Id.ToLowerInvariant() : "",
         Proportions = Proportions?.ToSpec() ?? default,

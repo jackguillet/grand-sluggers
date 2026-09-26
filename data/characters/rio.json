@@ -1,6 +1,8 @@
 {
   "id": "rio",
   "name": "Ronnie Sparks",
+  // The captain board's tile is too narrow for the full name.
+  "shortName": "Ronnie",
   "faction": "spark",
   "captain": true,
   // The body class (data/rules/body-classes.json, spec §8.1): reach, contact width, ramp, knockback, motion style.
