@@ -35,7 +35,7 @@ public static partial class HowToPlay
             "T-SP-fastball" => "Star Fastball",
             "T-SP-changeup" => "Star Change",
             "T-SP-breaker" => "Star Breaker",
-            "T-SP-mirageball" => "Mirage Ball",
+            "T-SP-mirageball" => "Mirage",
             "T-SP-rockfall" => "Rockfall",
             "T-SP-leapfrog" => "Leapfrog",
             "T-SS-heat-swing" => "Sparkler",
@@ -45,7 +45,7 @@ public static partial class HowToPlay
             "T-SS-cask-swing" => "Lightning Liner",
             "T-SS-furnace" => "Furnace",
             "T-SS-staff-swing" => "Staff Swing",
-            "T-SS-sidewinder" => "Sidewinder",
+            "T-SS-sidewinder" => "Dust Bowl",
             "T-SS-updraft" => "Updraft",
             "T-SS-pond-skip" => "Pond Skip",
             "T-SS-ground" => "Star Grounder",
@@ -65,6 +65,8 @@ public static partial class HowToPlay
             "T-SS-heart-swing" => " The follow spot holds the nearest fielder still for a moment after contact.",
             "T-SP-caskball" => " It swings in wide on a vine, then crosses where you aimed, on time.",
             "T-SS-cask-swing" => " The liner jags twice, then lands where a straight one would.",
+            "T-SP-mirageball" => " The ball vanishes for the middle third of its flight; its shadow still shows the way.",
+            "T-SS-sidewinder" => " The grounder kicks up a bowl of dust where it lands; fielders in it run at half speed.",
             _ => ""
         };
         return pitch

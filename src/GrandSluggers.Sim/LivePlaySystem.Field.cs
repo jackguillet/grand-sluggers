@@ -1885,9 +1885,10 @@ public sealed partial class LivePlaySystem
         if (_solids.Count > 0)
             goal = VolumeRoute.Waypoint(at, goal, _solids.Select(b => b.AsVolume(ElapsedSeconds)).ToList(), speed, 1e-6,
                 R.Fielding.Chase.VolumeClearFt);
-        return _bodySlows.Volumes.Count == 0 || _routeImmune.Contains(pos)
+        // The park's discs only: a star's disc (a Dust Bowl, §13) is not routed around — going round it is the player's verb.
+        return _bodySlows.ParkVolumes.Count == 0 || _routeImmune.Contains(pos)
             ? goal
-            : VolumeRoute.Waypoint(at, goal, _bodySlows.Volumes, speed, R.Fielding.Chase.FrozenMul, R.Fielding.Chase.VolumeClearFt);
+            : VolumeRoute.Waypoint(at, goal, _bodySlows.ParkVolumes, speed, R.Fielding.Chase.FrozenMul, R.Fielding.Chase.VolumeClearFt);
     }
 
     /// <summary>The redirects the ball went through this play, in order (F4-c).</summary>
@@ -1979,7 +1980,7 @@ public sealed partial class LivePlaySystem
         Sub = $"Into the {PlayNarrator.RedirectName(mouth.Type)}!";
     }
 
-    double VolumeMul(string pos) => BodySlows.Mul(_bodySlows.Slowed(pos), R);
+    double VolumeMul(string pos) => _bodySlows.Mul(pos, R);
 
     // ---------------------------------------------------------------------------------
     // The pursuit stick (#718, F693-02-pursuit-neutral-boundary, -analog-response, -arming)

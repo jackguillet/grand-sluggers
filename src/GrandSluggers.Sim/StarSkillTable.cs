@@ -280,6 +280,17 @@ public sealed record SwingDustBowl(double RadiusFt, double Sec, double Mul)
 
     /// <summary>The highest launch a bowl-raising swing may name: the bowl is a grounder's, so its first landing comes early.</summary>
     public const double MaxLaunchDeg = 6;
+
+    /// <summary>The <see cref="StatusVolume.Hazard"/> the bowl's disc carries: a star's, below every park index.</summary>
+    public const int Hazard = -2;
+
+    /// <summary>
+    /// The bowl as the live ball reads it: centred on the landing (<paramref name="x"/>, <paramref name="z"/>), standing from
+    /// <paramref name="landT"/> until <paramref name="landT"/> + <see cref="Sec"/>, <see cref="Mul"/> inside, no time after the body
+    /// leaves it (<c>slowSec</c> 0), fielders' alone.
+    /// </summary>
+    public StatusVolume Volume(double x, double z, double landT) =>
+        new(Hazard, Type, x, z, RadiusFt, 0, SlowMul: Mul, UntilT: landT + Sec, FieldersOnly: true);
 }
 
 /// <summary>

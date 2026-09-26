@@ -17,12 +17,17 @@ public sealed record ReachBonusTake(string GloveId, string Ability) : LiveFact;
 public sealed record AssistedRouteStep(string GloveId) : LiveFact;
 
 /// <summary>
-/// A star swing's grounder turned at its first hop (§13, <see cref="StarSwingSkill.FirstHopKickDeg"/>): the swing, when and
-/// where, the signed turn in degrees (positive is counter-clockwise from above) and the chasing glove (its position) it turned away from,
-/// the hop's spring and the seconds it stood still there before it ran on (a stall).
+/// A star swing's grounder changed at its first hop (§13, <see cref="StarSwingSkill.BendsFirstHop"/>): the swing, when and where,
+/// the chasing glove (its position), the hop's spring and the seconds it stood still there before it ran on (a stall).
 /// </summary>
-public sealed record FirstHopKicked(string SwingId, double T, double X, double Z, double TurnDeg, string GloveId, double BounceMul = 1,
+public sealed record FirstHopKicked(string SwingId, double T, double X, double Z, string GloveId, double BounceMul = 1,
     double StallSec = 0) : LiveFact;
+
+/// <summary>
+/// A star swing's grounder raised a Dust Bowl where it first landed (§13, <see cref="SwingDustBowl"/>): the swing, the landing
+/// second and point, the bowl's radius, the play second the dust settles, and the glove the play sent after the ball.
+/// </summary>
+public sealed record DustBowlRaised(string SwingId, double T, double X, double Z, double RadiusFt, double UntilT, string GloveId) : LiveFact;
 
 /// <summary>
 /// A star swing's pause held one fielder (§13, <see cref="StarSwingSkill.FielderPauseSec"/>): the swing, the glove it held

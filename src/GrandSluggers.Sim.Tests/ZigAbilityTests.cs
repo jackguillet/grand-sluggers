@@ -28,7 +28,6 @@ public sealed class ZigAbilityTests
         Assert.False(pitch.LateBreak);
         Assert.Null(pitch.Leap);
         Assert.Null(pitch.Float);
-        Assert.Null(pitch.Twin);
         Assert.NotNull(pitch.Loop);
         Assert.False(Game.StarSkills.Swing("shell-swing")!.InfieldChaos);
     }
@@ -139,7 +138,6 @@ public sealed class ZigAbilityTests
         Assert.Empty(plain.Kicks);
         var hop = Assert.Single(top.Kicks);
         Assert.Equal("shell-swing", hop.SwingId);
-        Assert.Equal(0, hop.TurnDeg);
         Assert.Equal(swing.FirstHopStallSec, hop.StallSec);
         // The path the play kept: at rest on the ground at the hop from the hop to the end of the stall.
         for (var t = hop.T; t < hop.T + hop.StallSec - 1e-6; t += 0.05)

@@ -1,11 +1,12 @@
 namespace GrandSluggers.Sim;
 
 /// <summary>
-/// A star swing's first-hop kick (spec §13, <see cref="StarSwingSkill.FirstHopKickDeg"/>): a fair ball off the swing turns at
-/// its first ground contact, away from the fielder chasing it, springs (<see cref="StarSwingSkill.FirstHopBounceMul"/>) or stands
-/// still for a while and runs on slower (<see cref="StarSwingSkill.FirstHopStallSec"/>), and runs on on the shared ground physics. The path is
-/// continued the way a park redirect continues it, the ball is re-read and every chaser re-plans; the gloves, the throws
-/// and the fair / foul line still decide the play. Nothing is rolled: the turn and its side come from the ball and the bodies.
+/// A star swing's first hop (spec §13): a fair ball off the swing springs at its first ground contact
+/// (<see cref="StarSwingSkill.FirstHopBounceMul"/>), or stands still for a while and runs on slower
+/// (<see cref="StarSwingSkill.FirstHopStallSec"/>), on the shared ground physics; or it raises a bowl of loose dust there
+/// (<see cref="SwingDustBowl"/>) that slows the fielders inside it and leaves the ball alone. A bent path is continued the way
+/// a park redirect continues it, the ball is re-read and every chaser re-plans; the gloves, the throws and the fair / foul
+/// line still decide the play. Nothing is rolled: every effect comes from the ball, the bodies and the row's numbers.
 /// </summary>
 public sealed partial class LivePlaySystem
 {
@@ -35,17 +36,16 @@ public sealed partial class LivePlaySystem
             return;
         _kickAt = null;
         var t = ElapsedSeconds;
+        if (swing.DustBowl is { } bowl) RaiseDustBowl(swing, bowl, t);
+        if (!swing.BendsFirstHop) return;
         const double step = 1.0 / 60;
         var now = BallFlight.PointAt(Path, t, R);
         var next = BallFlight.PointAt(Path, t + step, R);
-        var (vx, vy, vz) = ((next.X - now.X) / step, (next.Y - now.Y) / step, (next.Z - now.Z) / step);
-        if (vx * vx + vz * vz < 1e-6) return;
+        var (kx, vy, kz) = ((next.X - now.X) / step, (next.Y - now.Y) / step, (next.Z - now.Z) / step);
+        if (kx * kx + kz * kz < 1e-6) return;
         var away = Chaser(now.X, now.Z);
-        var turn = swing.FirstHopKickDeg > 0 ? FirstHopTurnDeg(vx, vz, now.X, now.Z, away.X, away.Z, swing.FirstHopKickDeg) : 0;
         // The hop's spring (§13): the ball leaves the ground this many times as fast upward, its horizontal pace its own.
         if (swing.FirstHopBounceMul != 1 && vy > 0) vy *= swing.FirstHopBounceMul;
-        var r = turn * Math.PI / 180;
-        var (kx, kz) = (vx * Math.Cos(r) - vz * Math.Sin(r), vx * Math.Sin(r) + vz * Math.Cos(r));
         // The stall (§13): the ball stands on the ground at its hop for the row's seconds — a glove that reaches it may
         // take it there — then runs on from the same spot at the row's share of its speed, on the shared ground physics.
         // The two-second rule holds: a hop that comes late stands only for what is left of the spectacle.
@@ -64,7 +64,25 @@ public sealed partial class LivePlaySystem
         _ballPrev = null;
         Preview = Preview with { LandingX = Ball.LandingX, LandingZ = Ball.LandingZ };
         CoverBallX = Ball.LandingX;
-        RecordFact(new FirstHopKicked(swing.Id, t, now.X, now.Z, turn, away.Pos, swing.FirstHopBounceMul, Math.Max(0, stall)));
+        RecordFact(new FirstHopKicked(swing.Id, t, now.X, now.Z, away.Pos, swing.FirstHopBounceMul, Math.Max(0, stall)));
+        Sub = $"{swing.Name}!";
+    }
+
+    /// <summary>
+    /// The Dust Bowl (§13, <see cref="SwingDustBowl"/>): a disc of the row's radius centred where the ball first met the ground,
+    /// standing from that landing for the row's seconds, that slows every fielder inside it to the row's share of his step and
+    /// touches no runner. It goes on the park's slow rail (<see cref="BodySlows"/>), read from the next frame; the ball's path
+    /// is untouched. A fact records it for presentation and the trace.
+    /// </summary>
+    void RaiseDustBowl(StarSwingSkill swing, SwingDustBowl bowl, double t)
+    {
+        var i = BallFlight.LandingIndex(Path!);
+        var (landT, x, z) = i >= 0 && Path![i].Event == SampleEvent.Ground && Path[i].T <= t
+            ? (Path[i].T, Path[i].X, Path[i].Z)
+            : (t, BallX, BallZ);
+        var disc = bowl.Volume(x, z, landT);
+        _bodySlows.Add(disc);
+        RecordFact(new DustBowlRaised(swing.Id, landT, x, z, bowl.RadiusFt, disc.UntilT, Chaser(x, z).Pos));
         Sub = $"{swing.Name}!";
     }
 
@@ -96,16 +114,5 @@ public sealed partial class LivePlaySystem
             if (d < bestD) (best, bestD) = ((pos, at.X, at.Z), d);
         }
         return best;
-    }
-
-    /// <summary>
-    /// The signed turn of a first-hop kick: <paramref name="kickDeg"/> away from the body at (<paramref name="fx"/>,
-    /// <paramref name="fz"/>). A positive turn is counter-clockwise in the (x, z) plane. A body dead ahead or behind is
-    /// taken as on the left, so the same ball always kicks the same way.
-    /// </summary>
-    public static double FirstHopTurnDeg(double vx, double vz, double x, double z, double fx, double fz, double kickDeg)
-    {
-        var cross = vx * (fz - z) - vz * (fx - x);
-        return cross >= 0 ? -kickDeg : kickDeg;
     }
 }

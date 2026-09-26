@@ -5,11 +5,24 @@ namespace GrandSluggers.Sim;
 /// F4-b, #896): the park's instance <see cref="Hazard"/> (its index in <see cref="Park.Hazards"/>), its type, its centre,
 /// the disc it covers — the instance's radius × the type row's <c>nightRadiusMul</c> at night — and how long a touch
 /// slows the body that made it (the row's <c>slowSec</c>).
+///
+/// <para>
+/// A star's volume (§13, Dust Bowl: <see cref="SwingDustBowl"/>) is the same disc with fields a park's never sets: its own
+/// <see cref="SlowMul"/> (a park's is <c>fielding.chase.frozenMul</c>), a play second <see cref="UntilT"/> after which it is gone,
+/// and <see cref="FieldersOnly"/>, a disc no runner touches. Its <see cref="Hazard"/> is negative: it indexes no park hazard.
+/// </para>
 /// </summary>
-public sealed record StatusVolume(int Hazard, string Type, double X, double Z, double RadiusFt, double SlowSec)
+public sealed record StatusVolume(int Hazard, string Type, double X, double Z, double RadiusFt, double SlowSec,
+    double? SlowMul = null, double UntilT = double.PositiveInfinity, bool FieldersOnly = false)
 {
     /// <summary>A body standing at (<paramref name="x"/>, <paramref name="z"/>) is touching the volume. A body on the rim touches it.</summary>
     public bool Contains(double x, double z) => Diamond.Dist(X, Z, x, z) <= RadiusFt;
+
+    /// <summary>The volume is there at play second <paramref name="t"/>: a park's always, a star's until <see cref="UntilT"/>.</summary>
+    public bool ActiveAt(double t) => t < UntilT;
+
+    /// <summary>The volume is the park's own (a <see cref="Hazard"/> index into <see cref="Park.Hazards"/>), not a star's.</summary>
+    public bool OfThePark => Hazard >= 0;
 }
 
 /// <summary>
@@ -61,9 +74,14 @@ public sealed class BodySlows
         public readonly HashSet<int> Inside = [];
         public double Until = double.NegativeInfinity;
         public bool Slowed;
+        /// <summary>This frame's slow from a star's disc standing under the body (its own <see cref="StatusVolume.SlowMul"/>), 1 for none.</summary>
+        public double OwnMul = 1;
+        /// <summary>A park's disc, or a park's time after leaving one, holds the body this frame (<c>frozenMul</c>).</summary>
+        public bool Frozen;
     }
 
     IReadOnlyList<StatusVolume> _volumes = [];
+    IReadOnlyList<StatusVolume> _parkVolumes = [];
     /// <summary>The volumes the body being read stands in: one set reused for every read, so a frame allocates nothing.</summary>
     readonly HashSet<int> _inside = [];
     readonly Dictionary<string, State> _fielders = new(StringComparer.OrdinalIgnoreCase);
@@ -73,12 +91,22 @@ public sealed class BodySlows
     /// <summary>The volumes this play reads. Empty at a park with none, and with hazards off.</summary>
     public IReadOnlyList<StatusVolume> Volumes => _volumes;
 
+    /// <summary>The park's own volumes this play reads (<see cref="StatusVolume.OfThePark"/>): the discs a route goes around.</summary>
+    public IReadOnlyList<StatusVolume> ParkVolumes => _parkVolumes;
+
     /// <summary>A new play on these volumes: every body starts outside every volume, unslowed.</summary>
     public void Begin(IReadOnlyList<StatusVolume> volumes)
     {
         _volumes = volumes;
+        _parkVolumes = volumes.All(v => v.OfThePark) ? volumes : volumes.Where(v => v.OfThePark).ToList();
         Clear();
     }
+
+    /// <summary>
+    /// A star's disc raised mid-play (§13, <see cref="SwingDustBowl"/>): read from the next read on, every body outside it until
+    /// it touches it. The park's volumes, and every body's state, are unchanged.
+    /// </summary>
+    public void Add(StatusVolume volume) => _volumes = [.. _volumes, volume];
 
     /// <summary>Forget every body (the play is over).</summary>
     public void Clear()
@@ -92,11 +120,11 @@ public sealed class BodySlows
     /// in park order, and whether it runs slowed this frame. An immune body touches nothing.
     /// </summary>
     public IReadOnlyList<(StatusVolume Volume, double UntilT)> Read(string pos, double x, double z, double t, bool immune) =>
-        _volumes.Count == 0 ? [] : Read(Of(_fielders, pos), x, z, t, immune);
+        _volumes.Count == 0 ? [] : Read(Of(_fielders, pos), x, z, t, immune, runner: false);
 
-    /// <summary>Read one runner where he stands at play second <paramref name="t"/>, the same way as a fielder.</summary>
+    /// <summary>Read one runner where he stands at play second <paramref name="t"/>, the same way as a fielder; a fielders-only disc never touches him.</summary>
     public IReadOnlyList<(StatusVolume Volume, double UntilT)> Read(Runner runner, double x, double z, double t, bool immune) =>
-        _volumes.Count == 0 ? [] : Read(Of(_runners, runner), x, z, t, immune);
+        _volumes.Count == 0 ? [] : Read(Of(_runners, runner), x, z, t, immune, runner: true);
 
     /// <summary>The fielder at <paramref name="pos"/> runs slowed this frame.</summary>
     public bool Slowed(string pos) => _fielders.TryGetValue(pos, out var s) && s.Slowed;
@@ -107,33 +135,56 @@ public sealed class BodySlows
     /// <summary>What a step of a body is multiplied by: <c>fielding.chase.frozenMul</c> slowed, else exactly 1.</summary>
     public static double Mul(bool slowed, RulesTable rules) => slowed ? rules.Fielding.Chase.FrozenMul : 1.0;
 
+    /// <summary>
+    /// What this frame's step of the fielder at <paramref name="pos"/> is multiplied by: the strongest slow holding him — a park's
+    /// <c>frozenMul</c> or a star disc's own <see cref="StatusVolume.SlowMul"/>, never two stacked — and exactly 1 unslowed.
+    /// </summary>
+    public double Mul(string pos, RulesTable rules) => _fielders.TryGetValue(pos, out var s) ? Mul(s, rules) : 1.0;
+
+    /// <summary>What this frame's step of this runner is multiplied by, the same way as a fielder's.</summary>
+    public double Mul(Runner runner, RulesTable rules) => _runners.TryGetValue(runner, out var s) ? Mul(s, rules) : 1.0;
+
+    static double Mul(State s, RulesTable rules) =>
+        !s.Slowed ? 1.0 : s.Frozen ? Math.Min(rules.Fielding.Chase.FrozenMul, s.OwnMul) : s.OwnMul;
+
     static State Of<TKey>(Dictionary<TKey, State> bodies, TKey key) where TKey : notnull
     {
         if (!bodies.TryGetValue(key, out var s)) bodies[key] = s = new State();
         return s;
     }
 
-    IReadOnlyList<(StatusVolume Volume, double UntilT)> Read(State s, double x, double z, double t, bool immune)
+    IReadOnlyList<(StatusVolume Volume, double UntilT)> Read(State s, double x, double z, double t, bool immune, bool runner)
     {
         if (immune)
         {
             s.Inside.Clear();
             s.Slowed = false;
+            s.Frozen = false;
+            s.OwnMul = 1;
             return [];
         }
         List<(StatusVolume, double)>? touched = null;
         _inside.Clear();
+        var frozen = false;
+        var ownMul = 1.0;
         foreach (var v in _volumes)
         {
-            if (!v.Contains(x, z)) continue;
+            if (v.FieldersOnly && runner) continue;
+            if (!v.ActiveAt(t) || !v.Contains(x, z)) continue;
             _inside.Add(v.Hazard);
+            if (v.SlowMul is { } own) ownMul = Math.Min(ownMul, own);
+            else frozen = true;
             if (s.Inside.Contains(v.Hazard)) continue;
             s.Until = Math.Max(s.Until, t + v.SlowSec);
             (touched ??= []).Add((v, s.Until));
         }
         s.Inside.Clear();
         s.Inside.UnionWith(_inside);
-        s.Slowed = s.Inside.Count > 0 || t < s.Until - Eps;
+        var timed = t < s.Until - Eps;
+        s.Slowed = s.Inside.Count > 0 || timed;
+        // A star's disc has no time after leaving (slowSec 0), so the time that runs on is always a park's.
+        s.Frozen = frozen || timed;
+        s.OwnMul = ownMul;
         return touched is null ? [] : touched;
     }
 }

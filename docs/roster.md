@@ -96,7 +96,7 @@ Names are working titles. Replace freely; keep the *roles*.
 ### Sable — Dune Nomads
 
 - Bars: Pitch 8 / Bat 5 / Field 6 / Run 5. Body class `trickster` (borrows Vale's takes until its own style exists).
-- Star abilities: Mirage Ball (a faint twin on the far half of the zone, gone by half the flight), Sidewinder (the first hop turns away from the chaser) and Sand Scoop (extra reach on a low grounder that never bobbles).
+- Star abilities: Mirage (the ball vanishes in heat shimmer for the middle third of its flight while its shadow keeps crossing the dirt), Dust Bowl (a grounder's first landing raises an 8 ft bowl of loose dust for 2 s that slows fielders inside it to half speed) and Sand Scoop (extra reach on a low grounder that never bobbles).
 - Signature bat: Mirage Bat. Bats/throws: R/R. Role players: Sirocco, Tumble, Adobe.
 
 ### Hollis — Peak Guard

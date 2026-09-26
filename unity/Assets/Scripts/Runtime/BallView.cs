@@ -52,6 +52,21 @@ namespace GrandSluggers.UnityClient
 
         public void ContactPuff(Vector3 p) => BurstPuff(p);
 
+        bool _veiled;
+
+        /// <summary>
+        /// A star pitch's vanish (spec §13, <see cref="PitchFlight.Visible"/>): hide the ball itself — its mesh, halo, trail and
+        /// glow — while the sim says it cannot be seen, and keep its shadow crossing the dirt. The ball is still placed every frame.
+        /// </summary>
+        public void Veil(bool hidden)
+        {
+            if (_root == null || hidden == _veiled) return;
+            _veiled = hidden;
+            foreach (var r in _root.GetComponentsInChildren<Renderer>(true))
+                r.enabled = !hidden;
+            if (_glow != null) _glow.enabled = !hidden;
+        }
+
         /// <summary>The diamond the shadow climbs the mound of (the park's table).</summary>
         DiamondGeometry _diamond;
 
