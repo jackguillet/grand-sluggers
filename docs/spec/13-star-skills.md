@@ -27,8 +27,30 @@ Each replacement effect for a pitch that lost its window penalty is its own revi
 | Summit Gust (`updraft`) | A star fly (launch 34°, exit ×1.1) that catches a gust at its apex: from the step it stops rising until it first meets the ground or a wall, each horizontal move is `apexCarryMul` (1.15) times the plain ball's along the same heading, at the same heights and on the same clock. The fall carries 15 % farther along its own line in any park and wind, landing on the same instant; a ball that never rises has none. The factor rides on the batted ball, so the preview, the shadow and the live ball read the carried path; a fly it carries over the fence is a home run | |
 | Leapfrog | A `leap`: from `at` of the flight the ball crawls at `holdPace` of its pace for `holdSpan` of the flight, then leaps over the rest of its path to arrive on time. The path, the crossing and the arrival instant are the ordinary pitch's, so the timing window is too | |
 | Pond Skip | A low star swing (launch 0°, exit ×1.05) whose first hop leaves the ground `firstHopBounceMul` (2.2) times as fast upward: a high chopper for a fast runner. A ball gloved before it springs is an ordinary out | |
-| Role players | Star fastball / change / breaker; star grounder / fly / line | |
 
 Star skills cannot produce a free home run; the exit multipliers are capped so a Perfect charged star swing at Bat 10 clears Harbor's 400 only with a Perfect. ✅ by tuning.
 
 A captain's Star Pitch and Star Swing belong to that captain alone, and no two captains share an effect family; a sidekick's are the generic pool's (`kind: generic`). What a special costs and what happens when a team cannot pay are §12.
+
+## Sidekick specials
+
+A sidekick's Star Pitch and Star Swing come only from the generic pool (`kind: generic`), never from a captain. The species carries them: each species in `data/world/species.json` names one `starPitch` and one `starSwing`, every sidekick of that species shares them, and a sidekick's own row names neither (the content validator refuses a sidekick row that names one, and a species that names a captain's special). No effect below is a roll; every bend ends within 2 s; contact stays contact and a miss stays a miss.
+
+| Special | Kind | Bend |
+| --- | --- | --- |
+| Star Fastball (`fastball`) | pitch | Speed ×1.25 |
+| Star Change (`changeup`) | pitch | Speed ×0.7 |
+| Star Breaker (`breaker`) | pitch | Speed ×0.85 and a late break |
+| Star Dot (`dot`) | pitch | Speed ×1.05 and `dot`: it flies true to its aim. The family's own drop and sweep are off and the CPU arm lays no scatter on its intent, so it crosses exactly on the aimed spot, the rubber walk and the stick's held break included. The umpire, the bat and the CPU read that crossing |
+| Star Sinker (`sinkball`) | pitch | Path, speed and crossing are the plain pitch's. A ball put in play off it leaves `sinkDeg` (6°) lower than the same contact off the plain pitch, never under `batting.launch.minDeg`, so it is more often on the ground |
+| Star Lob (`lob`) | pitch | Speed ×1.0 and a `lob`: the ball leaves the hand at `paceMul` (0.75) of its pace along its path and speeds up evenly as it falls, on a high arc `arcFt` (5 ft) over the path at mid-flight and nothing at the plate. It falls through the zone on the ordinary instant at the ordinary crossing, so the window and the call are the plain pitch's |
+| Star Sidearm (`sidearm`) | pitch | The ball leaves the hand `sidearmFt` (2 ft) wider, out on the hand's side of the rubber, and runs a straight diagonal onto the same aimed crossing on the same clock |
+| Star Grounder (`ground`) | swing | Launch 8°, exit ×1.2 |
+| Star Fly (`fly`) | swing | Launch 38°, exit ×1.2 |
+| Star Line (`line`) | swing | Launch 18°, exit ×1.25 |
+| Star Pull (`pull`) | swing | Exit ×1.15; the ball goes `pullDeg` (10°) toward the batter's pull line: toward third for a right-handed batter, first for a left-handed one |
+| Star Opposite (`opposite`) | swing | Exit ×1.1; `pullDeg` −10: the ball goes 10° toward the opposite field |
+| Star Chopper (`chopper`) | swing | Launch −10°, exit ×1.1; its first hop leaves the ground `firstHopBounceMul` (1.6) times as fast upward, the first-hop rail of the shared ground physics: a high bounce to beat out. A ball gloved before it hops is an ordinary ball |
+| Star Drag Bunt (`drag-bunt`) | swing | The timed star swing squares at contact and lays down a bunt: the bunt's own exit for the contact (`batting.bunt.response`), launch 3°, and a bearing solved on the ball's own roll in the park, its ground and wind, so it comes to rest `insetFt` (0.5 ft) inside the batter's pull line. It runs out along a ray that ends inside the chalk, so it stays fair all the way. A glove that reaches it first fields a bunt |
+
+Each species starts on its build's pair (bruiser Star Fastball and Star Fly, scamp Star Change and Star Grounder, glove Star Breaker and Star Line), and some species carry one of the eight newer specials instead, so parks differ: Walrams Star Pull, Jackalopes Star Drag Bunt, Pelicows Star Lob, Glowgeckos Star Dot, Coal Moles Star Sinker, Otterons Star Sidearm, Marmeagles Star Opposite, Lemurkeets Star Chopper. `species.json` is the one list.

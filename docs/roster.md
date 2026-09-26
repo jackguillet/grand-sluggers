@@ -30,7 +30,7 @@ The bars below are what the derived numbers are today; the sub-stats are in "Sub
 
 Cross-faction buddy examples (authored, not generated): a Spark pitcher who grew up with a Carnival runner; a Royal and a Goldrush who date and therefore *hate* fielding together some days — no: keep bad chem as rivalry, good as buddy. Royals buddy with Spark. Goldrush buddy only with each other plus one traitor. Ember hates Spark and Royals. Canopy hates Ember’s mercenary lizards (a sub-rival).
 
-Body types are locked in [silhouette-bible.md](silhouette-bible.md). Sidekicks wear their species' body (`data/world/species.json`).
+Body types are locked in [silhouette-bible.md](silhouette-bible.md). Sidekicks wear their species' body (`data/world/species.json`) and carry its Star Pitch and Star Swing from the generic pool (spec §13, "Sidekick specials"): a sidekick's row names neither.
 
 ## Captains (placeholders)
 
@@ -173,5 +173,5 @@ Authored in `data/characters/`. Every row carries all nine; the bars above are d
 - One defensive verb each.
 - At most one bar at 9 or higher per character (CH-08); the validator refuses a second. Specialization is the joke.
 - Color variants (if any) are palette swaps of role players, not new kits.
-- Captains are the only unique Star Pitch/Swing. Do not secretly give role players cutscene specials.
+- Captains are the only unique Star Pitch/Swing. Do not secretly give role players cutscene specials; a species picks its pair from the generic pool.
 - Names must pass a 10-second “not a Mario character” test. If it sounds like Luigi, change it.

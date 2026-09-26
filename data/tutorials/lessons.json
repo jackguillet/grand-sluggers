@@ -2372,6 +2372,106 @@
       ]
     },
     {
+      "id": "T-SP-dot",
+      "revision": 4,
+      "mechanics": [
+        "star-pitch.dot"
+      ],
+      "title": "Star pitch: dot",
+      "category": "special",
+      "status": "implemented",
+      "issue": 1230,
+      "reason": "Headless authored star exercise; standalone learning gate pending",
+      "profiles": [
+        "shipped"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-SP-dot",
+      "objective": "star-pitch",
+      "controls": [
+        "control:pitching/Star pitch"
+      ],
+      "tests": [
+        "TutorialSpecialTests"
+      ]
+    },
+    {
+      "id": "T-SP-sinkball",
+      "revision": 4,
+      "mechanics": [
+        "star-pitch.sinkball"
+      ],
+      "title": "Star pitch: sinkball",
+      "category": "special",
+      "status": "implemented",
+      "issue": 1230,
+      "reason": "Headless authored star exercise; standalone learning gate pending",
+      "profiles": [
+        "shipped"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-SP-sinkball",
+      "objective": "star-pitch",
+      "controls": [
+        "control:pitching/Star pitch"
+      ],
+      "tests": [
+        "TutorialSpecialTests"
+      ]
+    },
+    {
+      "id": "T-SP-lob",
+      "revision": 4,
+      "mechanics": [
+        "star-pitch.lob"
+      ],
+      "title": "Star pitch: lob",
+      "category": "special",
+      "status": "implemented",
+      "issue": 1230,
+      "reason": "Headless authored star exercise; standalone learning gate pending",
+      "profiles": [
+        "shipped"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-SP-lob",
+      "objective": "star-pitch",
+      "controls": [
+        "control:pitching/Star pitch"
+      ],
+      "tests": [
+        "TutorialSpecialTests"
+      ]
+    },
+    {
+      "id": "T-SP-sidearm",
+      "revision": 4,
+      "mechanics": [
+        "star-pitch.sidearm"
+      ],
+      "title": "Star pitch: sidearm",
+      "category": "special",
+      "status": "implemented",
+      "issue": 1230,
+      "reason": "Headless authored star exercise; standalone learning gate pending",
+      "profiles": [
+        "shipped"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-SP-sidearm",
+      "objective": "star-pitch",
+      "controls": [
+        "control:pitching/Star pitch"
+      ],
+      "tests": [
+        "TutorialSpecialTests"
+      ]
+    },
+    {
       "id": "T-SP-mirageball",
       "revision": 5,
       "mechanics": [
@@ -2688,6 +2788,106 @@
       "requires": [],
       "prerequisites": [],
       "setup": "T-SS-line",
+      "objective": "star-swing",
+      "controls": [
+        "control:batting/Star swing"
+      ],
+      "tests": [
+        "TutorialSpecialTests"
+      ]
+    },
+    {
+      "id": "T-SS-pull",
+      "revision": 4,
+      "mechanics": [
+        "star-swing.pull"
+      ],
+      "title": "Star swing: pull",
+      "category": "special",
+      "status": "implemented",
+      "issue": 1230,
+      "reason": "Headless authored star exercise; standalone learning gate pending",
+      "profiles": [
+        "shipped"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-SS-pull",
+      "objective": "star-swing",
+      "controls": [
+        "control:batting/Star swing"
+      ],
+      "tests": [
+        "TutorialSpecialTests"
+      ]
+    },
+    {
+      "id": "T-SS-opposite",
+      "revision": 4,
+      "mechanics": [
+        "star-swing.opposite"
+      ],
+      "title": "Star swing: opposite",
+      "category": "special",
+      "status": "implemented",
+      "issue": 1230,
+      "reason": "Headless authored star exercise; standalone learning gate pending",
+      "profiles": [
+        "shipped"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-SS-opposite",
+      "objective": "star-swing",
+      "controls": [
+        "control:batting/Star swing"
+      ],
+      "tests": [
+        "TutorialSpecialTests"
+      ]
+    },
+    {
+      "id": "T-SS-chopper",
+      "revision": 4,
+      "mechanics": [
+        "star-swing.chopper"
+      ],
+      "title": "Star swing: chopper",
+      "category": "special",
+      "status": "implemented",
+      "issue": 1230,
+      "reason": "Headless authored star exercise; standalone learning gate pending",
+      "profiles": [
+        "shipped"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-SS-chopper",
+      "objective": "star-swing",
+      "controls": [
+        "control:batting/Star swing"
+      ],
+      "tests": [
+        "TutorialSpecialTests"
+      ]
+    },
+    {
+      "id": "T-SS-drag-bunt",
+      "revision": 4,
+      "mechanics": [
+        "star-swing.drag-bunt"
+      ],
+      "title": "Star swing: drag-bunt",
+      "category": "special",
+      "status": "implemented",
+      "issue": 1230,
+      "reason": "Headless authored star exercise; standalone learning gate pending",
+      "profiles": [
+        "shipped"
+      ],
+      "requires": [],
+      "prerequisites": [],
+      "setup": "T-SS-drag-bunt",
       "objective": "star-swing",
       "controls": [
         "control:batting/Star swing"
@@ -5370,7 +5570,7 @@
         "ashlord",
         "vine",
         "moss",
-        "nico"
+        "marlow"
       ],
       "away": [
         "zig",
@@ -5387,7 +5587,7 @@
       "balls": {},
       "startingStars": 3,
       "skill": "fastball",
-      "pitcherId": "nico"
+      "pitcherId": "marlow"
     },
     {
       "id": "T-SP-changeup",
@@ -5436,7 +5636,7 @@
         "ashlord",
         "vine",
         "moss",
-        "marlow"
+        "nico"
       ],
       "away": [
         "zig",
@@ -5453,7 +5653,139 @@
       "balls": {},
       "startingStars": 3,
       "skill": "breaker",
-      "pitcherId": "marlow"
+      "pitcherId": "nico"
+    },
+    {
+      "id": "T-SP-dot",
+      "policy": "cpu-take",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {},
+      "startingStars": 3,
+      "skill": "dot",
+      "pitcherId": "hex"
+    },
+    {
+      "id": "T-SP-sinkball",
+      "policy": "cpu-take",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "brimsy"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {},
+      "startingStars": 3,
+      "skill": "sinkball",
+      "pitcherId": "brimsy"
+    },
+    {
+      "id": "T-SP-lob",
+      "policy": "cpu-take",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "barnacle"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {},
+      "startingStars": 3,
+      "skill": "lob",
+      "pitcherId": "barnacle"
+    },
+    {
+      "id": "T-SP-sidearm",
+      "policy": "cpu-take",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "cattail"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "rio"
+      ],
+      "runners": [],
+      "balls": {},
+      "startingStars": 3,
+      "skill": "sidearm",
+      "pitcherId": "cattail"
     },
     {
       "id": "T-SP-mirageball",
@@ -5891,7 +6223,143 @@
       "balls": {},
       "startingStars": 3,
       "skill": "line",
-      "batterId": "grit",
+      "batterId": "nico",
+      "seat": "offense"
+    },
+    {
+      "id": "T-SS-pull",
+      "policy": "cpu-strike",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "tundra"
+      ],
+      "runners": [],
+      "balls": {},
+      "startingStars": 3,
+      "skill": "pull",
+      "batterId": "tundra",
+      "seat": "offense"
+    },
+    {
+      "id": "T-SS-opposite",
+      "policy": "cpu-strike",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "flint"
+      ],
+      "runners": [],
+      "balls": {},
+      "startingStars": 3,
+      "skill": "opposite",
+      "batterId": "flint",
+      "seat": "offense"
+    },
+    {
+      "id": "T-SS-chopper",
+      "policy": "cpu-strike",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "kiwi"
+      ],
+      "runners": [],
+      "balls": {},
+      "startingStars": 3,
+      "skill": "chopper",
+      "batterId": "kiwi",
+      "seat": "offense"
+    },
+    {
+      "id": "T-SS-drag-bunt",
+      "policy": "cpu-strike",
+      "seed": 1,
+      "timeoutSec": 30,
+      "home": [
+        "vale",
+        "pewter",
+        "lace",
+        "frost",
+        "basil",
+        "ashlord",
+        "vine",
+        "moss",
+        "hex"
+      ],
+      "away": [
+        "zig",
+        "cinder",
+        "dart",
+        "jester",
+        "grit",
+        "soot",
+        "boom",
+        "nugget",
+        "tumble"
+      ],
+      "runners": [],
+      "balls": {},
+      "startingStars": 3,
+      "skill": "drag-bunt",
+      "batterId": "tumble",
       "seat": "offense"
     },
     {

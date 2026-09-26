@@ -27,7 +27,56 @@ public sealed record StarPitchSkill(
     /// <summary>A full stop at one point of the path for a fixed time, then a run on down the line to arrive on time, or null (§13).</summary>
     PitchHitch? Hitch = null,
     /// <summary>A stretch of the flight in which the ball is hidden and only its shadow shows, or null (§13).</summary>
-    PitchVanish? Vanish = null);
+    PitchVanish? Vanish = null,
+    /// <summary>
+    /// The pitch flies true to its aim (§13, Star Dot): the family's own drop and sweep are off and the CPU arm lays no scatter
+    /// on its intent, so it crosses exactly on the aimed spot, the rubber walk and the stick's held break included.
+    /// </summary>
+    bool Dot = false,
+    /// <summary>A ball put in play off this pitch leaves this many degrees lower (§13, Star Sinker); 0 is the ordinary launch.</summary>
+    double SinkDeg = 0,
+    /// <summary>A slow start on a high arc that falls through the zone on the ordinary instant at the ordinary crossing, or null (§13).</summary>
+    PitchLob? Lob = null,
+    /// <summary>The ball leaves the hand this many feet wider, out on the hand's side (§13, Star Sidearm); the crossing is unchanged.</summary>
+    double SidearmFt = 0)
+{
+    /// <summary>The most a sinker may lower the launch: a grounder more often, not a ball driven into the plate.</summary>
+    public const double MaxSinkDeg = 15;
+
+    /// <summary>The widest a sidearm release may name: a wider slot, not a throw from the dugout.</summary>
+    public const double MaxSidearmFt = 3;
+}
+
+/// <summary>
+/// A star pitch's lob (spec §13, Star Lob): the ball leaves the hand at <see cref="PaceMul"/> of its pace along its path and
+/// speeds up evenly as it falls, so it covers the whole path on the ordinary clock; over it rides a high arc, <see cref="ArcFt"/>
+/// above the ordinary path at mid-flight and nothing at the release or the plate. The path's end, the crossing and the arrival
+/// instant are the ordinary pitch's, so the umpire, the bat, the CPU and the timing window read the ordinary pitch.
+/// </summary>
+public sealed record PitchLob(double PaceMul, double ArcFt)
+{
+    /// <summary>The slowest start a row may name: a lob, not a pitch that stops in the air.</summary>
+    public const double MinPaceMul = 0.5;
+    /// <summary>The highest arc a row may name, in feet over the ordinary path at mid-flight.</summary>
+    public const double MaxArcFt = 8;
+
+    /// <summary>
+    /// How far along its path the ball is at time fraction <paramref name="u"/>: <see cref="PaceMul"/>·u + (1 − <see cref="PaceMul"/>)·u²,
+    /// a pace of <see cref="PaceMul"/> at the release that grows evenly to 2 − <see cref="PaceMul"/> at the plate; 0 at 0 and 1 at 1.
+    /// </summary>
+    public double Progress(double u)
+    {
+        u = Math.Clamp(u, 0, 1);
+        return PaceMul * u + (1 - PaceMul) * u * u;
+    }
+
+    /// <summary>The arc's height over the ordinary path at time fraction <paramref name="u"/>: 4·<see cref="ArcFt"/>·u·(1 − u), the whole arc at mid-flight, 0 at both ends.</summary>
+    public double Lift(double u)
+    {
+        u = Math.Clamp(u, 0, 1);
+        return 4 * ArcFt * u * (1 - u);
+    }
+}
 
 /// <summary>
 /// A star pitch's hitch (spec §13): at <see cref="At"/> of the flight the ball stops dead at one point of its path — a cable car
@@ -316,8 +365,27 @@ public sealed record StarSwingSkill(
     /// </summary>
     double ApexCarryMul = 1,
     /// <summary>A bowl of loose dust this swing's grounder raises where it first lands, slowing the fielders inside it, or null (§13).</summary>
-    SwingDustBowl? DustBowl = null)
+    SwingDustBowl? DustBowl = null,
+    /// <summary>
+    /// The ball off this swing goes this many degrees toward the batter's pull line (§13, Star Pull); a negative number goes toward
+    /// the opposite field (Star Opposite); 0 is the ordinary spray.
+    /// </summary>
+    double PullDeg = 0,
+    /// <summary>The swing lays down a bunt that rolls along the batter's pull line and stops just fair, or null (§13, Star Drag Bunt).</summary>
+    SwingDragBunt? DragBunt = null)
 {
+    /// <summary>The largest pull a row may name: a lean toward a line, not a ball sent foul.</summary>
+    public const double MaxPullDeg = 20;
+
+    /// <summary>The lowest launch a star swing may name: a chopper driven into the dirt, not into the plate.</summary>
+    public const double MinLaunchDeg = -15;
+
+    /// <summary>
+    /// The pull in degrees of spray for a batter who bats <paramref name="bats"/> (§5.3 signs: a right-handed batter pulls toward
+    /// third, negative spray; a left-handed batter toward first).
+    /// </summary>
+    public double PullSprayDeg(Hand bats) => PullDeg == 0 ? 0 : -SweetSpot.TipSign(bats) * PullDeg;
+
     /// <summary>The tallest contact oval a row may name: twice the batter's zone, never more.</summary>
     public const double MaxOvalHeightMul = 2;
     /// <summary>The longest stall a row may name: the ball spins, then baseball resumes inside the two-second rule.</summary>
@@ -343,6 +411,59 @@ public sealed record StarSwingSkill(
 
     /// <summary>The longest pause a row may name: every special's bend ends within 2 s of the contact (§13).</summary>
     public const double MaxFielderPauseSec = 2;
+}
+
+/// <summary>
+/// A star swing's drag bunt (spec §13, Star Drag Bunt): the timed star swing squares at contact and lays the ball down the
+/// batter's pull line (third for a right-handed batter, first for a left-handed one). It leaves at the bunt's own exit for the
+/// contact (<c>batting.bunt.response</c>) and the row's launch, and its bearing is solved on the ball's own path in the park —
+/// its roll, the ground and the wind — so the ball comes to rest <see cref="InsetFt"/> inside the foul line. The ball runs out
+/// from home along a line that ends inside the chalk, so it rolls along the line and stays fair all the way. Geometry decides
+/// it; nothing is rolled. A glove that reaches it first fields a bunt.
+/// </summary>
+public sealed record SwingDragBunt(double InsetFt)
+{
+    /// <summary>The farthest inside the line a row may stop the ball: a drag bunt hugs the chalk.</summary>
+    public const double MaxInsetFt = 1;
+
+    /// <summary>The highest launch a drag bunt may name: it rolls, it does not pop.</summary>
+    public const double MaxLaunchDeg = 10;
+
+    /// <summary>The side of the field the bunt goes to for a batter who bats <paramref name="bats"/>: −1 the third-base line, +1 the first-base line.</summary>
+    public static int Side(Hand bats) => -(int)SweetSpot.TipSign(bats);
+
+    /// <summary>How far inside the foul line on <paramref name="side"/> the point (<paramref name="x"/>, <paramref name="z"/>) is, in feet; negative is foul.</summary>
+    public static double InsideLineFt(double x, double z, int side) => (z - side * x) * Math.Sqrt(0.5);
+
+    /// <summary>
+    /// The spray (rounded to a tenth of a degree, as every contact is) that brings a ball of <paramref name="exitMph"/> and
+    /// <paramref name="launchDeg"/> to rest <see cref="InsetFt"/> inside the <paramref name="side"/> line in <paramref name="park"/>:
+    /// fly it, read where it stops, turn the bearing by what is off, and fly it again.
+    /// </summary>
+    public double SprayDeg(double exitMph, double launchDeg, int side, Park park, RulesTable rules)
+    {
+        var line = side * AtBatResolver.FoulLineDeg;
+        var spray = line - side;
+        for (var i = 0; i < 6; i++)
+        {
+            var rest = Rest(exitMph, launchDeg, spray, park, rules);
+            var dist = Math.Sqrt(rest.X * rest.X + rest.Z * rest.Z);
+            if (dist < 1e-6) break;
+            var want = line - side * Math.Asin(Math.Min(1, InsetFt / dist)) * 180 / Math.PI;
+            var off = want - FieldBounds.SprayDeg(rest.X, rest.Z);
+            spray += off;
+            if (Math.Abs(off) < 1e-6) break;
+        }
+        return Math.Round(spray, 1);
+    }
+
+    /// <summary>Where the ball of this contact comes to rest (the last point of its path) in <paramref name="park"/>.</summary>
+    public static (double X, double Z) Rest(double exitMph, double launchDeg, double sprayDeg, Park park, RulesTable rules)
+    {
+        var path = BallFlight.Trajectory(exitMph, launchDeg, sprayDeg, park, rules);
+        var last = path[^1];
+        return (last.X, last.Z);
+    }
 }
 
 /// <summary>
@@ -568,6 +689,14 @@ public static class StarSkills
     /// <summary>The jagged flight a star swing's ball flies (§13); null for a swing whose row names none.</summary>
     public static BallJag? SwingJag(string? starSwing, StarSkillTable? table = null) =>
         StarSkillTable.Or(table).Swing(starSwing)?.Jag;
+
+    /// <summary>How many degrees lower a ball put in play off this star pitch leaves (§13, Star Sinker); 0 for a pitch whose row names none.</summary>
+    public static double PitchSinkDeg(string? starPitch, StarSkillTable? table = null) =>
+        StarSkillTable.Or(table).Pitch(starPitch)?.SinkDeg ?? 0;
+
+    /// <summary>The CPU arm's scatter is off for this star pitch (§13, Star Dot): it crosses where it was aimed.</summary>
+    public static bool PitchIsDot(string? starPitch, StarSkillTable? table = null) =>
+        StarSkillTable.Or(table).Pitch(starPitch)?.Dot == true;
 
     /// <summary>A role player's star swing names its launch; a captain's keeps the swing's own.</summary>
     public static double? SwingLaunchDeg(string? starSwing, StarSkillTable? table = null) =>

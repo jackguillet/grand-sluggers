@@ -303,13 +303,46 @@ public static class ContentDataValidator
                     errors.Add($"{source}: star pitch '{key}' drop needs 0 < dropFt <= {PitchDrop.MaxDropFt.ToString(CultureInfo.InvariantCulture)} and 0 < from < 1");
                 if (value.HotBall is not null)
                     errors.Add($"{source}: star pitch '{key}' cannot carry a hotBall; it is a swing's");
+                // The sidekick pool's pitches (§13): a sinker lowers the launch, never raises it; the lob starts slow and arrives
+                // on time on an arc that ends at the plate; the sidearm slot is wider, not off the mound.
+                if (value.SinkDeg is { } sinkDeg && (sinkDeg <= 0 || sinkDeg > StarPitchSkill.MaxSinkDeg))
+                    errors.Add($"{source}: star pitch '{key}' sinkDeg must be greater than 0 and at most {StarPitchSkill.MaxSinkDeg.ToString(CultureInfo.InvariantCulture)}; got {sinkDeg.ToString(CultureInfo.InvariantCulture)}");
+                if (value.Lob is { } lob && (lob.PaceMul < PitchLob.MinPaceMul || lob.PaceMul >= 1 || lob.ArcFt <= 0 || lob.ArcFt > PitchLob.MaxArcFt))
+                    errors.Add($"{source}: star pitch '{key}' lob needs {PitchLob.MinPaceMul.ToString(CultureInfo.InvariantCulture)} <= paceMul < 1 and 0 < arcFt <= {PitchLob.MaxArcFt.ToString(CultureInfo.InvariantCulture)}");
+                if (value.SidearmFt is { } wide && (wide <= 0 || wide > StarPitchSkill.MaxSidearmFt))
+                    errors.Add($"{source}: star pitch '{key}' sidearmFt must be greater than 0 and at most {StarPitchSkill.MaxSidearmFt.ToString(CultureInfo.InvariantCulture)}; got {wide.ToString(CultureInfo.InvariantCulture)}");
+                if (value.PullDeg is not null)
+                    errors.Add($"{source}: star pitch '{key}' cannot carry pullDeg; it is a swing's");
+                if (value.DragBunt is not null)
+                    errors.Add($"{source}: star pitch '{key}' cannot carry a dragBunt; it is a swing's");
             }
             else
             {
                 if (value.ExitVeloMul is null || value.ExitVeloMul <= 0)
                     errors.Add($"{source}: star swing '{key}' exitVeloMul must be greater than 0; got {value.ExitVeloMul?.ToString(CultureInfo.InvariantCulture) ?? "null"}");
-                if (value.LaunchDeg is not null && (value.LaunchDeg < 0 || value.LaunchDeg > 60))
-                    errors.Add($"{source}: star swing '{key}' launchDeg must be between 0 and 60; got {value.LaunchDeg}");
+                if (value.LaunchDeg is not null && (value.LaunchDeg < StarSwingSkill.MinLaunchDeg || value.LaunchDeg > 60))
+                    errors.Add($"{source}: star swing '{key}' launchDeg must be between {StarSwingSkill.MinLaunchDeg.ToString(CultureInfo.InvariantCulture)} and 60; got {value.LaunchDeg}");
+                // The sidekick pool's swings (§13): a pull leans the ball toward a line and no further; a drag bunt names a
+                // rolling launch and stops within a foot of fair.
+                if (value.PullDeg is { } pull && (pull == 0 || Math.Abs(pull) > StarSwingSkill.MaxPullDeg))
+                    errors.Add($"{source}: star swing '{key}' pullDeg must be non-zero and at most {StarSwingSkill.MaxPullDeg.ToString(CultureInfo.InvariantCulture)} either way; got {pull.ToString(CultureInfo.InvariantCulture)}");
+                if (value.DragBunt is { } drag)
+                {
+                    if (drag.InsetFt <= 0 || drag.InsetFt > SwingDragBunt.MaxInsetFt)
+                        errors.Add($"{source}: star swing '{key}' dragBunt insetFt must be greater than 0 and at most {SwingDragBunt.MaxInsetFt.ToString(CultureInfo.InvariantCulture)}; got {drag.InsetFt.ToString(CultureInfo.InvariantCulture)}");
+                    if (value.LaunchDeg is not { } bunt || bunt < 0 || bunt > SwingDragBunt.MaxLaunchDeg)
+                        errors.Add($"{source}: star swing '{key}' lays a drag bunt, so it must name a rolling launchDeg between 0 and {SwingDragBunt.MaxLaunchDeg.ToString(CultureInfo.InvariantCulture)}");
+                    if (value.PullDeg is not null)
+                        errors.Add($"{source}: star swing '{key}' lays a drag bunt down the line; it cannot also carry pullDeg");
+                }
+                if (value.Dot is not null)
+                    errors.Add($"{source}: star swing '{key}' cannot carry dot; it is a pitch's");
+                if (value.SinkDeg is not null)
+                    errors.Add($"{source}: star swing '{key}' cannot carry sinkDeg; it is a pitch's");
+                if (value.Lob is not null)
+                    errors.Add($"{source}: star swing '{key}' cannot carry a lob; it is a pitch's");
+                if (value.SidearmFt is not null)
+                    errors.Add($"{source}: star swing '{key}' cannot carry sidearmFt; it is a pitch's");
                 if (value.Vanish is not null)
                     errors.Add($"{source}: star swing '{key}' cannot carry a vanish; it is a pitch's");
                 // The bowl is a grounder's first landing (§13): a disc no wider than the park's, gone inside two seconds, a slow and not a wall.
@@ -400,7 +433,11 @@ public static class ContentDataValidator
             if (string.IsNullOrWhiteSpace(s.Name) || string.IsNullOrWhiteSpace(s.Blend) || string.IsNullOrWhiteSpace(s.Look))
                 errors.Add($"{src}: species '{s.Id}' needs a name, a blend and a look");
             if (!pitches.Contains(s.StarPitch)) errors.Add($"{src}: species '{s.Id}' starPitch '{s.StarPitch}' is not a star pitch");
+            else if (data.StarSkills.Pitches?.GetValueOrDefault(s.StarPitch)?.Kind is { } pk && pk != StarSkills.GenericKind)
+                errors.Add($"{src}: species '{s.Id}' starPitch '{s.StarPitch}' is a captain's special; a species carries the generic pool's (kind: generic)");
             if (!swings.Contains(s.StarSwing)) errors.Add($"{src}: species '{s.Id}' starSwing '{s.StarSwing}' is not a star swing");
+            else if (data.StarSkills.Swings?.GetValueOrDefault(s.StarSwing)?.Kind is { } sk && sk != StarSkills.GenericKind)
+                errors.Add($"{src}: species '{s.Id}' starSwing '{s.StarSwing}' is a captain's special; a species carries the generic pool's (kind: generic)");
             if (!FieldAbilityIds.Contains(s.FieldAbility)) errors.Add($"{src}: species '{s.Id}' fieldAbility '{s.FieldAbility}' is not a field ability");
         }
         foreach (var f in factions)
@@ -706,8 +743,19 @@ public static class ContentDataValidator
         Known(row.Source, $"character '{c.Id}' throws", c.Throws, Hands, errors);
         Known(row.Source, $"character '{c.Id}' fieldAbility", c.FieldAbility, FieldAbilityIds, errors);
         ValidateRepertoire(row.Source, c, errors);
-        Reference(row.Source, $"character '{c.Id}' starPitch", c.StarPitch, pitches, errors);
-        Reference(row.Source, $"character '{c.Id}' starSwing", c.StarSwing, swings, errors);
+        // A captain names its own specials; a sidekick names none — its species' are its (AB-10, WD-27).
+        if (c.Captain)
+        {
+            Reference(row.Source, $"character '{c.Id}' starPitch", c.StarPitch, pitches, errors);
+            Reference(row.Source, $"character '{c.Id}' starSwing", c.StarSwing, swings, errors);
+        }
+        else
+        {
+            if (!string.IsNullOrEmpty(c.StarPitch))
+                errors.Add($"{row.Source}: sidekick '{c.Id}' names starPitch '{c.StarPitch}'; a sidekick carries its species' specials, so leave it out");
+            if (!string.IsNullOrEmpty(c.StarSwing))
+                errors.Add($"{row.Source}: sidekick '{c.Id}' names starSwing '{c.StarSwing}'; a sidekick carries its species' specials, so leave it out");
+        }
     }
 
     /// <summary>
@@ -1829,6 +1877,18 @@ internal sealed class StarSkillDto
     public string? Family { get; set; }
     /// <summary>Retired (§12): the carrier sets the price. Read only so a stale row is refused by name.</summary>
     public string? Tier { get; set; }
+    /// <summary>A pitch that flies true to its aim (<see cref="StarPitchSkill.Dot"/>); pitches only.</summary>
+    public bool? Dot { get; set; }
+    /// <summary>A ball put in play off the pitch leaves this many degrees lower (<see cref="StarPitchSkill.SinkDeg"/>); pitches only.</summary>
+    public double? SinkDeg { get; set; }
+    /// <summary>A pitch's lob (<see cref="PitchLob"/>); pitches only.</summary>
+    public PitchLobDto? Lob { get; set; }
+    /// <summary>A pitch released this many feet wider (<see cref="StarPitchSkill.SidearmFt"/>); pitches only.</summary>
+    public double? SidearmFt { get; set; }
+    /// <summary>A swing's ball goes this many degrees toward the pull line, negative toward the opposite field (<see cref="StarSwingSkill.PullDeg"/>); swings only.</summary>
+    public double? PullDeg { get; set; }
+    /// <summary>A swing that lays a bunt down the line (<see cref="SwingDragBunt"/>); swings only.</summary>
+    public SwingDragBuntDto? DragBunt { get; set; }
 
     public StarPitchSkill ToPitch() => new(Id, Name, Kind, SpeedMul ?? 1.0, StaminaCost ?? 0,
         LateBreak, Decoy, OnCatch,
@@ -1840,7 +1900,9 @@ internal sealed class StarSkillDto
         Pendulum is null ? null : new PitchPendulum(Pendulum.LengthFt, Pendulum.SwingDeg, Pendulum.WidestAt),
         Drop is null ? null : new PitchDrop(Drop.DropFt, Drop.From),
         Hitch is null ? null : new PitchHitch(Hitch.At, Hitch.HoldSec),
-        Vanish is null ? null : new PitchVanish(Vanish.From, Vanish.To));
+        Vanish is null ? null : new PitchVanish(Vanish.From, Vanish.To),
+        Dot: Dot == true, SinkDeg: SinkDeg ?? 0, Lob: Lob is null ? null : new PitchLob(Lob.PaceMul, Lob.ArcFt),
+        SidearmFt: SidearmFt ?? 0);
 
     public StarSwingSkill ToSwing() => new(Id, Name, Kind, ExitVeloMul ?? 1.0, LaunchDeg, Terrain,
         FielderPauseSec ?? 0, Decoy,
@@ -1848,7 +1910,22 @@ internal sealed class StarSkillDto
         Jag is null ? null : new BallJag(Jag.OffsetFt, Jag.FirstAt, Jag.SecondAt, Jag.Span),
         HotBall is null ? null : new Sim.HotBall(HotBall.MoltenSec, HotBall.HoldSec),
         OvalHeightMul: OvalHeightMul ?? 1, ApexCarryMul: ApexCarryMul ?? 1,
-        DustBowl: DustBowl is null ? null : new SwingDustBowl(DustBowl.RadiusFt, DustBowl.Sec, DustBowl.Mul));
+        DustBowl: DustBowl is null ? null : new SwingDustBowl(DustBowl.RadiusFt, DustBowl.Sec, DustBowl.Mul),
+        PullDeg: PullDeg ?? 0, DragBunt: DragBunt is null ? null : new SwingDragBunt(DragBunt.InsetFt));
+}
+
+internal sealed class PitchLobDto
+{
+    /// <summary>The share of its pace the ball leaves the hand at; it speeds up evenly to arrive on time.</summary>
+    public double PaceMul { get; set; }
+    /// <summary>The arc's height over the ordinary path at mid-flight, in feet.</summary>
+    public double ArcFt { get; set; }
+}
+
+internal sealed class SwingDragBuntDto
+{
+    /// <summary>How far inside the foul line the ball comes to rest, in feet.</summary>
+    public double InsetFt { get; set; }
 }
 
 internal sealed class PitchDropDto

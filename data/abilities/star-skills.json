@@ -91,7 +91,11 @@
     },
     "fastball": { "id": "fastball", "name": "Star Fastball", "kind": "generic", "speedMul": 1.25, "staminaCost": 10 },
     "changeup": { "id": "changeup", "name": "Star Change", "kind": "generic", "speedMul": 0.7, "staminaCost": 8 },
-    "breaker": { "id": "breaker", "name": "Star Breaker", "kind": "generic", "speedMul": 0.85, "staminaCost": 10, "lateBreak": true }
+    "breaker": { "id": "breaker", "name": "Star Breaker", "kind": "generic", "speedMul": 0.85, "staminaCost": 10, "lateBreak": true },
+    "dot": { "id": "dot", "name": "Star Dot", "kind": "generic", "speedMul": 1.05, "staminaCost": 10, "dot": true },
+    "sinkball": { "id": "sinkball", "name": "Star Sinker", "kind": "generic", "speedMul": 1.0, "staminaCost": 10, "sinkDeg": 6 },
+    "lob": { "id": "lob", "name": "Star Lob", "kind": "generic", "speedMul": 1.0, "staminaCost": 8, "lob": { "paceMul": 0.75, "arcFt": 5 } },
+    "sidearm": { "id": "sidearm", "name": "Star Sidearm", "kind": "generic", "speedMul": 1.0, "staminaCost": 10, "sidearmFt": 2 }
   },
   "swings": {
     "heat-swing": { "id": "heat-swing", "name": "Sparkler", "kind": "contact", "family": "bigger-sweet-spot", "exitVeloMul": 1.15, "perfectRingMul": 1.5 },
@@ -106,6 +110,10 @@
     "pond-skip": { "id": "pond-skip", "name": "Pond Skip", "kind": "bounce", "exitVeloMul": 1.05, "launchDeg": 0, "firstHopBounceMul": 2.2 },
     "ground": { "id": "ground", "name": "Star Grounder", "kind": "generic", "launchDeg": 8, "exitVeloMul": 1.2 },
     "fly": { "id": "fly", "name": "Star Fly", "kind": "generic", "launchDeg": 38, "exitVeloMul": 1.2 },
-    "line": { "id": "line", "name": "Star Line", "kind": "generic", "launchDeg": 18, "exitVeloMul": 1.25 }
+    "line": { "id": "line", "name": "Star Line", "kind": "generic", "launchDeg": 18, "exitVeloMul": 1.25 },
+    "pull": { "id": "pull", "name": "Star Pull", "kind": "generic", "exitVeloMul": 1.15, "pullDeg": 10 },
+    "opposite": { "id": "opposite", "name": "Star Opposite", "kind": "generic", "exitVeloMul": 1.1, "pullDeg": -10 },
+    "chopper": { "id": "chopper", "name": "Star Chopper", "kind": "generic", "exitVeloMul": 1.1, "launchDeg": -10, "firstHopBounceMul": 1.6 },
+    "drag-bunt": { "id": "drag-bunt", "name": "Star Drag Bunt", "kind": "generic", "exitVeloMul": 1.0, "launchDeg": 3, "dragBunt": { "insetFt": 0.5 } }
   }
 }

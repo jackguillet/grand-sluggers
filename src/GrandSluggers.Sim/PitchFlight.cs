@@ -59,7 +59,7 @@ public static class PitchFlight
         string type, double u, RulesTable rules, double aimX = 0, double aimY = 0,
         double breakX = 0, double rubberX = 0,
         (double X, double Y, double Z)? from = null, bool charged = false,
-        Hand throws = Hand.R, BatterZone? zone = null)
+        Hand throws = Hand.R, BatterZone? zone = null, bool trueToAim = false)
     {
         var r = rules;
         var f = r.Pitching.Flight;
@@ -68,7 +68,8 @@ public static class PitchFlight
         var z0 = zone ?? StrikeZoneGeometry.Reference;
         var (tx, ty) = PlateTarget(aimX, aimY, z0);
         tx += rubberX * HomeSet.PitcherWalk;
-        ty -= row.DropFt * z0.VerticalScale;
+        // A pitch that flies true to its aim (§13, Star Dot) keeps none of the family's own drop or sweep.
+        if (!trueToAim) ty -= row.DropFt * z0.VerticalScale;
         var rel = from ?? Release(r, rubberX);
         // Release to the zone's plane, the plate's front edge (§4.4): u = 1 is the crossing the umpire judges.
         var z = rel.Z * (1 - u) + StrikeZoneGeometry.PlateZ * u;
@@ -78,7 +79,7 @@ public static class PitchFlight
         // skipped outright when there is no sweep: `x + 0.0` is x for every value a flight has
         // except a negative zero, where it clears the sign bit, and the #811 golden holds X bit for
         // bit. Nothing in the shipped table sweeps, so nothing in the shipped flight moves.
-        var sweep = SweepShiftFt(u, row, throws);
+        var sweep = trueToAim ? 0 : SweepShiftFt(u, row, throws);
         if (sweep != 0) x += sweep;
         x += BreakShiftFt(u, breakX, charged || row.BreakDamped, f);
         return (x, y, zz);
@@ -106,9 +107,21 @@ public static class PitchFlight
         if (row?.Loop is { } loop) u = loop.Progress(u);
         // The hitch stops the ball dead at its station for a fixed time, then runs it on down the line on the same clock.
         if (row?.Hitch is { } hitch) u = hitch.Progress(u, airSec, r);
+        // The lob leaves slow and speeds up as it falls, covering the same path on the same clock (§13, Star Lob).
+        if (row?.Lob is { } lob) u = lob.Progress(u);
+        // The sidearm slot (§13, Star Sidearm): the ball leaves the hand wider, out on the hand's side, and runs a straight
+        // diagonal onto the same aimed crossing, which never reads the release.
+        if (row is { SidearmFt: > 0 } wide)
+        {
+            var hand = from ?? Release(r, pitch.RubberX);
+            from = (hand.X + wide.SidearmFt * SidearmSide(r), hand.Y, hand.Z);
+        }
         var p = Point(pitch.Type, u, r, pitch.AimX, pitch.AimY, pitch.BreakX * pitch.BreakMul,
-            pitch.RubberX, from, ChargeFeel.IsCharge(pitch.Charge01, r), pitch.Throws, zone);
+            pitch.RubberX, from, ChargeFeel.IsCharge(pitch.Charge01, r), pitch.Throws, zone, trueToAim: row?.Dot == true);
         if (!pitch.Star) return p;
+        // The lob's arc (§13): a high hump over the path, the whole arc at mid-flight and nothing at the plate.
+        if (row?.Lob is { } arc && arc.Lift(time) is var hump and not 0)
+            p = (p.X, p.Y + hump, p.Z);
         // A late rise (§13): the ball climbs over the last stretch to a crossing above the aimed one. This moves the crossing,
         // so the umpire, the bat and the CPU all judge the risen ball; in reference-zone feet, like every vertical star shape.
         if (row?.Rise is { } late && late.Lift(u) is var climb and not 0)
@@ -136,6 +149,12 @@ public static class PitchFlight
             _ => p
         };
     }
+
+    /// <summary>
+    /// The side a sidearm slot opens to (§13, Star Sidearm): the throwing hand's side of the rubber as the flight draws it
+    /// (<c>pitching.flight.releaseHandX</c>; +X when it is 0), so the release moves away from the middle, never across it.
+    /// </summary>
+    public static double SidearmSide(RulesTable rules) => rules.Pitching.Flight.ReleaseHandX < 0 ? -1 : 1;
 
     /// <summary>
     /// The side a pendulum pitch swings in from (spec §13): the half of the plate away from its crossing, so the vine carries
