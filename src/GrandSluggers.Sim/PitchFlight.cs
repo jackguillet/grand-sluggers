@@ -102,12 +102,14 @@ public static class PitchFlight
         // A row's own path shape (§13): the float rises early and lands on the crossing the pitch was always going to make.
         if (row?.Float is { } rise && rise.Lift(u) is var lift and not 0)
             p = (p.X, p.Y + lift * zone.VerticalScale, p.Z);
+        // The sway (§13): side to side across the path, widest mid-flight, settled onto the path before the plate.
+        if (row?.Sway is { } sway && sway.OffsetFt(u) is var side and not 0)
+            p = (p.X + side, p.Y, p.Z);
         var st = r.Pitching.StarShapes;
         return starPitchId switch
         {
             "heatball" => (p.X + Math.Sin(u * st.HeatballWobbleHz) * st.HeatballWobbleFt, p.Y, p.Z),
             "prismball" => (p.X + Math.Sin(u * st.PrismballWobbleHz) * st.PrismballWobbleFt, p.Y, p.Z),
-            "charmball" => (p.X + Math.Sin(u * st.CharmballWobbleHz) * st.CharmballWobbleFt, p.Y, p.Z),
             "phonyball" => (p.X + (u > st.PhonyballSwitchAt ? st.PhonyballLateX : st.PhonyballEarlyX), p.Y, p.Z),
             "caskball" => (p.X, p.Y + st.CaskballRise * zone.VerticalScale * u, p.Z),
             _ => p

@@ -10,10 +10,12 @@
     },
     "charmball": {
       "id": "charmball",
-      "name": "Charmball",
-      "kind": "status",
+      "name": "Aurora Ribbon",
+      "kind": "break",
+      "family": "swelling-sway",
       "speedMul": 0.9,
-      "staminaCost": 16
+      "staminaCost": 16,
+      "sway": { "widthFt": 1.2, "cycles": 2, "peakAt": 0.5, "settleBy": 0.85 }
     },
     "prismball": {
       "id": "prismball",
@@ -83,7 +85,7 @@
   },
   "swings": {
     "heat-swing": { "id": "heat-swing", "name": "Heat Swing", "kind": "terrain", "exitVeloMul": 1.15, "terrain": "burn-patch" },
-    "heart-swing": { "id": "heart-swing", "name": "Heart Swing", "kind": "status", "exitVeloMul": 1.05, "fielderPauseSec": 0.8 },
+    "heart-swing": { "id": "heart-swing", "name": "Follow Spot", "kind": "status", "family": "one-fielder-paused", "exitVeloMul": 1.05, "fielderPauseSec": 0.8 },
     "shell-swing": { "id": "shell-swing", "name": "Shell Swing", "kind": "bounce", "exitVeloMul": 1.1, "infieldChaos": true },
     "phony-swing": { "id": "phony-swing", "name": "Phony Swing", "kind": "decoy", "exitVeloMul": 1.1, "decoy": true },
     "cask-swing": { "id": "cask-swing", "name": "Cask Swing", "kind": "payload", "exitVeloMul": 1.2, "fragments": true },

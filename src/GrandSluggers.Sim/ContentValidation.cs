@@ -257,6 +257,12 @@ public static class ContentDataValidator
                     errors.Add($"{source}: star pitch '{key}' cannot carry firstHopBounceMul; it is a swing's");
                 if (value.Float is { } rise && (rise.RiseFt <= 0 || rise.RiseFt > PitchFloatLimits.MaxRiseFt || rise.DropFrom <= 0 || rise.DropFrom >= 1))
                     errors.Add($"{source}: star pitch '{key}' float needs 0 < riseFt <= {PitchFloatLimits.MaxRiseFt.ToString(CultureInfo.InvariantCulture)} and 0 < dropFrom < 1");
+                // The sway settles before the plate (§13): the last stretch of the flight and the crossing are the ordinary pitch's.
+                if (value.Sway is { } sway && (sway.WidthFt <= 0 || sway.WidthFt > PitchSway.MaxWidthFt || sway.Cycles <= 0
+                        || sway.Cycles > PitchSway.MaxCycles || sway.PeakAt <= 0 || sway.SettleBy <= sway.PeakAt || sway.SettleBy >= 1))
+                    errors.Add($"{source}: star pitch '{key}' sway needs 0 < widthFt <= {PitchSway.MaxWidthFt.ToString(CultureInfo.InvariantCulture)}, 0 < cycles <= {PitchSway.MaxCycles.ToString(CultureInfo.InvariantCulture)} and 0 < peakAt < settleBy < 1");
+                if (value.FielderPauseSec is not null)
+                    errors.Add($"{source}: star pitch '{key}' cannot carry fielderPauseSec; it is a swing's");
             }
             else
             {
@@ -272,6 +278,11 @@ public static class ContentDataValidator
                     errors.Add($"{source}: star swing '{key}' cannot carry a float; it is a pitch's");
                 if (value.Leap is not null)
                     errors.Add($"{source}: star swing '{key}' cannot carry a leap; it is a pitch's");
+                if (value.Sway is not null)
+                    errors.Add($"{source}: star swing '{key}' cannot carry a sway; it is a pitch's");
+                // The pause ends within the 2 s every special's bend ends in (§13).
+                if (value.FielderPauseSec is not null && (value.FielderPauseSec <= 0 || value.FielderPauseSec > StarSwingSkill.MaxFielderPauseSec))
+                    errors.Add($"{source}: star swing '{key}' fielderPauseSec must be greater than 0 and at most {StarSwingSkill.MaxFielderPauseSec.ToString(CultureInfo.InvariantCulture)}; got {value.FielderPauseSec}");
                 if (value.FirstHopBounceMul is not null && (value.FirstHopBounceMul < 1 || value.FirstHopBounceMul > StarSwingSkill.MaxBounceMul))
                     errors.Add($"{source}: star swing '{key}' firstHopBounceMul must be between 1 and {StarSwingSkill.MaxBounceMul.ToString(CultureInfo.InvariantCulture)}; got {value.FirstHopBounceMul}");
                 if (value.WindMul is not null && (value.WindMul < 0 || value.WindMul > StarSwingSkill.MaxWindMul))
@@ -1583,6 +1594,8 @@ internal sealed class StarSkillDto
     public PitchFloatDto? Float { get; set; }
     /// <summary>A pitch's leap (<see cref="PitchLeap"/>); pitches only.</summary>
     public PitchLeapDto? Leap { get; set; }
+    /// <summary>A pitch's sway (<see cref="PitchSway"/>); pitches only.</summary>
+    public PitchSwayDto? Sway { get; set; }
     /// <summary>A swing's first hop springs this many times as fast upward (<see cref="StarSwingSkill.FirstHopBounceMul"/>); swings only.</summary>
     public double? FirstHopBounceMul { get; set; }
     /// <summary>A swing's ball kicks this many degrees off its first hop (<see cref="StarSwingSkill.FirstHopKickDeg"/>); swings only.</summary>
@@ -1598,7 +1611,8 @@ internal sealed class StarSkillDto
         LateBreak, Decoy, OnCatch,
         Twin is null ? null : new PitchTwin(Twin.OffsetFt, Twin.FadeFrom, Twin.FadeTo),
         Float is null ? null : new PitchFloat(Float.RiseFt, Float.DropFrom),
-        Leap is null ? null : new PitchLeap(Leap.At, Leap.HoldSpan, Leap.HoldPace));
+        Leap is null ? null : new PitchLeap(Leap.At, Leap.HoldSpan, Leap.HoldPace),
+        Sway is null ? null : new PitchSway(Sway.WidthFt, Sway.Cycles, Sway.PeakAt, Sway.SettleBy));
 
     public StarSwingSkill ToSwing() => new(Id, Name, Kind, ExitVeloMul ?? 1.0, LaunchDeg, Terrain,
         FielderPauseSec ?? 0, InfieldChaos, Decoy, Fragments, FirstHopKickDeg ?? 0,
@@ -1611,6 +1625,14 @@ internal sealed class PitchLeapDto
     /// <summary>The share of the flight the ball crawls for (a fraction, not seconds).</summary>
     public double HoldSpan { get; set; }
     public double HoldPace { get; set; }
+}
+
+internal sealed class PitchSwayDto
+{
+    public double WidthFt { get; set; }
+    public double Cycles { get; set; }
+    public double PeakAt { get; set; }
+    public double SettleBy { get; set; }
 }
 
 internal sealed class PitchFloatDto

@@ -242,7 +242,7 @@ public sealed class FieldingScenarioTests
         var map = FieldingResolver.Assign(match.DefenseRoster, match.Pitcher, match.Defense.Gloves);
         var start = Diamond.Positions[preview.Position];
         var route = FieldingPursuit.Plan(preview, match.Park, preview.Ball!.Samples, 0, start.X, start.Z,
-            FieldingResolver.ChaseSpeedFt(map[preview.Position], preview.Frozen, match.Rules), match.Rules,
+            FieldingResolver.ChaseSpeedFt(map[preview.Position], false, match.Rules), match.Rules,
             match.Rules.Fielding.Reaction.LockoutSec(preview.Position));
         // The catch is the radius at the window (§8.3): a route that ends inside stand-up or dive reach
         // of the plant by the end of the window (hang + windowAfterSec) is a catch (#669).

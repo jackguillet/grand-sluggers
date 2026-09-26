@@ -85,7 +85,7 @@ Files and the sections each owns (P0 moved the numbers that existed; later epics
 Notes to the table above:
 
 **pitching.json, Sections.** `speed` (the Pitch-stat coefficient every family shares), `zone` (the safety net on a batter's thigh-to-chest zone: `bottomMinFt`, `bottomMaxFt`, `topMinFt`, `topMaxFt`, `heightMinFt`, `heightMaxFt`; §4.4), **`families`** (one named row per pitch family, all five authored — `mph`, `chargeMph`, `hump`, `hangUntil`, `hangRate`, `dumpRate`, `dropFt`, `sweepFt`, `sweepFrom`, `breakDamped`, `staminaCost`, `offSpeed`; §4.2, §4.3), `release` (Nice!
-band and ×), `flight` (release hand, `AirSeconds` scale and clamps, break cap / ramp / damping / rate), `starShapes` (heat, prism, charm, phony, cask wobble), `stamina` (the pool, the pitch costs every family shares, TIRED threshold, tired aim wobble, the CPU swap lead), `cpu` (the CPU pitcher's table, §4.8, PH-18-R1:
+band and ×), `flight` (release hand, `AirSeconds` scale and clamps, break cap / ramp / damping / rate), `starShapes` (heat, prism, phony, cask wobble), `stamina` (the pool, the pitch costs every family shares, TIRED threshold, tired aim wobble, the CPU swap lead), `cpu` (the CPU pitcher's table, §4.8, PH-18-R1:
 four count rows, each a `location`, a `starChance`, the **`families`** block (`fastball`, `changeup`, `curveball`, `slider`, `sinker` — shares, filtered at run time to what this pitcher can select) and `chargeChance` / `steerChance`, the two independent modifier rolls; the horizontal `locations`; scatter, tap and Nice!
 rolls; and `pickoff`). There is no `humanInputs`, no exclusive-verb weight, no `rubberWalkChance`, no `rubberWalkMax` and no `locations.middleYSpreadFt`. The rubber walk distance is geometry (`HomeSet.PitcherWalk`)
 

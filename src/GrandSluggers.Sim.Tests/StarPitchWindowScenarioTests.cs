@@ -200,7 +200,7 @@ public sealed class StarPitchWindowScenarioTests
             charmMoves |= PitchFlight.Point(pitch, u, rules, "charmball") != plain;
             phonyMoves |= PitchFlight.Point(pitch, u, rules, "phonyball") != plain;
         }
-        Assert.True(charmMoves, "the charmball keeps its wobble");
+        Assert.True(charmMoves, "Aurora Ribbon sways mid-flight");
         Assert.True(phonyMoves, "the phonyball keeps its decoy path");
         var early = PitchFlight.Point(pitch, rules.Pitching.StarShapes.PhonyballSwitchAt - 0.01, rules, "phonyball").X;
         var late = PitchFlight.Point(pitch, rules.Pitching.StarShapes.PhonyballSwitchAt + 0.01, rules, "phonyball").X;

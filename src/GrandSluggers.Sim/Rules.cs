@@ -863,8 +863,6 @@ public sealed record StarPitchShapeRules
     public double HeatballWobbleFt { get; init; }
     public double PrismballWobbleHz { get; init; }
     public double PrismballWobbleFt { get; init; }
-    public double CharmballWobbleHz { get; init; }
-    public double CharmballWobbleFt { get; init; }
     [Chance] public double PhonyballSwitchAt { get; init; }
     [Signed] public double PhonyballEarlyX { get; init; }
     [Signed] public double PhonyballLateX { get; init; }

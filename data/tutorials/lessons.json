@@ -2148,7 +2148,7 @@
     },
     {
       "id": "T-SP-charmball",
-      "revision": 4,
+      "revision": 5,
       "mechanics": [
         "star-pitch.charmball"
       ],
@@ -2473,7 +2473,7 @@
     },
     {
       "id": "T-SS-heart-swing",
-      "revision": 4,
+      "revision": 5,
       "mechanics": [
         "star-swing.heart-swing"
       ],

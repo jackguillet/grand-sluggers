@@ -26,7 +26,7 @@ public static partial class HowToPlay
             "T-P09" => "Heatball",
             "T-B09" => "Heat Swing",
             "T-SP-heatball" => "Heatball",
-            "T-SP-charmball" => "Charmball",
+            "T-SP-charmball" => "Aurora Ribbon",
             "T-SP-prismball" => "Prismball",
             "T-SP-phonyball" => "Phonyball",
             "T-SP-caskball" => "Caskball",
@@ -39,7 +39,7 @@ public static partial class HowToPlay
             "T-SP-rockfall" => "Rockfall",
             "T-SP-leapfrog" => "Leapfrog",
             "T-SS-heat-swing" => "Heat Swing",
-            "T-SS-heart-swing" => "Heart Swing",
+            "T-SS-heart-swing" => "Follow Spot",
             "T-SS-shell-swing" => "Shell Swing",
             "T-SS-phony-swing" => "Phony Swing",
             "T-SS-cask-swing" => "Cask Swing",
@@ -54,12 +54,21 @@ public static partial class HowToPlay
             _ => ""
         };
         if (skill.Length == 0) return null;
+        var effect = SpecialEffect(id);
         return pitch
             ? new("Pitch: " + skill, "Throw " + skill + " and spend its star cost.",
-                "Your pitcher has " + skill + " and enough meter. Hold the star button as you let go of the pitch.",
+                "Your pitcher has " + skill + " and enough meter. " + effect + "Hold the star button as you let go of the pitch.",
                 "Hold LT as you let go of RT.")
             : new("Swing: " + skill, "Use " + skill + " to make fair contact and spend its star cost.",
-                "Your batter has " + skill + " and enough meter. Hold the star button as you let go of the swing, and time contact with the strike.",
+                "Your batter has " + skill + " and enough meter. " + effect + "Hold the star button as you let go of the swing, and time contact with the strike.",
                 "Hold LT as you let go of RT, as the pitch arrives.");
     }
+
+    /// <summary>What a special's lesson says it does (§13), one sentence ending in a space; empty for a special whose name says it.</summary>
+    static string SpecialEffect(string id) => id switch
+    {
+        "T-SP-charmball" => "The ball sways widest at mid-flight, then settles onto your aim before the plate. ",
+        "T-SS-heart-swing" => "The follow spot holds the nearest fielder still for a moment after contact. ",
+        _ => ""
+    };
 }
