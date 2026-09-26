@@ -185,6 +185,7 @@ public static class ContentDataValidator
             ValidatePark(row, hazards, grounds, data.GroundsSource, infield, fence, errors);
         UniquePerPark("pickOrder", data.Parks.Where(r => r.Value.PickOrder is not null)
             .Select(r => (r.Value.PickOrder!.Value.ToString(CultureInfo.InvariantCulture), r.Source)), errors);
+        var worldErrors = errors.Count;
         var regions = ValidateWorld(data, errors);
         foreach (var row in data.Parks)
         {
@@ -197,6 +198,8 @@ public static class ContentDataValidator
         UniquePerPark("region", data.Parks
             .Where(r => !string.IsNullOrWhiteSpace(r.Value.Region))
             .Select(r => (r.Value.Region, r.Source)), errors);
+        if (errors.Count == worldErrors && data.Parks.Count > 0)
+            ValidateMapReach(data, errors);
         UniquePerPark("faction", data.Parks
             .Where(r => !string.IsNullOrWhiteSpace(r.Value.Faction))
             .Select(r => (r.Value.Faction, r.Source)), errors);
@@ -479,7 +482,8 @@ public static class ContentDataValidator
     /// </summary>
     /// <summary>
     /// The world file (WD-05): a continent name, and regions each with a unique id, a name, a place on the unit map and an
-    /// island flag. Returns the region ids the parks may name.
+    /// island flag; at most one region apart from the continent (WD-26), which alone places a portal. Returns the region
+    /// ids the parks may name.
     /// </summary>
     static HashSet<string> ValidateWorld(ContentData data, List<string> errors)
     {
@@ -509,8 +513,35 @@ public static class ContentDataValidator
                 else if (!(n >= 0 && n <= 1)) errors.Add($"{at} '{r.Id}' {axis} must be 0 to 1 on the unit map; got {n.ToString(CultureInfo.InvariantCulture)}");
             }
             if (r.Island is null) errors.Add($"{at} '{r.Id}' island must be true or false");
+            if (r.Apart == true)
+            {
+                if (r.Island == true) errors.Add($"{at} '{r.Id}' is apart from the continent, so it is not its island");
+                if (r.PortalX is null || r.PortalY is null)
+                    errors.Add($"{at} '{r.Id}' is apart from the continent and must place its portal (portalX, portalY); got none");
+                foreach (var (axis, v) in new[] { ("portalX", r.PortalX), ("portalY", r.PortalY) })
+                    if (v is { } n && !(n >= 0 && n <= 1))
+                        errors.Add($"{at} '{r.Id}' {axis} must be 0 to 1 on the unit map; got {n.ToString(CultureInfo.InvariantCulture)}");
+            }
+            else if (r.PortalX is not null || r.PortalY is not null)
+                errors.Add($"{at} '{r.Id}' carries a portal but is not apart; only the region apart from the continent has one");
         }
+        var apart = rows.Where(r => r?.Apart == true).Select(r => r!.Id).ToList();
+        if (apart.Count > 1)
+            errors.Add($"{src}: only one region stands apart from the continent (WD-26); got {apart.Count}: {string.Join(", ", apart)}");
         return ids;
+    }
+
+    /// <summary>
+    /// The map picker reaches every park from every park with the stick (<see cref="WorldMap.Unreached"/>): a park set apart
+    /// from the continent, or one placed where no stick direction finds it, is refused by name.
+    /// </summary>
+    static void ValidateMapReach(ContentData data, List<string> errors)
+    {
+        var world = WorldMap.From(data.World,
+            data.Parks.ToDictionary(row => row.Value.Id, row => row.Value.Region, StringComparer.OrdinalIgnoreCase));
+        foreach (var park in data.Parks.Select(r => r.Value.Id).OrderBy(x => x, StringComparer.Ordinal))
+            if (world.Unreached(park) is { Count: > 0 } lost)
+                errors.Add($"{data.WorldSource}: the map cursor cannot reach {string.Join(", ", lost)} from '{park}' with the stick");
     }
 
     static void UniquePerPark(string field, IEnumerable<(string Value, string Source)> candidates, List<string> errors)

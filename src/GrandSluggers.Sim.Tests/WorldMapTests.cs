@@ -13,12 +13,20 @@ public sealed class WorldMapTests
     static readonly ContentCatalog Catalog = Shipped.Content;
 
     [Fact]
-    public void TheContinentIsTheGrandReachWithTenRegionsAndOneIsland()
+    public void TheContinentIsTheGrandReachWithNineRegionsOneIslandAndTheNeighborhoodApart()
     {
         var world = Catalog.World;
         Assert.Equal("The Grand Reach", world.Continent);
         Assert.Equal(10, world.Regions.Count);
         Assert.Equal("tropical-island", Assert.Single(world.Regions, r => r.Island).Id);
+        // WD-25, WD-26: the neighborhood field is in its own world, reached through a portal; no other region has one.
+        var apart = Assert.Single(world.Regions, r => r.Apart);
+        Assert.Same(apart, world.ApartRegion);
+        Assert.Equal("neighborhood", apart.Id);
+        Assert.False(apart.Island);
+        Assert.NotNull(apart.Portal);
+        Assert.All(world.Regions.Where(r => !r.Apart), r => Assert.Null(r.Portal));
+        Assert.DoesNotContain(world.Regions, r => r.Id == "south-coast");
         Assert.All(world.Regions, r =>
         {
             Assert.InRange(r.X, 0, 1);
@@ -33,7 +41,7 @@ public sealed class WorldMapTests
     {
         var expected = new Dictionary<string, string>
         {
-            [ParkId.Harbor] = "south-coast",
+            [ParkId.Harbor] = "neighborhood",
             [ParkId.Crystal] = "frozen-north",
             [ParkId.Funfair] = "central-plains",
             [ParkId.Rooftop] = "eastern-capital",
@@ -49,7 +57,7 @@ public sealed class WorldMapTests
             Assert.Equal(expected[park], Catalog.World.RegionOf(park).Id);
         // Ten parks, ten regions: every region has its park.
         Assert.All(Catalog.World.Regions, r => Assert.NotNull(Catalog.World.ParkIn(r.Id)));
-        Assert.Equal(ParkId.Harbor, Catalog.World.ParkIn("south-coast"));
+        Assert.Equal(ParkId.Harbor, Catalog.World.ParkIn("neighborhood"));
         Assert.Equal(ParkId.Coconut, Catalog.World.ParkIn("tropical-island"));
     }
 
@@ -96,10 +104,68 @@ public sealed class WorldMapTests
     public void TwoParksInOneRegionAreRefused()
     {
         using var fixture = new ContentFixture();
-        fixture.ChangeObject("parks/crystal-rink.json", json => json["region"] = "south-coast");
+        fixture.ChangeObject("parks/crystal-rink.json", json => json["region"] = "neighborhood");
         var thrown = Assert.Throws<InvalidDataException>(() => ContentCatalog.Load(fixture.Root));
-        Assert.Contains("park region 'south-coast' is claimed by more than one park", thrown.Message, StringComparison.Ordinal);
+        Assert.Contains("park region 'neighborhood' is claimed by more than one park", thrown.Message, StringComparison.Ordinal);
         Assert.Contains(fixture.Path("parks/harbor-diamond.json"), thrown.Message, StringComparison.Ordinal);
+    }
+
+    /// <summary>The neighborhood field keeps its id and its dimensions; only its name and its place on the map moved.</summary>
+    [Fact]
+    public void TheNeighborhoodParkIsTheHarborIdApartFromTheContinent()
+    {
+        var park = Catalog.MustPark(ParkId.Harbor);
+        Assert.Equal("harbor-diamond", park.Id);
+        Assert.Equal("Neighborhood Park", park.Name);
+        Assert.True(Catalog.World.RegionOf(ParkId.Harbor).Apart);
+        // The portal opens onto the continent, never onto the neighborhood itself.
+        var shore = Catalog.World.PortalShore();
+        Assert.NotNull(shore);
+        Assert.False(shore!.Apart);
+    }
+
+    [Fact]
+    public void ASecondApartRegionAPortalOnTheContinentOrAMissingPortalIsRefused()
+    {
+        using var two = new ContentFixture();
+        two.ChangeObject("world/regions.json", json =>
+        {
+            json["regions"]![0]!["apart"] = true;
+            json["regions"]![0]!["portalX"] = 0.1;
+            json["regions"]![0]!["portalY"] = 0.1;
+        });
+        Assert.Contains(ContentDataValidator.Validate(two.Root), e =>
+            e.Contains("only one region stands apart from the continent", StringComparison.Ordinal));
+
+        using var stray = new ContentFixture();
+        stray.ChangeObject("world/regions.json", json => json["regions"]![0]!["portalX"] = 0.2);
+        Assert.Contains(ContentDataValidator.Validate(stray.Root), e =>
+            e.Contains("'frozen-north' carries a portal but is not apart", StringComparison.Ordinal));
+
+        using var none = new ContentFixture();
+        none.ChangeObject("world/regions.json", json =>
+        {
+            var apart = json["regions"]!.AsArray().Single(r => (string?)r!["id"] == "neighborhood")!.AsObject();
+            apart.Remove("portalX");
+        });
+        Assert.Contains(ContentDataValidator.Validate(none.Root), e =>
+            e.Contains("'neighborhood' is apart from the continent and must place its portal", StringComparison.Ordinal));
+    }
+
+    /// <summary>A park the stick cannot reach is refused by name, so the map never strands the neighborhood across the gap.</summary>
+    [Fact]
+    public void AParkTheStickCannotReachIsRefused()
+    {
+        using var fixture = new ContentFixture();
+        // Stack the neighborhood exactly on the frozen north: a zero-length step is never taken, so no stick finds it.
+        fixture.ChangeObject("world/regions.json", json =>
+        {
+            var apart = json["regions"]!.AsArray().Single(r => (string?)r!["id"] == "neighborhood")!.AsObject();
+            apart["x"] = 0.50;
+            apart["y"] = 0.08;
+        });
+        Assert.Contains(ContentDataValidator.Validate(fixture.Root), e =>
+            e.Contains("the map cursor cannot reach", StringComparison.Ordinal) && e.Contains(ParkId.Harbor, StringComparison.Ordinal));
     }
 
     [Fact]

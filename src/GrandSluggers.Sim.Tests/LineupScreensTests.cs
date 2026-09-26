@@ -33,6 +33,57 @@ public class LineupScreensTests
         Assert.DoesNotContain(s.Pool, c => s.AwaySlots.Any(a => a != null && a.Id == c.Id));
     }
 
+    /// <summary>
+    /// WD-28: the inspection card names the player's crews and says why they get on (or do not) with their side's captain,
+    /// in the words the book's chemistry page uses; the captain's own card says so.
+    /// </summary>
+    [Fact]
+    public void TheCardNamesCrewsAndTheChemistryReasonWithTheCaptain()
+    {
+        var s = LineupScreens.Open(_content, "rio", "ashlord", LineupSeat.Pad1, LineupSeat.Pad2);
+        var rio = _content.Must("rio");
+        var pip = _content.Must("pip");
+        Assert.Equal("CREWS  Showboats · Cool Kids", s.CrewLine(rio));
+        Assert.Equal("CAPTAIN  this is the captain", s.ChemLine(rio, home: true));
+        Assert.Equal("CAPTAIN  Good: shared crew Cool Kids", s.ChemLine(pip, home: true));
+        Assert.Equal("CAPTAIN  Poor: story rivals", s.ChemLine(rio, home: false));
+        // Every reason the card can print is a word the book's chemistry page prints.
+        var book = string.Join(" ", HowToPlay.Must("chemistry").Lines);
+        foreach (var a in _content.Characters.Values)
+        foreach (var captain in _content.CaptainIds.Select(_content.Must))
+        {
+            var reason = _content.Chemistry.Reason(captain, a);
+            if (reason.Why != ChemistryWhy.None) Assert.Contains(CarnivalFront.ChemistryWhyWord(reason), book);
+        }
+    }
+
+    /// <summary>
+    /// The card's four text lines (verbs, field verb, crews, chemistry) sit under the bars and the portrait and end inside the
+    /// card, and the longest crew and chemistry lines any captain and player can make fit its width at the card's fonts.
+    /// </summary>
+    [Fact]
+    public void TheCardsCrewAndChemistryLinesFitTheCard()
+    {
+        var card = LineupLayout.CardPanel(true);
+        var (w, h) = ((float)(card.W * 1280), (float)(card.H * 800));
+        var top = CarnivalFront.LineupCardVerbsTop;
+        Assert.True(CarnivalFront.LineupCardBars.Bottom <= top, "the bars run into the text lines");
+        Assert.True(78 + CarnivalFront.LineupCardPortrait <= top, "the portrait runs into the text lines");
+        Assert.True(top + CarnivalFront.LineupCardLines * CarnivalFront.LineupCardLinePitch <= h - 4, "the text lines leave the card");
+        var s = LineupScreens.Open(_content, "rio", "ashlord", LineupSeat.Pad1, LineupSeat.Pad2);
+        var width = w - 28;
+        foreach (var who in _content.Characters.Values)
+        {
+            // Both lines are 13 px; ~0.55 em a glyph as the book's layout test measures.
+            Assert.True(s.CrewLine(who).Length * 13 * .55f <= width, who.Id + ": " + s.CrewLine(who));
+            foreach (var captain in _content.CaptainIds.Select(_content.Must))
+            {
+                var line = CarnivalFront.LineupChemLine(_content, captain, who);
+                Assert.True(line.Length * 13 * .55f <= width, captain.Id + " / " + who.Id + ": " + line);
+            }
+        }
+    }
+
     [Fact]
     public void CaptainCannotBeDroppedWhenLockCaptain()
     {

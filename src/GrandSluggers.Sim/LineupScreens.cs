@@ -205,6 +205,16 @@ public sealed class LineupScreens
     public bool Buddies(Character? inspected, Character? other) => inspected != null && other != null
         && inspected.Id != other.Id && _content.Chemistry.Between(inspected, other) == Chemistry.Good;
 
+    /// <summary>The inspection card's crew badges for a player (WD-28).</summary>
+    public string CrewLine(Character who) => CarnivalFront.LineupCrewLine(_content, who);
+
+    /// <summary>
+    /// The inspection card's chemistry line: the player against the captain of the side whose card shows them, and why
+    /// (<see cref="ChemistryTable.Reason(string, string)"/>). The same rule lights the buddy cells.
+    /// </summary>
+    public string ChemLine(Character who, bool home) =>
+        CarnivalFront.LineupChemLine(_content, home ? HomeCaptain : AwayCaptain, who);
+
     public CharacterCard? CardFor(Character? who) => who == null ? null : CharacterCard.Of(who, Chemistry.Neutral);
 
     public bool ToggleArea(LineupSeat seat)
