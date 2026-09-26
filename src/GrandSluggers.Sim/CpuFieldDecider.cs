@@ -53,6 +53,12 @@ public interface ICpuFieldView
 
     /// <summary>Seconds until a throw to <paramref name="bag"/> is in a glove on it (the flight, or the cover's walk if longer).</summary>
     double ThrowReadySec(int bag);
+
+    /// <summary>
+    /// Seconds the glove may still hold the ball before a hot ball drops at its feet (§13, <see cref="HotBall"/>); infinite for
+    /// every ordinary ball. A walk that outlasts it is no play on foot.
+    /// </summary>
+    double HoldLeftSec { get; }
 }
 
 /// <summary>
@@ -183,17 +189,28 @@ public static class CpuFieldDecider
     /// otherwise whoever gets the ball there first makes it — this body's legs, or a throw to a cover who must be at the bag to
     /// take it (§8.5, §10.3: the catcher walks to the plate on a steal of home rather than lobbing at a bag nobody covers).
     /// </summary>
-    static CpuFieldDecision PlayAt(ICpuFieldView v, int bag)
+    public static CpuFieldDecision PlayAt(ICpuFieldView v, int bag)
     {
         var at = DiamondGeometry.Of(v.Rules).Bag(bag);
         var forceThere = v.Forces.At(bag) || v.Runners.Any(r => r.Live && r.LeftEarly && r.FromBag == bag);
-        if (forceThere && Diamond.Dist(v.GloveX, v.GloveZ, at.X, at.Z) <= v.Rules.Fielding.Throw.UnassistedFt)
+        // A hot ball (§13) burns the glove that carries it too long: a walk that outlasts the hold is thrown instead, when a cover
+        // can take the throw. With nobody to throw to the glove walks anyway and takes the drop, knowingly.
+        var throwable = !double.IsPositiveInfinity(v.ThrowReadySec(bag));
+        var walkHolds = HoldsOnFoot(v, bag) || !throwable;
+        if (forceThere && walkHolds && Diamond.Dist(v.GloveX, v.GloveZ, at.X, at.Z) <= v.Rules.Fielding.Throw.UnassistedFt)
             return new(CpuFieldAction.WalkTo, bag);
-        if (v.WalkSec(bag) <= v.ThrowReadySec(bag))
+        if (walkHolds && v.WalkSec(bag) <= v.ThrowReadySec(bag))
             return new(CpuFieldAction.WalkTo, bag);
         return new(CpuFieldAction.ThrowTo, bag);
     }
 
-    /// <summary>Seconds until the glove can have the ball at <paramref name="bag"/> by the quicker of its legs and a throw (§8.8).</summary>
-    public static double PlayArrivalSec(ICpuFieldView v, int bag) => Math.Min(v.WalkSec(bag), v.ThrowReadySec(bag));
+    /// <summary>The glove can carry the ball to <paramref name="bag"/> before a hot ball would drop (§13); always true for an ordinary ball.</summary>
+    static bool HoldsOnFoot(ICpuFieldView v, int bag) => v.WalkSec(bag) < v.HoldLeftSec;
+
+    /// <summary>
+    /// Seconds until the glove can have the ball at <paramref name="bag"/> by the quicker of its legs and a throw (§8.8). A hot
+    /// ball's walk counts only when it ends before the drop (§13).
+    /// </summary>
+    public static double PlayArrivalSec(ICpuFieldView v, int bag) =>
+        Math.Min(HoldsOnFoot(v, bag) ? v.WalkSec(bag) : double.PositiveInfinity, v.ThrowReadySec(bag));
 }

@@ -193,7 +193,7 @@ public sealed class RioAbilityTests
     // ---------------------------------------------------------------------------------
 
     [Fact]
-    public void S209_SparklerLeavesNoPatchOnTheDirtAndFurnaceStillDoes()
+    public void S209_SparklerRaisesNoFurnaceFlagAndHotIronDoes()
     {
         var home = Game.Team("Defense", "vale", "pewter", "lace", "frost", "basil", "soot", "vine", "moss", "hex");
         var away = Game.Team("Offense", "rio", "boom", "cinder", "grit", "zig", "nugget", "nico", "gull", "marlow");

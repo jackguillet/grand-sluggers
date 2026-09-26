@@ -13,4 +13,5 @@ public sealed partial class LivePlaySystem : ICpuFieldView
     double ICpuFieldView.ThrowArrivalSec(int bag) => CpuThrowArrivalSec(bag);
     double ICpuFieldView.WalkSec(int bag) => CpuWalkSec(bag);
     double ICpuFieldView.ThrowReadySec(int bag) => CpuThrowReadySec(bag);
+    double ICpuFieldView.HoldLeftSec => HotHoldLeftSec;
 }

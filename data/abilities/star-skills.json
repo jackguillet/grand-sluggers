@@ -46,10 +46,12 @@
     },
     "skullball": {
       "id": "skullball",
-      "name": "Skullball",
-      "kind": "intimidate",
+      "name": "Anvil",
+      "kind": "break",
+      "family": "late-drop",
       "speedMul": 1.2,
-      "staminaCost": 22
+      "staminaCost": 22,
+      "drop": { "dropFt": 1.5, "from": 0.7 }
     },
     "fogball": {
       "id": "fogball",
@@ -93,7 +95,7 @@
     "shell-swing": { "id": "shell-swing", "name": "Spinning Top", "kind": "bounce", "family": "first-hop-stall", "exitVeloMul": 1.1, "launchDeg": 0, "firstHopStallSec": 0.8, "firstHopStallSpeedMul": 0.5 },
     "phony-swing": { "id": "phony-swing", "name": "Phony Swing", "kind": "decoy", "exitVeloMul": 1.1, "decoy": true },
     "cask-swing": { "id": "cask-swing", "name": "Lightning Liner", "kind": "path", "family": "jagged-flight", "exitVeloMul": 1.2, "launchDeg": 18, "jag": { "offsetFt": 3, "firstAt": 0.3, "secondAt": 0.65, "span": 0.08 } },
-    "furnace": { "id": "furnace", "name": "Furnace", "kind": "terrain", "exitVeloMul": 1.25, "terrain": "warning-lava" },
+    "furnace": { "id": "furnace", "name": "Hot Iron", "kind": "hot", "family": "hot-ball", "exitVeloMul": 1.25, "hotBall": { "moltenSec": 2.0, "holdSec": 0.5 } },
     "staff-swing": { "id": "staff-swing", "name": "Staff Swing", "kind": "bounce", "exitVeloMul": 1.08, "infieldChaos": true },
     "sidewinder": { "id": "sidewinder", "name": "Sidewinder", "kind": "bounce", "exitVeloMul": 1.12, "launchDeg": 4, "firstHopKickDeg": 20 },
     "updraft": { "id": "updraft", "name": "Summit Gust", "kind": "carry", "family": "apex-carry", "exitVeloMul": 1.1, "launchDeg": 34, "apexCarryMul": 1.15 },

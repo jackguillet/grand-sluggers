@@ -289,6 +289,11 @@ public static class ContentDataValidator
                     errors.Add($"{source}: star pitch '{key}' pendulum needs 0 < lengthFt <= {PitchPendulum.MaxLengthFt.ToString(CultureInfo.InvariantCulture)}, 0 < swingDeg <= {PitchPendulum.MaxSwingDeg.ToString(CultureInfo.InvariantCulture)} and 0 < widestAt < 1");
                 if (value.Jag is not null)
                     errors.Add($"{source}: star pitch '{key}' cannot carry a jag; it is a swing's");
+                // The drop ends at the plate and is always down (§13): out of the bottom of the zone, never into the dirt.
+                if (value.Drop is { } sink && (sink.DropFt <= 0 || sink.DropFt > PitchDrop.MaxDropFt || sink.From <= 0 || sink.From >= 1))
+                    errors.Add($"{source}: star pitch '{key}' drop needs 0 < dropFt <= {PitchDrop.MaxDropFt.ToString(CultureInfo.InvariantCulture)} and 0 < from < 1");
+                if (value.HotBall is not null)
+                    errors.Add($"{source}: star pitch '{key}' cannot carry a hotBall; it is a swing's");
             }
             else
             {
@@ -326,6 +331,11 @@ public static class ContentDataValidator
                 // The pause ends within the 2 s every special's bend ends in (§13).
                 if (value.FielderPauseSec is not null && (value.FielderPauseSec <= 0 || value.FielderPauseSec > StarSwingSkill.MaxFielderPauseSec))
                     errors.Add($"{source}: star swing '{key}' fielderPauseSec must be greater than 0 and at most {StarSwingSkill.MaxFielderPauseSec.ToString(CultureInfo.InvariantCulture)}; got {value.FielderPauseSec}");
+                if (value.Drop is not null)
+                    errors.Add($"{source}: star swing '{key}' cannot carry a drop; it is a pitch's");
+                // The ball cools within two seconds of contact (§13), and a glove must be able to hold it a moment first.
+                if (value.HotBall is { } hot && (hot.MoltenSec <= 0 || hot.MoltenSec > HotBall.MaxMoltenSec || hot.HoldSec <= 0 || hot.HoldSec >= hot.MoltenSec))
+                    errors.Add($"{source}: star swing '{key}' hotBall needs 0 < holdSec < moltenSec <= {HotBall.MaxMoltenSec.ToString(CultureInfo.InvariantCulture)}");
                 if (value.FirstHopBounceMul is not null && (value.FirstHopBounceMul < 1 || value.FirstHopBounceMul > StarSwingSkill.MaxBounceMul))
                     errors.Add($"{source}: star swing '{key}' firstHopBounceMul must be between 1 and {StarSwingSkill.MaxBounceMul.ToString(CultureInfo.InvariantCulture)}; got {value.FirstHopBounceMul}");
                 // The gust carries the fly farther from its apex, never shorter (§13): a carry, not a brake.
@@ -1751,6 +1761,10 @@ internal sealed class StarSkillDto
     public PitchPendulumDto? Pendulum { get; set; }
     /// <summary>A swing's jagged flight (<see cref="BallJag"/>); swings only.</summary>
     public BallJagDto? Jag { get; set; }
+    /// <summary>A pitch's late drop (<see cref="PitchDrop"/>); pitches only.</summary>
+    public PitchDropDto? Drop { get; set; }
+    /// <summary>A swing's hot ball (<see cref="Sim.HotBall"/>); swings only.</summary>
+    public HotBallDto? HotBall { get; set; }
     /// <summary>A swing's first hop springs this many times as fast upward (<see cref="StarSwingSkill.FirstHopBounceMul"/>); swings only.</summary>
     public double? FirstHopBounceMul { get; set; }
     /// <summary>A swing's ball kicks this many degrees off its first hop (<see cref="StarSwingSkill.FirstHopKickDeg"/>); swings only.</summary>
@@ -1772,12 +1786,27 @@ internal sealed class StarSkillDto
         Loop is null ? null : new PitchLoop(Loop.At, Loop.Span, Loop.DiameterFt),
         Sway is null ? null : new PitchSway(Sway.WidthFt, Sway.Cycles, Sway.PeakAt, Sway.SettleBy),
         Pendulum is null ? null : new PitchPendulum(Pendulum.LengthFt, Pendulum.SwingDeg, Pendulum.WidestAt),
+        Drop is null ? null : new PitchDrop(Drop.DropFt, Drop.From),
         Hitch is null ? null : new PitchHitch(Hitch.At, Hitch.HoldSec));
 
     public StarSwingSkill ToSwing() => new(Id, Name, Kind, ExitVeloMul ?? 1.0, LaunchDeg, Terrain,
         FielderPauseSec ?? 0, InfieldChaos, Decoy, FirstHopKickDeg ?? 0,
         FirstHopBounceMul ?? 1, FirstHopStallSec ?? 0, FirstHopStallSpeedMul ?? 1, PerfectRingMul ?? 1,
-        Jag is null ? null : new BallJag(Jag.OffsetFt, Jag.FirstAt, Jag.SecondAt, Jag.Span), ApexCarryMul ?? 1);
+        Jag is null ? null : new BallJag(Jag.OffsetFt, Jag.FirstAt, Jag.SecondAt, Jag.Span),
+        HotBall is null ? null : new Sim.HotBall(HotBall.MoltenSec, HotBall.HoldSec), ApexCarryMul ?? 1);
+}
+
+internal sealed class PitchDropDto
+{
+    public double DropFt { get; set; }
+    /// <summary>The share of the flight after which the ball starts to drop (a fraction, not seconds).</summary>
+    public double From { get; set; }
+}
+
+internal sealed class HotBallDto
+{
+    public double MoltenSec { get; set; }
+    public double HoldSec { get; set; }
 }
 
 internal sealed class PitchLoopDto

@@ -22,6 +22,8 @@ public sealed record StarPitchSkill(
     PitchSway? Sway = null,
     /// <summary>A path that swings in on one pendulum arc from a pivot above the ball onto the unchanged crossing, or null (§13).</summary>
     PitchPendulum? Pendulum = null,
+    /// <summary>A late drop that sinks the ball over the last stretch of its flight to a crossing below the aimed one, or null (§13).</summary>
+    PitchDrop? Drop = null,
     /// <summary>A full stop at one point of the path for a fixed time, then a run on down the line to arrive on time, or null (§13).</summary>
     PitchHitch? Hitch = null);
 
@@ -119,6 +121,30 @@ public sealed record PitchRise(double RiseFt, double From)
         var t = (u - From) / (1 - From);
         return RiseFt * t * t;
     }
+}
+
+/// <summary>
+/// A star pitch's late drop (spec §13, Anvil): the ball flies its ordinary path until <see cref="From"/> of the flight — the
+/// clang, where it turns to cold iron — then sinks on a quadratic ease to <see cref="DropFt"/> below that path exactly at the
+/// plate. The crossing moves: the umpire, the bat and the CPU judge the dropped ball, and the timing window is judged at that
+/// real crossing. The drop is always straight down. <see cref="From"/> is the turn the client reads for the clang and the colour.
+/// </summary>
+public sealed record PitchDrop(double DropFt, double From)
+{
+    /// <summary>The largest drop a row may name, in reference-zone feet: out of the bottom of the zone, never into the dirt.</summary>
+    public const double MaxDropFt = 2;
+
+    /// <summary>How far below the ordinary path the ball is at <paramref name="u"/>: 0 up to <see cref="From"/>, then (share of the stretch)² × <see cref="DropFt"/>; the whole drop at the plate.</summary>
+    public double Fall(double u)
+    {
+        u = Math.Clamp(u, 0, 1);
+        if (u <= From) return 0;
+        var t = (u - From) / (1 - From);
+        return DropFt * t * t;
+    }
+
+    /// <summary>The ball has clanged and turned to cold iron at <paramref name="u"/> of the flight (the tell's instant is <see cref="From"/>).</summary>
+    public bool Turned(double u) => u >= From;
 }
 
 /// <summary>
@@ -254,6 +280,8 @@ public sealed record StarSwingSkill(
     double PerfectRingMul = 1,
     /// <summary>A ball off this swing that jags sideways twice in the air and lands where the straight ball would, or null (§13).</summary>
     BallJag? Jag = null,
+    /// <summary>The ball off this swing stays molten after contact and burns a glove that holds it, or null (§13, Hot Iron).</summary>
+    HotBall? HotBall = null,
     /// <summary>
     /// At its apex this swing's fly carries this many times as far along its own line as the plain ball would from there, to its
     /// first landing (§13, <see cref="AtBatResult.ApexCarryMul"/>); 1 is the ordinary ball. The wind and the park do not enter it.
@@ -283,6 +311,38 @@ public sealed record StarSwingSkill(
 
     /// <summary>The largest kick a row may name: a hop, not a U-turn.</summary>
     public const double MaxKickDeg = 45;
+}
+
+/// <summary>
+/// A star swing's hot ball (spec §13, Hot Iron): the ball stays molten for <see cref="MoltenSec"/> after contact. A glove that
+/// holds it more than <see cref="HoldSec"/> of that time drops it at its feet, live, and cannot take it again until it cools.
+/// Decided by the play clock and the possession, never a roll; the same rule for a CPU glove and a player's. A catch still
+/// counts: a caught fly is an out before any drop.
+/// </summary>
+public sealed record HotBall(double MoltenSec, double HoldSec)
+{
+    /// <summary>The longest a ball may stay molten: every bend ends within two seconds of contact (§13).</summary>
+    public const double MaxMoltenSec = 2;
+
+    /// <summary>Seconds the ball stays molten from <paramref name="elapsed"/> (seconds since contact); 0 once it has cooled.</summary>
+    public double MoltenLeft(double elapsed) => Math.Max(0, MoltenSec - elapsed);
+
+    /// <summary>
+    /// Seconds of the molten window a possession that began at <paramref name="heldSince"/> has spent in the glove by
+    /// <paramref name="elapsed"/>: the hold, counted only while the ball is molten.
+    /// </summary>
+    public double HeldHot(double heldSince, double elapsed) =>
+        heldSince < 0 ? 0 : Math.Max(0, Math.Min(elapsed, MoltenSec) - heldSince);
+
+    /// <summary>The glove holding since <paramref name="heldSince"/> drops the ball now: it has held it more than <see cref="HoldSec"/> while molten.</summary>
+    public bool Drops(double heldSince, double elapsed) => HeldHot(heldSince, elapsed) > HoldSec;
+
+    /// <summary>
+    /// Seconds a glove that takes the ball at <paramref name="elapsed"/> may hold it before it drops; infinite when it takes the
+    /// ball late enough, or cool, that the hold cannot pass <see cref="HoldSec"/> inside the molten window.
+    /// </summary>
+    public double HoldLeft(double heldSince, double elapsed) =>
+        heldSince < 0 || heldSince + HoldSec >= MoltenSec ? double.PositiveInfinity : Math.Max(0, heldSince + HoldSec - elapsed);
 }
 
 /// <summary>
