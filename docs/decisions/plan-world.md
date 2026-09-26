@@ -52,6 +52,12 @@ All 22 decisions are accepted. Planning is complete; the children below can be f
 | WD-20 | World | Crystal Rink's colder name | A Aurora Rink · B Glacier Garden · C Polar Palace · D own | **Accepted: A, Aurora Rink** (Jack, 2026-09-25) | 06 | C1 |
 | WD-21 | Captains | Stillwater Marsh's captain; where Kai goes | A Kai to the marsh · B new marsh captain, Kai dropped · C Kai joins Fenn (11 captains) · D own | **Accepted: B, a new marsh captain** (Jack, 2026-09-25) | 07, 11 | C2, C3 |
 | WD-22 | Captains | Stillwater Marsh's new captain | A Reed (frog jumper, Marsh Hoppers) · B Heron (wader, Reedwalkers) · C own | **Accepted: A, Reed** (Jack, 2026-09-25) | 21 | C2 |
+| WD-23 | Story | The frame | A Rio, a human kid, is carried from his neighborhood field into the Grand Reach, and his friends come with him · B no story | **Accepted: A** (Jack, 2026-09-25) | — | C2, C10 |
+| WD-24 | Captains | Who is human? | A only Rio and his friends (the Spark League role players) · B mixed | **Accepted: A**: every other captain and role player is a human-shaped animal or a made-up creature (Jack, 2026-09-25) | 23 | C2, C10 |
+| WD-25 | World | Harbor Diamond | A becomes Rio's neighborhood field, in his own world · B stays a Grand Reach park | **Accepted: A** (Jack, 2026-09-25). It keeps today's dimensions and stays the calibrated control park; only the dressing changes (Jack, 2026-09-25). Its new name is open | 23 | C1, C9 |
+| WD-26 | Menu | The neighborhood field on the map | A drawn apart from the Grand Reach, in another dimension, with a way across · B one of the pins | **Accepted: A** (Jack, 2026-09-25). The crossing is a **portal**: the map draws a portal between the neighborhood field and the Grand Reach (Jack, 2026-09-25); its art is a map-art slot and waits like the rest of the map art (WD-18) | 17, 25 | C6 |
+| WD-27 | Sidekicks | How many, and what are they? | A eight per captain, from three species per park; a species may repeat on its team · B one species per park | **Accepted: A** (Jack, 2026-09-25). A species is an animal hybrid or a made-up creature themed to its park; Rio's are human kids. Species, builds and names are drafts on the review page. This replaces "role players copy the captain's body" (silhouette bible): a species is a body build, a palette and one shared set of add-ons, never a new mesh per sidekick (#25 stays closed); the add-ons wait for #687 | 13, 24 | C2, C10 |
+| WD-28 | Chemistry | Crews | A shared traits across parks and builds: sharing a crew is good chemistry, a rival crew bad; up to two per character; crews replace the hand-listed pairs except the story pairs · B keep the hand-listed pairs | **Accepted: A** (Jack, 2026-09-25, on the recommendation) | 27 | C2, C11 |
 
 Nothing is open. Jack's answers WD-13 A and WD-15 A differ from the recommendations.
 
@@ -102,7 +108,7 @@ Numbers here are **proposals, not decisions**: dimensions, radii and times are t
 | 2 | Aurora Rink | Freezers (status volume) | Touch = 3 s slow (built) | Follow spot on the ball (look) | Chandeliers, ice-crystal pylons | Ice palace, frozen peaks |
 | 3 | Funfair Park | Warp cans (ball redirect) | A grounder in one can comes out another (built) | Chompers redirect flies (built) | String lights, ride neon | Ferris wheel, big top |
 | 4 | Rooftop City | Star billboards (reward target) | A ball that lands in one = team star (built) | Neon glare (look) | Neon signs, roof floods | Skyline, water towers |
-| 5 | Canopy Yard | Barrel cannons (ball redirect) + climb wall (wall trait) | Redirects grounders; Clamber robs homers (built) | Fireflies (look) | Lanterns in the trees | Canopy, waterfalls |
+| 5 | Canopy Yard | Barrel cannons (ball redirect) + climb wall (wall trait) | Redirects grounders; any fielder can climb the wall and rob a homer (park rule; today it needs Clamber, built) | Fireflies (look) | Lanterns in the trees | Canopy, waterfalls |
 | 6 | Ember Keep | Lava pits + fire breath (status volume) | Touch = 3 s slow (built) | Breath reach × 1.6 (built) | Braziers, lava glow | The volcano's crater rim |
 | 7 | Stillwater Marsh | **Lily pads** (solid body on a timed drift) | Pads drift slowly across the outfield on a seeded path; a rolling ball caroms off one | Mist rolls in over the water past the fence (look); pads glow | Paper lanterns on the water | Reeds, a still lake, stilt houses |
 | 8 | Coconut Cove | **The tide** (**new: surge**) | On a timer, a wave sweeps the foul-side corners of the outfield and carries a rolling ball a set distance toward the line | High tide: the wave reaches farther in | Tiki torches, a lighthouse beam | Palm island, open sea, a volcano cone far off |
@@ -125,7 +131,7 @@ Why the new parks' hazards look like this:
 | 9 | Sunscorch Mesa | Cracked orange hard-pan, red dirt | Sandstone blocks, rust cap | Rust, turquoise and bone · canvas shades | Hot white noon; deep indigo, starry night |
 | 10 | Summit Park | Short alpine green, grey dirt | Timber and stone, snow cap | Navy, white and signal red · open | Crisp blue; clear starry cold night |
 
-## The ten captains (WD-11 to WD-16)
+## The ten captains (WD-11 to WD-16; superseded in part by WD-23 to WD-28 below)
 
 Bars are the four derived bars (CF-1): **Pitch / Bat / Field / Run**, at most one bar at 9 or higher. The new captains' values are proposals.
 
@@ -143,6 +149,201 @@ Bars are the four derived bars (CF-1): **Pitch / Bat / Field / Run**, at most on
 | **Hollis** | **Peak Guard** · navy / white | Summit Park | 6 / 8 / 5 / 4 | Mountain climber: a big arm and high power | **Updraft**: a star swing whose fly rides the wind half again as far |
 
 Each new captain founds a faction (WD-12) with three role players of its own (WD-13 A), gets a body class row once the class table lands (WD-14, #1116), and brings all-new star abilities: a star pitch, a star swing and a field ability, each with a lesson (WD-15 A). The signature lines above are the first of the three. Names were checked against the original-IP rule.
+
+## The cast and the parks (WD-23 to WD-28)
+
+Jack accepted the review page as edited (2026-09-25). Names are drafts until the original-IP check passes; content ids stay. Looks are directions for the art sessions, not art: each waits for its gates.
+
+### Captains
+
+| Captain (id) | Team | Home park | Who they are | Crews |
+| --- | --- | --- | --- | --- |
+| Ronnie Sparks (`rio`) | *open* | Neighborhood field | A human kid from the neighborhood field, carried into the Grand Reach | Showboats, Cool Kids |
+| Vale (`vale`) | Aurora Blades | Aurora Rink | The Aurora Rink's swan skater | Early Birds, Showboats |
+| Zig (`zig`) | Carnival Crew | Funfair Park | The funfair chameleon | Showboats |
+| Brondo (`brondo`) | Skyline Gold | Rooftop City | The rooftop bulldog hustler | Cool Kids |
+| Tambo (`konga`) | Canopy Clan | Canopy Yard | The rainforest's storm drummer | Garage Band |
+| Ashlord (`ashlord`) | Ember Keep | Ember Keep | The cinder golem of the volcano forge | Night Crew |
+| Elder Fenn (`fenn`) | Tidewater | Coconut Cove | The old sea turtle of Coconut Cove | Splash Club, Brainiacs |
+| Arroyo (`sable`) | Canyon Nomads | Sunscorch Mesa | The canyon coyote trickster | Brainiacs, Night Crew |
+| Hollis (`hollis`) | Peak Guard | Summit Park | The summit mountain goat | Early Birds |
+| Reed (`reed`) | Marsh Hoppers | Stillwater Marsh | The marsh frog | Splash Club |
+
+#### Ronnie Sparks
+
+- **Bio:** A five-tool kid from the neighborhood field. One swing sparked a door into the Grand Reach, and the sparks never left the bat.
+- **Look:** An ordinary kid's kit: a red jersey over a hoodie, fat sneakers; Round cheeks and a plaster on one knee; A backpack clipped to the dugout rail; Gold portal sparks cling to the bat and the sneakers. Tell language: Gold portal sparks, a rocket whistle, a pop.
+- **Original-IP note:** Rio and the Spark League are the only humans. They look like kids from a real neighborhood, so the Grand Reach's creatures read as strange next to them.
+
+#### Vale
+
+- **Bio:** A swan who skates the rink at dawn and pitches the lights out at night.
+- **Look:** White swan feathers tipped pink and ice blue; The long neck of the pageant body; Skate-blade cleats; An aurora ribbon sash that trails on every move; A crest of frost feathers in place of a tiara. Tell language: Ribbon trails, crystal chimes, the rink's follow spot.
+- **Original-IP note:** A swan skater is original; the crown and the queen title stay gone.
+
+#### Zig
+
+- **Bio:** A funfair chameleon who changes colour with the ride lights and never waits in line.
+- **Look:** Turret eyes that swivel on their own (they replace the goggle discs); A curled tail; Skin cycles through the Carnival's rainbow bands; A ticket-stub bandolier. Tell language: Colour cycling, a coaster clack, a calliope toot.
+- **Original-IP note:** A small green tongue-catcher reads as the dinosaur sidekick; turret eyes, a curled tail and skin that cycles the fair's colours make a chameleon of the fair.
+
+#### Brondo
+
+- **Bio:** A bulldog who runs the rooftop card game. The glove is for show; the bat is for real.
+- **Look:** A bulldog's square jaw on the cube torso; Gold and charcoal pinstripe vest; Gold-rimmed shades and a toothpick; A deck of cards in the back pocket; neon glints off the shades. Tell language: Shuffling cards, a coin flip, a neon buzz.
+- **Original-IP note:** A bulldog card sharp is original; the yellow brute look stays gone.
+
+#### Tambo
+
+- **Bio:** Drums the thunder over the canopy. Treats the wall as a ladder and the ball as a drum.
+- **Look:** Brown with moss green; A leaf crown; Vines wound on the long arms; Drum marks on the chest that glow on a swing; Fireflies in the fur at night; Barrel Bat becomes an ironwood log. Tell language: A thunder roll, falling leaves, waterfall spray.
+- **Original-IP note:** A big ape called Konga with barrels reads as the other game's jungle king, so the name and the barrels both go. Canopy Yard's barrel cannons are a park question, not a captain's.
+
+#### Ashlord
+
+- **Bio:** A basalt golem who forges bats in the crater. The bat is a 10; everything else is a warning.
+- **Look:** Black basalt body with glowing lava seams and ember-purple crystals; A forge helm with a chimney; A leather apron with glowing rivets; Anvil-heavy feet; tongs on the back; Ember eyes. Tell language: An anvil clang, a glow that cools to iron, the braziers flaring.
+- **Original-IP note:** A horned fire king reads as the turtle king. A basalt golem with lava in its seams keeps the menace in an original creature, with no horns, shell or spikes.
+
+#### Elder Fenn
+
+- **Bio:** An old sea turtle who has watched every tide at the cove. The shell is the brim; the staff is driftwood.
+- **Look:** Sage shell with barnacles; the shell is the brim; Cream beard; Driftwood staff, slung; A fishing-net shawl; A small lighthouse-lantern charm. Tell language: Surf hiss, a conch hum, the lighthouse sweep.
+- **Original-IP note:** A barnacled sea-turtle fisherman is the cove's own; a walking turtle with a spiked shell would be the turtle king's army.
+
+#### Arroyo
+
+- **Bio:** A coyote from the mesa rim. The sinker drops out of the heat haze; nobody reads where it went.
+- **Look:** Coyote ears; A rust-striped poncho and a turquoise scarf; Bone-bead wristbands; Heat shimmer rises off the shoulders at rest. Tell language: Heat shimmer, a dry rattle, a canyon echo.
+- **Original-IP note:** Sable means black; a sun-bleached canyon coyote wants a canyon name. A trickster coyote is folklore, not a game mascot.
+
+#### Hollis
+
+- **Bio:** A mountain goat from the high peaks. Climbs anything, hits it into thin air and lets the gust do the rest.
+- **Look:** A shaggy white coat and curled horns; Navy climbing harness with signal-red straps; Cloven cleats; Frost in the beard; A coiled rope over one shoulder. Tell language: A cable-car bell, a gust, a snow flurry.
+- **Original-IP note:** Original.
+
+#### Reed
+
+- **Bio:** A frog from the river delta. One leap covers half the outfield; the landing is optional.
+- **Look:** Green with lotus pink; Reed-woven wristbands; Webbed cleats; A throat pouch that puffs on every star action; A paper lantern on the belt at night. Tell language: A croak, ripples, splash rings.
+- **Original-IP note:** Original.
+
+### Sidekicks (WD-27)
+
+Eight per captain, from three species of their park: one Bruiser (power bat, slow feet), one Scamp (speed, small frame), one Glove (sure hands, strong arm). A species is a body build, a palette and one shared set of add-ons, not a new mesh per sidekick; the add-ons wait for #687. Every species starts on its build's specials: Bruiser Star Fastball, Star Fly, Laser; Scamp Star Change, Star Grounder, Wall Spring; Glove Star Breaker, Star Line, Snap Throw.
+
+#### Ronnie Sparks's sidekicks (Neighborhood field)
+
+| Species | Blend | Build | Sidekicks (crews) |
+| --- | --- | --- | --- |
+| Big kids | Human | Bruiser | Marlow (Brainiacs), Benny *new*, Hattie *new* |
+| Small fry | Human | Scamp | Pip (Cool Kids), Jojo (Cool Kids) *new*, Ruby *new* |
+| Regular kids | Human | Glove | Nico, Gull (Early Birds) |
+
+#### Vale's sidekicks (Aurora Rink)
+
+| Species | Blend | Build | Sidekicks (crews) |
+| --- | --- | --- | --- |
+| Walrams | Walrus and ram | Bruiser | Pewter, Tundra *new*, Crispin (Brainiacs) *new* |
+| Frostlings | Penguin and seal | Scamp | Sleet (Cool Kids, Splash Club) *new*, Flurry (Splash Club) *new*, Glimmer (Splash Club) *new* |
+| Glintfoxes | Arctic fox and moth | Glove | Frost, Lace |
+
+#### Zig's sidekicks (Funfair Park)
+
+| Species | Blend | Build | Sidekicks (crews) |
+| --- | --- | --- | --- |
+| Juggleroos | Kangaroo and monkey | Bruiser | Bingo (Showboats) *new*, Kazoo (Garage Band, Showboats) *new*, Taffy (Snack Squad, Showboats) *new* |
+| Rollers | Armadillo and hamster | Scamp | Dart, Jester (Showboats), Tilt (Cool Kids) *new* |
+| Pufflings | Pufferfish and poodle | Glove | Confetti (Showboats) *new*, Whirl (Showboats) *new* |
+
+#### Brondo's sidekicks (Rooftop City)
+
+| Species | Blend | Build | Sidekicks (crews) |
+| --- | --- | --- | --- |
+| Alley Ratcats | Rat and cat | Bruiser | Boom, Nugget (Snack Squad), Vinnie *new* |
+| Scrappers | Raccoon and pigeon | Scamp | Slick (Cool Kids) *new*, Penny *new*, Dice *new* |
+| Glowgeckos | Gecko and firefly | Glove | Hex (Night Crew, Brainiacs), Ace (Night Crew) *new* |
+
+#### Tambo's sidekicks (Canopy Yard)
+
+| Species | Blend | Build | Sidekicks (crews) |
+| --- | --- | --- | --- |
+| Mosslings | Sloth and bear | Bruiser | Moss, Bongo (Garage Band) *new*, Thicket *new* |
+| Lemurkeets | Lemur and parrot | Scamp | Vine, Kiwi (Snack Squad) *new*, Liana *new* |
+| Toucanines | Toucan and dog | Glove | Basil (Snack Squad), Fern *new* |
+
+#### Ashlord's sidekicks (Ember Keep)
+
+| Species | Blend | Build | Sidekicks (crews) |
+| --- | --- | --- | --- |
+| Cinderboars | Boar and beetle | Bruiser | Cinder, Grit, Slag *new* |
+| Coal Moles | Mole and bat | Scamp | Soot (Night Crew), Clinker (Night Crew) *new*, Brimsy (Night Crew) *new* |
+| Charcrows | Crow and hawk | Glove | Scorch (Night Crew) *new*, Kiln (Night Crew) *new* |
+
+#### Elder Fenn's sidekicks (Coconut Cove)
+
+| Species | Blend | Build | Sidekicks (crews) |
+| --- | --- | --- | --- |
+| Pelicows | Pelican and cow | Bruiser | Barnacle *new*, Breaker *new*, Conch (Garage Band) *new* |
+| Crabbits | Crab and rabbit | Scamp | Sandy *new*, Shelly *new*, Kelp *new* |
+| Dolphups | Dolphin and pup | Glove | Coral (Splash Club) *new*, Nori (Splash Club, Snack Squad) *new* |
+
+#### Arroyo's sidekicks (Sunscorch Mesa)
+
+| Species | Blend | Build | Sidekicks (crews) |
+| --- | --- | --- | --- |
+| Bisonhorns | Bison and rhino beetle | Bruiser | Adobe, Mesquite *new*, Rattle (Garage Band) *new* |
+| Jackalopes | Jackrabbit and antelope | Scamp | Tumble, Dusty *new*, Pebble *new* |
+| Meerowls | Meerkat and owl | Glove | Sirocco (Night Crew), Sage (Night Crew, Brainiacs) *new* |
+
+#### Hollis's sidekicks (Summit Park)
+
+| Species | Blend | Build | Sidekicks (crews) |
+| --- | --- | --- | --- |
+| Ibexbears | Ibex and bear | Bruiser | Boulder *new*, Cairn, Crag *new* |
+| Pikayaks | Pika and yak | Scamp | Scree, Tarn *new*, Ridge *new* |
+| Marmeagles | Marmot and eagle | Glove | Flint (Early Birds), Cornice (Early Birds) *new* |
+
+#### Reed's sidekicks (Stillwater Marsh)
+
+| Species | Blend | Build | Sidekicks (crews) |
+| --- | --- | --- | --- |
+| Beaverbulls | Beaver and bullfrog | Bruiser | Bog, Sedge *new*, Paddle *new* |
+| Axoducks | Axolotl and duck | Scamp | Tad (Splash Club), Ripple (Splash Club) *new*, Minnow (Splash Club) *new* |
+| Otterons | Otter and heron | Glove | Cattail (Early Birds), Lotus (Early Birds) *new* |
+
+### Crews (WD-28)
+
+Two players who share a crew have good chemistry, whatever their team; a rival crew is bad chemistry. Crews replace the hand-listed buddy and rival pairs in `data/chemistry/overrides.json`, except the story pairs (Rio and Ashlord). Each character carries up to two crews.
+
+| Crew | Who they are | Rival crew |
+| --- | --- | --- |
+| Cool Kids | The hip ones: shades, skate decks, sneakers | Brainiacs |
+| Garage Band | They make noise | Night Crew |
+| Night Crew | Awake after dark | Early Birds |
+| Early Birds | Up at dawn | Night Crew |
+| Splash Club | Swimmers | — |
+| Snack Squad | Always eating | — |
+| Showboats | Play to the crowd | Brainiacs |
+| Brainiacs | Know the count | Showboats |
+
+### Park look and hazards
+
+| Park | Day hazard | What it does | Night | Ground · wall | Seats · sky | Backdrop |
+| --- | --- | --- | --- | --- | --- | --- |
+| Neighborhood field | None | The control park: every tuned number is measured here | Fireworks on homers (look); Streetlights and one old light tower | Worn grass, a dusty base path · Chain-link fence with a painted plywood home-run wall | Wooden bleachers, folding chairs · no roof · Late-afternoon summer; warm streetlight night | Houses, backyards and trees past the fence; the portal glows faintly beyond centre field |
+| Aurora Rink | Freezers (status volume) | Touch = 3 s slow (built) | Follow spot on the ball (look); Chandeliers, ice-crystal pylons | Blue-white ice outfield, packed snow infield · Clear glass, frosted cap | Pale pink, ice blue and silver · a vaulted crystal roof over the stands · Pale arctic day; green and violet aurora at night | Ice palace, frozen peaks, the aurora overhead |
+| Funfair Park | Warp cans (ball redirect) | A grounder in one can comes out another (built) | Chompers redirect flies (built); String lights, ride neon | Bright green grass, orange dirt · Striped carnival panels, bulb-lit cap | Red, yellow and teal · striped tent awnings · Sunny afternoon; neon and string lights at night | Ferris wheel, big top, a roller coaster |
+| Rooftop City | Star billboards (reward target) | A ball that lands in one = team star (built) | Neon glare (look); Neon signs, roof floods | Rooftop turf over black tar, painted lines · Brick parapet with a steel rail | Gold, charcoal and neon pink · fire-escape balconies · Hazy city noon; neon-lit night | Skyline, water towers |
+| Canopy Yard | Barrel cannons (ball redirect) + climb wall (park rule) | Cannons redirect grounders; any fielder can climb the wall and rob a homer (park rule, was Clamber) | Fireflies (look); Lanterns in the trees | Dark jungle grass, red dirt · Vine-covered timber; the climb wall in centre | Moss green, brown and parrot red · thatched platforms in the trees · Green-filtered light; lantern-lit night | Canopy, waterfalls |
+| Ember Keep | Lava pits + fire breath (status volume) | Touch = 3 s slow (built) | Breath reach × 1.6 (built); Braziers, lava glow | Grey ash outfield, black cinder dirt · Basalt blocks with glowing seams | Black, ember purple and orange · forge-chimney pillars · Smoky orange day; lava glow at night | The volcano's crater rim |
+| Coconut Cove | The tide (new: surge) | On a timer, a wave sweeps the foul-side corners of the outfield and carries a rolling ball a set distance toward the line | High tide: the wave reaches farther in; Tiki torches, a lighthouse beam | Pale sand outfield, warm dirt infield · Driftwood posts, rope cap | Coral, teal and sun yellow · open · Bright blue midday; orange sunset at night | Palm island, open sea, a volcano cone far off |
+| Sunscorch Mesa | Dust devils (new: drifting redirect) | Two small whirlwinds wander the outfield on seeded paths; a ball in flight through one is pushed sideways a set amount | Clear desert air: no dust devils, the wind drops; Lanterns on the canyon rim, a starry sky | Cracked orange hard-pan, red dirt · Sandstone blocks, rust cap | Rust, turquoise and bone · canvas shades · Hot white noon; deep indigo, starry night | Red mesas, a canyon arch |
+| Summit Park | Mountain gusts (environment, new: wind schedule) | Thin air carries the ball farther; the wind turns to a new seeded direction each inning, shown on the flag and the card | Snow flurries (look); gusts stronger; Cable-car lights, a mountain beacon | Short alpine green, grey dirt · Timber and stone, snow cap | Navy, white and signal red · open · Crisp blue; clear starry cold night | Snow peaks, a cable car |
+| Stillwater Marsh | Lily pads (solid body on a timed drift) | Pads drift slowly across the outfield on a seeded path; a rolling ball caroms off one | Mist rolls in over the water past the fence (look); pads glow; Paper lanterns on the water | Deep green grass, dark wet dirt · Woven reeds, cream cap | Sage, cream and lotus pink · a thatch roof · Soft grey-green morning; mist | Reeds, a still lake, stilt houses |
+
+Open: the neighborhood field's name; Rio's team name; Canopy Yard's barrel cannons read as another game next to an ape captain (hollow-log or vine cannons suggested).
 
 ## The menu (WD-17, WD-18)
 
@@ -169,6 +370,10 @@ Children after the decisions. One issue and one worktree each. The session kind 
 | C7 Tutorial coverage | Gameplay | A lesson per new hazard pattern and new ability (`docs/tutorials.md`) | C2, C4 |
 | C8 Greybox sittings | Jack | One park at a time (FD-17) | C5 |
 | C9 Art | Art | Finished backdrop, night rig, dress and map art, one park at a time after its sitting | WD-02, C8 |
+| C10 The cast in data | Gameplay | Captain display names, teams and bios as accepted; the Harbor park's display name and region move to the neighborhood field; 80 sidekicks (53 new) with species, build and sub-stats; species rows (build, palette, add-on slots, default specials); ids stay; the original-IP check | WD-23, 24, 27 |
+| C11 Crews | Gameplay | A `crews` catalog; up to two crews per character; crew chemistry replaces the hand-listed pairs except the story pairs; the lineup reads the same rule | WD-28, C10 |
+| C12 Portal and cast on screen | Presentation | The portal marker on the map; crew badges and chemistry lines on the lineup; the book pages | WD-26, 28, C6 |
+| C13 Cast art | Art | One child per captain for the new look, and one per sidekick species (catalog slots first, then stills); the neighborhood field re-dress after #346; each waits for its gate (#687 for add-ons) | WD-24, 25, 27 |
 
 Balance (park factors, S-29) runs only when Jack starts it.
 
