@@ -16,6 +16,8 @@ public sealed record StarPitchSkill(
     PitchLeap? Leap = null,
     /// <summary>A late rise that lifts the ball over the last stretch of its flight to a crossing above the aimed one, or null (§13).</summary>
     PitchRise? Rise = null,
+    /// <summary>A ring on home plate, from contact, that slows the batter-runner inside it, or null (§13).</summary>
+    PitchUndertow? Undertow = null,
     /// <summary>One full vertical loop mid-flight, then the ordinary crossing on the ordinary time, or null (§13).</summary>
     PitchLoop? Loop = null,
     /// <summary>A side-to-side sway that swells to its widest mid-flight and settles onto the ordinary path before the plate, or null (§13).</summary>
@@ -40,6 +42,31 @@ public sealed record PitchVanish(double From, double To)
 
     /// <summary>The ball can be seen at time fraction <paramref name="u"/>: everywhere but the half-open stretch [From, To).</summary>
     public bool Visible(double u) => u < From || u >= To;
+}
+
+/// <summary>
+/// A star pitch's undertow (spec §13): when a fair ball is put in play off it, a disc of radius <see cref="RadiusFt"/>
+/// centred on home plate is live for <see cref="Sec"/> from contact, and the batter-runner's every step inside it is at
+/// <see cref="RunnerMul"/> of its speed. It is a status volume (<see cref="BodySlows"/>) that touches one body: no fielder,
+/// no other runner, and nothing after the body leaves it or the time runs out. Geometry decides it; nothing is rolled.
+/// </summary>
+public sealed record PitchUndertow(double RadiusFt, double Sec, double RunnerMul)
+{
+    /// <summary>The <see cref="StatusVolume.Type"/> the undertow's disc carries: presentation draws its ring by this name.</summary>
+    public const string Type = "undertow";
+
+    /// <summary>The widest ring a row may name: it may cover the batter's first steps, never the run to first.</summary>
+    public const double MaxRadiusFt = 20;
+
+    /// <summary>Every bend ends within 2 s of contact (§13).</summary>
+    public const double MaxSec = 2;
+
+    /// <summary>
+    /// The disc as the live ball reads it, for a play whose clock starts at contact: centred on home, live until
+    /// <see cref="Sec"/>, no time after the body leaves it (<c>slowSec</c> 0), the batter-runner's alone.
+    /// </summary>
+    public StatusVolume Volume() =>
+        new(StatusVolume.StarHazard, Type, 0, 0, RadiusFt, 0, SlowMul: RunnerMul, UntilT: Sec, BatterRunnerOnly: true);
 }
 
 /// <summary>
@@ -241,7 +268,6 @@ public sealed record StarSwingSkill(
     /// (§13, <see cref="FieldingPreview.Dazzled"/>); 0 is none.
     /// </summary>
     double FielderPauseSec,
-    bool InfieldChaos,
     bool Decoy,
     /// <summary>How strongly the park's wind acts on this swing's ball (§13, <see cref="AtBatResult.WindMul"/>); 1 is the ordinary ball.</summary>
     double WindMul = 1,
@@ -260,9 +286,17 @@ public sealed record StarSwingSkill(
     BallJag? Jag = null,
     /// <summary>The ball off this swing stays molten after contact and burns a glove that holds it, or null (§13, Hot Iron).</summary>
     HotBall? HotBall = null,
+    /// <summary>
+    /// This swing's contact oval is this many times as tall (§13, PH-16-R2: a swing's own contact area); 1 is the ordinary
+    /// oval. Only the height grows, so the width along the barrel and the timing window are unchanged: a wide pitch or a
+    /// late bat is still a miss.
+    /// </summary>
+    double OvalHeightMul = 1,
     /// <summary>A bowl of loose dust this swing's grounder raises where it first lands, slowing the fielders inside it, or null (§13).</summary>
     SwingDustBowl? DustBowl = null)
 {
+    /// <summary>The tallest contact oval a row may name: twice the batter's zone, never more.</summary>
+    public const double MaxOvalHeightMul = 2;
     /// <summary>The longest stall a row may name: the ball spins, then baseball resumes inside the two-second rule.</summary>
     public const double MaxStallSec = 1.2;
 
@@ -290,8 +324,9 @@ public sealed record StarSwingSkill(
 
 /// <summary>
 /// A star swing's dust bowl (spec §13): where the swing's fair grounder first meets the ground, a disc of loose dust of radius
-/// <see cref="RadiusFt"/> (measured like a park's slow disc, from its centre) stands for <see cref="Sec"/> from that landing;
-/// every step a fielder takes inside it is at <see cref="Mul"/> of its speed. It is a status volume on the park's rail
+/// <see cref="RadiusFt"/> (measured like a park's slow disc, from its centre) rises at that landing and settles
+/// <see cref="Sec"/> after the contact — the two-second rule (§13): a later landing gives a shorter bowl, and a landing at or
+/// past <see cref="Sec"/> none. Every step a fielder takes inside it is at <see cref="Mul"/> of its speed. It is a status volume on the park's rail
 /// (<see cref="BodySlows"/>) that touches fielders only: no runner, and no time after the body leaves it or the dust settles.
 /// Routes ignore it (<see cref="VolumeRoute"/> reads the park's discs only); going round it is the fielder's own verb.
 /// </summary>
@@ -303,7 +338,7 @@ public sealed record SwingDustBowl(double RadiusFt, double Sec, double Mul)
     /// <summary>The widest bowl a row may name: a patch of the infield, not the infield.</summary>
     public const double MaxRadiusFt = 15;
 
-    /// <summary>The longest a bowl may stand: a bend is two seconds at most (§13).</summary>
+    /// <summary>The latest a bowl may settle, in seconds after the contact: a bend ends within two seconds (§13).</summary>
     public const double MaxSec = 2;
 
     /// <summary>The highest launch a bowl-raising swing may name: the bowl is a grounder's, so its first landing comes early.</summary>
@@ -313,12 +348,15 @@ public sealed record SwingDustBowl(double RadiusFt, double Sec, double Mul)
     public const int Hazard = -2;
 
     /// <summary>
-    /// The bowl as the live ball reads it: centred on the landing (<paramref name="x"/>, <paramref name="z"/>), standing from
-    /// <paramref name="landT"/> until <paramref name="landT"/> + <see cref="Sec"/>, <see cref="Mul"/> inside, no time after the body
-    /// leaves it (<c>slowSec</c> 0), fielders' alone.
+    /// The bowl as the live ball reads it, for a play whose clock starts at contact: centred on the landing (<paramref name="x"/>,
+    /// <paramref name="z"/>), raised when it is added (at the landing) and gone at play second <see cref="Sec"/>, <see cref="Mul"/>
+    /// inside, no time after the body leaves it (<c>slowSec</c> 0), fielders' alone.
     /// </summary>
-    public StatusVolume Volume(double x, double z, double landT) =>
-        new(Hazard, Type, x, z, RadiusFt, 0, SlowMul: Mul, UntilT: landT + Sec, FieldersOnly: true);
+    public StatusVolume Volume(double x, double z) =>
+        new(Hazard, Type, x, z, RadiusFt, 0, SlowMul: Mul, UntilT: Sec, FieldersOnly: true);
+
+    /// <summary>A landing at play second <paramref name="landT"/> raises a bowl: only before the dust's window from contact closes.</summary>
+    public bool RaisesAt(double landT) => landT < Sec;
 }
 
 /// <summary>
@@ -499,6 +537,10 @@ public static class StarSkills
     /// <summary>How much larger a star swing's Perfect ring is (§13); 1 for a swing whose row names none.</summary>
     public static double SwingPerfectRingMul(string? starSwing, StarSkillTable? table = null) =>
         StarSkillTable.Or(table).Swing(starSwing)?.PerfectRingMul ?? 1.0;
+
+    /// <summary>How much taller a star swing's contact oval is (§13); 1 for a swing whose row names none.</summary>
+    public static double SwingOvalHeightMul(string? starSwing, StarSkillTable? table = null) =>
+        StarSkillTable.Or(table).Swing(starSwing)?.OvalHeightMul ?? 1.0;
 
     /// <summary>The jagged flight a star swing's ball flies (§13); null for a swing whose row names none.</summary>
     public static BallJag? SwingJag(string? starSwing, StarSkillTable? table = null) =>

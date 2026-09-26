@@ -67,9 +67,9 @@ public sealed class PlateChemistryScenarioTests
         Assert.True(cases >= 10 * 2 * bats.Length * Charges.Length * 2 * 5, $"{cases} cases");
 
         // The swing's barrel takes no runners at all: the oval is a function of the hitter, the bat,
-        // the charge and the box, so nothing on the bases can reach it.
+        // the charge and the box (and a star swing's own taller oval, §13), so nothing on the bases can reach it.
         var p = typeof(SweetSpot).GetMethod(nameof(SweetSpot.Oval))!.GetParameters();
-        Assert.Equal(["batter", "bat", "charge01", "boxOffsetX", "rules"], p.Select(x => x.Name!).ToArray());
+        Assert.Equal(["batter", "bat", "charge01", "boxOffsetX", "rules", "ovalHeightMul"], p.Select(x => x.Name!).ToArray());
         Assert.DoesNotContain(typeof(ChemistryTable).GetMethods(), m => m.Name is "BuddiesOnBase" or "ChargePowerMul");
     }
 

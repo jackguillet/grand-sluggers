@@ -159,7 +159,9 @@ public sealed class SableAbilityTests
         var raised = Assert.Single(dust.Bowls);
         Assert.Equal("sidewinder", raised.SwingId);
         Assert.Equal(bowl.RadiusFt, raised.RadiusFt);
-        Assert.Equal(raised.T + bowl.Sec, raised.UntilT, 12);
+        // It rises at the landing and settles two seconds after the contact (the play clock's 0), like every bend.
+        Assert.True(raised.T < bowl.Sec, $"the fixture lands at {raised.T:F2} s");
+        Assert.Equal(bowl.Sec, raised.UntilT, 12);
         // At the first landing of the ball's own path.
         var i = BallFlight.LandingIndex(dust.Path!);
         Assert.Equal(SampleEvent.Ground, dust.Path![i].Event);
@@ -193,7 +195,9 @@ public sealed class SableAbilityTests
         var park = new StatusVolume(0, "tar", 100, 100, 10, 3);
         var slows = new BodySlows();
         slows.Begin([park]);
-        var disc = bowl.Volume(20, 60, landT: 0.4);
+        var disc = bowl.Volume(20, 60);
+        Assert.Equal(bowl.Sec, disc.UntilT);
+        Assert.True(bowl.RaisesAt(0.4) && bowl.RaisesAt(1.99) && !bowl.RaisesAt(2.0) && !bowl.RaisesAt(2.4));
         slows.Add(disc);
         Assert.Equal([park], slows.ParkVolumes);
         Assert.Equal(2, slows.Volumes.Count);
@@ -230,8 +234,8 @@ public sealed class SableAbilityTests
     [Fact]
     public void AGloveIsSlowedOnlyInsideTheBowlWhileTheDustStands()
     {
-        // A grounder to the right side: the chaser runs through the landing spot while the dust stands.
-        var run = Run(16, "sidewinder");
+        // A soft grounder to the right side: the chaser runs through the landing spot while the dust stands.
+        var run = Run(8, "sidewinder", exit: 60);
         var raised = Assert.Single(run.Bowls);
         Assert.True(run.SlowedInBowl.Count > 0, "a fielder crossed the standing bowl");
         foreach (var (t, x, z) in run.SlowedInBowl)
@@ -241,17 +245,32 @@ public sealed class SableAbilityTests
         }
     }
 
+    /// <summary>
+    /// The two-second rule: a Dust Bowl ball whose first landing comes 2 s or more after the contact (a gapper that falls in
+    /// at 3.2 s) raises no bowl at all.
+    /// </summary>
+    [Fact]
+    public void ALandingPastTwoSecondsRaisesNoBowl()
+    {
+        var run = Run(-40, "sidewinder", exit: 100, launch: 14);
+        var i = BallFlight.LandingIndex(run.Path!);
+        Assert.Equal(SampleEvent.Ground, run.Path![i].Event);
+        Assert.True(run.Path[i].T >= Game.StarSkills.Swing("sidewinder")!.DustBowl!.Sec, $"the fixture lands at {run.Path[i].T:F2} s");
+        Assert.Empty(run.Bowls);
+        Assert.DoesNotContain(run.Volumes, v => v.Type == SwingDustBowl.Type);
+    }
+
     sealed record RunResult(List<FirstHopKicked> Kicks, List<DustBowlRaised> Bowls, IReadOnlyList<Sample>? Path,
         List<(double T, double X, double Z, bool Held)> Balls, List<StatusVolume> Volumes, List<(double T, double X, double Z)> SlowedInBowl,
         bool RunnerSlowed, PlayEvent? Play);
 
     /// <summary>A hard grounder off Arroyo's bat with the named star swing (or none), on CPU gloves at Harbor.</summary>
-    static RunResult Run(double spray, string? swing)
+    static RunResult Run(double spray, string? swing, double exit = 92, double launch = 4)
     {
         var home = Game.Team("Defense", "vale", "pewter", "lace", "frost", "basil", "soot", "vine", "moss", "hex");
         var away = Game.Team("Offense", "sable", "boom", "cinder", "grit", "rio", "nugget", "nico", "gull", "marlow");
         var match = Match.Exhibition(Game, home, away, 3, 1, parkId: ParkId.Harbor);
-        var hit = FlightFixtures.Hit(match.Park, 92, 4, spray, rules: match.Rules) with { StarSwingUsed = swing };
+        var hit = FlightFixtures.Hit(match.Park, exit, launch, spray, rules: match.Rules) with { StarSwingUsed = swing };
         var preview = match.PreviewHit(hit);
         var live = match.LivePlay;
         Assert.True(live.Apply(LivePlayCommand.BeginLive(Scenario.Paint, Scenario.Swing, hit, preview, null, LiveSeats.CpuOnly, 0,

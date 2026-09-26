@@ -49,7 +49,8 @@ namespace GrandSluggers.UnityClient
 
         /// <summary>
         /// The continent map (WD-17 A, WD-18 C): the painted map when its slot is placed, else a greybox generated from the
-        /// regions — land around the mainland's regions, the island on its own — with a pin per park in its home team's color,
+        /// regions — land around the mainland's regions, the island on its own, the neighborhood apart in its inset through the
+        /// portal — with a pin per park in its home team's color,
         /// the cursor's pin ringed in gold, and the park under the cursor on the card beside it.
         /// </summary>
         public static void Map(ContentCatalog content, string cursor, bool night, bool hazards)
@@ -59,6 +60,7 @@ namespace GrandSluggers.UnityClient
             var panel = Box(CarnivalFront.MapPanel);
             GUI.DrawTexture(panel, MapTexture(content.World, content.Art.Map), ScaleMode.StretchToFill);
             Text(panel.x + 16, panel.y + 8, 500, 36, CarnivalFront.MapTitle, _label);
+            if (content.World.ApartRegion is { } apart) ApartInset(content.World, apart);
             foreach (var region in content.World.Regions)
             {
                 var park = content.World.ParkIn(region.Id);
@@ -88,6 +90,26 @@ namespace GrandSluggers.UnityClient
         }
 
         static GUIStyle _pin;
+
+        /// <summary>
+        /// The region apart from the continent (WD-26): its own small field panel in the sea, its name on top, and the portal
+        /// between it and the Grand Reach — a gold ring with a dark hole, sparks running from the inset through it to the
+        /// shore. Every place and size is CarnivalFront's; this is a placeholder until the map art slot is placed.
+        /// </summary>
+        static void ApartInset(WorldMap world, Region apart)
+        {
+            var box = Box(CarnivalFront.MapApartPanel(apart));
+            Fill(new Rect(box.x - 3, box.y - 3, box.width + 6, box.height + 6), Colors.Gold);
+            Fill(box, new Color(.30f, .52f, .30f));
+            Fill(Box(CarnivalFront.MapApartTitle(apart)), new Color(.045f, .075f, .095f, .85f));
+            GUI.Label(Box(CarnivalFront.MapApartTitle(apart)), apart.Name, _pin);
+            foreach (var (x, y) in CarnivalFront.MapPortalSparks(world))
+                Disc(x, y, CarnivalFront.MapSparkSize, Colors.Gold);
+            var (px, py) = CarnivalFront.MapPortal(apart);
+            Disc(px, py, CarnivalFront.MapPortalSize, Colors.Gold);
+            Disc(px, py, (CarnivalFront.MapPortalSize + CarnivalFront.MapPortalHole) / 2, new Color(.55f, .30f, .80f));
+            Disc(px, py, CarnivalFront.MapPortalHole, new Color(.08f, .04f, .16f));
+        }
 
         static void Disc(float x, float y, float size, Color color)
         {
@@ -133,6 +155,7 @@ namespace GrandSluggers.UnityClient
                 float main = 0, isle = 0;
                 foreach (var r in world.Regions)
                 {
+                    if (r.Apart) continue; // the region apart is not on the continent: it gets its own inset
                     var rx = inset + (float)r.X * (1 - 2 * inset);
                     var ry = insetY + (float)r.Y * (1 - 2 * insetY);
                     var dx = (u - rx) * 1.37f; // the panel is wider than tall: keep the blobs round

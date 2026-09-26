@@ -70,7 +70,7 @@ public sealed partial class LivePlaySystem
 
     /// <summary>
     /// The Dust Bowl (§13, <see cref="SwingDustBowl"/>): a disc of the row's radius centred where the ball first met the ground,
-    /// standing from that landing for the row's seconds, that slows every fielder inside it to the row's share of his step and
+    /// rising at that landing and settling the row's seconds after the contact (the two-second rule), that slows every fielder inside it to the row's share of his step and
     /// touches no runner. It goes on the park's slow rail (<see cref="BodySlows"/>), read from the next frame; the ball's path
     /// is untouched. A fact records it for presentation and the trace.
     /// </summary>
@@ -80,7 +80,8 @@ public sealed partial class LivePlaySystem
         var (landT, x, z) = i >= 0 && Path![i].Event == SampleEvent.Ground && Path[i].T <= t
             ? (Path[i].T, Path[i].X, Path[i].Z)
             : (t, BallX, BallZ);
-        var disc = bowl.Volume(x, z, landT);
+        if (!bowl.RaisesAt(landT)) return;
+        var disc = bowl.Volume(x, z);
         _bodySlows.Add(disc);
         RecordFact(new DustBowlRaised(swing.Id, landT, x, z, bowl.RadiusFt, disc.UntilT, Chaser(x, z).Pos));
         Sub = $"{swing.Name}!";
