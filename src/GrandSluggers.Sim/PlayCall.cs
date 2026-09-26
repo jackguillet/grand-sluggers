@@ -43,7 +43,6 @@ public enum CallBeat
     DoublePlay,
     BuddyJump,
     Clamber,
-    SuperJump,
     PutAway,
     ToFirst,
     SacFly,

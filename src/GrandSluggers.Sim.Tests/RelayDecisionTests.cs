@@ -69,13 +69,13 @@ public sealed class RelayDecisionTests
     // ---------------------------------------------------------------------------------
 
     /// <summary>
-    /// A fly to dead centre with konga on third and one out. The gate sends konga, the centre fielder decides how to get the ball to the plate. Weak arm in centre: moss (Field 4);
+    /// A fly to dead centre with konga on third and one out. The gate sends konga, the centre fielder decides how to get the ball to the plate. Weak arm in centre: jojo (Field 4);
     /// strong arm: vine (Field 8); the middle arm: soot (Field 5). None carries a throw ability, and none
     /// shares a faction with the cutter or the catcher, so the chemistry read is 1.0 and the arms alone
     /// decide.
     /// </summary>
     [Theory]
-    [InlineData("moss", "normal", true)]      // Arm 4 from 245 ft: the relay arrives first
+    [InlineData("jojo", "normal", true)]      // Arm 4 from 245 ft: the relay arrives first
     [InlineData("vine", "normal", false)]     // Arm 8 from 245 ft: direct, the break-even is 258
     [InlineData("soot", "hard", true)]        // Arm 5: the relay saves under three tenths — hard takes it
     [InlineData("soot", "easy", false)]       // … and easy does not
@@ -150,18 +150,18 @@ public sealed class RelayDecisionTests
     /// <summary>
     /// A defense with <paramref name="centre"/> in centre field. The roster fills <see cref="Diamond.Order"/> after
     /// the pitcher, so the eighth name is CF; SS and 2B, the two bodies a centre-line throw can cut through, are
-    /// marlow (Field 6) and jester (Field 5), neither with a throw ability and neither in the centre fielder's
-    /// faction.
+    /// tumble (Field 6) and jester (Field 5), both carrying Wall Spring — no throw ability — and neither in the centre
+    /// fielder's faction.
     /// </summary>
     static (Match Match, Character Centre, Dictionary<string, Character> Cutters) Defence(ContentCatalog content, string centre, string difficulty)
     {
-        var home = content.Team("Defense", "vale", "pewter", "lace", "jester", "grit", "marlow", "basil", centre, "gull");
+        var home = content.Team("Defense", "vale", "pewter", "lace", "jester", "grit", "tumble", "basil", centre, "gull");
         var away = content.Team("Offense", "zig", "dart", "cinder", "nugget", "hex", "boom", "konga", "ashlord", "frost");
         var match = Match.Exhibition(content, home, away, 3, 1, parkId: ParkId.Harbor, difficulty: difficulty);
         var cf = content.Must(centre);
         Assert.Equal(centre, cf.Id);
         Assert.Equal(1.0, FieldAbilities.ThrowMul(cf, match.Rules), 9);
-        return (match, cf, new Dictionary<string, Character> { ["SS"] = content.Must("marlow"), ["2B"] = content.Must("jester") });
+        return (match, cf, new Dictionary<string, Character> { ["SS"] = content.Must("tumble"), ["2B"] = content.Must("jester") });
     }
 
     static (List<ThrowSeen> Throws, PlayEvent Play, bool Caught) Run(Match match, AtBatResult hit, FieldingPreview preview)

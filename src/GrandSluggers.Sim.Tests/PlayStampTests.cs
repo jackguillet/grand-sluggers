@@ -78,7 +78,6 @@ public class PlayStampTests
         yield return Row("Fly out", "OUT", PlayKind.FlyOut, 1, 0);
         yield return Row("Fly dive", "DIVE", PlayKind.FlyOut, 1, 0, feat: DefensiveFeat.Dive);
         yield return Row("Fly jump", "JUMP", PlayKind.FlyOut, 1, 0, feat: DefensiveFeat.Jump);
-        yield return Row("Wall rob super jump", "JUMP", PlayKind.FlyOut, 1, 0, feat: DefensiveFeat.SuperJump);
         yield return Row("Wall rob clamber", "JUMP", PlayKind.FlyOut, 1, 0, feat: DefensiveFeat.Clamber);
         yield return Row("Buddy jump", "BUDDY JUMP", PlayKind.FlyOut, 1, 0, feat: DefensiveFeat.BuddyJump);
         yield return Row("Fly doubled off", "DOUBLE PLAY", PlayKind.FlyOut, 2, 0, feat: DefensiveFeat.Jump);

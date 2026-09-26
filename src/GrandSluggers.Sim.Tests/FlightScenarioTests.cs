@@ -332,24 +332,25 @@ public sealed class FlightScenarioTests
     // ---------------------------------------------------------------------------------
 
     [Fact]
-    public void S56_SuperJumpInTheWindowAtTheWallRobsATwelveFootHomer()
+    public void S56_WallSpringInTheWindowAtTheWallRobsASixFootHomer()
     {
-        var match = RobbersMatch(centerFielder: "nico");
+        var match = RobbersMatch(centerFielder: "konga");
         var (hit, preview, play, caughtAt) = RunWallLeap(match, out var feat);
-        Assert.Equal("nico", preview.Fielder.Id);
+        Assert.Equal("konga", preview.Fielder.Id);
+        Assert.Equal(FieldAbilityId.WallSpring, preview.Fielder.FieldAbility);
         Assert.Equal(PlayKind.FlyOut, play.Kind);
         var only = Assert.Single(play.Outcome!.OutsMade);
         Assert.Equal((OutType.Catch, 0), (only.Type, only.FromBag));
-        Assert.True(FlyCatch.JumpWindow(caughtAt, preview.HangTimeSec, match.Rules, preview.Fielder, match.Park)
-                    || FlyCatch.JumpWindow(caughtAt - Frame, preview.HangTimeSec, match.Rules, preview.Fielder, match.Park),
+        Assert.True(FlyCatch.JumpWindow(caughtAt, preview.HangTimeSec, match.Rules)
+                    || FlyCatch.JumpWindow(caughtAt - Frame, preview.HangTimeSec, match.Rules),
             $"robbed at {caughtAt:0.00} vs the fence crossing {preview.HangTimeSec:0.00}");
-        Assert.Contains(feat, new[] { DefensiveFeat.SuperJump, DefensiveFeat.BuddyJump });
+        Assert.Contains(feat, new[] { DefensiveFeat.Jump, DefensiveFeat.BuddyJump });
         Assert.Equal(feat, play.Outcome.DefensiveFeat);
         Assert.True(hit.HomeRun, "the flight itself clears the fence; the leap took it back");
     }
 
     [Fact]
-    public void S57_ThePlainJumpCannotReachTwelveFeetOverTheFence()
+    public void S57_ThePlainJumpCannotReachSixFeetOverTheFence()
     {
         var match = RobbersMatch(centerFielder: "grit");
         var (hit, preview, play, caughtAt) = RunWallLeap(match, out _);
@@ -603,18 +604,20 @@ public sealed class FlightScenarioTests
         return match;
     }
 
-    /// <summary>A twelve-foot homer to center; the human glove is dead-stick to the wall and presses West in the window.</summary>
+    /// <summary>
+    /// A six-foot homer to center — past the plain jump's 4-ft rob, inside Wall Spring's 4 + 4 — the human glove dead-stick to
+    /// the wall, pressing West in the window.
+    /// </summary>
     (AtBatResult Hit, FieldingPreview Preview, PlayEvent Play, double CaughtAt) RunWallLeap(Match match, out DefensiveFeat feat)
     {
-        var hit = FlightFixtures.OverTheFence(Harbor, 12, 0);
+        var hit = FlightFixtures.OverTheFence(Harbor, 6, 0);
         var ball = BattedBall.Of(hit, Harbor, rules: Rules.Default);
-        Assert.InRange(ball.FenceClearFt, 11, 13);
+        Assert.InRange(ball.FenceClearFt, 5, 7);
         var preview = match.PreviewHit(hit);
         Assert.Equal("CF", preview.Position);
         Assert.True(FlyCatch.NeedsJump(preview));
-        var who = preview.Fielder;
         var play = RunHuman(match, hit, preview, live =>
-            FlyCatch.JumpWindow(live.ElapsedSeconds, preview.HangTimeSec, match.Rules, who, match.Park)
+            FlyCatch.JumpWindow(live.ElapsedSeconds, preview.HangTimeSec, match.Rules)
                 ? new LivePadInput(WestDown: true)
                 : LivePadInput.Dead, out var caughtAt);
         feat = play.Outcome?.DefensiveFeat ?? DefensiveFeat.None;

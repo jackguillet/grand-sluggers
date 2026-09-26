@@ -52,8 +52,8 @@ public sealed class LiveBallScenarioTests
         var only = Assert.Single(play.Outcome!.OutsMade);
         Assert.Equal((OutType.Catch, 0), (only.Type, only.FromBag));
         // Inside the catch window (fielding.catch.windowBefore/After plus the glove's ability bonus), not force-fed early.
-        Assert.True(FlyCatch.JumpWindow(caughtAt, preview.HangTimeSec, match.Rules, preview.Fielder, match.Park)
-                    || FlyCatch.JumpWindow(caughtAt - Frame, preview.HangTimeSec, match.Rules, preview.Fielder, match.Park),
+        Assert.True(FlyCatch.JumpWindow(caughtAt, preview.HangTimeSec, match.Rules)
+                    || FlyCatch.JumpWindow(caughtAt - Frame, preview.HangTimeSec, match.Rules),
             $"caught at {caughtAt:0.00} vs hang {preview.HangTimeSec:0.00}");
     }
 

@@ -26,7 +26,7 @@ Left stick moves the glove. Ordinary fly/liner catches and ground pickups are au
 
 Right stick flick selects a throw base: right first, up second, left third, down home. Recenter before selecting again. The target stays visible. RT requests a throw; no target means no throw. An early request can wait only through the existing short buffer. The ball releases after possession and recovery. Catching alone never throws.
 
-North jumps or activates an eligible Buddy Jump/wall action. For Buddy Jump, both outfielders must reach the wall spot together with the ball directly overhead. East dives; when a throw is queued, East cancels it and consumes the press. LB switches glove. RB feeds the cutoff or continues the relay. West attacks an eligible target. South answers the close-play icon. A tag still requires the ball and body to meet.
+North jumps or activates an eligible Buddy Jump/wall action. For Buddy Jump, both outfielders must reach the wall spot together with the ball directly overhead. East dives (Zig and Reed snap the tongue instead); when a throw is queued, East cancels it and consumes the press. LB switches glove. RB feeds the cutoff or continues the relay. West attacks an eligible target. South answers the close-play icon. A tag still requires the ball and body to meet.
 
 ## Running
 

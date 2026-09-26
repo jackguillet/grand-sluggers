@@ -331,7 +331,7 @@ public static partial class CarnivalFront
             HazardType.Barrel => "Barrel cannons fire the ball out of another barrel.",
             HazardType.Chomper => "Chompers spit a fly out of another mouth.",
             HazardType.Billboard => "Put a ball under a billboard for a star.",
-            HazardType.ClimbWall => "A Clamber fielder climbs the vine wall to rob.",
+            HazardType.ClimbWall => "Any fielder climbs the vine wall to rob.",
             HazardType.Statue => "A statue stands in play: balls bounce off it.",
             HazardType.AcUnit => "An AC unit sits in play: balls bounce off it.",
             HazardType.Tree => "Trees stand in play: balls bounce off them.",

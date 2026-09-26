@@ -748,7 +748,7 @@ public enum DefensiveFeat
 {
     None,
     BuddyJump,
-    SuperJump,
+    /// <summary>A rob at a park's climb wall (§14, Canopy Yard): any fielder climbs it.</summary>
     Clamber,
     /// <summary>A plain jump catch in the window (West), not a wall rob.</summary>
     Jump,
@@ -958,7 +958,5 @@ public sealed record ThrowResult(
     bool Slanted,
     double LateralFt = 0,
     int Arm = InPlay.NeutralArm,
-    /// <summary>A release for this throw other than the table's (#723): Snap Throw's after a clean received teammate throw. Null is the ordinary release.</summary>
-    double? ReleaseSec = null,
-    /// <summary>Feet added to the arm's comfortable range before the long-throw loss starts (§8.5): Long Toss's; 0 for every other throw.</summary>
-    double RangeBonusFt = 0);
+    /// <summary>A release for this throw other than the table's (#723): Snap Throw's after a clean received teammate throw, Relay Pivot's on a relay the cutoff caught clean. Null is the ordinary release.</summary>
+    double? ReleaseSec = null);

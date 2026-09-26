@@ -83,7 +83,7 @@
     "chaseSpeedWeight": 1
   },
   "dash": {
-    // #718 (F693-02-ball-dash-carrier): the universal East-held sprint is retired; the only faster carry is Ball Dash's.
+    // #718 (F693-02-ball-dash-carrier): the universal East-held sprint is retired; no field ability carries faster.
     "chaseMul": 1.0,
     "buddyTossFt": 28,
     "kickFt": 22,
@@ -92,9 +92,8 @@
   },
   "catch": {
     // The unclassed body's stand-up reach (a character built by hand): every data character reaches its body class's
-    // groundReachFt / flyReachFt (data/rules/body-classes.json, §8.1). The dirt pad and the dive add to it. Ability bonuses remain explicit.
+    // groundReachFt / flyReachFt (data/rules/body-classes.json, §8.1). The dirt pad and the dive add to it; no field ability widens it.
     "standUpReachFt": 4.0,
-    "clamberRadiusFt": 6,
     // Dirt scoop slack (the §10.4 double-play rows). Not the fly ring: a fly stand-up is
     // the catch radius, and the rim is diveReachFt (#669).
     "windowPadFt": 1,
@@ -104,8 +103,6 @@
     "diveMaxBallY": 7.5,
     "needsJumpReachFt": 22,
     "jumpRobFt": 4,
-    "superJumpRobFt": 18,
-    "clamberRobFt": 28,
     "buddyJumpRobFt": 18,
     "touchScoopY": 3.2,
     "standingHeightFt": 6.0,
@@ -119,9 +116,6 @@
     "windowBeforeSec": 0.48,
     "windowAfterSec": 0.14,
     "wallSitSec": 1.15,
-    "superJumpWindowSec": 0.16,
-    "growWindowSec": 0.08,
-    "clamberWindowSec": 0.12,
     "buddyPlantFt": 4,
     "buddyJumpHoldSec": 0.18,
     "heldBallY": 2.2,
@@ -147,29 +141,26 @@
     "minFt": 8
   },
   "abilities": {
-    "bigCatchBonusFt": 6,
-    "tagReachBonusFt": 2,
-    "superJumpCatchBonusFt": 3,
-    "superJumpFlyRangeFt": 22,
-    "diveGroundRangeFt": 16,
-    // Sand Scoop (Sable, #1149): +8 ft of ground reach for a ball at or below 1 ft (a skipping or rolling ball, below the
-    // six-inch-to-knee hop band's top), and a scoop that low never bobbles. Half Dive's reach, for the low ball only.
-    "sandScoopFt": 8,
-    "sandScoopMaxFt": 1.0,
-    // Long Toss (Hollis, #1150): the comfortable range runs 80 ft further before a long throw loses pace — an Arm 7 holder
-    // throws 250 ft at full speed where the ordinary Arm 7 arm starts losing at 170. Nothing shorter changes.
-    "longTossRangeFt": 80,
-    // Lily Leap (Reed, #1151): the same West press and 0.60 s airtime as every jump, rising 4.5 ft at the peak instead of 2.0 —
-    // the glove reaches a liner up to 10.5 ft where an ordinary jump tops out at 8. Only a press starts it; nothing auto-catches.
-    "lilyLeapRiseFt": 4.5,
+    // The field pool (AB-12): Snap Throw, Lick Catch, Laser, Relay Pivot, Wall Spring; every character carries one.
+    // Lick Catch is for tongue bodies only: characters of these factions (Zig's and Reed's, and their sidekicks). A press
+    // (East, in place of the dive) snaps the tongue 8 ft ahead along the body's facing for 0.3 s and takes a ball on it —
+    // within 1.5 ft of the line and no higher than a standing glove — with 0.8 s of recovery owed from the press.
+    "lickCatchFactions": ["carnival", "marsh"],
+    "lickReachFt": 8,
+    "lickWidthFt": 1.5,
+    "lickSnapSec": 0.3,
+    "lickRecoverySec": 0.8,
+    // Relay Pivot: the cutoff throws on a relay it caught clean with a 0.15 s release, against the ordinary 0.30.
+    "relayPivotReleaseSec": 0.15,
+    // Wall Spring: a leap at any wall reaches 4 ft further — a rob up to jumpRobFt + 4 over the fence, and 4 ft higher for a
+    // ball at the wall while the body is within 10 ft of the fence (the wall plant is 8 ft in).
+    "wallSpringReachFt": 4,
+    "wallSpringFromFt": 10,
     // #723: Laser is x1.25 and only on a throw home with a live runner on third or the third-home segment (a cutoff feed never
     // carries it); Snap Throw is a 0.22 s release after a clean received teammate throw at x1.0 flight against the ordinary 0.30.
     "laserMul": 1.25,
     "snapThrowMul": 1.0,
-    "snapReleaseSec": 0.22,
-    // #718 (F693-02-ball-dash-carrier): dart, pip and jester (characters/role-players.json) carry the ball at x1.20
-    // of their pursuit speed, automatically; the rates stay the body's own, so the boosted body takes 0.24 s to its cap.
-    "ballDashMul": 1.20
+    "snapReleaseSec": 0.22
   },
   "throw": {
     // #722 (F693-03-release-clock, F693-03-travel-clock): 0.30 s release, 0.90 s of flight over 80 ft for the neutral arm.

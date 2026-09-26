@@ -182,7 +182,7 @@ public sealed class BodyFacingTests
     {
         yield return new object[] { 175, 34, 0 };     // routine fly 55 ft in front of CF (GameplayTests' fixture); 38 ft on the copy
         yield return new object[] { 235, 52, 4 };     // a fly over CF's head: the run back, then the backpedal
-        yield return new object[] { 190, 32, -30 }; // a fly into the LF–CF gap
+        yield return new object[] { 185, 32, -24 }; // a fly toward the LF–CF gap (at -30 the glove now takes it on the run, short of the ring: no Super Jump reach, AB-12)
     }
 
     [Theory]

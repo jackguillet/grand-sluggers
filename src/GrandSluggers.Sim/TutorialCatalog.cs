@@ -43,7 +43,7 @@ public sealed class TutorialCatalog
         "human-aerial-out", "human-dive-out", "human-jump-out", "human-double-play",
         "hazard-dodge-catch", "hazard-redirect-take", "hazard-carom-take", "hazard-surge-take", "hazard-push-take",
         "runner-send-halt-return", "human-dash-run", "all-runner-return", "human-slide", "human-tag-up", "human-double-off",
-        "human-wall-carom", "human-buddy-rob", "human-ball-dash", "human-relay", "human-snap-relay", "human-laser-home", "human-long-toss", "human-choice-second", "human-pickoff", "tired-pitcher-swap",
+        "human-wall-carom", "human-buddy-rob", "human-relay", "human-snap-relay", "human-relay-pivot", "human-laser-home", "human-choice-second", "human-pickoff", "tired-pitcher-swap",
         "human-steal", "human-double-steal", "human-catcher-tag",
         "human-buffered-relay", "human-retargeted-relay", "human-cancelled-relay",
         "guided-lineup", "guided-seats", "guided-pause", "guided-recovery", "guided-calibration", "guided-settings", "star-pitch", "star-swing", "star-resource", "star-unavailable", "human-chemistry-throw", "item-effect", "human-special-ground", "human-loose-recovery", "human-uncovered-receiver", "human-force-home", "human-rundown-tag", "human-ability-reach", "human-close-offense", "human-close-defense", "human-third-force-zero-run", "game-count-sequence", "game-foul-fair", "game-half-change", "human-triple-off", "human-bobble-recovery", "human-corner-dash", "human-early-fly-return", "human-fumble-recovery", "human-third-force-cancels-run", "human-third-tag-counts-run", "human-give-back"];
@@ -163,7 +163,7 @@ public sealed class TutorialCatalog
                 || (setup.Policy == "grounder" && l.Objective is "manual-ground-possession" or "manual-takeover" or "human-double-play"
                     or "throw-bag-1" or "throw-bag-2" or "throw-bag-3" or "throw-bag-4"
                     or "runner-send-halt-return" or "human-dash-run" or "all-runner-return" or "human-slide"
-                    or "human-choice-second" or "human-ball-dash" or "human-uncovered-receiver" or "human-force-home" or "human-ability-reach" or "human-close-offense" or "human-close-defense" or "human-third-force-zero-run" or "human-bobble-recovery" or "human-fumble-recovery" or "human-third-force-cancels-run" or "human-third-tag-counts-run")
+                    or "human-choice-second" or "human-uncovered-receiver" or "human-force-home" or "human-ability-reach" or "human-close-offense" or "human-close-defense" or "human-third-force-zero-run" or "human-bobble-recovery" or "human-fumble-recovery" or "human-third-force-cancels-run" or "human-third-tag-counts-run")
                 || (setup.Policy == "liner" && l.Objective == "human-dive-out")
                 || (setup.Policy is "grounder" or "liner" or "airborne" && l.Objective is "human-bobble-recovery" or "human-fumble-recovery")
                 // The field's lessons (F8-c): a hazard lesson plays at the park it names.
@@ -173,12 +173,12 @@ public sealed class TutorialCatalog
                 || (setup.Policy is "grounder" or "liner" && l.Objective == "hazard-surge-take" && setup.Park.Length > 0)
                 || (setup.Policy is "airborne" or "liner" && l.Objective == "hazard-push-take" && setup.Park.Length > 0)
                 || (setup.Policy == "airborne" && l.Objective is "human-aerial-out" or "human-jump-out"
-                    or "human-wall-carom" or "human-buddy-rob" or "human-relay" or "human-snap-relay" or "human-laser-home" or "human-long-toss" or "human-buffered-relay" or "human-retargeted-relay" or "human-cancelled-relay" or "human-chemistry-throw" or "human-tag-up" or "human-double-off" or "human-loose-recovery" or "human-ability-reach" or "human-triple-off" or "human-corner-dash" or "human-early-fly-return" or "human-give-back"), l.Id + " setup/objective mismatch");
+                    or "human-wall-carom" or "human-buddy-rob" or "human-relay" or "human-snap-relay" or "human-relay-pivot" or "human-laser-home" or "human-buffered-relay" or "human-retargeted-relay" or "human-cancelled-relay" or "human-chemistry-throw" or "human-tag-up" or "human-double-off" or "human-loose-recovery" or "human-ability-reach" or "human-triple-off" or "human-corner-dash" or "human-early-fly-return" or "human-give-back"), l.Id + " setup/objective mismatch");
             if (l.Objective is "game-count-sequence" or "game-half-change" or "game-foul-fair")
                 Require((l.Id is "T-G04" or "T-G04-F" or "T-G04-H") && setup.Seat == (l.Objective == "game-foul-fair" ? "offense" : "defense")
                     && setup.Strikes == (l.Objective == "game-half-change" ? 2 : 0) && setup.Runners.Length == 0,
                     l.Id + " needs its teaching seat, count and empty bases");
-            if (l.Objective == "human-ability-reach") Require((l.Id == "T-F16" || l.Id == "T-A-" + setup.Skill)
+            if (l.Objective == "human-ability-reach") Require(l.Id == "T-A-" + setup.Skill
                 && l.Requires.Contains(setup.Skill)
                 && setup.Home.Any(id => content.Characters[id].FieldAbility == setup.Skill),
                 l.Id + " needs the named ability fielder in its home nine");

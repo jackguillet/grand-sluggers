@@ -29,7 +29,6 @@ namespace GrandSluggers.UnityClient
         float _poseT;
         /// <summary>When the swing take's Contact mark lands after the press (D13); the take's own mark unless warped.</summary>
         float _swingContactSec = (float)Motion.SwingContact;
-        bool _grow;
         bool _lit;
         bool _hint;
         bool _you;
@@ -130,7 +129,6 @@ namespace GrandSluggers.UnityClient
             if (gloveVis != _gloveVisual) BuildGlove(gloveVis);
         }
 
-        public void SetGrow(bool on) => _grow = on;
 
         /// <summary>This frame's brace (#720, <see cref="FielderTells.Brace"/>): scale on the presentation wrapper, eased by the lerp below.</summary>
         public void SetBrace(Vector3 squash) => _brace = squash;
@@ -219,7 +217,7 @@ namespace GrandSluggers.UnityClient
         {
             if (_body != null)
             {
-                var g = (float)BodyScale.Of(_grow, highlighted: _lit, hint: _hint);
+                var g = (float)BodyScale.Of(highlighted: _lit, hint: _hint);
                 var squash = Vector3.one;
                 if (_verb == Motion.Verb.Swing)
                 {

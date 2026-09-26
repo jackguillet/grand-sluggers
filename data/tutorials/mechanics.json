@@ -218,8 +218,7 @@
       "category": "fielding",
       "spec": "gameplay-spec:8",
       "sources": [
-        "control:fielding/Dive",
-        "ability:dive"
+        "control:fielding/Dive"
       ]
     },
     {
@@ -270,22 +269,10 @@
     },
     {
       "id": "fielding.12",
-      "title": "buddy jump/wall rob (ability dependent)",
+      "title": "buddy jump/wall rob",
       "category": "fielding",
       "spec": "gameplay-spec:8",
-      "sources": [
-        "ability:clamber",
-        "ability:super-jump"
-      ]
-    },
-    {
-      "id": "fielding.13",
-      "title": "Ball Dash",
-      "category": "fielding",
-      "spec": "gameplay-spec:8",
-      "sources": [
-        "ability:ball-dash"
-      ]
+      "sources": []
     },
     {
       "id": "fielding.14",
@@ -304,13 +291,6 @@
       "sources": [
         "ability:laser"
       ]
-    },
-    {
-      "id": "fielding.16",
-      "title": "other enabled fielding abilities, split into one lesson per distinct action/effect during the catalog audit",
-      "category": "fielding",
-      "spec": "gameplay-spec:8",
-      "sources": []
     },
     {
       "id": "outs.01",
@@ -522,24 +502,6 @@
       "sources": []
     },
     {
-      "id": "ability.burrow",
-      "title": "burrow",
-      "category": "fielding",
-      "spec": "gameplay-spec:8.4",
-      "sources": [
-        "ability:burrow"
-      ]
-    },
-    {
-      "id": "ability.grow",
-      "title": "grow",
-      "category": "fielding",
-      "spec": "gameplay-spec:8.4",
-      "sources": [
-        "ability:grow"
-      ]
-    },
-    {
       "id": "ability.lick-catch",
       "title": "lick-catch",
       "category": "fielding",
@@ -549,48 +511,21 @@
       ]
     },
     {
-      "id": "ability.spin-check",
-      "title": "spin-check",
-      "category": "fielding",
-      "spec": "gameplay-spec:8.4",
-      "sources": [
-        "ability:spin-check"
-      ]
-    },
-    {
-      "id": "ability.withdraw",
-      "title": "withdraw",
-      "category": "fielding",
-      "spec": "gameplay-spec:8.4",
-      "sources": [
-        "ability:withdraw"
-      ]
-    },
-    {
-      "id": "ability.sand-scoop",
-      "title": "sand-scoop",
-      "category": "fielding",
-      "spec": "gameplay-spec:8.4",
-      "sources": [
-        "ability:sand-scoop"
-      ]
-    },
-    {
-      "id": "ability.long-toss",
-      "title": "long-toss",
+      "id": "ability.relay-pivot",
+      "title": "relay-pivot",
       "category": "fielding",
       "spec": "gameplay-spec:8.5",
       "sources": [
-        "ability:long-toss"
+        "ability:relay-pivot"
       ]
     },
     {
-      "id": "ability.lily-leap",
-      "title": "lily-leap",
+      "id": "ability.wall-spring",
+      "title": "wall-spring",
       "category": "fielding",
       "spec": "gameplay-spec:8.4",
       "sources": [
-        "ability:lily-leap"
+        "ability:wall-spring"
       ]
     },
     {
@@ -906,7 +841,7 @@
     },
     {
       "id": "fields.wall-trait",
-      "title": "a Clamber fielder climbs the wall",
+      "title": "any fielder climbs the climb wall and robs",
       "category": "fielding",
       "spec": "gameplay-spec:14",
       "sources": []

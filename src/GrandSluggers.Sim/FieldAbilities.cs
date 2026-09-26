@@ -1,129 +1,101 @@
 namespace GrandSluggers.Sim;
 
 /// <summary>
-/// The closed field-ability registry (spec §8.9): every id a character's <c>fieldAbility</c> may name. The content load
-/// refuses any other, and every rule compares against these, exactly.
+/// The closed field-ability pool (spec §8.9, AB-12): every id a character's <c>fieldAbility</c> may name, for captains and
+/// sidekicks alike. The content load refuses any other, and every rule compares against these, exactly.
 /// </summary>
 public static class FieldAbilityId
 {
-    public const string BallDash = "ball-dash";
-    public const string Burrow = "burrow";
-    public const string Clamber = "clamber";
-    public const string Dive = "dive";
-    public const string Grow = "grow";
     public const string Laser = "laser";
     public const string LickCatch = "lick-catch";
-    public const string LilyLeap = "lily-leap";
-    public const string LongToss = "long-toss";
-    public const string SandScoop = "sand-scoop";
+    public const string RelayPivot = "relay-pivot";
     public const string SnapThrow = "snap-throw";
-    public const string SpinCheck = "spin-check";
-    public const string SuperJump = "super-jump";
-    public const string Withdraw = "withdraw";
+    public const string WallSpring = "wall-spring";
 
-    public static readonly IReadOnlyList<string> All =
-        [BallDash, Burrow, Clamber, Dive, Grow, Laser, LickCatch, LilyLeap, LongToss, SandScoop, SnapThrow, SpinCheck, SuperJump, Withdraw];
+    public static readonly IReadOnlyList<string> All = [Laser, LickCatch, RelayPivot, SnapThrow, WallSpring];
 }
 
-/// <summary>One defensive verb per character — the Sluggers "who you are on defense."</summary>
+/// <summary>
+/// One defensive verb per character (§8.4, §8.5, AB-12): Snap Throw, Lick Catch, Laser, Relay Pivot or Wall Spring. Every
+/// number is <c>fielding.abilities</c>; a play is decided by the ball, the glove and the wall, never by a roll.
+/// </summary>
 public static class FieldAbilities
 {
-    public static double CatchBonus(Character c, RulesTable rules)
-    {
-        var a = rules.Fielding.Abilities;
-        return c.FieldAbility switch
-        {
-            FieldAbilityId.LickCatch or FieldAbilityId.Grow or FieldAbilityId.Withdraw => a.BigCatchBonusFt,
-            FieldAbilityId.SuperJump => a.SuperJumpCatchBonusFt,
-            _ => 0
-        };
-    }
-
-    /// <summary>Lick Catch / Grow reach further on the tag (§10.3): fielding.abilities.tagReachBonusFt.</summary>
-    public static double TagReachBonus(Character? c, RulesTable rules) => c?.FieldAbility switch
-    {
-        FieldAbilityId.LickCatch or FieldAbilityId.Grow => rules.Fielding.Abilities.TagReachBonusFt,
-        _ => 0
-    };
-
-    public static double FlyRangeBonus(Character c, RulesTable rules) =>
-        c.FieldAbility == FieldAbilityId.SuperJump ? rules.Fielding.Abilities.SuperJumpFlyRangeFt : 0;
+    static bool Has(Character? c, string id) => c is not null && c.FieldAbility == id;
 
     /// <summary>
-    /// The extra reach on a ball hit on the ground (§8.4): Dive / Burrow on every grounder, Sand Scoop only while the ball is
-    /// at or below <c>sandScoopMaxFt</c> (<paramref name="ballY"/>, the ball's height now).
+    /// Whether <paramref name="c"/> may carry Lick Catch (§8.4): a tongue body, which is a character of a faction the table
+    /// names in <c>fielding.abilities.lickCatchFactions</c> (Zig's, Reed's). The validator refuses the ability on anyone else.
     /// </summary>
-    public static double GroundRangeBonus(Character c, RulesTable rules, double ballY = 0) => c.FieldAbility switch
+    public static bool TongueBody(string faction, RulesTable rules) =>
+        rules.Fielding.Abilities.LickCatchFactions.Any(f => string.Equals(f, faction, StringComparison.OrdinalIgnoreCase));
+
+    /// <summary>
+    /// The ball is on the tongue (§8.4, Lick Catch): at most <c>lickReachFt</c> ahead of the body along
+    /// (<paramref name="faceX"/>, <paramref name="faceZ"/>), within <c>lickWidthFt</c> of that line, and no higher than a
+    /// standing glove reaches (<c>catch.standingHeightFt</c>). A ball behind the body, or beside it past the width, is not.
+    /// </summary>
+    public static bool TongueReaches(double bodyX, double bodyZ, double faceX, double faceZ,
+        double ballX, double ballY, double ballZ, RulesTable rules)
     {
-        FieldAbilityId.Dive or FieldAbilityId.Burrow => rules.Fielding.Abilities.DiveGroundRangeFt,
-        FieldAbilityId.SandScoop when ballY <= rules.Fielding.Abilities.SandScoopMaxFt => rules.Fielding.Abilities.SandScoopFt,
-        _ => 0
+        var a = rules.Fielding.Abilities;
+        var len = Math.Sqrt(faceX * faceX + faceZ * faceZ);
+        if (len < 1e-9 || ballY > rules.Fielding.Catch.StandingHeightFt) return false;
+        var ux = faceX / len;
+        var uz = faceZ / len;
+        var dx = ballX - bodyX;
+        var dz = ballZ - bodyZ;
+        var along = dx * ux + dz * uz;
+        var across = Math.Abs(dx * uz - dz * ux);
+        return along >= 0 && along <= a.LickReachFt && across <= a.LickWidthFt;
+    }
+
+    /// <summary>
+    /// Which way the tongue snaps (§8.4): the body's own run when it moves faster than a walk
+    /// (<see cref="CartoonJuice.WalkFtPerSec"/>), else toward the ball — the heading <see cref="BodyFacing"/> gives the body.
+    /// </summary>
+    public static (double X, double Z) Facing(double vx, double vz, double bodyX, double bodyZ, double ballX, double ballZ) =>
+        Math.Sqrt(vx * vx + vz * vz) > CartoonJuice.WalkFtPerSec ? (vx, vz) : (ballX - bodyX, ballZ - bodyZ);
+
+    /// <summary>
+    /// Wall Spring (§8.4): the feet a holder's leap reaches past the ordinary one while the body stands within
+    /// <c>wallSpringFromFt</c> of the outfield fence — <c>wallSpringReachFt</c> there, 0 anywhere else, and 0 for every other body.
+    /// </summary>
+    public static double WallSpringFt(Character? c, Park? park, double x, double z, RulesTable rules)
+    {
+        if (!Has(c, FieldAbilityId.WallSpring) || park is null) return 0;
+        var a = rules.Fielding.Abilities;
+        var fence = AtBatResolver.FenceAt(park, FieldBounds.SprayDeg(x, z));
+        return fence - Math.Sqrt(x * x + z * z) <= a.WallSpringFromFt ? a.WallSpringReachFt : 0;
+    }
+
+    /// <summary>Wall Spring over any wall (§8.4): a leap at a wall is always at one, so the holder's rob reaches <c>wallSpringReachFt</c> higher.</summary>
+    public static double WallSpringRobFt(Character? c, RulesTable rules) =>
+        Has(c, FieldAbilityId.WallSpring) ? rules.Fielding.Abilities.WallSpringReachFt : 0;
+
+    public static double ThrowMul(Character c, RulesTable rules) => c.FieldAbility switch
+    {
+        FieldAbilityId.Laser => rules.Fielding.Abilities.LaserMul,
+        FieldAbilityId.SnapThrow => rules.Fielding.Abilities.SnapThrowMul,
+        _ => 1.0
     };
 
     /// <summary>
-    /// Sand Scoop's sure hands (§8.4): a ball the glove scoops at or below <c>sandScoopMaxFt</c> never bobbles, whatever the hop.
+    /// The release of a throw by <paramref name="who"/> (§8.5): Relay Pivot's <c>relayPivotReleaseSec</c> when the body is the
+    /// cutoff throwing on a relay it caught clean (<paramref name="relayLeg"/>), Snap Throw's <c>snapReleaseSec</c> after any
+    /// clean received throw, else null — the ordinary <c>throw.releaseSec</c>.
     /// </summary>
-    public static bool SureScoop(Character c, RulesTable rules, double ballY) =>
-        c.FieldAbility == FieldAbilityId.SandScoop && ballY <= rules.Fielding.Abilities.SandScoopMaxFt;
-
-    public static double ThrowMul(Character c, RulesTable rules)
+    public static double? ReleaseSec(Character who, bool receivedClean, bool relayLeg, RulesTable rules)
     {
+        if (!receivedClean) return null;
         var a = rules.Fielding.Abilities;
-        return c.FieldAbility switch
-        {
-            FieldAbilityId.Laser => a.LaserMul,
-            FieldAbilityId.SnapThrow => a.SnapThrowMul,
-            _ => 1.0
-        };
+        if (relayLeg && Has(who, FieldAbilityId.RelayPivot)) return a.RelayPivotReleaseSec;
+        return Has(who, FieldAbilityId.SnapThrow) ? a.SnapReleaseSec : null;
     }
 
-    /// <summary>Ball Dash (F693-02-ball-dash-carrier, #718): the one ability that is about the body's own feet with the ball in its glove.</summary>
-    public static bool HasBallDash(Character c) =>
-        c.FieldAbility == FieldAbilityId.BallDash;
-
-    /// <summary>What a body carries the ball at, as a multiple of its pursuit speed: <c>fielding.abilities.ballDashMul</c> for a Ball Dash holder, 1 for everyone else.</summary>
-    public static double CarryMul(Character c, RulesTable rules) =>
-        HasBallDash(c) ? rules.Fielding.Abilities.BallDashMul : 1.0;
-
-    public static bool IgnoresParkSlow(Character c) =>
-        c.FieldAbility == FieldAbilityId.Burrow;
-
-    /// <summary>Super Jump robs a ball clearing the fence by at most fielding.catch.superJumpRobFt (§8.4).</summary>
-    public static bool AirRob(Park park, Character fielder, AtBatResult hit, RulesTable rules)
-    {
-        if (fielder.FieldAbility != FieldAbilityId.SuperJump)
-            return false;
-        var ball = BattedBall.Of(hit, park, rules);
-        return ball.HomeRun && ball.FenceClearFt <= rules.Fielding.Catch.SuperJumpRobFt;
-    }
-
-    public static PlayKind SpinCheck(Character fielder, PlayKind kind)
-    {
-        if (fielder.FieldAbility != FieldAbilityId.SpinCheck)
-            return kind;
-        return kind switch
-        {
-            PlayKind.Triple => PlayKind.Double,
-            PlayKind.Double => PlayKind.Single,
-            _ => kind
-        };
-    }
-
-    /// <summary>Lily Leap (§8.4): its holder's normal jump rises <c>abilities.lilyLeapRiseFt</c> instead of <c>catch.jumpRiseFt</c>; every other jump is the ordinary one.</summary>
-    public static double JumpRiseFt(Character c, RulesTable rules) =>
-        c.FieldAbility == FieldAbilityId.LilyLeap ? rules.Fielding.Abilities.LilyLeapRiseFt : rules.Fielding.Catch.JumpRiseFt;
-
-    /// <summary>Long Toss (§8.5): the feet its holder's comfortable range reaches past the arm's own before a long throw loses pace; 0 for every other thrower.</summary>
-    public static double RangeBonusFt(Character c, RulesTable rules) =>
-        c.FieldAbility == FieldAbilityId.LongToss ? rules.Fielding.Abilities.LongTossRangeFt : 0;
-
-    /// <summary>The thrower's arm and ability on a chemistry throw: one speed multiplier the one throw clock reads (§8.5), the arm rating its range is measured from, and Long Toss's reach past it.</summary>
+    /// <summary>The thrower's arm and ability on a chemistry throw: one speed multiplier the one throw clock reads (§8.5), and the arm rating its range is measured from.</summary>
     public static ThrowResult ApplyThrow(Character from, ThrowResult throwRes, RulesTable rules) =>
-        throwRes with
-        {
-            SpeedMul = throwRes.SpeedMul * ThrowMul(from, rules) * InPlay.ArmMul(from, rules), Arm = from.Stats.Arm,
-            RangeBonusFt = RangeBonusFt(from, rules)
-        };
+        throwRes with { SpeedMul = throwRes.SpeedMul * ThrowMul(from, rules) * InPlay.ArmMul(from, rules), Arm = from.Stats.Arm };
 }
 
 public static class ErrorItems

@@ -97,14 +97,14 @@ public sealed class ContentValidationTests
         {
             rows[0]!["starPitch"] = "FASTBALL";
             rows[0]!["starSwing"] = "LINE";
-            rows[0]!["fieldAbility"] = "SUPER-JUMP";
         });
+        fixture.ChangeObject("characters/rio.json", json => json["fieldAbility"] = "SNAP-THROW");
         fixture.ChangeObject("parks/funfair-park.json", json => json["hazards"]![0]!["type"] = "WARP_PIPE");
 
         var errors = ContentDataValidator.Validate(fixture.Root);
         Assert.Contains(errors, e => e.Contains("starPitch references unknown id 'FASTBALL'", StringComparison.Ordinal));
         Assert.Contains(errors, e => e.Contains("starSwing references unknown id 'LINE'", StringComparison.Ordinal));
-        Assert.Contains(errors, e => e.Contains("fieldAbility", StringComparison.Ordinal) && e.Contains("got 'SUPER-JUMP'", StringComparison.Ordinal));
+        Assert.Contains(errors, e => e.Contains("fieldAbility", StringComparison.Ordinal) && e.Contains("got 'SNAP-THROW'", StringComparison.Ordinal));
         Assert.Contains(errors, e => e.Contains("hazard[0] type", StringComparison.Ordinal) && e.Contains("got 'WARP_PIPE'", StringComparison.Ordinal));
     }
 

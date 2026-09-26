@@ -5,8 +5,8 @@ using Xunit;
 namespace GrandSluggers.Sim.Tests;
 
 /// <summary>
-/// Hollis's three (#1150, WD-15 A; spec §13, §8.5): Rockfall's float, Updraft's wind and Long Toss's range. Each bends how
-/// the ball looks or moves; the crossing, the flight and the throw clock still decide the play.
+/// Hollis's three (#1150, WD-15 A; spec §13, §8.5): Rockfall's float and Updraft's wind; his field ability is the pool's
+/// Wall Spring (AB-12). Each bends how the ball looks or moves; the crossing and the flight still decide the play.
 /// </summary>
 public sealed class HollisAbilityTests
 {
@@ -18,9 +18,9 @@ public sealed class HollisAbilityTests
         var hollis = Game.Must("hollis");
         Assert.Equal("rockfall", hollis.StarPitch);
         Assert.Equal("updraft", hollis.StarSwing);
-        Assert.Equal(FieldAbilityId.LongToss, hollis.FieldAbility);
+        Assert.Equal(FieldAbilityId.WallSpring, hollis.FieldAbility);   // the shared field pool (AB-12)
         Assert.DoesNotContain(Game.Characters.Values, c => c.Id != "hollis"
-            && (c.StarPitch == "rockfall" || c.StarSwing == "updraft" || c.FieldAbility == FieldAbilityId.LongToss));
+            && (c.StarPitch == "rockfall" || c.StarSwing == "updraft"));
     }
 
     // ---------------------------------------------------------------------------------
@@ -108,33 +108,6 @@ public sealed class HollisAbilityTests
             BattedBall.Of(hit, windy, Game.Rules).Samples);
         var ordinary = resolver.Resolve(input with { UseStarSwing = false }, windy, new Random(4));
         Assert.Equal(1, ordinary.WindMul);
-    }
-
-    // ---------------------------------------------------------------------------------
-    // Long Toss
-    // ---------------------------------------------------------------------------------
-
-    [Fact]
-    public void LongTossKeepsALongThrowAtPaceAndLeavesTheShortOneAlone()
-    {
-        var rules = Game.Rules;
-        var t = rules.Fielding.Throw;
-        var hollis = Game.Must("hollis");
-        var bonus = FieldAbilities.RangeBonusFt(hollis, rules);
-        Assert.Equal(80, bonus);
-        Assert.Equal(0, FieldAbilities.RangeBonusFt(Game.Must("brondo"), rules));
-        var arm = hollis.Stats.Arm;
-        var range = t.ComfortableRangeFt + t.RangePerArmFt * (arm - InPlay.NeutralArm);
-        var tossed = FieldAbilities.ApplyThrow(hollis, new ThrowResult(Chemistry.Neutral, 1, false), rules);
-        var ordinary = tossed with { RangeBonusFt = 0 };
-        Assert.Equal(bonus, tossed.RangeBonusFt);
-        // Inside the ordinary range nothing moves; past it the ordinary arm pays the loss and Long Toss does not until its own range.
-        Assert.Equal(InPlay.ThrowSec(range - 10, ordinary, rules), InPlay.ThrowSec(range - 10, tossed, rules));
-        Assert.True(InPlay.ThrowSec(range + 60, tossed, rules) < InPlay.ThrowSec(range + 60, ordinary, rules));
-        var flat = InPlay.ThrowSec(range + bonus, tossed, rules) - InPlay.ThrowSec(range, tossed, rules);
-        Assert.Equal(bonus / (t.BaseFtPerSec * tossed.SpeedMul), flat, 9);
-        Assert.True(InPlay.ThrowSec(range + bonus + 40, tossed, rules) - InPlay.ThrowSec(range + bonus, tossed, rules)
-            > 40 / (t.BaseFtPerSec * tossed.SpeedMul), "past its own range the loss comes back");
     }
 
     // ---------------------------------------------------------------------------------

@@ -72,7 +72,6 @@ public static class PlayNarrator
         CallBeat.DoublePlay => "Double play.",
         CallBeat.BuddyJump => $"{p.Who} + {p.Other} BUDDY JUMP!",
         CallBeat.Clamber => $"{p.Who} CLAMBERS the wall!",
-        CallBeat.SuperJump => $"{p.Who} SUPER JUMP!",
         CallBeat.PutAway => $"{p.Who} puts it away.",
         CallBeat.ToFirst => $"{p.Who} to first.",
         CallBeat.SacFly => "Sac fly.",

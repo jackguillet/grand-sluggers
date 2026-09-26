@@ -67,12 +67,13 @@
     "reachPadFt": 0,
     "topFt": 29
   },
-  // Canopy's climbable wall: a Clamber fielder's longer reach and taller rob. A park-wide flag
-  // today; FD-06 makes it a property of a wall span.
+  // Canopy's climb wall, a park rule (AB-12): any fielder whose wall leap is inside the park's disc climbs it and robs a ball
+  // up to robFt over the fence, whatever ability they carry. 28 ft is a trial number (Clamber's old rob), not yet played.
   "climbWall": {
     "pattern": "wallTrait",
     "nightRadiusMul": 1,
-    "reachPadFt": 0
+    "reachPadFt": 0,
+    "robFt": 28
   },
   // Funfair's mouths (F4-c, FD-09-R2): a ball redirect, no longer a catch stealer. A ball that comes
   // into a mouth (between mouthFloorFt and mouthFt, so a fly on its way down, not a grounder) is spat out

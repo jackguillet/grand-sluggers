@@ -129,7 +129,7 @@ namespace GrandSluggers.UnityClient
                     if (_live.Throwing) pose = Motion.Verb.Catch;
                     // The shipped knockback lays the body down; the ordinary impact recoil (#720) is a brace on the take's own pose.
                     else if (_live.RecoilT > 0 && !_live.Owed.Bracing) pose = Motion.Verb.Dive;
-                    else if (_live.JumpT > 0) pose = who.FieldAbility == FieldAbilityId.Clamber ? Motion.Verb.Clamber : Motion.Verb.Jump;
+                    else if (_live.JumpT > 0) pose = Climbs(x, z) ? Motion.Verb.Clamber : Motion.Verb.Jump;
                     else if ((_live.Caught || _live.Buddy) && !_live.Throwing && CarryingOnTheStick(kv.Key))
                         pose = Motion.Verb.Run;
                     // The sweep tag (#966): the ball on a bag with a runner coming into it.
@@ -157,7 +157,7 @@ namespace GrandSluggers.UnityClient
                                 Diamond.Dist(fromX, fromZ, route.X, route.Z)))
                             pose = Motion.Verb.Run;
                         else
-                            pose = FieldPose(who, _play.Preview, false);
+                            pose = FieldPose(_play.Preview, false, Climbs(x, z));
                     }
                     else pose = Motion.Verb.Field;
                 }
@@ -171,9 +171,9 @@ namespace GrandSluggers.UnityClient
                 else if (_play.Phase == MatchDirector.Phase.InPlay && _play.Preview != null && who.Id == _play.Preview.Fielder.Id)
                 {
                     if (_live.Buddy && _live.JumpT > 0)
-                        pose = who.FieldAbility == FieldAbilityId.Clamber ? Motion.Verb.Clamber : Motion.Verb.Jump;
+                        pose = Climbs(x, z) ? Motion.Verb.Clamber : Motion.Verb.Jump;
                     else
-                        pose = FieldPose(who, _play.Preview, _live.Caught || _live.Buddy);
+                        pose = FieldPose(_play.Preview, _live.Caught || _live.Buddy, Climbs(x, z));
                 }
                 else if ((_play.Phase is MatchDirector.Phase.InPlay or MatchDirector.Phase.StealThrow) && Diamond.Dist(x, z, pos.X, pos.Z) > 6)
                     pose = Motion.Verb.Run;
@@ -195,8 +195,6 @@ namespace GrandSluggers.UnityClient
                     && FielderTells.Verb(_live.Owed, kv.Key, _scene.Feel.FieldTells) is { } owedVerb)
                     pose = owedVerb;
                 var hero = Hero(who);
-                var holdBall = _live.Caught || _live.Buddy;
-                hero.SetGrow(BodyScale.GrowOn(who.FieldAbility, playGlove: who.Id == litId, holdBall: holdBall));
                 hero.SetHighlight(highlighted);
                 hero.SetYou((_play.Phase is MatchDirector.Phase.InPlay or MatchDirector.Phase.StealThrow) && who.Id == litId && _host.HumanOwnsThrow);
                 hero.SetHint((_play.Phase is MatchDirector.Phase.InPlay or MatchDirector.Phase.StealThrow) && kv.Key == _live.SwitchPos && kv.Key != _live.GlovePos && !(_live.Caught || _live.Buddy));
@@ -426,16 +424,16 @@ namespace GrandSluggers.UnityClient
             return Mathf.Abs(stick.x) + Mathf.Abs(stick.y) >= (float)_scene.Feel.FieldAssistStick;
         }
 
-        static Motion.Verb FieldPose(Character who, FieldingPreview pre, bool caught)
+        static Motion.Verb FieldPose(FieldingPreview pre, bool caught, bool climb)
         {
             if (caught) return pre.Grounder ? Motion.Verb.Scoop : Motion.Verb.Catch;
-            var a = who.FieldAbility;
-            if (a == FieldAbilityId.Dive && pre.Grounder) return Motion.Verb.DiveAir;
-            if (a == FieldAbilityId.Burrow && pre.Grounder) return Motion.Verb.Dive;
-            if (a == FieldAbilityId.SuperJump && pre.HomeRunLikely) return Motion.Verb.Jump;
-            if (a == FieldAbilityId.Clamber && pre.HomeRunLikely) return Motion.Verb.Clamber;
+            if (climb && pre.HomeRunLikely) return Motion.Verb.Clamber;
             return Motion.Verb.Field;
         }
+
+        /// <summary>The body at (x, z) is at the park's climb wall (a park rule, §14): any fielder there climbs.</summary>
+        bool Climbs(double x, double z) =>
+            _play.Match != null && ParkHazards.ClimbsAt(_play.Match.Park, (x, z), _play.Match.Rules);
 
         static Dictionary<string, Character> ResultDefense(IReadOnlyList<FieldBody> bodies)
         {
@@ -552,7 +550,6 @@ namespace GrandSluggers.UnityClient
                 var spot = CarnivalFront.CaptainSpot(i, ids.Count, pick, yours);
                 hero.SetPose(CarnivalFront.SelectPose(yours, theirs));
                 hero.SetHighlight(yours);
-                hero.SetGrow(false); // Grow is a field verb. Menu 1.71x at Z=4 is Ashlord's hat.
                 hero.SetHeld(false, false);
                 hero.SetGear(_play.Match.OffenseBat, _play.Match.DefenseGlove);
                 hero.Place(
