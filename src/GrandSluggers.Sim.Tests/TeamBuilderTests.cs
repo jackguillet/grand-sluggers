@@ -36,7 +36,7 @@ public class TeamBuilderTests
     [Fact]
     public void S180_SwappingARivalOntoTheRosterForABuddyLeavesTheStartingStarsAlone()
     {
-        var neutrals = new[] { "boom", "hex", "nugget", "grit", "moss", "basil", "jester", "gull" };
+        var neutrals = new[] { "boom", "nugget", "grit", "moss", "basil", "dart", "tumble", "cairn" };
         foreach (var id in neutrals)
             Assert.Equal(Chemistry.Neutral, _content.Chemistry.Between("vale", id));
         Assert.Equal(Chemistry.Bad, _content.Chemistry.Between("vale", "ashlord"));

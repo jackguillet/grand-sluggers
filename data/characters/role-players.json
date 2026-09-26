@@ -42,7 +42,6 @@
     "faction": "spark",
     "captain": false,
     "species": "big-kids",
-    "crews": ["brainiacs"],
     "contact": 6, "power": 6,
     "velocity": 4, "endurance": 4, "control": 4, "movement": 4,
     "hands": 6, "arm": 6,
