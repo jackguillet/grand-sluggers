@@ -289,6 +289,9 @@ public sealed record Character(
     /// <summary>The name for a tile too narrow for <see cref="Name"/>.</summary>
     public string TileName => string.IsNullOrEmpty(ShortName) ? Name : ShortName;
 
+    /// <summary>The crews this character belongs to (WD-28): sharing one is good chemistry across teams.</summary>
+    public IReadOnlyList<string> Crews { get; init; } = [];
+
     /// <summary>A sidekick's species (WD-27, <see cref="Sim.Species"/>); empty for a captain or a character built by hand.</summary>
     public string Species { get; init; } = "";
 

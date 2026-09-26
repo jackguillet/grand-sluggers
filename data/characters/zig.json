@@ -2,6 +2,7 @@
   "id": "zig",
   "name": "Zig",
   "faction": "carnival",
+  "crews": ["showboats"],
   "captain": true,
   // The body class (data/rules/body-classes.json, spec §8.1): reach, contact width, ramp, knockback, motion style.
   "bodyClass": "speed",

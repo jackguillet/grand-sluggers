@@ -160,8 +160,8 @@ public sealed class ContentValidationTests
         Assert.Contains(errors, e => e.Contains("parks/harbor-diamond.json: park 'harbor-diamond' hazard[0] must be an object; got null", StringComparison.Ordinal));
         Assert.Contains(errors, e => e.Contains("abilities/star-skills.json: star pitch 'fastball' must be an object; got null", StringComparison.Ordinal));
         Assert.Contains(errors, e => e.Contains("chemistry/overrides.json: chemistry buddies must be an array; got null", StringComparison.Ordinal));
-        Assert.Contains(errors, e => e.Contains("chemistry rivals[16] must be an array; got null", StringComparison.Ordinal));
-        Assert.Contains(errors, e => e.Contains("chemistry rivals[17][1] references unknown character ''", StringComparison.Ordinal));
+        Assert.Contains(errors, e => e.Contains("chemistry rivals[1] must be an array; got null", StringComparison.Ordinal));
+        Assert.Contains(errors, e => e.Contains("chemistry rivals[2][1] references unknown character ''", StringComparison.Ordinal));
 
         var ex = Assert.Throws<InvalidDataException>(() => ContentCatalog.Load(fixture.Root));
         Assert.Contains("character row must be an object; got null", ex.Message);

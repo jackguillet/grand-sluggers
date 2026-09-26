@@ -2,6 +2,7 @@
 
 Mechanics are in systems.md. The play contract:
 
+- **Who has chemistry** (WD-28): in order, an authored story pair (`data/chemistry/overrides.json`, today Rio and Ashlord, rivals) decides; two players who share a crew (`data/chemistry/crews.json`; each character names up to two) are good; faction-mates are good; a crew and its rival crew are bad; everyone else is neutral. So a rivalry bites across teams, never inside one.
 - **Chemistry throw** modifies throw speed and accuracy (§8.5). That is its only in-play effect. A bad throw *looks* bad before it lands (muddy trail) so the room can yell.
 - **Buddy Jump / Buddy Throw** are verbs with windows (§8.4, §8.7), not rolls.
 - **Stars setting:** Stars default on. Off, both teams start with zero Stars and cannot gain or receive Stars; released special requests use the ordinary pitch or swing without a cost. The HUD hides both teams' Star meters and the unavailable-special tell while Stars are off. When Stars are on, empty meters remain visible. The same match-level setting governs both human seats and the CPU.

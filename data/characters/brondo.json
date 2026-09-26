@@ -2,6 +2,7 @@
   "id": "brondo",
   "name": "Brondo",
   "faction": "goldrush",
+  "crews": ["cool-kids"],
   "captain": true,
   // The body class (data/rules/body-classes.json, spec §8.1): reach, contact width, ramp, knockback, motion style.
   "bodyClass": "brick",
