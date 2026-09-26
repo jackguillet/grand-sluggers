@@ -15,7 +15,12 @@ public readonly record struct SkinSlot(
 /// <summary>An accessory mesh in the extras kit, authored in its socket bone's space.</summary>
 public readonly record struct ExtraSlot(string Id, string Bone, IReadOnlyList<string> Hides);
 
-public readonly record struct NamedSlot(string Id, string Slot, string Kind, bool Authored = false);
+/// <summary>
+/// A named presentation slot (<c>data/art/vfx.json</c>, <c>audio.json</c>, <c>materials.json</c>). A special's VFX slot also names
+/// its <see cref="Tell"/> — the procedural stand-in (<see cref="SpecialTells.Builders"/>) drawn until the slot's folder holds a
+/// prefab — and its <see cref="Cue"/>, the audio slot it sounds, or null.
+/// </summary>
+public readonly record struct NamedSlot(string Id, string Slot, string Kind, bool Authored = false, string? Tell = null, string? Cue = null);
 
 /// <summary>
 /// One park's kit (FD-16, FR-13; <c>data/art/parks.json</c>): its art folder, whether art is placed, and its kit slots —
@@ -522,10 +527,28 @@ public sealed class ArtCatalog
         foreach (var who in content.Characters.Values)
         {
             if (!who.Captain) continue;
-            if (!TryVfx(who.StarPitch, out _))
-                errors.Add("vfx missing captain pitch " + who.Id + " " + who.StarPitch);
-            if (!TryVfx(who.StarSwing, out _))
-                errors.Add("vfx missing captain swing " + who.Id + " " + who.StarSwing);
+            foreach (var (what, id) in new[] { ("pitch", who.StarPitch), ("swing", who.StarSwing) })
+            {
+                if (!TryVfx(id, out var slot))
+                {
+                    errors.Add("vfx missing captain " + what + " " + who.Id + " " + id);
+                    continue;
+                }
+                // Every captain special shows a tell (AB-C15): a stand-in to draw now, and a folder for the art that replaces it.
+                if (string.IsNullOrEmpty(slot.Tell))
+                    errors.Add("vfx " + id + " (" + who.Id + "'s " + what + ") names no tell");
+                if (!slot.Slot.Equals(VfxRoot + "/" + id, StringComparison.Ordinal))
+                    errors.Add("vfx " + id + " slot must be " + VfxRoot + "/" + id + "; got " + slot.Slot);
+                else if (!Directory.Exists(Unity(content.Root, slot.Slot)))
+                    errors.Add("vfx " + id + " slot folder " + slot.Slot + " is missing (an empty folder until its art is dropped)");
+            }
+        }
+        foreach (var ev in Vfx)
+        {
+            if (ev.Tell is { } tell && !SpecialTells.IsBuilder(tell))
+                errors.Add("vfx " + ev.Id + " names tell '" + tell + "', which is not one of SpecialTells.Builders");
+            if (ev.Cue is { } cue && !TryAudio(cue, out _))
+                errors.Add("vfx " + ev.Id + " names cue '" + cue + "', which is not a slot in audio.json");
         }
 
         if (Folders.Count == 0) errors.Add("art folder list empty");
@@ -536,6 +559,20 @@ public sealed class ArtCatalog
             errors.Add("map art is placed but Assets/" + Map.Slot + ".png is missing");
         return errors;
     }
+
+    /// <summary>
+    /// A VFX slot holds art: its folder has a file beyond the placeholder that keeps it (<c>.gitkeep</c> and Unity's metas).
+    /// Until then the client draws the slot's procedural stand-in.
+    /// </summary>
+    public bool VfxFilled(ContentCatalog content, NamedSlot slot)
+    {
+        var dir = Unity(content.Root, slot.Slot);
+        return Directory.Exists(dir) && Directory.EnumerateFiles(dir)
+            .Any(f => Path.GetFileName(f) is var n && n != ".gitkeep" && !n.EndsWith(".meta", StringComparison.OrdinalIgnoreCase));
+    }
+
+    /// <summary>The folder every VFX slot sits under: a special's slot is its own folder, <c>{VfxRoot}/{id}</c>.</summary>
+    public const string VfxRoot = "Assets/Art/VFX";
 
     /// <summary>The folder every take file sits under; the receipt names files relative to it.</summary>
     public const string ClipRoot = "Assets/Art/Animation/Clips";
@@ -691,7 +728,7 @@ public sealed class ArtCatalog
             extras[e.Id] = new ExtraSlot(e.Id, e.Bone, e.Hides ?? []);
 
         var vfx = (DataJson.Require<EventsFile>(Art("vfx.json")).Events ?? [])
-            .Select(e => new NamedSlot(e.Id, e.Slot, e.Kind ?? "")).ToList();
+            .Select(e => new NamedSlot(e.Id, e.Slot, e.Kind ?? "", Tell: e.Tell, Cue: e.Cue)).ToList();
         var audio = (DataJson.Require<EventsFile>(Art("audio.json")).Events ?? [])
             .Select(e => new NamedSlot(e.Id, e.Slot, e.Bus ?? e.Kind ?? "", e.Authored)).ToList();
         var mats = (DataJson.Require<MatsFile>(Art("materials.json")).Slots ?? [])
@@ -841,6 +878,8 @@ public sealed class ArtCatalog
         public string? Bus { get; set; }
         public string? Shader { get; set; }
         public bool Authored { get; set; }
+        public string? Tell { get; set; }
+        public string? Cue { get; set; }
     }
 
     sealed class MatsFile { public List<EventDto>? Slots { get; set; } }

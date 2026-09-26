@@ -164,6 +164,23 @@ namespace GrandSluggers.UnityClient
             return Resources.Load<GameObject>(key + "/" + eventId);
         }
 
+        /// <summary>
+        /// The procedural stand-in a special's slot names (<c>vfx.json</c> <c>tell</c>, one of
+        /// <see cref="SpecialTells.Builders"/>), or "" when the slot names none.
+        /// </summary>
+        public static string TellOf(string eventId)
+        {
+            if (_art == null || string.IsNullOrWhiteSpace(eventId)) return "";
+            return _art.TryVfx(eventId, out var slot) && !string.IsNullOrEmpty(slot.Tell) ? slot.Tell : "";
+        }
+
+        /// <summary>The audio slot a special's tell sounds (<c>vfx.json</c> <c>cue</c>), or "".</summary>
+        public static string CueOf(string eventId)
+        {
+            if (_art == null || string.IsNullOrWhiteSpace(eventId)) return "";
+            return _art.TryVfx(eventId, out var slot) && !string.IsNullOrEmpty(slot.Cue) ? slot.Cue : "";
+        }
+
         public static bool HasVfx(string eventId)
         {
             if (string.IsNullOrWhiteSpace(eventId)) return false;

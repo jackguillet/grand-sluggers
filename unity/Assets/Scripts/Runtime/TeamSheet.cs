@@ -148,7 +148,7 @@ namespace GrandSluggers.UnityClient
                 Label(r.x + 18, r.y + 88, r.width - 36, 60, CarnivalFront.InspectHint, _body);
                 return;
             }
-            var card = CharacterCard.Of(who);
+            var card = lineup.CardFor(who) ?? CharacterCard.Of(who);
             Label(r.x + 14, r.y + 39, r.width - 28, 30, card.Name.ToUpperInvariant(), _cardName);
             Portrait(who, new Rect(r.x + 14, r.y + 78, CarnivalFront.LineupCardPortrait, CarnivalFront.LineupCardPortrait));
             // The four derived bars (StatBars), laid out by CarnivalFront.LineupCardBars. Either seat draws the same rows.
@@ -172,9 +172,9 @@ namespace GrandSluggers.UnityClient
             Label(r.x + 14, verbs + 3 * pitch, r.width - 28, pitch, lineup.ChemLine(who, home), _small);
         }
 
-        static void CardDetails(Character who, Rect r)
+        static void CardDetails(Character who, Rect r, StarSkillTable skills)
         {
-            var card = CharacterCard.Of(who);
+            var card = CharacterCard.Of(who, skills: skills);
             Portrait(who, new Rect(r.x + 12, r.y + 39, 100, 96));
             Label(r.x + 125, r.y + 38, r.width - 137, 26, card.Name.ToUpperInvariant(), _heading);
             Label(r.x + 125, r.y + 64, r.width - 137, 22, HowToPlay.CardBatHand(card.Bats), _small);

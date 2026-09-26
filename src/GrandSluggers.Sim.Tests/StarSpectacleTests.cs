@@ -66,7 +66,7 @@ public class StarSpectacleTests
             Assert.True(_content.Art.TryVfx(id, out var slot), id);
             Assert.False(string.IsNullOrWhiteSpace(slot.Slot), id);
             var kind = (slot.Kind ?? "").ToLowerInvariant();
-            Assert.Contains(kind, new[] { "ball", "field" });
+            Assert.Contains(kind, new[] { "ball", "field", "contact" });
             Assert.DoesNotContain("blind", kind);
         }
         Assert.Equal(2.0, StarSkills.SpectacleSeconds("heatball"));

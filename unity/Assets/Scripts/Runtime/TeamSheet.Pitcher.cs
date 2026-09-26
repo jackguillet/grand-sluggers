@@ -36,7 +36,7 @@ namespace GrandSluggers.UnityClient
                     match.Chemistry.Between(chosen.Who, candidate.Who), pick.PickedPosition == candidate.Pos);
             Fill(PitcherCard, new Color(.075f, .115f, .14f));
             Label(PitcherCard.x + 16, PitcherCard.y + 10, 348, 22, CarnivalFront.PlayerCardHead(chosen.Pos), _small);
-            CardDetails(chosen.Who, PitcherCard);
+            CardDetails(chosen.Who, PitcherCard, match.Content.StarSkills);
             Label(746, 492, 350, 28, BroadcastHud.ArmLine(match.StaminaOf(chosen.Who), match.Rules), _heading);
             Label(746, 524, 350, 26, CarnivalFront.ThrowsLine(chosen.Who.Throws,
                 BroadcastHud.PitcherPitches(chosen.Who.Repertoire, match.Rules.Pitching.Families)), _body);

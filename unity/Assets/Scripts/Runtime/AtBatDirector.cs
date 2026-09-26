@@ -178,7 +178,7 @@ namespace GrandSluggers.UnityClient
             _play.MoundX = (float)_play.Match.PitcherOffsetX;
             var rel = PitchFlight.Release(_play.Match.Rules, _play.Match.PitcherOffsetX);
             _play.Ball = new Vector3((float)rel.X, (float)rel.Y, (float)rel.Z);
-            _scene.Park.Ball.Place(_play.Ball, "", PitchFamily.Fastball, false, false);
+            _scene.Park.Ball.Place(_play.Ball, PitchFamily.Fastball, false);
             HoldPitchInHand();
             SetCam.AimAt(0, 0);
             _host.Smash = 0;
@@ -381,11 +381,34 @@ namespace GrandSluggers.UnityClient
         /// The gold oval follows the batter and shows this swing's barrel (contact, charge):
         /// the sim's own oval (<see cref="SweetSpot.Oval"/>), the one the resolver judges (S-134).
         /// </summary>
-        public void ShowCursor()
+        /// <remarks>
+        /// A held star swing whose row names its own taller oval (§13, Driftwood Reach) draws that oval: the one its release
+        /// would be judged on, so the tell is the hitbox itself.
+        /// </remarks>
+        public CursorOval ShowCursor()
         {
-            if (_play.Match == null) return;
-            _scene.Zone.Show(SweetSpot.Oval(_play.Match.Batter, _play.Match.OffenseBat, EffectiveCharge(_play.Charge, ChargePast),
-                _play.Match.BatterOffsetX, _play.Match.Rules), _play.Match.BatterZone);
+            if (_play.Match == null) return default;
+            var armed = ArmedStarSwing;
+            var tall = armed.Length > 0 ? StarSkills.SwingOvalHeightMul(armed, _play.Match.Content.StarSkills) : 1.0;
+            var oval = SweetSpot.Oval(_play.Match.Batter, _play.Match.OffenseBat, EffectiveCharge(_play.Charge, ChargePast),
+                _play.Match.BatterOffsetX, _play.Match.Rules, tall);
+            _scene.Zone.Show(oval, _play.Match.BatterZone);
+            return oval;
+        }
+
+        /// <summary>
+        /// The star swing the batter holds for this pitch: the seat's modifier is down and the pool can pay, or the committed
+        /// swing asked for it and can pay (a CPU batter's). "" for none, and for a bunt.
+        /// </summary>
+        public string ArmedStarSwing
+        {
+            get
+            {
+                var m = _play.Match;
+                if (m?.Batter == null || !m.CanStarSwing) return "";
+                var asked = StarAsks.SwingShown || _play.Swing is { Star: true, Bunt: false };
+                return asked ? m.Batter.StarSwing ?? "" : "";
+            }
         }
 
         static ChargeButtonStep TickChargeButton(float dt, double seconds, Controls.Pad pad,
@@ -469,7 +492,7 @@ namespace GrandSluggers.UnityClient
             ShowCursor();
             ShowAimTell(_pads.HumanPitches ? pitch : null);
             _scene.Rig.Punch(pitch.Star ? 8f : 4f);
-            _scene.Fx.ResetDecoy();
+            _scene.Fx.NewPitch();
             if (pitch.Star)
             {
                 _scene.Audio?.CaptainVo(_play.Match.Pitcher.Id);

@@ -19,6 +19,14 @@
     { "id": "vo-reed", "slot": "data/art/audio-clips/vo-reed.wav", "bus": "vo" },
     { "id": "banana", "slot": "data/art/audio-clips/banana.wav", "bus": "sfx" },
     { "id": "rocket", "slot": "data/art/audio-clips/rocket.wav", "bus": "sfx" },
-    { "id": "pow", "slot": "data/art/audio-clips/pow.wav", "bus": "sfx" }
+    { "id": "pow", "slot": "data/art/audio-clips/pow.wav", "bus": "sfx" },
+    { "id": "heatball-whistle", "slot": "data/art/audio-clips/heatball-whistle.wav", "bus": "sfx" },
+    { "id": "prismball-clack", "slot": "data/art/audio-clips/prismball-clack.wav", "bus": "sfx" },
+    { "id": "skullball-clang", "slot": "data/art/audio-clips/skullball-clang.wav", "bus": "sfx" },
+    { "id": "shell-swing-whistle", "slot": "data/art/audio-clips/shell-swing-whistle.wav", "bus": "sfx" },
+    { "id": "cask-swing-thunder", "slot": "data/art/audio-clips/cask-swing-thunder.wav", "bus": "sfx" },
+    { "id": "furnace-hiss", "slot": "data/art/audio-clips/furnace-hiss.wav", "bus": "sfx" },
+    { "id": "rockfall-bell", "slot": "data/art/audio-clips/rockfall-bell.wav", "bus": "sfx" },
+    { "id": "pond-skip-croak", "slot": "data/art/audio-clips/pond-skip-croak.wav", "bus": "sfx" }
   ]
 }

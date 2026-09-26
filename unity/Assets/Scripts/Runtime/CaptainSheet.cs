@@ -22,7 +22,7 @@ namespace GrandSluggers.UnityClient
             Text(new Rect(24, 20, 780, 45), CarnivalFront.CaptainTitle, _title);
             Text(new Rect(910, 28, 346, 28), CarnivalFront.SetupCaptainsStep, _small);
             for (var panel = 0; panel < 2; panel++)
-                Card(selection, panel, content.Must(selection.Id(panel)), pad2);
+                Card(selection, panel, content.Must(selection.Id(panel)), pad2, content.StarSkills);
             Text(new Rect(24, 510, 1232, 30), CarnivalFront.CaptainPrompt(selection, pad2), _body);
             for (var i = 0; i < selection.Count; i++)
             {
@@ -46,7 +46,7 @@ namespace GrandSluggers.UnityClient
             Text(new Rect(24, 746, 1232, 34), CarnivalFront.CaptainControls, _body);
             GUI.matrix = old;
         }
-        static void Card(CaptainSelection s, int panel, Character who, bool pad2)
+        static void Card(CaptainSelection s, int panel, Character who, bool pad2, StarSkillTable skills)
         {
             var r = RectOf(CarnivalFront.CaptainPanel(panel));
             var accent = panel == 0 ? One : Two;
@@ -58,7 +58,7 @@ namespace GrandSluggers.UnityClient
             Text(new Rect(r.x + 324, r.y + 4, 266, 36), CarnivalFront.CaptainStatus(s, panel, pad2), _tileBadge);
             Text(new Rect(r.x + 18, r.y + 58, r.width - 36, 39), who.Name.ToUpperInvariant(), _name);
             Portrait(who, new Rect(r.x + 18, r.y + 108, 274, 274));
-            var card = CharacterCard.Of(who);
+            var card = CharacterCard.Of(who, skills: skills);
             Bars(r, card.Stats, accent);
             var verbs = r.y + CarnivalFront.CaptainCardVerbsTop;
             const float step = CarnivalFront.CaptainCardVerbPitch;

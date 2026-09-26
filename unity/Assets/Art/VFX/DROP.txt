@@ -1,4 +1,6 @@
-Catalog VFX events. Drop a prefab here named the catalog id.
+Catalog VFX events. Each special's slot is its own folder, named the catalog id
+(data/art/vfx.json). Drop that special's tell prefab in its folder.
 
-Until a file exists, SpecialFx plays a procedural stand-in in the same group.
-Heatball is the bar: core + shell + tight embers. No full-screen blinds.
+Until a file exists, SpecialFx draws the slot's procedural stand-in, the builder
+its "tell" names (SpecialTells.Builders), from the sim's own facts and timings.
+A tell reads HUD-off at gameplay distance. No full-screen blinds.

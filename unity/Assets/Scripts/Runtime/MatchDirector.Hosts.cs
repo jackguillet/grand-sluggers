@@ -276,7 +276,8 @@ namespace GrandSluggers.UnityClient
         string IActorHost.ShownPitchType => AtBat.ShownPitchType;
         ItemToss IActorHost.Toss => Toss;
         float IActorHost.SwingContactSec(SwingCommand swing) => AtBat.SwingContactSec(swing);
-        void IActorHost.ShowCursor() => AtBat.ShowCursor();
+        CursorOval IActorHost.ShowCursor() => AtBat.ShowCursor();
+        string IActorHost.ArmedStarSwing => AtBat.ArmedStarSwing;
         void IActorHost.HoldBallInGlove() => HoldBallInGlove();
         void IActorHost.OnRun() { if (TrainingOn) _coach.OnRun(_match); }
         StealDirector IActorHost.Steal => Steal;

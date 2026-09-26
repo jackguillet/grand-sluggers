@@ -20,6 +20,10 @@ View/Select opens How to play. LB/RB changes pages; East returns to the same scr
 - Pickoff: hold right stick toward the base, then press RT before charging. Introducing the target after charge uses the existing balk rule. A runner on the bag is safe.
 - Start → Arrange defense opens the between-pitch position editor. South picks two positions; West quick-swaps the focus to pitcher. East cancels/closes. Pitcher allowance and commitment restrictions still apply.
 
+## Star tells
+
+Every special shows its tell, so both teams can read it without the HUD. Skyrocket: gold sparks and a rising whistle. Sparkler: a spark ring on the batter's oval. Aurora Ribbon: a ribbon traces the sway. Follow Spot: a light cone on the fielder it holds. Loop-the-Loop: a coaster track and a clack. Spinning Top: the stalled ball spins and whistles. Phonyball: a card flips at the switch. Double Deal: the card-back ball is the decoy. Vine Swing: a vine from the pivot to the ball. Lightning Liner: a bolt trail, then thunder. Anvil: a clang, and the glowing ball turns to iron. Hot Iron: the ball glows and hisses until it cools. Undertow: a wave ring washes out from home. Driftwood Reach: the oval stretches taller. Mirage: a shimmer where the ball vanishes; its shadow stays. Dust Bowl: dust swirls where the grounder lands. Cable Car: a cable line and a bell at the stop. Summit Gust: snow bursts at the top of the fly. Skipping Stone: a splash ring at each skip. Lily Hop: a lily pad and a croak at the hop.
+
 ## Fielding
 
 Left stick moves the glove. Ordinary fly/liner catches and ground pickups are automatic when eligible ball and glove geometry meet. There is no catch button. Poor position, recovery and special restrictions still matter.

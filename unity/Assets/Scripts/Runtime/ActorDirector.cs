@@ -200,7 +200,8 @@ namespace GrandSluggers.UnityClient
                 hero.SetHighlight(highlighted);
                 hero.SetYou((_play.Phase is MatchDirector.Phase.InPlay or MatchDirector.Phase.StealThrow) && who.Id == litId && _host.HumanOwnsThrow);
                 hero.SetHint((_play.Phase is MatchDirector.Phase.InPlay or MatchDirector.Phase.StealThrow) && kv.Key == _live.SwitchPos && kv.Key != _live.GlovePos && !(_live.Caught || _live.Buddy));
-                if (_play.Pending != null && _play.Pending.StarSwingUsed == "heart-swing" && highlighted)
+                // A fielder a star swing's pause holds stands dazzled in the follow spot until he may move (§13, FielderDazzled).
+                if (_play.Phase is MatchDirector.Phase.InPlay && Dazzled(kv.Key))
                     pose = Motion.Verb.Charm;
                 var pType = _host.ShownPitchType;
                 var motionCharge = pose == Motion.Verb.ThrowPitch && _play.Pitch != null
@@ -332,38 +333,50 @@ namespace GrandSluggers.UnityClient
                 if (!_used.Contains(kv.Key) && kv.Value != null)
                     kv.Value.gameObject.SetActive(false);
 
-            var starPitch = _play.Pitch != null && _play.Pitch.Star ? _play.Match.Pitcher.StarPitch : _scene.Fx.ActivePitch;
-            var starSwing = _play.Pending != null ? _play.Pending.StarSwingUsed
-                : _play.Last != null ? _play.Last.AtBat.StarSwingUsed : null;
+            var starPitch = _play.Pitch != null && _play.Pitch.Star ? _play.Match.Pitcher.StarPitch : "";
             // The ball is tinted by family only once it is out of the hand (PH-02-R5): in SET, and
             // through the windup, it is the fastball's colour whatever was selected (BallView:290).
             var ptype = _play.PitchAir && _play.Pitch != null ? _play.Pitch.Type : PitchFamily.Fastball;
-            var heat = _play.Last != null && _play.Last.Heatball;
             if ((_live.Caught || _live.Buddy) && !_live.Throwing && _play.Phase is MatchDirector.Phase.InPlay or MatchDirector.Phase.StealThrow)
                 _host.HoldBallInGlove();
             if (_live.Throwing && _play.Phase is MatchDirector.Phase.InPlay or MatchDirector.Phase.StealThrow) StealDirector.HoldPreparingThrow(_play.Match, _live.ThrowFromPos, _scene.Heroes, _scene.Park);
             var inFlight = _play.Phase is MatchDirector.Phase.Flight or MatchDirector.Phase.InPlay or MatchDirector.Phase.StealThrow;
             var inPlay = _play.Phase is MatchDirector.Phase.InPlay or MatchDirector.Phase.StealThrow;
             if (_host.Replaying || inFlight || _play.Phase is MatchDirector.Phase.Set || _scene.Fx.Active)
-                _scene.Park.Ball.Place(_play.Ball, starPitch, ptype, heat, inFlight, inPlay);
+                _scene.Park.Ball.Place(_play.Ball, ptype, inFlight, inPlay);
             else
                 _scene.Park.Ball.Hide();
             if (_live.Throwing && _live.ArmedThrow != null)
                 _scene.Park.Ball.SetTrailColor(SpecialFx.ThrowColor(_live.ArmedThrow.Relation));
 
             var setOrFlight = _play.Phase is MatchDirector.Phase.Set or MatchDirector.Phase.Flight;
-            if (SetTells.ZoneOn(setOrFlight)) _host.ShowCursor();
+            CursorOval? oval = null;
+            if (SetTells.ZoneOn(setOrFlight)) oval = _host.ShowCursor();
             else _scene.Zone.Hide();
             _scene.Park.Ball.EmitTrail(SetTells.TrailOn(_play.Phase is MatchDirector.Phase.Flight or MatchDirector.Phase.InPlay or MatchDirector.Phase.StealThrow));
 
-            var burn = starSwing == "furnace";
-            var frags = starSwing == "cask-swing" || starSwing == "shell-swing";
-            var swingAt = Vector3.zero;
-            if (!string.IsNullOrEmpty(starSwing) && _play.Match?.Batter != null
-                && _scene.Heroes.TryGetValue(_play.Match.Batter.Id, out var bat) && bat != null)
-                swingAt = bat.transform.position + Vector3.up * 3.2f;
-            _scene.Fx.Tick(dt, _play.Ball, _play.Phase == MatchDirector.Phase.Flight, _play.Phase == MatchDirector.Phase.InPlay,
-                _play.Pitch != null && _play.Pitch.Star, starPitch, starSwing ?? "", burn, frags, swingAt);
+            // The specials' tells (AB-C15): the star pitch while it flies, the star swing the batter holds, the live ball's.
+            var livePlay = _play.Match.LivePlay;
+            _scene.Fx.Tick(new SpecialFx.Frame
+            {
+                Dt = dt,
+                Rules = _play.Match.Rules,
+                Skills = _play.Match.Content.StarSkills,
+                Audio = _scene.Audio,
+                Ball = _scene.Park.Ball,
+                Pitch = _play.Phase == MatchDirector.Phase.Flight && !_host.Replaying ? _play.Pitch : null,
+                StarPitch = starPitch,
+                PitchU = _play.PitchDur > 0 ? Mathf.Clamp01(_play.Flight / _play.PitchDur) : 0f,
+                PitchDur = _play.PitchDur,
+                ReleaseFrom = _play.ReleaseFrom,
+                ArmedSwing = oval.HasValue ? _host.ArmedStarSwing : "",
+                Oval = oval ?? default,
+                OvalShown = oval.HasValue,
+                Live = livePlay,
+                InPlay = inPlay && !_host.Replaying && livePlay != null && livePlay.Active,
+                BallAt = _play.Ball,
+                Gloves = _live.GloveAt,
+            });
             VeilPitch(starPitch);
             var flash = _play.Phase == MatchDirector.Phase.InPlay && _inPlay.BuddySet && !_live.Buddy && !_live.Throwing;
             var flashAt = Vector3.zero;
@@ -450,6 +463,16 @@ namespace GrandSluggers.UnityClient
         /// A star pitch's vanish (spec §13), while the pitch is in the air: the sim says when the ball cannot be seen
         /// (<see cref="PitchFlight.Visible"/>); the ball is hidden then and its shadow keeps crossing the dirt. Every other frame shows it.
         /// </summary>
+        /// <summary>The live ball holds this glove still: a star swing's pause (a <see cref="FielderDazzled"/> fact) not yet run out.</summary>
+        bool Dazzled(string pos)
+        {
+            var live = _play.Match.LivePlay;
+            if (live == null || !live.Active) return false;
+            foreach (var fact in live.FactsThisPlay)
+                if (fact is FielderDazzled d && d.GloveId == pos && d.UntilT > live.ElapsedSeconds) return true;
+            return false;
+        }
+
         void VeilPitch(string starPitch)
         {
             var pitch = _play.Pitch;
@@ -593,7 +616,10 @@ namespace GrandSluggers.UnityClient
         string ShownPitchType { get; }
         ItemToss Toss { get; }
         float SwingContactSec(SwingCommand swing);
-        void ShowCursor();
+        /// <summary>Draws the batter's oval and returns it: the sim's oval, a held star swing's own size included.</summary>
+        CursorOval ShowCursor();
+        /// <summary>The star swing the batter holds for this pitch (the release would ask for it and the pool can pay), or "".</summary>
+        string ArmedStarSwing { get; }
         void HoldBallInGlove();
         /// <summary>The batter-runner's first step, for a training drill.</summary>
         void OnRun();

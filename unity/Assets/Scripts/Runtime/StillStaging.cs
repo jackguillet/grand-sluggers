@@ -684,7 +684,7 @@ namespace GrandSluggers.UnityClient
                 var p = PitchFlight.Point("fastball", StillPose.PitchBallU, _play.Match.Rules, 0, 0, 0, 0,
                     ((double)_play.ReleaseFrom.x, (double)_play.ReleaseFrom.y, (double)_play.ReleaseFrom.z), zone: _play.Match.BatterZone);
                 _host.Ball = new Vector3((float)p.X, (float)p.Y, (float)p.Z);
-                _scene.Park.Ball.Place(_host.Ball, "", "fastball", false, true);
+                _scene.Park.Ball.Place(_host.Ball, "fastball", true);
                 _scene.Cam.CutRaw("pitch",
                     new Vector3((float)StillPose.PitchCamX, (float)StillPose.PitchCamY, (float)StillPose.PitchCamZ),
                     new Vector3((float)StillPose.PitchLookX, (float)StillPose.PitchLookY, (float)StillPose.PitchLookZ(DiamondGeometry.Of(_play.Match.Rules))),
@@ -725,7 +725,7 @@ namespace GrandSluggers.UnityClient
                     fh.PlaceStill(new Vector3(gx, 0f, gz), new Vector3(gx + 1f, 0f, gz + 1f));
                     fh.SnapTick((float)StillPose.ScoopPoseT);
                     _host.Ball = new Vector3(gx, (float)StillPose.ScoopBallY, gz);
-                    _scene.Park.Ball.Place(_host.Ball, "", "fastball", false);
+                    _scene.Park.Ball.Place(_host.Ball, "fastball");
                     if (fh.CatchHand != null) _scene.Park.Ball.Hold(fh.CatchHand);
                 }
                 // Side 3/4. Looking down the path hid the glove; looking at the scoop
@@ -754,8 +754,8 @@ namespace GrandSluggers.UnityClient
                     sw.SnapTick((float)Motion.SwingContact);
                     chest = sw.transform.position + Vector3.up * 3.2f;
                 }
-                var star = _play.Pending != null ? _play.Pending.StarSwingUsed : _play.Match.Batter.StarSwing;
-                _scene.Fx.Tick(0, chest, false, true, false, "", star ?? "", false, false, chest);
+                // A special's tell rides the live ball or the oval, not the batter's chest: the smash still shows the body alone.
+                _scene.Fx.Clear();
                 _scene.Cam.SmashCut(chest);
             }
         }

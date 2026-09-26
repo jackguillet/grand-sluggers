@@ -45,6 +45,8 @@ public static class BookChapter
             ["screen-live"] = "brondo",
             ["chemistry"] = "konga",
             ["stars"] = "ashlord",
+            ["star-tells"] = "rio",
+            ["star-tells-2"] = "ashlord",
             ["abilities"] = "vale",
             ["abilities-types"] = "vale",
             ["items"] = "zig",

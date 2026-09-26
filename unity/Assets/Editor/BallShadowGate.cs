@@ -85,7 +85,7 @@ namespace GrandSluggers.EditorTools
                 ball.Hold(hold);
                 Require(!ball._shadow.gameObject.activeSelf, "Held shadow stayed visible");
                 ball.Release();
-                ball.Place(new Vector3(30, 12, 220), "", "fastball", false, true, true);
+                ball.Place(new Vector3(30, 12, 220), "fastball", true, true);
                 Require(ball._shadow.gameObject.activeSelf, "Release lost shadow");
                 ball.Hide();
                 Require(!ball._shadow.gameObject.activeSelf, "Hidden shadow stayed visible");

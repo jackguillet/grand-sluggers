@@ -128,6 +128,111 @@ namespace GrandSluggers.UnityClient
             else if (id == "pow") Play("pow", 1f);
         }
 
+        /// <summary>
+        /// A special's tell cue (<c>vfx.json</c> <c>cue</c>, a slot in <c>audio.json</c>). Until its wav is authored the stand-in is
+        /// the generated tone its last word names (whistle, clack, clang, thunder, hiss, bell, croak): a new cue with one of those
+        /// words sounds at once, and an authored file replaces it without code.
+        /// </summary>
+        public void Cue(string cueId, float volume = 0.8f)
+        {
+            if (string.IsNullOrEmpty(cueId)) return;
+            if (Resolve(cueId) == null)
+            {
+                var word = cueId.Substring(cueId.LastIndexOf('-') + 1);
+                var clip = StandIn(word);
+                if (clip == null) return;
+                _tone[cueId] = clip;
+            }
+            Play(cueId, volume);
+        }
+
+        static AudioClip StandIn(string word)
+        {
+            switch (word)
+            {
+                case "whistle": return Whistle("Whistle");
+                case "clack": return Clack("Clack");
+                case "clang": return Ring("Clang", 523f, 1307f, 2213f, 0.9f, 4f);
+                case "bell": return Ring("Bell", 880f, 2200f, 3520f, 0.8f, 3f);
+                case "thunder": return Thunder("Thunder");
+                case "hiss": return Hiss("Hiss");
+                case "croak": return Croak("Croak");
+                default: return null;
+            }
+        }
+
+        static AudioClip Whistle(string name)
+        {
+            const float dur = 0.45f;
+            var phase = 0f;
+            return Clip(name, dur, (i, t) =>
+            {
+                var f = 900f + 1300f * (t / dur) + 40f * Mathf.Sin(t * 60f);
+                phase += 2f * Mathf.PI * f / Rate;
+                var env = Mathf.Sin(Mathf.PI * Mathf.Clamp01(t / dur));
+                return Mathf.Clamp(0.5f * env * Mathf.Sin(phase), -1f, 1f);
+            });
+        }
+
+        static AudioClip Clack(string name)
+        {
+            return Clip(name, 0.14f, (i, t) =>
+            {
+                var a = Mathf.Exp(-t * 90f);
+                var b = t > 0.07f ? Mathf.Exp(-(t - 0.07f) * 90f) : 0f;
+                return Mathf.Clamp(0.8f * (a + b) * (Hash(i) * 0.6f + Mathf.Sin(2f * Mathf.PI * 1800f * t) * 0.4f), -1f, 1f);
+            });
+        }
+
+        static AudioClip Ring(string name, float a, float b, float c, float dur, float decay)
+        {
+            return Clip(name, dur, (i, t) =>
+            {
+                var env = Mathf.Exp(-t * decay);
+                var mix = Mathf.Sin(2f * Mathf.PI * a * t) * 0.5f + Mathf.Sin(2f * Mathf.PI * b * t) * 0.3f
+                    + Mathf.Sin(2f * Mathf.PI * c * t) * 0.2f * Mathf.Exp(-t * decay * 2f);
+                var strike = t < 0.006f ? Hash(i) * 0.5f : 0f;
+                return Mathf.Clamp(0.7f * env * mix + strike, -1f, 1f);
+            });
+        }
+
+        static AudioClip Thunder(string name)
+        {
+            const float dur = 1.2f;
+            var low = 0f;
+            return Clip(name, dur, (i, t) =>
+            {
+                low += (Hash(i) - low) * 0.02f;
+                var env = Mathf.Min(1f, t / 0.05f) * Mathf.Exp(-t * 2.2f) * (0.7f + 0.3f * Mathf.Sin(t * 17f));
+                return Mathf.Clamp(6f * low * env, -1f, 1f);
+            });
+        }
+
+        static AudioClip Hiss(string name)
+        {
+            const float dur = 0.5f;
+            var prev = 0f;
+            return Clip(name, dur, (i, t) =>
+            {
+                var n = Hash(i);
+                var high = n - prev;
+                prev = n;
+                var env = Mathf.Min(1f, t / 0.03f) * (1f - t / dur);
+                return Mathf.Clamp(0.35f * env * high, -1f, 1f);
+            });
+        }
+
+        static AudioClip Croak(string name)
+        {
+            return Clip(name, 0.32f, (i, t) =>
+            {
+                var pulse = Mathf.Sin(2f * Mathf.PI * 28f * t) > 0.2f ? 1f : 0.15f;
+                var tone = Mathf.Sin(2f * Mathf.PI * 115f * t) + 0.4f * Mathf.Sin(2f * Mathf.PI * 230f * t);
+                var env = Mathf.Sin(Mathf.PI * Mathf.Clamp01(t / 0.32f));
+                return Mathf.Clamp(0.55f * env * pulse * tone, -1f, 1f);
+            });
+        }
+
         AudioClip Resolve(string eventId)
         {
             if (string.IsNullOrEmpty(eventId)) return null;
