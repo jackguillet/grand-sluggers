@@ -29,7 +29,7 @@ public static partial class HowToPlay
             "T-SP-charmball" => "Aurora Ribbon",
             "T-SP-prismball" => "Loop-the-Loop",
             "T-SP-phonyball" => "Phonyball",
-            "T-SP-caskball" => "Caskball",
+            "T-SP-caskball" => "Vine Swing",
             "T-SP-skullball" => "Skullball",
             "T-SP-fogball" => "Fogball",
             "T-SP-fastball" => "Star Fastball",
@@ -42,7 +42,7 @@ public static partial class HowToPlay
             "T-SS-heart-swing" => "Follow Spot",
             "T-SS-shell-swing" => "Spinning Top",
             "T-SS-phony-swing" => "Phony Swing",
-            "T-SS-cask-swing" => "Cask Swing",
+            "T-SS-cask-swing" => "Lightning Liner",
             "T-SS-furnace" => "Furnace",
             "T-SS-staff-swing" => "Staff Swing",
             "T-SS-sidewinder" => "Sidewinder",
@@ -63,6 +63,8 @@ public static partial class HowToPlay
             "T-SS-shell-swing" => " The grounder spins in place at its first hop, then rolls on slowly. Run.",
             "T-SP-charmball" => " The ball sways widest at mid-flight, then settles onto your aim before the plate.",
             "T-SS-heart-swing" => " The follow spot holds the nearest fielder still for a moment after contact.",
+            "T-SP-caskball" => " It swings in wide on a vine, then crosses where you aimed, on time.",
+            "T-SS-cask-swing" => " The liner jags twice, then lands where a straight one would.",
             _ => ""
         };
         return pitch

@@ -2223,7 +2223,7 @@
     },
     {
       "id": "T-SP-caskball",
-      "revision": 4,
+      "revision": 5,
       "mechanics": [
         "star-pitch.caskball"
       ],
@@ -2548,7 +2548,7 @@
     },
     {
       "id": "T-SS-cask-swing",
-      "revision": 4,
+      "revision": 5,
       "mechanics": [
         "star-swing.cask-swing"
       ],

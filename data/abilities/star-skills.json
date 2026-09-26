@@ -37,11 +37,12 @@
     },
     "caskball": {
       "id": "caskball",
-      "name": "Caskball",
-      "kind": "payload",
-      "speedMul": 0.85,
+      "name": "Vine Swing",
+      "kind": "break",
+      "family": "pendulum-arc",
+      "speedMul": 1.0,
       "staminaCost": 20,
-      "onCatch": "knockback"
+      "pendulum": { "lengthFt": 6, "swingDeg": 45, "widestAt": 0.25 }
     },
     "skullball": {
       "id": "skullball",
@@ -90,7 +91,7 @@
     "heart-swing": { "id": "heart-swing", "name": "Follow Spot", "kind": "status", "family": "one-fielder-paused", "exitVeloMul": 1.05, "fielderPauseSec": 0.8 },
     "shell-swing": { "id": "shell-swing", "name": "Spinning Top", "kind": "bounce", "family": "first-hop-stall", "exitVeloMul": 1.1, "launchDeg": 0, "firstHopStallSec": 0.8, "firstHopStallSpeedMul": 0.5 },
     "phony-swing": { "id": "phony-swing", "name": "Phony Swing", "kind": "decoy", "exitVeloMul": 1.1, "decoy": true },
-    "cask-swing": { "id": "cask-swing", "name": "Cask Swing", "kind": "payload", "exitVeloMul": 1.2, "fragments": true },
+    "cask-swing": { "id": "cask-swing", "name": "Lightning Liner", "kind": "path", "family": "jagged-flight", "exitVeloMul": 1.2, "launchDeg": 18, "jag": { "offsetFt": 3, "firstAt": 0.3, "secondAt": 0.65, "span": 0.08 } },
     "furnace": { "id": "furnace", "name": "Furnace", "kind": "terrain", "exitVeloMul": 1.25, "terrain": "warning-lava" },
     "staff-swing": { "id": "staff-swing", "name": "Staff Swing", "kind": "bounce", "exitVeloMul": 1.08, "infieldChaos": true },
     "sidewinder": { "id": "sidewinder", "name": "Sidewinder", "kind": "bounce", "exitVeloMul": 1.12, "launchDeg": 4, "firstHopKickDeg": 20 },
