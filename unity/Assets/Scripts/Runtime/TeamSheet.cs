@@ -150,7 +150,7 @@ namespace GrandSluggers.UnityClient
             }
             var card = CharacterCard.Of(who);
             Label(r.x + 14, r.y + 39, r.width - 28, 30, card.Name.ToUpperInvariant(), _cardName);
-            Portrait(who, new Rect(r.x + 14, r.y + 78, 132, 132));
+            Portrait(who, new Rect(r.x + 14, r.y + 78, CarnivalFront.LineupCardPortrait, CarnivalFront.LineupCardPortrait));
             // The four derived bars (StatBars), laid out by CarnivalFront.LineupCardBars. Either seat draws the same rows.
             var bars = CarnivalFront.LineupCardBars;
             for (var i = 0; i < StatBars.Count; i++)
@@ -162,9 +162,14 @@ namespace GrandSluggers.UnityClient
                 Fill(new Rect(r.x + bars.BarX, barY, bars.BarW * (float)StatBars.Fill(card.Stats, i), bars.BarH), accent);
                 Label(r.x + bars.ValueX, y, bars.ValueW, bars.Pitch, StatBars.ValueText(card.Stats, i), _barValue);
             }
+            // Four text lines (CarnivalFront.LineupCardVerbsTop / LineupCardLinePitch): the verbs, the crews and the
+            // chemistry with this side's captain and why (WD-28). Every word is CarnivalFront's.
             var verbs = r.y + CarnivalFront.LineupCardVerbsTop;
-            Label(r.x + 14, verbs, r.width - 28, 22, card.StarPitch + " / " + card.StarSwing, _body);
-            Label(r.x + 14, verbs + 27, r.width - 28, 23, card.FieldVerb + " · " + HowToPlay.CardBatHand(card.Bats), _small);
+            var pitch = CarnivalFront.LineupCardLinePitch;
+            Label(r.x + 14, verbs, r.width - 28, pitch, card.StarPitch + " / " + card.StarSwing, _body);
+            Label(r.x + 14, verbs + pitch, r.width - 28, pitch, card.FieldVerb + " · " + HowToPlay.CardBatHand(card.Bats), _small);
+            Label(r.x + 14, verbs + 2 * pitch, r.width - 28, pitch, lineup.CrewLine(who), _small);
+            Label(r.x + 14, verbs + 3 * pitch, r.width - 28, pitch, lineup.ChemLine(who, home), _small);
         }
 
         static void CardDetails(Character who, Rect r)

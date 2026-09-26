@@ -2,7 +2,7 @@ namespace GrandSluggers.Sim;
 
 /// <summary>
 /// Pairwise chemistry (WD-28). In order: an authored story pair (overrides.json); a shared crew is good; faction-mates are
-/// good; a crew and its rival crew are bad; otherwise neutral.
+/// good; a crew and its rival crew are bad; otherwise neutral. <see cref="Reason(string, string)"/> names the rule.
 /// Chemistry pays off in the field only (§8.5, §12): it does not set starting Stars (PH-16-R16), which are the
 /// same for both teams (<see cref="StarRules.StartingReserve"/>).
 /// </summary>
@@ -39,34 +39,46 @@ public sealed class ChemistryTable
                 _bad.Add(Key(pair[0], pair[1]));
     }
 
-    public Chemistry Between(string a, string b)
+    public Chemistry Between(string a, string b) => Reason(a, b).Chemistry;
+
+    public Chemistry Between(Character a, Character b) => Between(a.Id, b.Id);
+
+    /// <summary>
+    /// Why two players have the chemistry they have (WD-28): the first rule in order that decides it, and the crews it
+    /// names. <see cref="Between(string, string)"/> is this function's verdict, so the lineup, the book and the field never
+    /// disagree about a pair.
+    /// </summary>
+    public ChemistryReason Reason(string a, string b)
     {
         if (a.Equals(b, StringComparison.OrdinalIgnoreCase))
-            return Chemistry.Neutral;
+            return new(Chemistry.Neutral, ChemistryWhy.None);
 
         var key = Key(a, b);
         if (_bad.Contains(key))
-            return Chemistry.Bad;
+            return new(Chemistry.Bad, ChemistryWhy.StoryPair);
         if (_good.Contains(key))
-            return Chemistry.Good;
+            return new(Chemistry.Good, ChemistryWhy.StoryPair);
 
         var ca = _crews.GetValueOrDefault(a) ?? [];
         var cb = _crews.GetValueOrDefault(b) ?? [];
-        if (ca.Any(x => cb.Contains(x)))
-            return Chemistry.Good;
+        foreach (var x in ca)
+            if (cb.Contains(x))
+                return new(Chemistry.Good, ChemistryWhy.SharedCrew, x);
 
         if (_faction.TryGetValue(a, out var fa) &&
             _faction.TryGetValue(b, out var fb) &&
             fa.Equals(fb, StringComparison.OrdinalIgnoreCase))
-            return Chemistry.Good;
+            return new(Chemistry.Good, ChemistryWhy.FactionMates);
 
-        if (ca.Any(x => cb.Any(y => _rivalCrews.Contains(x + "|" + y))))
-            return Chemistry.Bad;
+        foreach (var x in ca)
+        foreach (var y in cb)
+            if (_rivalCrews.Contains(x + "|" + y))
+                return new(Chemistry.Bad, ChemistryWhy.RivalCrews, x, y);
 
-        return Chemistry.Neutral;
+        return new(Chemistry.Neutral, ChemistryWhy.None);
     }
 
-    public Chemistry Between(Character a, Character b) => Between(a.Id, b.Id);
+    public ChemistryReason Reason(Character a, Character b) => Reason(a.Id, b.Id);
 
     /// <summary>Throw pair chemistry. Trails read this: good gold/purple, bad muddy and off-line.</summary>
     public Chemistry ThrowChemistry(Character from, Character to) => Between(from, to);
@@ -119,3 +131,24 @@ public sealed class ChemistryTable
         return string.CompareOrdinal(x, y) < 0 ? x + "|" + y : y + "|" + x;
     }
 }
+
+/// <summary>The rule that decides a pair's chemistry (WD-28), in the order <see cref="ChemistryTable.Reason(string, string)"/> reads them.</summary>
+public enum ChemistryWhy
+{
+    /// <summary>Nothing links them: neutral.</summary>
+    None,
+    /// <summary>An authored story pair (data/chemistry/overrides.json), good or bad; it beats every other rule.</summary>
+    StoryPair,
+    /// <summary>They share a crew: good, whatever their teams.</summary>
+    SharedCrew,
+    /// <summary>They come from the same home team (faction): good.</summary>
+    FactionMates,
+    /// <summary>One's crew is the other's rival crew: bad.</summary>
+    RivalCrews,
+}
+
+/// <summary>
+/// A pair's chemistry and why (<see cref="ChemistryTable.Reason(string, string)"/>): the verdict, the rule, and the crew ids
+/// the rule names — the shared crew, or the first player's crew and the second's rival crew.
+/// </summary>
+public readonly record struct ChemistryReason(Chemistry Chemistry, ChemistryWhy Why, string? Crew = null, string? RivalCrew = null);
