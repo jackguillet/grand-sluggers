@@ -1359,7 +1359,7 @@ internal sealed class CharacterDto
         BodyType = Captain ? Id.ToLowerInvariant() : "",
         Proportions = Proportions?.ToSpec() ?? default,
         Species = Species ?? "",
-        Crews = (Crews ?? []).Where(c => c is not null).Select(c => c!).ToList()
+        CrewIds = string.Join(",", (Crews ?? []).Where(c => c is not null))
     };
 
     /// <summary>

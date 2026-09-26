@@ -289,8 +289,14 @@ public sealed record Character(
     /// <summary>The name for a tile too narrow for <see cref="Name"/>.</summary>
     public string TileName => string.IsNullOrEmpty(ShortName) ? Name : ShortName;
 
-    /// <summary>The crews this character belongs to (WD-28): sharing one is good chemistry across teams.</summary>
-    public IReadOnlyList<string> Crews { get; init; } = [];
+    /// <summary>
+    /// The crews this character belongs to (WD-28), comma-separated in data order: sharing one is good chemistry across
+    /// teams. Held as one string so the record still compares by value.
+    /// </summary>
+    public string CrewIds { get; init; } = "";
+
+    /// <summary>The crews, in data order (at most two).</summary>
+    public IReadOnlyList<string> Crews => CrewIds.Length == 0 ? [] : CrewIds.Split(',');
 
     /// <summary>A sidekick's species (WD-27, <see cref="Sim.Species"/>); empty for a captain or a character built by hand.</summary>
     public string Species { get; init; } = "";
