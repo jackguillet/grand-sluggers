@@ -7,6 +7,19 @@ public class BodyScaleTests
 {
     readonly string _repo = Path.GetFullPath(Path.Combine(Shipped.Content.Root.Shipped, ".."));
 
+    /// <summary>
+    /// The debug protocol's promoted row (a glove with the ball scaled up): every captain carries a pool ability, none of the
+    /// pool grows the body (AB-12), and the scale is rest, highlighted or not.
+    /// </summary>
+    [Fact]
+    public void AGloveWithTheBallIsRestScaleForEveryCaptain()
+    {
+        foreach (var id in Shipped.CaptainIds)
+            Assert.Contains(Shipped.Content.Must(id).FieldAbility, FieldAbilityId.All);
+        Assert.Equal(BodyScale.Rest, BodyScale.Of());
+        Assert.Equal(BodyScale.Rest, BodyScale.Of(highlighted: true, hint: true));
+    }
+
     [Fact]
     public void HighlightAndHintNeverScaleTheToy()
     {
