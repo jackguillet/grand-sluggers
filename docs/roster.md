@@ -60,11 +60,11 @@ Names are working titles. Replace freely; keep the *roles*.
 - Field: **Lick Catch** — tongue/stretch catch (range).
 - Bats/throws: L/R
 
-### Brondo — Goldrush
+### Brondo — Skyline Gold (a rooftop bulldog hustler)
 
 - Stats: Pitch 5 / Bat 8 / Field 3 / Run 4
-- Star Pitch: **Phonyball** — decoy ball; real one is late.
-- Star Swing: **Phony Swing** — two balls; fielders must pick.
+- Star Pitch: **Phonyball** — shows one side early, switches late; read the switch.
+- Star Swing: **Double Deal** — a card-back decoy flies beside the real ball until the apex.
 - Field: **Laser** — fastest throw in the game, terrible first step.
 - Bats/throws: R/R
 
@@ -87,8 +87,8 @@ Names are working titles. Replace freely; keep the *roles*.
 ### Elder Fenn — Stillwater
 
 - Stats: Pitch 7 / Bat 5 / Field 8 / Run 3
-- Star Pitch: **Fogball** — slow wet pitch; batter’s window shrinks in the mist.
-- Star Swing: **Staff Swing** — cane hop that randomizes infield bounces.
+- Star Pitch: **Undertow** (`fogball`) — slow, and a fair ball off it washes a ring out on home for 2 s that slows the batter-runner inside it.
+- Star Swing: **Driftwood Reach** (`staff-swing`) — exit ×1.08 and a contact oval 1.4 times as tall; a wide pitch still beats it.
 - Field: **Withdraw** — shell catch, bigger glove window, still slow.
 - Bats/throws: R/R
 
