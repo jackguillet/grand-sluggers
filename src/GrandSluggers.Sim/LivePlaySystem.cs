@@ -518,8 +518,8 @@ public sealed partial class LivePlaySystem
         Decide(dash01);
     }
 
-    /// <summary>A runner's step multiplier this frame (F4-b): the status volume's slow while one slows him, else exactly 1.</summary>
-    double RunnerSlowMul(Runner runner) => BodySlows.Mul(_bodySlows.Slowed(runner), _match.Rules);
+    /// <summary>A runner's step multiplier this frame (F4-b): the status volume's slow while one slows him (a star disc's own, §13), else exactly 1.</summary>
+    double RunnerSlowMul(Runner runner) => _bodySlows.Mul(runner, _match.Rules);
 
     void Decide(double dash01)
     {

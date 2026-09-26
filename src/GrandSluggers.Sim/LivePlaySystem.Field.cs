@@ -516,8 +516,9 @@ public sealed partial class LivePlaySystem
         foreach (var kv in FieldingResolver.ReactionLockouts(R, 1, airHang, Hit.Class == BattedBallClass.Bunt)) _readyHuman[kv.Key] = kv.Value;
         BeginDazzle();
         InitGloves();
-        // The park's status volumes, as this play reads them (F4-b): every body starts outside them, unslowed.
-        _bodySlows.Begin(ParkHazards.StatusVolumes(Park, R, _match.Night));
+        // The park's status volumes, as this play reads them (F4-b): every body starts outside them, unslowed. A fair ball put in
+        // play off a star pitch that carries an undertow adds its ring on home (§13), live from contact.
+        _bodySlows.Begin(WithUndertow(ParkHazards.StatusVolumes(Park, R, _match.Night)));
         // The ball's redirects and reward targets (F4-c): read live off the ball, never off where it lands.
         _ballHazards.Begin(Park, _match.Night, R);
         // The solid bodies and movers (F4-f): the ball caroms off them and nobody stands in one.
@@ -1863,6 +1864,19 @@ public sealed partial class LivePlaySystem
         }
     }
 
+    /// <summary>
+    /// The park's volumes plus the Undertow's ring (§13, <see cref="PitchUndertow"/>) when this play's ball is a fair ball put
+    /// in play off a star pitch whose row names one: a disc on home, live for its seconds from contact (the play clock's 0),
+    /// that slows only the batter-runner. Every other play reads the park's volumes exactly as they were.
+    /// </summary>
+    IReadOnlyList<StatusVolume> WithUndertow(IReadOnlyList<StatusVolume> park)
+    {
+        if (Hit is not { Foul: false } hit
+            || StarSkillTable.Or(_match.Content?.StarSkills).Pitch(hit.StarPitchUsed)?.Undertow is not { } undertow)
+            return park;
+        return [.. park, undertow.Volume()];
+    }
+
     void Slowed(BodySlowed touch, StatusVolume volume, Runner? runner)
     {
         _slows.Add(touch);
@@ -1889,9 +1903,9 @@ public sealed partial class LivePlaySystem
         if (_solids.Count > 0)
             goal = VolumeRoute.Waypoint(at, goal, _solids.Select(b => b.AsVolume(ElapsedSeconds)).ToList(), speed, 1e-6,
                 R.Fielding.Chase.VolumeClearFt);
-        return _bodySlows.Volumes.Count == 0 || _routeImmune.Contains(pos)
+        return _bodySlows.FielderVolumes.Count == 0 || _routeImmune.Contains(pos)
             ? goal
-            : VolumeRoute.Waypoint(at, goal, _bodySlows.Volumes, speed, R.Fielding.Chase.FrozenMul, R.Fielding.Chase.VolumeClearFt);
+            : VolumeRoute.Waypoint(at, goal, _bodySlows.FielderVolumes, speed, R.Fielding.Chase.FrozenMul, R.Fielding.Chase.VolumeClearFt);
     }
 
     /// <summary>The redirects the ball went through this play, in order (F4-c).</summary>
@@ -1983,7 +1997,7 @@ public sealed partial class LivePlaySystem
         Sub = $"Into the {PlayNarrator.RedirectName(mouth.Type)}!";
     }
 
-    double VolumeMul(string pos) => BodySlows.Mul(_bodySlows.Slowed(pos), R);
+    double VolumeMul(string pos) => _bodySlows.Mul(pos, R);
 
     // ---------------------------------------------------------------------------------
     // The pursuit stick (#718, F693-02-pursuit-neutral-boundary, -analog-response, -arming)

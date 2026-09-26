@@ -437,6 +437,10 @@ public static class SweetSpot
     /// <summary>Half this batter's zone height: the nice half-axis up and down. A charge or Contact never scales it, so every strike stays hittable.</summary>
     public static double HalfHeightFt(BatterZone zone) => zone.HalfHeight;
 
+    /// <summary>The nice half-axis up and down for one swing: the zone's half height × the swing's own <paramref name="ovalHeightMul"/> (§13); exactly the zone's at 1.</summary>
+    public static double HalfHeightFt(BatterZone zone, double ovalHeightMul) =>
+        ovalHeightMul == 1 ? zone.HalfHeight : zone.HalfHeight * ovalHeightMul;
+
     /// <summary>Bat (contact) scales the barrel around 5.</summary>
     public static double ContactScale(int contact, RulesTable rules) =>
         Math.Max(0.5, 1 + (Math.Clamp(contact, 1, 10) - 5) * rules.Batting.Cursor.ScalePerContact);
@@ -476,8 +480,9 @@ public static class SweetSpot
     /// <see cref="SwingBarrel"/>. A charge and Contact move the two barrel half-extents only; the
     /// height is the batter's zone's and a charge or Contact never scales it (PH-11-R1, PH-15-R7, S-135, S-136).
     /// </summary>
+    /// <param name="ovalHeightMul">A star swing's own taller oval (§13, <see cref="StarSwingSkill.OvalHeightMul"/>); 1 draws the ordinary one.</param>
     public static CursorOval Oval(Character batter, BatItem? bat, double charge01, double boxOffsetX,
-        RulesTable rules)
+        RulesTable rules, double ovalHeightMul = 1)
     {
         var scale = SwingBarrel(batter, bat, charge01, rules);
         var zone = StrikeZoneGeometry.For(batter, rules);
@@ -487,7 +492,7 @@ public static class SweetSpot
         return new CursorOval(bats, x, y,
             NiceHalfWidthFt(bats, tip, scale, rules),
             NiceHalfWidthFt(bats, -tip, scale, rules),
-            HalfHeightFt(zone), scale);
+            HalfHeightFt(zone, ovalHeightMul), scale);
     }
 
     /// <summary>Nice half-axis along the barrel on the side of <paramref name="dx"/> (world feet from the center).</summary>
@@ -520,10 +525,12 @@ public static class SweetSpot
     /// zone are on the bat with the box centered. <paramref name="perfectRingMul"/> is one swing's own
     /// larger heart (§13, PH-16-R2: <see cref="StarSwingSkill.PerfectRingMul"/>); it grows the Perfect
     /// ring only, never past the drawn oval, so the nice boundary, the rim and a miss are unchanged.
+    /// <paramref name="ovalHeightMul"/> is one swing's own taller oval (§13, PH-16-R2: <see cref="StarSwingSkill.OvalHeightMul"/>):
+    /// the whole oval — heart, nice boundary and rim — stretches up and down by it; along the barrel nothing changes.
     /// </summary>
     public static ContactQuality Zone(double boxOffsetX, Hand bats, double crossingX, double crossingY,
         RulesTable rules, BatterZone zone,
-        double barrelScale = 1, double perfectRingMul = 1)
+        double barrelScale = 1, double perfectRingMul = 1, double ovalHeightMul = 1)
     {
         var c = rules.Batting.Cursor;
         var (cx, cy) = WorldCenter(boxOffsetX, zone);
@@ -531,7 +538,7 @@ public static class SweetSpot
         var dy = crossingY - cy;
         if (!double.IsFinite(dx) || !double.IsFinite(dy)) return ContactQuality.Miss;
         var nx = NiceHalfWidthFt(bats, dx, barrelScale, rules);
-        var ny = HalfHeightFt(zone);
+        var ny = HalfHeightFt(zone, ovalHeightMul);
         var d = Math.Sqrt(dx * dx / (nx * nx) + dy * dy / (ny * ny));
         if (d <= PerfectFraction(rules, perfectRingMul)) return ContactQuality.Perfect;
         if (d <= 1) return ContactQuality.Nice;
