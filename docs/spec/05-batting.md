@@ -86,6 +86,8 @@ The take is the swing that is judged: a charge (an effective charge at or above 
 
 `exit = base(power) × zone × charge × starSwing × pitch`.
 
+A Star Drag Bunt (§13) is the one star swing that leaves as a bunt: its exit is the bunt's for the contact (§5.8), its launch the row's and its bearing the line its roll ends just inside. A Star Sinker (§13) lowers the launch of any ball put in play off it.
+
 - `base(power)` = `batting.exit.baseMph` + Power × `batting.exit.mphPerPower` (61 + 3.7 × Power; P7 lifted the base from 57 for the S-29 band and left the slope, so the whole lineup hits harder and the power hitter's homer stays inside the ≤ 2 per game mean). **Power** here is the rating `Stats.Power` (plus the bat's `powerMod`), not the `Bat` aggregate — it and the §5.4 loft are the only things Power drives. ✅ P2-a (S-122)
 
 - `zone × charge`: the §5.2 table — 0 → the slap column; MAX → the charge column (**×1.25** on a perfect; reference: charge perfect 160–170 vs slap perfect 145–150, with less gravity). Below MAX interpolates; past the band the charge decays and the exit slides back toward the slap column. ✅ P1 (S-11, S-30)

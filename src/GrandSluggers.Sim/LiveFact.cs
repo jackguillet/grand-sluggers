@@ -18,10 +18,10 @@ public sealed record AssistedRouteStep(string GloveId) : LiveFact;
 
 /// <summary>
 /// A star swing's grounder changed at its first hop (§13, <see cref="StarSwingSkill.BendsFirstHop"/>): the swing, when and where,
-/// the chasing glove (its position) and the seconds it stood still there before it ran on (a stall).
+/// the chasing glove (its position), the seconds it stood still there before it ran on (a stall) and the hop's spring.
 /// </summary>
 public sealed record FirstHopKicked(string SwingId, double T, double X, double Z, string GloveId,
-    double StallSec = 0) : LiveFact;
+    double StallSec = 0, double BounceMul = 1) : LiveFact;
 
 /// <summary>
 /// A star swing's grounder raised a Dust Bowl where it first landed (§13, <see cref="SwingDustBowl"/>): the swing, the landing

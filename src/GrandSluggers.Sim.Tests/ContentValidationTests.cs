@@ -93,12 +93,13 @@ public sealed class ContentValidationTests
     public void RuntimeGameplayIdsRequireCanonicalCase()
     {
         using var fixture = new ContentFixture();
-        fixture.ChangeArray("characters/role-players.json", rows =>
+        // A sidekick names no specials (its species' are its, AB-10), so the captain's row carries the misspelt ids.
+        fixture.ChangeObject("characters/rio.json", json =>
         {
-            rows[0]!["starPitch"] = "FASTBALL";
-            rows[0]!["starSwing"] = "LINE";
+            json["starPitch"] = "FASTBALL";
+            json["starSwing"] = "LINE";
+            json["fieldAbility"] = "SNAP-THROW";
         });
-        fixture.ChangeObject("characters/rio.json", json => json["fieldAbility"] = "SNAP-THROW");
         fixture.ChangeObject("parks/funfair-park.json", json => json["hazards"]![0]!["type"] = "WARP_PIPE");
 
         var errors = ContentDataValidator.Validate(fixture.Root);

@@ -43,6 +43,8 @@ public sealed partial class LivePlaySystem
         var (kx, vy, kz) = ((next.X - now.X) / step, (next.Y - now.Y) / step, (next.Z - now.Z) / step);
         if (kx * kx + kz * kz < 1e-6) return;
         var away = Chaser(now.X, now.Z);
+        // The hop's spring (§13, Star Chopper): the ball leaves the ground this many times as fast upward, its horizontal pace its own.
+        if (swing.FirstHopBounceMul != 1 && vy > 0) vy *= swing.FirstHopBounceMul;
         // The stall (§13): the ball stands on the ground at its hop for the row's seconds — a glove that reaches it may
         // take it there — then runs on from the same spot at the row's share of its speed, on the shared ground physics.
         // The two-second rule holds: a hop that comes late stands only for what is left of the spectacle.
@@ -61,7 +63,7 @@ public sealed partial class LivePlaySystem
         _ballPrev = null;
         Preview = Preview with { LandingX = Ball.LandingX, LandingZ = Ball.LandingZ };
         CoverBallX = Ball.LandingX;
-        RecordFact(new FirstHopKicked(swing.Id, t, now.X, now.Z, away.Pos, Math.Max(0, stall)));
+        RecordFact(new FirstHopKicked(swing.Id, t, now.X, now.Z, away.Pos, Math.Max(0, stall), swing.FirstHopBounceMul));
         Sub = $"{swing.Name}!";
     }
 

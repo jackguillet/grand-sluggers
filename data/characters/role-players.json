@@ -12,8 +12,6 @@
     "bats": "R",
     "throws": "R",
     "repertoire": ["changeup", "curveball"],
-    "starPitch": "fastball",
-    "starSwing": "line",
     "bio": "The other 5-tool kid from the neighborhood field. Came through the portal right behind Rio."
   },
   {
@@ -30,8 +28,6 @@
     "bats": "L",
     "throws": "L",
     "repertoire": ["changeup", "slider"],
-    "starPitch": "changeup",
-    "starSwing": "ground",
     "bio": "Small, fast, lives for close plays."
   },
   {
@@ -47,8 +43,6 @@
     "bats": "R",
     "throws": "R",
     "repertoire": ["curveball", "sinker"],
-    "starPitch": "breaker",
-    "starSwing": "fly",
     "bio": "Reliable everywhere, famous nowhere."
   },
   {
@@ -64,8 +58,6 @@
     "bats": "R",
     "throws": "R",
     "repertoire": ["curveball", "slider"],
-    "starPitch": "breaker",
-    "starSwing": "ground",
     "bio": "Owner of the wickedest curve in the rink."
   },
   {
@@ -81,8 +73,6 @@
     "bats": "L",
     "throws": "R",
     "repertoire": ["changeup", "sinker"],
-    "starPitch": "fastball",
-    "starSwing": "line",
     "bio": "The glove is the whole scouting report."
   },
   {
@@ -98,8 +88,6 @@
     "bats": "L",
     "throws": "R",
     "repertoire": ["changeup", "slider"],
-    "starPitch": "changeup",
-    "starSwing": "ground",
     "bio": "An extra-speedy fairground rat who loves to run."
   },
   {
@@ -115,8 +103,6 @@
     "bats": "R",
     "throws": "R",
     "repertoire": ["slider", "sinker"],
-    "starPitch": "fastball",
-    "starSwing": "fly",
     "bio": "Charge swing first, ask the glove later."
   },
   {
@@ -132,8 +118,6 @@
     "bats": "L",
     "throws": "L",
     "repertoire": ["curveball", "slider"],
-    "starPitch": "breaker",
-    "starSwing": "line",
     "bio": "A mini dynamo who can clamber and field."
   },
   {
@@ -149,8 +133,6 @@
     "bats": "R",
     "throws": "R",
     "repertoire": ["slider", "sinker"],
-    "starPitch": "fastball",
-    "starSwing": "fly",
     "bio": "A mighty charge swing and a worse attitude."
   },
   {
@@ -166,8 +148,6 @@
     "bats": "R",
     "throws": "R",
     "repertoire": ["changeup", "sinker"],
-    "starPitch": "fastball",
-    "starSwing": "line",
     "bio": "Eats innings and glares."
   },
   {
@@ -184,8 +164,6 @@
     "bats": "L",
     "throws": "L",
     "repertoire": ["changeup", "curveball"],
-    "starPitch": "changeup",
-    "starSwing": "ground",
     "bio": "A junkballer who always knows the count."
   },
   {
@@ -202,8 +180,6 @@
     "bats": "R",
     "throws": "L",
     "repertoire": ["curveball", "sinker"],
-    "starPitch": "changeup",
-    "starSwing": "ground",
     "bio": "Disappears into the dirt and comes up with the ball."
   },
   {
@@ -220,8 +196,6 @@
     "bats": "R",
     "throws": "R",
     "repertoire": ["slider", "sinker"],
-    "starPitch": "fastball",
-    "starSwing": "line",
     "bio": "Harbor outfielder who treats the warning track like a runway."
   },
   {
@@ -237,8 +211,6 @@
     "bats": "R",
     "throws": "R",
     "repertoire": ["curveball", "sinker"],
-    "starPitch": "breaker",
-    "starSwing": "ground",
     "bio": "Pageant catcher. The mask is half the intimidation."
   },
   {
@@ -255,8 +227,6 @@
     "bats": "L",
     "throws": "R",
     "repertoire": ["changeup", "curveball"],
-    "starPitch": "changeup",
-    "starSwing": "ground",
     "bio": "Bunts for sport and steals because the crowd asked."
   },
   {
@@ -273,8 +243,6 @@
     "bats": "R",
     "throws": "R",
     "repertoire": ["changeup", "sinker"],
-    "starPitch": "fastball",
-    "starSwing": "fly",
     "bio": "Pays for the long ball. The glove is a sunk cost."
   },
   {
@@ -290,8 +258,6 @@
     "bats": "L",
     "throws": "L",
     "repertoire": ["curveball", "sinker"],
-    "starPitch": "breaker",
-    "starSwing": "fly",
     "bio": "Slow feet, heavy lumber, sleeps in the batter's eye."
   },
   {
@@ -308,8 +274,6 @@
     "bats": "R",
     "throws": "L",
     "repertoire": ["changeup", "sinker"],
-    "starPitch": "changeup",
-    "starSwing": "line",
     "bio": "The Canopy's range glove. Climbs first, throws second."
   },
   {
@@ -326,8 +290,6 @@
     "bats": "R",
     "throws": "R",
     "repertoire": ["sinker", "slider"],
-    "starPitch": "breaker",
-    "starSwing": "ground",
     "bio": "Pitches like the wind off the dunes: hot, dry and late."
   },
   {
@@ -343,8 +305,6 @@
     "bats": "L",
     "throws": "R",
     "repertoire": ["changeup", "curveball"],
-    "starPitch": "changeup",
-    "starSwing": "line",
     "bio": "Rolls into every base. Nobody has seen the brakes."
   },
   {
@@ -360,8 +320,6 @@
     "bats": "R",
     "throws": "R",
     "repertoire": ["curveball", "sinker"],
-    "starPitch": "fastball",
-    "starSwing": "fly",
     "bio": "Built like a canyon wall and about as easy to get past."
   },
   {
@@ -378,8 +336,6 @@
     "bats": "R",
     "throws": "R",
     "repertoire": ["curveball", "slider"],
-    "starPitch": "fastball",
-    "starSwing": "fly",
     "bio": "Strikes sparks off the bat. Strikes out, too."
   },
   {
@@ -395,8 +351,6 @@
     "bats": "R",
     "throws": "R",
     "repertoire": ["sinker", "curveball"],
-    "starPitch": "breaker",
-    "starSwing": "ground",
     "bio": "Stacks outs one on top of the other."
   },
   {
@@ -412,8 +366,6 @@
     "bats": "L",
     "throws": "L",
     "repertoire": ["changeup", "slider"],
-    "starPitch": "changeup",
-    "starSwing": "line",
     "bio": "Comes down the slope at full speed and never slips."
   },
   {
@@ -430,8 +382,6 @@
     "bats": "L",
     "throws": "R",
     "repertoire": ["changeup", "curveball"],
-    "starPitch": "changeup",
-    "starSwing": "line",
     "bio": "Stands still in the reeds until the ball comes. Then it does not."
   },
   {
@@ -447,8 +397,6 @@
     "bats": "R",
     "throws": "R",
     "repertoire": ["sinker", "curveball"],
-    "starPitch": "fastball",
-    "starSwing": "fly",
     "bio": "Heavy, patient and very hard to move off a bag."
   },
   {
@@ -465,8 +413,6 @@
     "bats": "L",
     "throws": "L",
     "repertoire": ["changeup", "slider"],
-    "starPitch": "breaker",
-    "starSwing": "ground",
     "bio": "The smallest hopper. Already the fastest."
   },
   {
@@ -482,8 +428,6 @@
     "bats": "R",
     "throws": "R",
     "repertoire": ["slider", "sinker"],
-    "starPitch": "fastball",
-    "starSwing": "fly",
     "bio": "Hits it far and runs like he means to. Mostly means to."
   },
   {
@@ -499,8 +443,6 @@
     "bats": "L",
     "throws": "R",
     "repertoire": ["slider", "sinker"],
-    "starPitch": "fastball",
-    "starSwing": "fly",
     "bio": "Borrowed the catcher's gear in second grade and never gave it back."
   },
   {
@@ -517,8 +459,6 @@
     "bats": "R",
     "throws": "L",
     "repertoire": ["changeup", "slider"],
-    "starPitch": "changeup",
-    "starSwing": "ground",
     "bio": "Too fast to wait for the bus. Too small to see over the plate."
   },
   {
@@ -534,8 +474,6 @@
     "bats": "R",
     "throws": "R",
     "repertoire": ["changeup", "slider"],
-    "starPitch": "changeup",
-    "starSwing": "ground",
     "bio": "Steals second before the pitcher has a grip."
   },
   {
@@ -551,8 +489,6 @@
     "bats": "L",
     "throws": "R",
     "repertoire": ["slider", "sinker"],
-    "starPitch": "fastball",
-    "starSwing": "fly",
     "bio": "A walram who plants at the plate and does not move."
   },
   {
@@ -569,8 +505,6 @@
     "bats": "R",
     "throws": "R",
     "repertoire": ["slider", "sinker"],
-    "starPitch": "fastball",
-    "starSwing": "fly",
     "bio": "Swings once, hard, and knows the count while doing it."
   },
   {
@@ -587,8 +521,6 @@
     "bats": "R",
     "throws": "R",
     "repertoire": ["changeup", "slider"],
-    "starPitch": "changeup",
-    "starSwing": "ground",
     "bio": "Belly-slides into every bag, whether it needs it or not."
   },
   {
@@ -605,8 +537,6 @@
     "bats": "L",
     "throws": "L",
     "repertoire": ["changeup", "slider"],
-    "starPitch": "changeup",
-    "starSwing": "ground",
     "bio": "A frostling who is already at second."
   },
   {
@@ -623,8 +553,6 @@
     "bats": "R",
     "throws": "R",
     "repertoire": ["changeup", "slider"],
-    "starPitch": "changeup",
-    "starSwing": "ground",
     "bio": "Slides in a spray of snow and grins about it."
   },
   {
@@ -641,8 +569,6 @@
     "bats": "R",
     "throws": "R",
     "repertoire": ["slider", "sinker"],
-    "starPitch": "fastball",
-    "starSwing": "fly",
     "bio": "Juggles three balls in the dugout and hits the fourth."
   },
   {
@@ -659,8 +585,6 @@
     "bats": "L",
     "throws": "R",
     "repertoire": ["slider", "sinker"],
-    "starPitch": "fastball",
-    "starSwing": "fly",
     "bio": "Hums through every at-bat. Pitchers hate it."
   },
   {
@@ -677,8 +601,6 @@
     "bats": "R",
     "throws": "R",
     "repertoire": ["slider", "sinker"],
-    "starPitch": "fastball",
-    "starSwing": "fly",
     "bio": "Chews, swings, repeats."
   },
   {
@@ -695,8 +617,6 @@
     "bats": "R",
     "throws": "L",
     "repertoire": ["changeup", "slider"],
-    "starPitch": "changeup",
-    "starSwing": "ground",
     "bio": "Curls into a ball and rolls into third."
   },
   {
@@ -713,8 +633,6 @@
     "bats": "L",
     "throws": "R",
     "repertoire": ["curveball", "changeup"],
-    "starPitch": "breaker",
-    "starSwing": "line",
     "bio": "Puffs up on every catch and never lets go."
   },
   {
@@ -731,8 +649,6 @@
     "bats": "R",
     "throws": "R",
     "repertoire": ["curveball", "changeup"],
-    "starPitch": "breaker",
-    "starSwing": "line",
     "bio": "The glove spins before the ball arrives."
   },
   {
@@ -748,8 +664,6 @@
     "bats": "R",
     "throws": "R",
     "repertoire": ["slider", "sinker"],
-    "starPitch": "fastball",
-    "starSwing": "fly",
     "bio": "Big arms, torn ear, gold hoop. Hits like a delivery truck."
   },
   {
@@ -766,8 +680,6 @@
     "bats": "L",
     "throws": "R",
     "repertoire": ["changeup", "slider"],
-    "starPitch": "changeup",
-    "starSwing": "ground",
     "bio": "Masks up and takes the extra base."
   },
   {
@@ -783,8 +695,6 @@
     "bats": "R",
     "throws": "L",
     "repertoire": ["changeup", "slider"],
-    "starPitch": "changeup",
-    "starSwing": "ground",
     "bio": "Finds every gap and every coin on the roof."
   },
   {
@@ -800,8 +710,6 @@
     "bats": "R",
     "throws": "R",
     "repertoire": ["changeup", "slider"],
-    "starPitch": "changeup",
-    "starSwing": "ground",
     "bio": "Rolls the lead off first and dares the throw."
   },
   {
@@ -818,8 +726,6 @@
     "bats": "L",
     "throws": "R",
     "repertoire": ["curveball", "changeup"],
-    "starPitch": "breaker",
-    "starSwing": "line",
     "bio": "Sticks to the wall and glows while doing it."
   },
   {
@@ -836,8 +742,6 @@
     "bats": "R",
     "throws": "R",
     "repertoire": ["slider", "sinker"],
-    "starPitch": "fastball",
-    "starSwing": "fly",
     "bio": "Drums the bench and drives the ball."
   },
   {
@@ -853,8 +757,6 @@
     "bats": "R",
     "throws": "R",
     "repertoire": ["slider", "sinker"],
-    "starPitch": "fastball",
-    "starSwing": "fly",
     "bio": "Moss on the shoulders, thunder in the bat."
   },
   {
@@ -871,8 +773,6 @@
     "bats": "L",
     "throws": "L",
     "repertoire": ["changeup", "slider"],
-    "starPitch": "changeup",
-    "starSwing": "ground",
     "bio": "Bright feathers, ringed tail, first to the bag."
   },
   {
@@ -888,8 +788,6 @@
     "bats": "R",
     "throws": "R",
     "repertoire": ["changeup", "slider"],
-    "starPitch": "changeup",
-    "starSwing": "ground",
     "bio": "Swings from the rail in the dugout and from the heels at the plate."
   },
   {
@@ -905,8 +803,6 @@
     "bats": "R",
     "throws": "R",
     "repertoire": ["curveball", "changeup"],
-    "starPitch": "breaker",
-    "starSwing": "line",
     "bio": "A toucanine with a beak built for gloving liners."
   },
   {
@@ -922,8 +818,6 @@
     "bats": "L",
     "throws": "R",
     "repertoire": ["slider", "sinker"],
-    "starPitch": "fastball",
-    "starSwing": "fly",
     "bio": "An ember-shelled bruiser who hits it hot."
   },
   {
@@ -940,8 +834,6 @@
     "bats": "R",
     "throws": "R",
     "repertoire": ["changeup", "slider"],
-    "starPitch": "changeup",
-    "starSwing": "ground",
     "bio": "Tunnels under the tag. Mostly."
   },
   {
@@ -958,8 +850,6 @@
     "bats": "R",
     "throws": "L",
     "repertoire": ["changeup", "slider"],
-    "starPitch": "changeup",
-    "starSwing": "ground",
     "bio": "A coal mole whose nose lights the base path."
   },
   {
@@ -976,8 +866,6 @@
     "bats": "L",
     "throws": "R",
     "repertoire": ["curveball", "changeup"],
-    "starPitch": "breaker",
-    "starSwing": "line",
     "bio": "Ember-tipped wings and an arm to match."
   },
   {
@@ -994,8 +882,6 @@
     "bats": "R",
     "throws": "R",
     "repertoire": ["curveball", "changeup"],
-    "starPitch": "breaker",
-    "starSwing": "line",
     "bio": "Watches from the wall and takes everything hit near it."
   },
   {
@@ -1011,8 +897,6 @@
     "bats": "R",
     "throws": "R",
     "repertoire": ["slider", "sinker"],
-    "starPitch": "fastball",
-    "starSwing": "fly",
     "bio": "Slaps the plate with a flat tail before every swing."
   },
   {
@@ -1028,8 +912,6 @@
     "bats": "L",
     "throws": "R",
     "repertoire": ["slider", "sinker"],
-    "starPitch": "fastball",
-    "starSwing": "fly",
     "bio": "Booming croak, booming bat."
   },
   {
@@ -1046,8 +928,6 @@
     "bats": "R",
     "throws": "L",
     "repertoire": ["changeup", "slider"],
-    "starPitch": "changeup",
-    "starSwing": "ground",
     "bio": "Frills out and flies around the bases."
   },
   {
@@ -1064,8 +944,6 @@
     "bats": "R",
     "throws": "R",
     "repertoire": ["changeup", "slider"],
-    "starPitch": "changeup",
-    "starSwing": "ground",
     "bio": "The smallest axoduck. The fastest, too."
   },
   {
@@ -1082,8 +960,6 @@
     "bats": "L",
     "throws": "R",
     "repertoire": ["curveball", "changeup"],
-    "starPitch": "breaker",
-    "starSwing": "line",
     "bio": "Wades in, long legs, soft hands."
   },
   {
@@ -1099,8 +975,6 @@
     "bats": "R",
     "throws": "R",
     "repertoire": ["slider", "sinker"],
-    "starPitch": "fastball",
-    "starSwing": "fly",
     "bio": "Keeps spare balls in the pouch and hits the one in play."
   },
   {
@@ -1116,8 +990,6 @@
     "bats": "R",
     "throws": "R",
     "repertoire": ["slider", "sinker"],
-    "starPitch": "fastball",
-    "starSwing": "fly",
     "bio": "Hits it like a wave hits the rocks."
   },
   {
@@ -1134,8 +1006,6 @@
     "bats": "L",
     "throws": "L",
     "repertoire": ["slider", "sinker"],
-    "starPitch": "fastball",
-    "starSwing": "fly",
     "bio": "Blows the conch after every homer."
   },
   {
@@ -1151,8 +1021,6 @@
     "bats": "R",
     "throws": "R",
     "repertoire": ["changeup", "slider"],
-    "starPitch": "changeup",
-    "starSwing": "ground",
     "bio": "A crabbit who runs sideways faster than most run forward."
   },
   {
@@ -1168,8 +1036,6 @@
     "bats": "R",
     "throws": "R",
     "repertoire": ["changeup", "slider"],
-    "starPitch": "changeup",
-    "starSwing": "ground",
     "bio": "Swaps shells between innings. Never swaps the glove."
   },
   {
@@ -1185,8 +1051,6 @@
     "bats": "L",
     "throws": "R",
     "repertoire": ["changeup", "slider"],
-    "starPitch": "changeup",
-    "starSwing": "ground",
     "bio": "Slippery on the bases and harder to tag."
   },
   {
@@ -1203,8 +1067,6 @@
     "bats": "R",
     "throws": "R",
     "repertoire": ["curveball", "changeup"],
-    "starPitch": "breaker",
-    "starSwing": "line",
     "bio": "A dolphup with flippers that never drop a throw."
   },
   {
@@ -1221,8 +1083,6 @@
     "bats": "R",
     "throws": "L",
     "repertoire": ["curveball", "changeup"],
-    "starPitch": "breaker",
-    "starSwing": "line",
     "bio": "Happy snout, quick arm, always snacking."
   },
   {
@@ -1238,8 +1098,6 @@
     "bats": "L",
     "throws": "R",
     "repertoire": ["slider", "sinker"],
-    "starPitch": "fastball",
-    "starSwing": "fly",
     "bio": "A bisonhorn who does not know the word 'check swing'."
   },
   {
@@ -1256,8 +1114,6 @@
     "bats": "R",
     "throws": "R",
     "repertoire": ["slider", "sinker"],
-    "starPitch": "fastball",
-    "starSwing": "fly",
     "bio": "Shakes the bat before every pitch."
   },
   {
@@ -1273,8 +1129,6 @@
     "bats": "R",
     "throws": "R",
     "repertoire": ["changeup", "slider"],
-    "starPitch": "changeup",
-    "starSwing": "ground",
     "bio": "Tall ears, small antlers, gone before the dust settles."
   },
   {
@@ -1290,8 +1144,6 @@
     "bats": "L",
     "throws": "R",
     "repertoire": ["changeup", "slider"],
-    "starPitch": "changeup",
-    "starSwing": "ground",
     "bio": "The smallest jackalope, first out of the box."
   },
   {
@@ -1308,8 +1160,6 @@
     "bats": "R",
     "throws": "L",
     "repertoire": ["curveball", "changeup"],
-    "starPitch": "breaker",
-    "starSwing": "line",
     "bio": "Stands tall on watch and reads every hop."
   },
   {
@@ -1325,8 +1175,6 @@
     "bats": "R",
     "throws": "R",
     "repertoire": ["slider", "sinker"],
-    "starPitch": "fastball",
-    "starSwing": "fly",
     "bio": "An ibexbear who rolls downhill and does not stop."
   },
   {
@@ -1342,8 +1190,6 @@
     "bats": "L",
     "throws": "R",
     "repertoire": ["slider", "sinker"],
-    "starPitch": "fastball",
-    "starSwing": "fly",
     "bio": "Swept-back horns and a swing to match."
   },
   {
@@ -1359,8 +1205,6 @@
     "bats": "R",
     "throws": "R",
     "repertoire": ["changeup", "slider"],
-    "starPitch": "changeup",
-    "starSwing": "ground",
     "bio": "A fluffy pikayak who never slips on the bases."
   },
   {
@@ -1376,8 +1220,6 @@
     "bats": "R",
     "throws": "R",
     "repertoire": ["changeup", "slider"],
-    "starPitch": "changeup",
-    "starSwing": "ground",
     "bio": "Runs the ridgeline between bases."
   },
   {
@@ -1394,8 +1236,6 @@
     "bats": "L",
     "throws": "L",
     "repertoire": ["curveball", "changeup"],
-    "starPitch": "breaker",
-    "starSwing": "line",
     "bio": "Folded wings, sharp eye, sure glove."
   }
 ]
