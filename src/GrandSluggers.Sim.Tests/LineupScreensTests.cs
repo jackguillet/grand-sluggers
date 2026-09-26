@@ -28,9 +28,11 @@ public class LineupScreensTests
         Assert.Equal(LineupSeat.Cpu, s.AwaySeat);
         Assert.Null(s.InspectedBy(LineupSeat.Pad2));
         Assert.Null(s.InspectedBy(LineupSeat.Cpu));
-        Assert.True(s.Pool.Count >= 8);
-        Assert.DoesNotContain(s.Pool, c => c.Id.Equals("vale", StringComparison.OrdinalIgnoreCase));
-        Assert.DoesNotContain(s.Pool, c => s.AwaySlots.Any(a => a != null && a.Id == c.Id));
+        // The grid holds everyone; a rostered player keeps its cell and is taken.
+        Assert.Equal(_content.Characters.Count, s.Pool.Count);
+        Assert.True(s.OnHome(_content.Must("vale")));
+        Assert.All(s.AwaySlots, a => Assert.True(s.OnAway(a)));
+        Assert.Equal(s.Pool.Count(c => !s.Taken(c)), _content.Characters.Count - 10);
     }
 
     /// <summary>
@@ -88,7 +90,7 @@ public class LineupScreensTests
     public void CaptainCannotBeDroppedWhenLockCaptain()
     {
         var locked = LineupScreens.Open(_content, "vale", "brondo", lockCaptain: true);
-        locked.Stick(0, 1);
+        locked.FocusCell(LineupSeat.Pad1, LineupFocus.HomeRow, 1);
         Assert.Equal(LineupFocus.HomeRow, locked.Focus);
         // slot 0 is the captain
         while (locked.SlotIndex != 0)
@@ -99,12 +101,12 @@ public class LineupScreensTests
         Assert.False(locked.Drop());
 
         var open = LineupScreens.Open(_content, "vale", "brondo", lockCaptain: false);
-        open.Stick(0, 1);
+        open.FocusCell(LineupSeat.Pad1, LineupFocus.HomeRow, 1);
         while (open.SlotIndex != 0)
             open.Stick(-1, 0);
         Assert.True(open.Remove());
         Assert.Null(open.HomeSlots[0]);
-        Assert.Contains(open.Pool, c => c.Id.Equals("vale", StringComparison.OrdinalIgnoreCase));
+        Assert.False(open.Taken(_content.Must("vale")));
     }
 
     [Fact]
@@ -113,13 +115,19 @@ public class LineupScreensTests
         var s = LineupScreens.Open(_content, "vale", "brondo");
         Assert.Equal(LineupFocus.Pool, s.Focus);
         var pick = s.Pool[s.PoolIndex];
+        var cell = s.PoolIndex;
         Assert.Equal(1, s.SlotIndex);
         Assert.True(s.South());
         Assert.Equal(pick.Id, s.HomeSlots[1]!.Id);
-        Assert.DoesNotContain(s.Pool, c => c.Id.Equals(pick.Id, StringComparison.OrdinalIgnoreCase));
+        // The pick keeps its grid cell, taken; South on it again adds nobody.
+        Assert.Same(pick, s.Pool[cell]);
+        Assert.True(s.Taken(pick));
+        Assert.True(s.FocusCell(LineupSeat.Pad1, LineupFocus.Pool, cell));
+        Assert.False(s.South());
+        Assert.Null(s.HomeSlots[2]);
         Assert.True(s.West());
         Assert.Null(s.HomeSlots[1]);
-        Assert.Contains(s.Pool, c => c.Id.Equals(pick.Id, StringComparison.OrdinalIgnoreCase));
+        Assert.False(s.Taken(pick));
     }
 
     [Fact]
@@ -195,11 +203,11 @@ public class LineupScreensTests
     {
         var s = LineupScreens.Open(_content, "vale", "brondo",
             homeSeat: LineupSeat.Pad1, awaySeat: LineupSeat.Pad2);
-        var homePick = s.Pool[0];
+        var homePick = s.Pool[s.PoolOf(LineupSeat.Pad1)];
         Assert.True(s.South(LineupSeat.Pad1));
         Assert.Equal(homePick.Id, s.HomeSlots[1]!.Id);
         Assert.Null(s.AwaySlots[1]);
-        var awayPick = s.Pool[0];
+        var awayPick = s.Pool[s.PoolOf(LineupSeat.Pad2)];
         Assert.NotEqual(homePick.Id, awayPick.Id);
         Assert.True(s.South(LineupSeat.Pad2));
         Assert.Equal(awayPick.Id, s.AwaySlots[1]!.Id);
@@ -237,22 +245,23 @@ public class LineupScreensTests
         Assert.DoesNotContain(s.AwaySlots, c => c != null && c.Id.Equals("vale", StringComparison.OrdinalIgnoreCase));
     }
 
-    [Theory]
-    [InlineData(7)]
-    [InlineData(15)]
-    [InlineData(23)]
-    public void DraftPortraitsStayBetweenRosterRowsAndClearBothInspectionCards(int poolSize)
+    [Fact]
+    public void DraftPortraitsStayBetweenRosterRowsAndClearBothInspectionCards()
     {
         var roster = Enumerable.Range(0, 9).SelectMany(i => new[] { LineupLayout.HomeSlot(i), LineupLayout.AwaySlot(i) }).ToArray();
-        var pool = Enumerable.Range(0, poolSize).Select(i => LineupLayout.PoolCell(i, poolSize)).ToArray();
+        var pool = Enumerable.Range(0, LineupLayout.PoolVisibleRows)
+            .SelectMany(r => Enumerable.Range(0, LineupLayout.PoolColumns).Select(c => LineupLayout.PoolCell(r, c))).ToArray();
         foreach (var tile in pool)
         {
             foreach (var slot in roster) Assert.False(Overlap(tile, slot));
             Assert.False(Overlap(tile, LineupLayout.CardPanel(true)));
             Assert.False(Overlap(tile, LineupLayout.CardPanel(false)));
+            Assert.False(Overlap(tile, LineupLayout.PoolScroll));
         }
         for (var i = 0; i < pool.Length; i++)
             for (var j = i + 1; j < pool.Length; j++) Assert.False(Overlap(pool[i], pool[j]));
+        Assert.False(Overlap(LineupLayout.PoolScroll, LineupLayout.CardPanel(true)));
+        Assert.False(Overlap(LineupLayout.PoolScroll, LineupLayout.CardPanel(false)));
         foreach (var home in new[] { true, false })
         {
             Assert.False(Overlap(LineupLayout.CardPanel(home), LineupLayout.ContinueButton));
@@ -260,11 +269,125 @@ public class LineupScreensTests
         }
     }
 
+    /// <summary>
+    /// The pool is a crew a row: nine wide, captain first then that crew's eight sidekicks, in captain select order, and every
+    /// character once. Each column sits under its roster slot at the slot's size, and the window's rows fit between the pool
+    /// title (y 283) and the away caption (y 582) on the 1280×800 board.
+    /// </summary>
+    [Fact]
+    public void ThePoolIsAParkCrewARowUnderTheRosterSlots()
+    {
+        var s = LineupScreens.Open(_content, "vale", "brondo");
+        Assert.Equal(_content.Characters.Count, s.Pool.Select(c => c.Id).Distinct(StringComparer.OrdinalIgnoreCase).Count());
+        Assert.Equal(_content.CaptainIds.Count, s.PoolRows);
+        for (var row = 0; row < _content.CaptainIds.Count; row++)
+        {
+            var captain = s.Pool[row * 9];
+            Assert.Equal(_content.CaptainIds[row], captain.Id);
+            Assert.Same(captain, s.CrewCaptainOfRow(row));
+            for (var col = 1; col < 9; col++)
+            {
+                var who = s.Pool[row * 9 + col];
+                Assert.False(who.Captain, who.Id);
+                Assert.Equal(captain.Faction, who.Faction);
+            }
+        }
+        for (var col = 0; col < 9; col++)
+        {
+            var cell = LineupLayout.PoolCell(0, col);
+            Assert.Equal(LineupLayout.HomeSlot(col).X, cell.X, 9);
+            Assert.Equal(LineupLayout.HomeSlot(col).W, cell.W, 9);
+        }
+        var top = LineupLayout.GuiPixel(LineupLayout.PoolCell(0, 0), 1280, 800);
+        var bottom = LineupLayout.GuiPixel(LineupLayout.PoolCell(LineupLayout.PoolVisibleRows - 1, 0), 1280, 800);
+        Assert.True(top.Y >= 283, "the grid runs into the pool title");
+        Assert.True(bottom.Y + bottom.H <= 582, "the grid runs into the away caption");
+        Assert.True(top.H >= 80, "a pool face must read at couch distance");
+    }
+
+    /// <summary>A seat starts on its own captain's crew row, on a sidekick nobody has taken.</summary>
+    [Theory]
+    [InlineData("vale", "brondo")]
+    [InlineData("rio", "ashlord")]
+    [InlineData("fenn", "reed")]
+    public void EachSeatStartsOnItsCaptainsCrew(string home, string away)
+    {
+        var s = LineupScreens.Open(_content, home, away, LineupSeat.Pad1, LineupSeat.Pad2);
+        foreach (var (seat, captain) in new[] { (LineupSeat.Pad1, home), (LineupSeat.Pad2, away) })
+        {
+            var who = s.Pool[s.PoolOf(seat)];
+            Assert.Equal(captain, s.CrewCaptainOfRow(s.PoolRowOf(seat))!.Id);
+            Assert.False(who.Captain);
+            Assert.False(s.Taken(who));
+        }
+        Assert.True(s.PoolRowShown(s.PoolRowOf(LineupSeat.Pad1)));
+    }
+
+    /// <summary>
+    /// The window scrolls the least that keeps the moving seat's cursor on screen: the stick walks every crew row, the top row
+    /// hands off to the home row and the bottom row to the away row (when the seat owns it). In 1v1 the window follows whoever
+    /// moved last, and the other seat's cursor is reported off screen, never lost.
+    /// </summary>
+    [Fact]
+    public void TheWindowFollowsTheSeatThatMoved()
+    {
+        var s = LineupScreens.Open(_content, "rio", "ashlord", LineupSeat.Pad1, LineupSeat.Pad2);
+        var shown = LineupLayout.PoolVisibleRows;
+        while (s.PoolRowOf(LineupSeat.Pad1) > 0) Assert.True(s.Stick(LineupSeat.Pad1, 0, 1));
+        Assert.Equal(0, s.PoolTop);
+        Assert.True(s.Stick(LineupSeat.Pad1, 0, 1));
+        Assert.Equal(LineupFocus.HomeRow, s.FocusOf(LineupSeat.Pad1));
+        Assert.True(s.Stick(LineupSeat.Pad1, 0, -1));
+        Assert.Equal(LineupFocus.Pool, s.FocusOf(LineupSeat.Pad1));
+        for (var row = 1; row < s.PoolRows; row++)
+        {
+            Assert.True(s.Stick(LineupSeat.Pad1, 0, -1));
+            Assert.Equal(row, s.PoolRowOf(LineupSeat.Pad1));
+            Assert.True(s.PoolRowShown(row));
+            Assert.Equal(Math.Max(0, row - shown + 1), s.PoolTop);
+        }
+        Assert.Equal(s.PoolRows - shown, s.PoolTop);
+        // Pad 1 is home: the bottom row does not hand it the away row.
+        Assert.False(s.Stick(LineupSeat.Pad1, 0, -1));
+        Assert.Equal(LineupFocus.Pool, s.FocusOf(LineupSeat.Pad1));
+        // Pad 2 sits on its crew near the top, scrolled away; it moves and the window comes to it.
+        var pad2Row = s.PoolRowOf(LineupSeat.Pad2);
+        Assert.True(pad2Row < s.PoolTop);
+        Assert.False(s.PoolRowShown(pad2Row));
+        Assert.True(s.Stick(LineupSeat.Pad2, 1, 0));
+        Assert.True(s.PoolRowShown(s.PoolRowOf(LineupSeat.Pad2)));
+        Assert.False(s.PoolRowShown(s.PoolRowOf(LineupSeat.Pad1)));
+        // Pad 2 owns the away row: the bottom crew hands it there.
+        while (s.PoolRowOf(LineupSeat.Pad2) < s.PoolRows - 1) Assert.True(s.Stick(LineupSeat.Pad2, 0, -1));
+        Assert.True(s.Stick(LineupSeat.Pad2, 0, -1));
+        Assert.Equal(LineupFocus.AwayRow, s.FocusOf(LineupSeat.Pad2));
+    }
+
+    /// <summary>The grid's words fit (~0.55 em a glyph, as the card and book layout tests measure): every crew tag in its cell's strip, and the pool title and cursor notes on their line.</summary>
+    [Fact]
+    public void ThePoolWordsFitTheirStrips()
+    {
+        var s = LineupScreens.Open(_content, "rio", "ashlord");
+        var cell = LineupLayout.PoolCell(0, 0).W * 1280;
+        foreach (var id in _content.CaptainIds)
+        {
+            var tag = s.CrewTag(_content.Must(id));
+            Assert.False(string.IsNullOrWhiteSpace(tag), id);
+            Assert.True(tag.Length * 12 * .55 <= cell - 4, id + ": " + tag);
+        }
+        foreach (var home in new[] { true, false })
+            Assert.True(CarnivalFront.LineupTakenMark(home).Length * 12 * .55 <= cell - 4);
+        var title = CarnivalFront.LineupPoolTitle(s.PoolRows - LineupLayout.PoolVisibleRows, LineupLayout.PoolVisibleRows, s.PoolRows);
+        Assert.True(title.Length * 13 * .55 <= 700 - 24, title);
+        var notes = CarnivalFront.LineupCursorOffscreen(true, true) + "   " + CarnivalFront.LineupCursorOffscreen(false, false);
+        Assert.True(notes.Length * 13 * .55 <= 200, notes);
+    }
+
     [Fact]
     public void LayoutSeparatesBothBattingBarsDiamondsAndCards()
     {
-        Assert.True(LineupLayout.HomeSlot(0).Y > LineupLayout.PoolCell(0, 12).Y);
-        Assert.True(LineupLayout.PoolCell(0, 12).Y > LineupLayout.AwaySlot(0).Y);
+        Assert.True(LineupLayout.HomeSlot(0).Y > LineupLayout.PoolCell(0, 0).Y);
+        Assert.True(LineupLayout.PoolCell(LineupLayout.PoolVisibleRows - 1, 0).Y > LineupLayout.AwaySlot(0).Y);
         Assert.True(LineupLayout.HomeDiamondPanel.CX < LineupLayout.AwayDiamondPanel.CX);
         Assert.Equal(LineupLayout.HomeOrder(0).Y, LineupLayout.HomeOrder(8).Y);
         Assert.True(LineupLayout.HomeOrder(0).X < LineupLayout.HomeOrder(8).X);
@@ -329,7 +452,7 @@ public class LineupScreensTests
     [Fact]
     public void NameLabelIsPaddedSoJesterDoesNotClip()
     {
-        var cell = LineupLayout.PoolCell(0, 12);
+        var cell = LineupLayout.PoolCell(0, 0);
         var name = LineupLayout.NameRect(cell);
         Assert.True(name.X > cell.X);
         Assert.True(name.X - cell.X >= cell.W * LineupLayout.LabelPadX - 1e-6);
@@ -403,8 +526,8 @@ public class LineupScreensTests
     {
         var s = LineupScreens.Open(_content, "vale", "brondo");
         Assert.Equal(ChemistryToy.None, s.ChemSticker(s.HomeCaptain));
-        var buddy = s.Pool.First(c => _content.Chemistry.Between("vale", c.Id) == Chemistry.Good);
-        var rival = s.Pool.First(c => _content.Chemistry.Between("vale", c.Id) == Chemistry.Bad);
+        var buddy = s.Pool.First(c => !s.Taken(c) && _content.Chemistry.Between("vale", c.Id) == Chemistry.Good);
+        var rival = s.Pool.First(c => !s.Taken(c) && _content.Chemistry.Between("vale", c.Id) == Chemistry.Bad);
         Assert.Equal(ChemistryToy.Heart, s.ChemSticker(buddy));
         Assert.Equal(ChemistryToy.Scribble, s.ChemSticker(rival));
         s.RandomFill();

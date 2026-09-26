@@ -15,10 +15,10 @@ namespace GrandSluggers.UnityClient
         static readonly Color Muted = FrontBoardStyle.Muted;
         static readonly Color Gold = FrontBoardStyle.Gold;
 
-        static LineupCell Cell(LineupFocus f, int i, int count) => f switch
+        static LineupCell Cell(LineupScreens lineup, LineupFocus f, int i) => f switch
         {
             LineupFocus.HomeRow => LineupLayout.HomeSlot(i), LineupFocus.AwayRow => LineupLayout.AwaySlot(i),
-            LineupFocus.Pool => LineupLayout.PoolCell(i, count),
+            LineupFocus.Pool => LineupLayout.PoolCell(i / LineupLayout.PoolColumns - lineup.PoolTop, i % LineupLayout.PoolColumns),
             LineupFocus.HomeOrder => LineupLayout.HomeOrder(i), LineupFocus.AwayOrder => LineupLayout.AwayOrder(i),
             _ => LineupLayout.DiamondHead(f == LineupFocus.HomeDiamond, Diamond.Order[i])
         };
@@ -41,8 +41,9 @@ namespace GrandSluggers.UnityClient
             {
                 TeamLabel(lineup, true, 137);
                 DrawCells(lineup, LineupFocus.HomeRow, 9, p1, p2);
-                Label(24, 263, 880, 20, CarnivalFront.LineupPoolTitle, _small);
+                Label(24, 263, 880, 20, CarnivalFront.LineupPoolTitle(lineup.PoolTop, LineupLayout.PoolVisibleRows, lineup.PoolRows), _small);
                 DrawCells(lineup, LineupFocus.Pool, lineup.Pool.Count, p1, p2);
+                PoolScroll(lineup);
                 TeamLabel(lineup, false, 582);
                 DrawCells(lineup, LineupFocus.AwayRow, 9, p1, p2);
             }
@@ -95,9 +96,16 @@ namespace GrandSluggers.UnityClient
 
         static void DrawCells(LineupScreens lineup, LineupFocus focus, int count, Character p1, Character p2)
         {
-            for (var i = 0; i < count; i++)
+            var first = 0;
+            if (focus == LineupFocus.Pool)
             {
-                var c = Cell(focus, i, count);
+                // Only the window's rows draw; the grid keeps every cell in place, so a crew row never reflows.
+                first = lineup.PoolTop * LineupLayout.PoolColumns;
+                count = Math.Min(count, first + LineupLayout.PoolVisibleRows * LineupLayout.PoolColumns);
+            }
+            for (var i = first; i < count; i++)
+            {
+                var c = Cell(lineup, focus, i);
                 var who = lineup.CharacterAt(focus, i);
                 var one = lineup.FocusOf(LineupSeat.Pad1) == focus && lineup.IndexOf(LineupSeat.Pad1) == i;
                 var two = (lineup.HomeSeat == LineupSeat.Pad2 || lineup.AwaySeat == LineupSeat.Pad2)
@@ -118,10 +126,20 @@ namespace GrandSluggers.UnityClient
                 if (on) Fill(r, FrontBoardStyle.Raised);
                 if (one || picked) Border(r, picked ? Color.white : Gold, picked ? 4 : 3);
                 if (two) Border(new Rect(r.x + (one ? 4 : 0), r.y + (one ? 4 : 0), r.width - (one ? 8 : 0), r.height - (one ? 8 : 0)), FrontBoardStyle.Blue, 3);
+                var pool = focus == LineupFocus.Pool;
+                var takenHome = pool && lineup.OnHome(who);
+                var taken = pool && (takenHome || lineup.OnAway(who));
                 var mark = picked ? CarnivalFront.Picked : order ? (i + 1).ToString("00") : field ? Diamond.Order[i]
-                    : focus == LineupFocus.Pool ? LineupLayout.TeamMark(who) : (i + 1).ToString("00") + (who?.Captain == true ? CarnivalFront.CaptainMark : "");
+                    : pool ? (who?.Captain == true ? lineup.CrewTag(who) : taken ? CarnivalFront.LineupTakenMark(takenHome) : "")
+                    : (i + 1).ToString("00") + (who?.Captain == true ? CarnivalFront.CaptainMark : "");
+                if (pool && who?.Captain == true) Fill(new Rect(r.x, r.y, r.width, 16), FrontBoardStyle.Raised);
                 Label(r.x, r.y + 1, r.width, 16, mark, _mark);
+                // A taken cell keeps its place, dimmed, with its side's colour under the name.
+                var tint = GUI.color;
+                if (taken) GUI.color = new Color(1, 1, 1, .35f);
                 Portrait(who, new Rect(r.x + 6, r.y + 15, r.width - 12, r.height - 37));
+                GUI.color = tint;
+                if (taken) Fill(new Rect(r.x, r.yMax - 22, r.width, 22), FrontBoardStyle.Seat(takenHome ? lineup.HomeSeat : lineup.AwaySeat) * new Color(1, 1, 1, .45f));
                 if (who == null) Label(r.x, r.y + 14, r.width, r.height - 35, "+", _mark);
                 Label(r.x + 2, r.yMax - 22, r.width - 4, 22, who?.Name ?? CarnivalFront.OpenSlot, field ? _fieldName : _mark);
                 if (one || two)
@@ -131,6 +149,29 @@ namespace GrandSluggers.UnityClient
                     Label(badge.x, badge.y, badge.width, badge.height, CarnivalFront.SeatBadge(one, two), _mark);
                 }
             }
+        }
+
+        // The scroll bar: the window's share of the crew rows, and a tick on each human seat's cursor row. A seat whose cursor
+        // is scrolled out of view gets a word at the title's end saying which way to look.
+        static void PoolScroll(LineupScreens lineup)
+        {
+            var track = RectOf(LineupLayout.PoolScroll);
+            var rows = Mathf.Max(1, lineup.PoolRows);
+            Fill(track, FrontBoardStyle.Panel);
+            var shown = Mathf.Min(rows, LineupLayout.PoolVisibleRows);
+            Fill(new Rect(track.x, track.y + track.height * lineup.PoolTop / rows, track.width, track.height * shown / rows), FrontBoardStyle.Raised);
+            var note = "";
+            foreach (var seat in new[] { LineupSeat.Pad1, LineupSeat.Pad2 })
+            {
+                if (seat != lineup.HomeSeat && seat != lineup.AwaySeat) continue;
+                if (lineup.FocusOf(seat) != LineupFocus.Pool) continue;
+                var row = lineup.PoolRowOf(seat);
+                var colour = seat == LineupSeat.Pad1 ? Gold : FrontBoardStyle.Blue;
+                Fill(new Rect(track.x - 2, track.y + track.height * (row + .5f) / rows - 2, track.width + 4, 4), colour);
+                if (!lineup.PoolRowShown(row))
+                    note += (note.Length > 0 ? "   " : "") + CarnivalFront.LineupCursorOffscreen(seat == LineupSeat.Pad1, row < lineup.PoolTop);
+            }
+            if (note.Length > 0) Label(700, 263, 200, 20, note, _small);
         }
 
         static void PlayerCard(LineupScreens lineup, bool home, Character who)

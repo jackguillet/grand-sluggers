@@ -35,6 +35,7 @@ public sealed class LineupScreens
     public const int Size = TeamBuilder.Size;
 
     readonly ContentCatalog _content;
+    readonly IReadOnlyList<Character> _grid;
     readonly Character?[] _home = new Character?[Size];
     readonly Character?[] _away = new Character?[Size];
     readonly SeatCursor _pad1 = new();
@@ -50,6 +51,7 @@ public sealed class LineupScreens
         bool lockCaptain)
     {
         _content = content;
+        _grid = CrewGrid(content);
         HomeCaptain = homeCaptain;
         AwayCaptain = awayCaptain;
         HomeSeat = homeSeat;
@@ -82,8 +84,11 @@ public sealed class LineupScreens
             screens.FillRow(screens._away, awayCap, exclude: [homeCap.Id]);
         screens._pad1.Focus = LineupFocus.Pool;
         screens._pad1.SlotIndex = FirstEmpty(homeSeat == LineupSeat.Pad1 ? screens._home : screens._away);
+        screens._pad1.PoolIndex = screens.StartCell(homeSeat == LineupSeat.Pad2 ? awayCap : homeCap);
         screens._pad2.Focus = LineupFocus.Pool;
         screens._pad2.SlotIndex = FirstEmpty(homeSeat == LineupSeat.Pad2 ? screens._home : screens._away);
+        screens._pad2.PoolIndex = screens.StartCell(homeSeat == LineupSeat.Pad2 ? homeCap : awayCap);
+        screens.Follow(LineupSeat.Pad1);
         return screens;
     }
 
@@ -108,22 +113,52 @@ public sealed class LineupScreens
     public bool Ready => HomeFull && AwayFull;
     public bool CanPlay => Step != LineupStep.TeamSetup && Home != null && Away != null;
 
-    public IReadOnlyList<Character> Pool
+    /// <summary>
+    /// The draft grid: every character, one park crew a row (captain first, then that crew's sidekicks), in captain select
+    /// order. It never reflows: a picked character keeps its cell and is <see cref="Taken"/>.
+    /// </summary>
+    public IReadOnlyList<Character> Pool => _grid;
+
+    /// <summary>The grid for a catalog: nine a row, a crew a row; anyone without a captain's crew trails after.</summary>
+    public static IReadOnlyList<Character> CrewGrid(ContentCatalog content)
     {
-        get
+        var grid = new List<Character>();
+        var placed = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var id in content.CaptainIds)
         {
-            var blocked = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            foreach (var c in _home)
-                if (c != null) blocked.Add(c.Id);
-            foreach (var c in _away)
-                if (c != null) blocked.Add(c.Id);
-            return _content.Characters.Values
-                .Where(c => !blocked.Contains(c.Id))
-                .OrderByDescending(c => c.Captain)
-                .ThenBy(c => c.Faction, StringComparer.OrdinalIgnoreCase)
-                .ThenBy(c => c.Name, StringComparer.OrdinalIgnoreCase)
-                .ToList();
+            var captain = content.Must(id);
+            grid.Add(captain);
+            placed.Add(captain.Id);
+            foreach (var c in content.Characters.Values
+                .Where(c => !c.Captain && c.Faction.Equals(captain.Faction, StringComparison.OrdinalIgnoreCase))
+                .OrderBy(c => c.Species, StringComparer.OrdinalIgnoreCase)
+                .ThenBy(c => c.Name, StringComparer.OrdinalIgnoreCase))
+                if (placed.Add(c.Id)) grid.Add(c);
         }
+        grid.AddRange(content.Characters.Values.Where(c => !placed.Contains(c.Id))
+            .OrderBy(c => c.Faction, StringComparer.OrdinalIgnoreCase)
+            .ThenBy(c => c.Name, StringComparer.OrdinalIgnoreCase));
+        return grid;
+    }
+
+    /// <summary>On either roster; its grid cell stays put and cannot be added again.</summary>
+    public bool Taken(Character? who) => OnRow(_home, who) || OnRow(_away, who);
+    public bool OnHome(Character? who) => OnRow(_home, who);
+    public bool OnAway(Character? who) => OnRow(_away, who);
+    static bool OnRow(Character?[] row, Character? who) =>
+        who != null && row.Any(c => c != null && c.Id.Equals(who.Id, StringComparison.OrdinalIgnoreCase));
+
+    /// <summary>The first grid row on screen. It follows the seat that moved last (<see cref="LineupLayout.PoolVisibleRows"/>).</summary>
+    public int PoolTop { get; private set; }
+    public int PoolRows => Math.Max(1, (_grid.Count + LineupLayout.PoolColumns - 1) / LineupLayout.PoolColumns);
+    public int PoolRowOf(LineupSeat seat) => Math.Clamp(Cur(seat).PoolIndex, 0, Math.Max(0, _grid.Count - 1)) / LineupLayout.PoolColumns;
+    public bool PoolRowShown(int row) => row >= PoolTop && row < PoolTop + LineupLayout.PoolVisibleRows;
+
+    /// <summary>The captain whose crew fills a grid row, or null past the crews.</summary>
+    public Character? CrewCaptainOfRow(int row)
+    {
+        var i = row * LineupLayout.PoolColumns;
+        return i >= 0 && i < _grid.Count && _grid[i].Captain ? _grid[i] : null;
     }
 
     /// <summary>The Stars each side starts with: the one reserve for both teams, whatever the draft (§12, PH-16-R16).</summary>
@@ -162,8 +197,7 @@ public sealed class LineupScreens
         if (index < 0) return null;
         if (focus == LineupFocus.Pool)
         {
-            var pool = Pool;
-            return Step == LineupStep.TeamSetup && index < pool.Count ? pool[index] : null;
+            return Step == LineupStep.TeamSetup && index < _grid.Count ? _grid[index] : null;
         }
         if (index >= Size) return null;
         if (focus == LineupFocus.HomeRow) return _home[index];
@@ -195,7 +229,7 @@ public sealed class LineupScreens
         if (index >= (focus == LineupFocus.Pool ? Pool.Count : Size)) return false;
         _acting = seat;
         Active.Focus = focus;
-        if (focus == LineupFocus.Pool) Active.PoolIndex = index;
+        if (focus == LineupFocus.Pool) { Active.PoolIndex = index; Follow(seat); }
         else if (focus is LineupFocus.HomeRow or LineupFocus.AwayRow) Active.SlotIndex = index;
         else if (focus is LineupFocus.HomeOrder or LineupFocus.AwayOrder) Active.OrderIndex = index;
         else Active.GloveIndex = index;
@@ -204,6 +238,9 @@ public sealed class LineupScreens
 
     public bool Buddies(Character? inspected, Character? other) => inspected != null && other != null
         && inspected.Id != other.Id && _content.Chemistry.Between(inspected, other) == Chemistry.Good;
+
+    /// <summary>The tag over a crew row's captain cell in the grid.</summary>
+    public string CrewTag(Character captain) => CarnivalFront.LineupCrewTag(_content, captain);
 
     /// <summary>The inspection card's crew badges for a player (WD-28).</summary>
     public string CrewLine(Character who) => CarnivalFront.LineupCrewLine(_content, who);
@@ -334,8 +371,9 @@ public sealed class LineupScreens
             c.Focus = Step == LineupStep.TeamSetup ? LineupFocus.Pool
                 : ownsHome ? LineupFocus.HomeOrder : LineupFocus.AwayOrder;
             c.SlotIndex = FirstEmpty(ownsHome ? _home : _away);
-            c.PoolIndex = Math.Clamp(c.PoolIndex, 0, Math.Max(0, Pool.Count - 1));
+            c.PoolIndex = Math.Clamp(c.PoolIndex, 0, Math.Max(0, _grid.Count - 1));
         }
+        Follow(LineupSeat.Pad1);
     }
 
     void UpdateSide(Character?[] row, Character captain, LineupSeat previous, LineupSeat next)
@@ -402,11 +440,10 @@ public sealed class LineupScreens
         if (row == null) return false;
         var i = Math.Clamp(SlotIndex, 0, Size - 1);
         if (row[i] != null) return false;
-        var pool = Pool;
-        if (pool.Count == 0) return false;
-        var who = pool[Math.Clamp(PoolIndex, 0, pool.Count - 1)];
+        if (_grid.Count == 0) return false;
+        var who = _grid[Math.Clamp(PoolIndex, 0, _grid.Count - 1)];
+        if (Taken(who)) return false;
         row[i] = who;
-        ClampPool();
         SlotIndex = FirstEmpty(row);
         return true;
     }
@@ -452,7 +489,6 @@ public sealed class LineupScreens
         var exclude = Occupied().Where(id => !id.Equals(cap.Id, StringComparison.OrdinalIgnoreCase));
         FillRow(row, cap, exclude);
         SlotIndex = FirstEmpty(row);
-        ClampPool();
         return Full(row);
     }
 
@@ -583,14 +619,16 @@ public sealed class LineupScreens
                 Focus = LineupFocus.HomeRow;
                 return true;
             }
-            if (dy < 0 && PoolRow() >= PoolRows() - 1)
+            if (dy < 0 && PoolRow() >= PoolRows - 1)
             {
                 if (!SeatOwns(seat, LineupFocus.AwayRow)) return false;
                 Focus = LineupFocus.AwayRow;
                 SlotIndex = Math.Clamp(SlotIndex, 0, Size - 1);
                 return true;
             }
-            return MovePool(dx, -dy);
+            var moved = MovePool(dx, -dy);
+            Follow(seat);
+            return moved;
         }
 
         if (dx != 0)
@@ -602,11 +640,13 @@ public sealed class LineupScreens
         if (Focus == LineupFocus.HomeRow && dy < 0)
         {
             Focus = LineupFocus.Pool;
+            Follow(seat);
             return true;
         }
         if (Focus == LineupFocus.AwayRow && dy > 0)
         {
             Focus = LineupFocus.Pool;
+            Follow(seat);
             return true;
         }
         return false;
@@ -639,31 +679,38 @@ public sealed class LineupScreens
 
     bool MovePool(int dx, int dy)
     {
-        var pool = Pool;
-        if (pool.Count == 0) return false;
+        if (_grid.Count == 0) return false;
         var cols = LineupLayout.PoolColumns;
-        var i = Math.Clamp(PoolIndex, 0, pool.Count - 1);
-        var col = i % cols;
-        var row = i / cols;
-        col = Math.Clamp(col + dx, 0, cols - 1);
-        row = Math.Clamp(row + dy, 0, Math.Max(0, (pool.Count - 1) / cols));
-        var next = Math.Min(row * cols + col, pool.Count - 1);
+        var i = Math.Clamp(PoolIndex, 0, _grid.Count - 1);
+        var col = Math.Clamp(i % cols + dx, 0, cols - 1);
+        var row = Math.Clamp(i / cols + dy, 0, PoolRows - 1);
+        var next = Math.Min(row * cols + col, _grid.Count - 1);
         if (next == PoolIndex) return false;
         PoolIndex = next;
         return true;
     }
 
-    int PoolRow()
+    int PoolRow() => _grid.Count == 0 ? 0 : Math.Clamp(PoolIndex, 0, _grid.Count - 1) / LineupLayout.PoolColumns;
+
+    /// <summary>Scroll the least that shows this seat's pool cursor.</summary>
+    void Follow(LineupSeat seat)
     {
-        var pool = Pool;
-        if (pool.Count == 0) return 0;
-        return Math.Clamp(PoolIndex, 0, pool.Count - 1) / LineupLayout.PoolColumns;
+        if (seat == LineupSeat.Cpu || Cur(seat).Focus != LineupFocus.Pool) return;
+        var row = PoolRowOf(seat);
+        var shown = LineupLayout.PoolVisibleRows;
+        if (row < PoolTop) PoolTop = row;
+        else if (row >= PoolTop + shown) PoolTop = row - shown + 1;
+        PoolTop = Math.Clamp(PoolTop, 0, Math.Max(0, PoolRows - shown));
     }
 
-    int PoolRows()
+    /// <summary>A seat starts on its captain's crew row, on the first sidekick nobody has taken.</summary>
+    int StartCell(Character captain)
     {
-        var n = Math.Max(1, Pool.Count);
-        return Math.Max(1, (n + LineupLayout.PoolColumns - 1) / LineupLayout.PoolColumns);
+        var start = Math.Max(0, _grid.ToList().FindIndex(c => c.Id.Equals(captain.Id, StringComparison.OrdinalIgnoreCase)));
+        var end = Math.Min(_grid.Count, start - start % LineupLayout.PoolColumns + LineupLayout.PoolColumns);
+        for (var i = start; i < end; i++)
+            if (!Taken(_grid[i])) return i;
+        return start;
     }
 
     int NeighborGlove(int dx, int dy) => LineupLayout.NeighborPosition(GloveIndex, dx, dy);
@@ -769,12 +816,6 @@ public sealed class LineupScreens
         }
     }
 
-    void ClampPool()
-    {
-        var n = Pool.Count;
-        PoolIndex = n == 0 ? 0 : Math.Clamp(PoolIndex, 0, n - 1);
-    }
-
     static bool Full(Character?[] row) => row.All(c => c != null);
 
     static List<Character> Filled(Character?[] row)
@@ -805,7 +846,9 @@ public sealed class LineupScreens
 public static class LineupLayout
 {
     public const int Size = TeamBuilder.Size;
-    public const int PoolColumns = 6;
+    /// <summary>Nine a row: one park crew, and each column under the roster slot above it.</summary>
+    public const int PoolColumns = Size;
+    public const int PoolVisibleRows = 3;
     public const double LabelPadX = 0.12;
     public const double CouchW = 1280;
     public const double CouchH = 800;
@@ -827,18 +870,15 @@ public static class LineupLayout
     public static LineupCell FillButton => Pixels(200, 716, 168, 48);
     public static LineupCell Pixels(double x, double y, double w, double h) => new(x / CouchW, 1 - (y + h) / CouchH, w / CouchW, h / CouchH);
 
-    public static LineupCell PoolCell(int index, int count)
-    {
-        var cols = PoolColumns;
-        var n = Math.Max(1, count);
-        var rows = Math.Max(3, (n + cols - 1) / cols);
-        var col = index % cols;
-        var row = index / cols;
-        const double left = 0.01875, width = 0.69, top = 0.655, height = 0.3725;
-        var w = width / cols;
-        var h = height / rows;
-        return new LineupCell(left + col * w + w * 0.04, top - (row + 1) * h + h * 0.08, w * 0.90, h * 0.84);
-    }
+    /// <summary>The pool band between the home and away rows, in board pixels (top, height); the title sits above it.</summary>
+    public const double PoolTopPx = 286, PoolRowPitchPx = 90, PoolCellHPx = 84;
+
+    /// <summary>A grid cell on screen: <paramref name="row"/> is its row in the window (0 = <see cref="LineupScreens.PoolTop"/>).
+    /// A column shares its roster slot's x and width.</summary>
+    public static LineupCell PoolCell(int row, int col) => Pixels(24 + col * 98, PoolTopPx + row * PoolRowPitchPx, 90, PoolCellHPx);
+
+    /// <summary>The scroll bar right of the grid: the window's place in the ten crew rows and each seat's cursor row.</summary>
+    public static LineupCell PoolScroll => Pixels(904, PoolTopPx, 10, (PoolVisibleRows - 1) * PoolRowPitchPx + PoolCellHPx);
 
     // Schematic board positions, shared by drawing, hit testing and spatial navigation.
     // Origin top-left. Catcher behind home, pitcher inside the bags, middle infield behind second.
