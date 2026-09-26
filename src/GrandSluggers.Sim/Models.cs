@@ -643,7 +643,9 @@ public sealed record AtBatResult(
     /// How much farther this ball carries from its apex (§6, §13): 1 for every ball but a star swing whose row names
     /// <c>apexCarryMul</c>. Every flight of it reads the tag, so the preview, the landing and the live ball agree.
     /// </summary>
-    double ApexCarryMul = 1);
+    double ApexCarryMul = 1,
+    /// <summary>The jagged flight this ball flies (§13): null for every ball but a star swing whose row names <c>jag</c>.</summary>
+    BallJag? Jag = null);
 
 /// <summary>
 /// One pitch (spec §4.1 – §4.3). <paramref name="Type"/> is the <b>family id</b> from the shared
