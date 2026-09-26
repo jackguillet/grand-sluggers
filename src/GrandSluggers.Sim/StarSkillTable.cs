@@ -15,7 +15,46 @@ public sealed record StarPitchSkill(
     /// <summary>A path that floats high early and drops onto the unchanged crossing late, or null (§13).</summary>
     PitchFloat? Float = null,
     /// <summary>A pace that hangs the ball over one stretch of its path and leaps it to the plate on time, or null (§13).</summary>
-    PitchLeap? Leap = null);
+    PitchLeap? Leap = null,
+    /// <summary>A path that swings in on one pendulum arc from a pivot above the ball onto the unchanged crossing, or null (§13).</summary>
+    PitchPendulum? Pendulum = null);
+
+/// <summary>
+/// A star pitch's pendulum (spec §13): the ball hangs on a vine <see cref="LengthFt"/> long from a pivot that rides
+/// <see cref="LengthFt"/> above the ordinary ball. The vine swings out from straight down to <see cref="SwingDeg"/> by
+/// <see cref="WidestAt"/> of the flight, then swings back in on one pendulum arc to straight down at the plate. Every point
+/// of the flight is on the circle about the pivot, so the ball is always exactly <see cref="LengthFt"/> from it; at the plate
+/// the vine hangs straight and the ball is on the ordinary crossing at the ordinary instant, so the umpire, the bat and the
+/// CPU read the ordinary pitch.
+/// </summary>
+public sealed record PitchPendulum(double LengthFt, double SwingDeg, double WidestAt)
+{
+    /// <summary>The longest vine a row may name: a swing into the zone, not across the infield.</summary>
+    public const double MaxLengthFt = 12;
+
+    /// <summary>The widest swing a row may name, from straight down: the ball never swings above the pivot.</summary>
+    public const double MaxSwingDeg = 80;
+
+    /// <summary>The vine's angle from straight down at <paramref name="u"/>, in degrees: out along a quarter sine, in along a pendulum's quarter swing, exactly 0 at the plate.</summary>
+    public double AngleDeg(double u)
+    {
+        u = Math.Clamp(u, 0, 1);
+        if (u >= 1) return 0;
+        if (u <= WidestAt) return SwingDeg * Math.Sin(Math.PI / 2 * u / WidestAt);
+        return SwingDeg * Math.Cos(Math.PI / 2 * (u - WidestAt) / (1 - WidestAt));
+    }
+
+    /// <summary>
+    /// The ball's offset from the ordinary path at <paramref name="u"/>, in world feet: sideways toward <paramref name="side"/>
+    /// (+1 or −1 in X) and up, both exactly 0 at the plate.
+    /// </summary>
+    public (double X, double Y) Offset(double u, double side)
+    {
+        var a = AngleDeg(u) * Math.PI / 180;
+        if (a == 0) return (0, 0);
+        return (side * LengthFt * Math.Sin(a), LengthFt * (1 - Math.Cos(a)));
+    }
+}
 
 /// <summary>
 /// A star pitch's leap (spec §13): from <see cref="At"/> of the flight the ball crawls at <see cref="HoldPace"/> of its pace for
@@ -80,7 +119,6 @@ public sealed record StarSwingSkill(
     double FielderPauseSec,
     bool InfieldChaos,
     bool Decoy,
-    bool Fragments,
     /// <summary>
     /// A fair ball off this swing turns this many degrees at its first hop, away from the fielder chasing it (§13); 0 is none.
     /// </summary>
@@ -88,7 +126,9 @@ public sealed record StarSwingSkill(
     /// <summary>How strongly the park's wind acts on this swing's ball (§13, <see cref="AtBatResult.WindMul"/>); 1 is the ordinary ball.</summary>
     double WindMul = 1,
     /// <summary>A fair ball off this swing leaves its first hop this many times as fast upward (§13); 1 is the ordinary hop.</summary>
-    double FirstHopBounceMul = 1)
+    double FirstHopBounceMul = 1,
+    /// <summary>A ball off this swing that jags sideways twice in the air and lands where the straight ball would, or null (§13).</summary>
+    BallJag? Jag = null)
 {
     /// <summary>The highest first-hop bounce a row may name: a chopper, not a moon shot.</summary>
     public const double MaxBounceMul = 3;
@@ -101,6 +141,77 @@ public sealed record StarSwingSkill(
 
     /// <summary>The largest kick a row may name: a hop, not a U-turn.</summary>
     public const double MaxKickDeg = 45;
+}
+
+/// <summary>
+/// A star swing's jagged flight (spec §13): the batted ball jags sideways <see cref="OffsetFt"/> at <see cref="FirstAt"/> of its
+/// jag window, runs on beside its line, and jags back onto the line at <see cref="SecondAt"/>; each jag takes
+/// <see cref="Span"/> of the window. The window is the ball's air time to its first landing (the ground, the wall, the fence or
+/// the stands) and never longer than <see cref="WithinSec"/>, so the ball is back on its line before it lands: the landing, the
+/// fair / foul verdict and the fence are the straight ball's. The jagged ball is the real ball — the gloves, the CPU's read and
+/// the drawn ball all take its position from the one path.
+/// </summary>
+public sealed record BallJag(double OffsetFt, double FirstAt, double SecondAt, double Span)
+{
+    /// <summary>The largest jag a row may name.</summary>
+    public const double MaxOffsetFt = 3;
+
+    /// <summary>Every bend ends within two seconds of contact (§13).</summary>
+    public const double WithinSec = 2;
+
+    /// <summary>How far the ball is off its line at <paramref name="s"/> of the jag window: out, beside, back, 0 outside it.</summary>
+    public double OffFt(double s)
+    {
+        if (s <= FirstAt || s >= SecondAt + Span) return 0;
+        if (s < FirstAt + Span) return OffsetFt * (s - FirstAt) / Span;
+        if (s <= SecondAt) return OffsetFt;
+        return OffsetFt * (1 - (s - SecondAt) / Span);
+    }
+
+    /// <summary>
+    /// The jag window for a path: the time of its first landing mark, capped at <see cref="WithinSec"/>; 0 when the path
+    /// has none.
+    /// </summary>
+    public static double WindowSec(IReadOnlyList<Sample> samples)
+    {
+        var i = BallFlight.LandingIndex(samples);
+        var land = i < 0 ? (samples.Count > 0 ? samples[^1].T : 0) : samples[i].T;
+        return Math.Min(land, WithinSec);
+    }
+
+    /// <summary>
+    /// The side the ball jags to, as a unit vector in (X, Z): square to its line from contact to its landing mark, toward the
+    /// middle of the field, so the jag never carries a fair ball over a foul line. A ball straight up the middle jags to −X.
+    /// </summary>
+    public static (double X, double Z) Side(IReadOnlyList<Sample> samples)
+    {
+        if (samples.Count == 0) return (0, 0);
+        var i = BallFlight.LandingIndex(samples);
+        var end = i < 0 ? samples[^1] : samples[i];
+        var (dx, dz) = (end.X - samples[0].X, end.Z - samples[0].Z);
+        var len = Math.Sqrt(dx * dx + dz * dz);
+        if (len < 1e-9) return (0, 0);
+        var (nx, nz) = (-dz / len, dx / len);
+        return nx * dx <= 0 ? (nx, nz) : (-nx, -nz);
+    }
+
+    /// <summary>The path with the jags laid on it: every sample before the window's end moved sideways, every one after it untouched.</summary>
+    public IReadOnlyList<Sample> Apply(IReadOnlyList<Sample> samples)
+    {
+        var w = WindowSec(samples);
+        if (w <= 0) return samples;
+        var (sx, sz) = Side(samples);
+        if (sx == 0 && sz == 0) return samples;
+        var list = new List<Sample>(samples.Count);
+        foreach (var s in samples)
+        {
+            var off = s.T < w ? OffFt(s.T / w) : 0;
+            if (off == 0) { list.Add(s); continue; }
+            var (x, z) = (s.X + sx * off, s.Z + sz * off);
+            list.Add(s with { X = x, Z = z, Dist = Math.Sqrt(x * x + z * z) });
+        }
+        return list;
+    }
 }
 
 /// <summary>
@@ -174,6 +285,10 @@ public static class StarSkills
     /// <summary>How strongly the park's wind acts on a star swing's ball (§13); 1 for a swing whose row names none.</summary>
     public static double SwingWindMul(string? starSwing, StarSkillTable? table = null) =>
         StarSkillTable.Or(table).Swing(starSwing)?.WindMul ?? 1.0;
+
+    /// <summary>The jagged flight a star swing's ball flies (§13); null for a swing whose row names none.</summary>
+    public static BallJag? SwingJag(string? starSwing, StarSkillTable? table = null) =>
+        StarSkillTable.Or(table).Swing(starSwing)?.Jag;
 
     /// <summary>A role player's star swing names its launch; a captain's keeps the swing's own.</summary>
     public static double? SwingLaunchDeg(string? starSwing, StarSkillTable? table = null) =>

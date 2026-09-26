@@ -868,7 +868,6 @@ public sealed record StarPitchShapeRules
     [Chance] public double PhonyballSwitchAt { get; init; }
     [Signed] public double PhonyballEarlyX { get; init; }
     [Signed] public double PhonyballLateX { get; init; }
-    public double CaskballRise { get; init; }
 }
 
 /// <summary>

@@ -11,14 +11,14 @@ Each replacement effect for a pitch that lost its window penalty is its own revi
 | Charmball | Speed ×0.9 and a visible side-to-side wobble (`starShapes.charmball*`); its replacement effect is reviewed separately | |
 | Prismball | Late break, ghost images | |
 | Phonyball | Decoy path: the ball shows one side early and switches late (`starShapes.phonyball*`); reading the switch is the counterplay. Contact is contact | |
-| Caskball | Slow, knockback on the catch (0.55 s) | |
+| Vine Swing (`caskball`) | A `pendulum`: the ball hangs on a vine `lengthFt` (6) long from a pivot that rides that far above the ordinary ball. The vine swings out to `swingDeg` (45°) by `widestAt` (0.25) of the flight, on the side of the plate away from the crossing, then swings back in on one pendulum arc and hangs straight at the plate. The crossing, the arrival instant and the speed are the ordinary pitch's; nothing is caught differently. The vine shows the pivot | |
 | Skullball | +20% speed, nothing else until its review | |
 | Fogball | Speed ×0.82, nothing else until its review | |
 | Heat / Furnace swing | Exit ×1.15 / ×1.25; a burn patch / lava strip where it lands slows the fielder ×0.45 for 2 s | |
 | Heart swing | The nearest fielder pauses 0.8 s; no drop roll (§8.6) | |
 | Shell / Staff swing | Exit ×1.1 / ×1.08; the warp roll is retired (§8.6) until each swing's own effect is built | |
 | Phony swing | Decoy ball; the real one shows at the apex; no drop roll (§8.6) | |
-| Cask swing | Fragments: two decoy balls fall with it | |
+| Lightning Liner (`cask-swing`) | A star liner (launch 18°, exit ×1.2) with a `jag`: at `firstAt` (0.3) of its jag window the ball jags `offsetFt` (≤ 3 ft) square to its line, toward the middle of the field, over `span` (0.08) of the window, runs beside the line, and jags back onto it at `secondAt` (0.65). The window is the air time to the first landing mark, never over 2 s, so the landing, the fence and the fair / foul call are the straight ball's. The jagged ball is the one real ball for every glove and the CPU | |
 | Mirage Ball | A faint twin (`twin`) flies `offsetFt` to the far half of the zone from the real crossing, full until `fadeFrom` of the flight and gone by `fadeTo`, never later than half the flight. The real ball is the pitch as thrown; the umpire, the bat and the CPU read only it. Picking the real ball before the twin fades is the counterplay | |
 | Sidewinder | A fair ball off the swing turns `firstHopKickDeg` (≤ 45°) at its first ground contact, away from the fielder the play sent after it, and runs on the shared ground physics; every chaser re-plans. A ball caught before its hop never turns | |
 | Rockfall | A `float`: the ball rises up to `riseFt` over its ordinary path, highest at `dropFrom` of the flight, then drops back onto it by the plate. The crossing is the ordinary one; only the look of the flight bends. Speed ×0.95 | |

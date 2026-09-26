@@ -29,7 +29,7 @@ public static partial class HowToPlay
             "T-SP-charmball" => "Charmball",
             "T-SP-prismball" => "Prismball",
             "T-SP-phonyball" => "Phonyball",
-            "T-SP-caskball" => "Caskball",
+            "T-SP-caskball" => "Vine Swing",
             "T-SP-skullball" => "Skullball",
             "T-SP-fogball" => "Fogball",
             "T-SP-fastball" => "Star Fastball",
@@ -42,7 +42,7 @@ public static partial class HowToPlay
             "T-SS-heart-swing" => "Heart Swing",
             "T-SS-shell-swing" => "Shell Swing",
             "T-SS-phony-swing" => "Phony Swing",
-            "T-SS-cask-swing" => "Cask Swing",
+            "T-SS-cask-swing" => "Lightning Liner",
             "T-SS-furnace" => "Furnace",
             "T-SS-staff-swing" => "Staff Swing",
             "T-SS-sidewinder" => "Sidewinder",
@@ -54,12 +54,19 @@ public static partial class HowToPlay
             _ => ""
         };
         if (skill.Length == 0) return null;
+        // What the special does, when its lesson teaches a bend of its own (§13).
+        var bend = id switch
+        {
+            "T-SP-caskball" => " It swings in wide on a vine and crosses where you aimed.",
+            "T-SS-cask-swing" => " The liner jags twice, then lands where a straight one would.",
+            _ => ""
+        };
         return pitch
             ? new("Pitch: " + skill, "Throw " + skill + " and spend its star cost.",
-                "Your pitcher has " + skill + " and enough meter. Hold the star button as you let go of the pitch.",
+                "Your pitcher has " + skill + " and enough meter. Hold the star button as you let go of the pitch." + bend,
                 "Hold LT as you let go of RT.")
             : new("Swing: " + skill, "Use " + skill + " to make fair contact and spend its star cost.",
-                "Your batter has " + skill + " and enough meter. Hold the star button as you let go of the swing, and time contact with the strike.",
+                "Your batter has " + skill + " and enough meter. Hold the star button as you let go of the swing, and time contact with the strike." + bend,
                 "Hold LT as you let go of RT, as the pitch arrives.");
     }
 }

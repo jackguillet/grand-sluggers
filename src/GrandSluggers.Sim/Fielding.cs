@@ -75,7 +75,7 @@ public sealed class FieldingResolver
         // live (BodySlows), and nothing is decided from where the ball lands.
         var freeze = hit.StarSwingUsed == "heart-swing";
         var radius = CatchRadiusFt(fielder, park, _rules, air: !grounder);
-        var heat = hit.StarPitchUsed is "heatball" or "caskball";
+        var heat = hit.StarPitchUsed is "heatball";
         var furnace = hit.StarSwingUsed is "furnace" or "heat-swing";
         return new FieldingPreview(
             fielder, pos, buddy, hang, landing.X, landing.Z, shape,
