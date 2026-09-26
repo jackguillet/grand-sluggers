@@ -30,7 +30,6 @@ public sealed class RioAbilityTests
         Assert.Null(pitch.OnCatch);        // the burn-hop is gone: a caught Skyrocket is an ordinary catch
         Assert.Null(swing.Terrain);        // the burn patch is gone: Sparkler's bend is spent at the plate
         Assert.Null(pitch.Float);
-        Assert.Null(pitch.Leap);
         Assert.DoesNotContain(Game.Characters.Values, c => c.Id != "rio" && (c.StarPitch == "heatball" || c.StarSwing == "heat-swing"));
     }
 
@@ -193,7 +192,7 @@ public sealed class RioAbilityTests
     // ---------------------------------------------------------------------------------
 
     [Fact]
-    public void S209_SparklerLeavesNoPatchOnTheDirtAndFurnaceStillDoes()
+    public void S209_SparklerRaisesNoFurnaceFlagAndHotIronDoes()
     {
         var home = Game.Team("Defense", "vale", "pewter", "lace", "frost", "basil", "soot", "vine", "moss", "hex");
         var away = Game.Team("Offense", "rio", "boom", "cinder", "grit", "zig", "nugget", "nico", "gull", "marlow");

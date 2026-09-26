@@ -34,7 +34,6 @@ public sealed class ReedAbilityTests
     {
         var pitch = Game.StarSkills.Pitch("leapfrog")!;
         Assert.Equal("Skipping Stone", pitch.Name);
-        Assert.Null(pitch.Leap);
         Assert.Equal(1.0, pitch.SpeedMul);
         Assert.Equal("Lily Hop", LilyHop.Name);
         Assert.False(LilyHop.ShapesFirstHop);
@@ -371,33 +370,34 @@ public sealed class ReedAbilityTests
     // ---------------------------------------------------------------------------------
 
     [Fact]
-    public void BadSkipsAHopOnAPitchSkipsOnASwingAWildHopOrALeapThatNeverEndsAreRefused()
+    public void BadSkipsAHopOnAPitchSkipsOnASwingOrAWildHopAreRefused()
     {
         using var fixture = new ContentFixture();
         fixture.ChangeObject("abilities/star-skills.json", json =>
         {
             json["pitches"]!["leapfrog"]!["skips"]!["secondAt"] = 0.5;
             json["pitches"]!["fastball"]!["hop"] = new JsonObject { ["heightFt"] = 5, ["padFt"] = 0.5, ["rampFt"] = 1 };
-            json["pitches"]!["changeup"]!["leap"] = new JsonObject { ["at"] = 0.35, ["holdSpan"] = 0.7, ["holdPace"] = 0.2 };
             json["swings"]!["pond-skip"]!["hop"]!["heightFt"] = 12;
             json["swings"]!["line"]!["skips"] = new JsonObject { ["firstAt"] = 0.5, ["secondAt"] = 0.7, ["hopFt"] = 1 };
-            json["swings"]!["line"]!["leap"] = new JsonObject { ["at"] = 0.3, ["holdSpan"] = 0.2, ["holdPace"] = 0.1 };
         });
         var errors = ContentDataValidator.Validate(fixture.Root);
         Assert.Contains(errors, e => e.Contains("star pitch 'leapfrog' skips needs", StringComparison.Ordinal));
         Assert.Contains(errors, e => e.Contains("star pitch 'fastball' cannot carry a hop", StringComparison.Ordinal));
-        Assert.Contains(errors, e => e.Contains("star pitch 'changeup' leap needs", StringComparison.Ordinal));
         Assert.Contains(errors, e => e.Contains("star swing 'pond-skip' hop needs", StringComparison.Ordinal));
         Assert.Contains(errors, e => e.Contains("star swing 'line' cannot carry skips", StringComparison.Ordinal));
-        Assert.Contains(errors, e => e.Contains("star swing 'line' cannot carry a leap", StringComparison.Ordinal));
     }
 
     [Fact]
-    public void TheRetiredFirstHopBounceKeyIsRefusedByName()
+    public void TheRetiredLeapAndFirstHopBounceKeysAreRefusedByName()
     {
         using var fixture = new ContentFixture();
-        fixture.ChangeObject("abilities/star-skills.json", json => json["swings"]!["pond-skip"]!["firstHopBounceMul"] = 2.2);
+        fixture.ChangeObject("abilities/star-skills.json", json =>
+        {
+            json["swings"]!["pond-skip"]!["firstHopBounceMul"] = 2.2;
+            json["pitches"]!["leapfrog"]!["leap"] = new JsonObject { ["at"] = 0.35, ["holdSpan"] = 0.25, ["holdPace"] = 0.2 };
+        });
         var errors = ContentDataValidator.Validate(fixture.Root);
-        Assert.Contains(errors, e => e.Contains("firstHopBounceMul", StringComparison.Ordinal));
+        Assert.Contains(errors, e => e.Contains("swings.pond-skip.firstHopBounceMul is not a key this file declares", StringComparison.Ordinal));
+        Assert.Contains(errors, e => e.Contains("pitches.leapfrog.leap is not a key this file declares", StringComparison.Ordinal));
     }
 }

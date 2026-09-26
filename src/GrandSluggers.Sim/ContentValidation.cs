@@ -261,13 +261,17 @@ public static class ContentDataValidator
                     errors.Add($"{source}: star pitch '{key}' cannot carry firstHopKickDeg; it is a swing's");
                 if (value.WindMul is not null)
                     errors.Add($"{source}: star pitch '{key}' cannot carry windMul; it is a swing's");
-                if (value.Leap is { } leap && (leap.At <= 0 || leap.HoldSpan <= 0 || leap.At + leap.HoldSpan >= 1 || leap.HoldPace < 0 || leap.HoldPace >= 1))
-                    errors.Add($"{source}: star pitch '{key}' leap needs at > 0, holdSpan > 0, at + holdSpan < 1 and 0 <= holdPace < 1");
                 if (value.PerfectRingMul is not null)
                     errors.Add($"{source}: star pitch '{key}' cannot carry perfectRingMul; it is a swing's");
                 // The rise ends at the plate and is always up (§13): a jump out of the heart of the zone, never a drop.
                 if (value.Rise is { } late && (late.RiseFt <= 0 || late.RiseFt > PitchRise.MaxRiseFt || late.From <= 0 || late.From >= 1))
                     errors.Add($"{source}: star pitch '{key}' rise needs 0 < riseFt <= {PitchRise.MaxRiseFt.ToString(CultureInfo.InvariantCulture)} and 0 < from < 1");
+                if (value.OvalHeightMul is not null)
+                    errors.Add($"{source}: star pitch '{key}' cannot carry ovalHeightMul; it is a swing's");
+                // The ring washes out on home and is gone within 2 s of contact (§13); it slows, never stops, the batter-runner.
+                if (value.Undertow is { } tow && (tow.RadiusFt <= 0 || tow.RadiusFt > PitchUndertow.MaxRadiusFt
+                        || tow.Sec <= 0 || tow.Sec > PitchUndertow.MaxSec || tow.RunnerMul <= 0 || tow.RunnerMul >= 1))
+                    errors.Add($"{source}: star pitch '{key}' undertow needs 0 < radiusFt <= {PitchUndertow.MaxRadiusFt.ToString(CultureInfo.InvariantCulture)}, 0 < sec <= {PitchUndertow.MaxSec.ToString(CultureInfo.InvariantCulture)} and 0 < runnerMul < 1");
                 if (value.Loop is { } loop && (loop.At <= 0 || loop.Span <= 0 || loop.At + loop.Span >= 1 || loop.DiameterFt <= 0 || loop.DiameterFt > PitchLoop.MaxDiameterFt))
                     errors.Add($"{source}: star pitch '{key}' loop needs at > 0, span > 0, at + span < 1 and 0 < diameterFt <= {PitchLoop.MaxDiameterFt.ToString(CultureInfo.InvariantCulture)}");
                 if (value.FirstHopStallSec is not null || value.FirstHopStallSpeedMul is not null)
@@ -292,6 +296,11 @@ public static class ContentDataValidator
                     errors.Add($"{source}: star pitch '{key}' skips needs 0 < firstAt < secondAt < 1, secondAt - firstAt < firstAt and 0 < hopFt <= {PitchSkips.MaxHopFt.ToString(CultureInfo.InvariantCulture)}");
                 if (value.Hop is not null)
                     errors.Add($"{source}: star pitch '{key}' cannot carry a hop; it is a swing's");
+                // The drop ends at the plate and is always down (§13): out of the bottom of the zone, never into the dirt.
+                if (value.Drop is { } sink && (sink.DropFt <= 0 || sink.DropFt > PitchDrop.MaxDropFt || sink.From <= 0 || sink.From >= 1))
+                    errors.Add($"{source}: star pitch '{key}' drop needs 0 < dropFt <= {PitchDrop.MaxDropFt.ToString(CultureInfo.InvariantCulture)} and 0 < from < 1");
+                if (value.HotBall is not null)
+                    errors.Add($"{source}: star pitch '{key}' cannot carry a hotBall; it is a swing's");
             }
             else
             {
@@ -305,10 +314,13 @@ public static class ContentDataValidator
                     errors.Add($"{source}: star swing '{key}' cannot carry a twin; it is a pitch's");
                 if (value.Float is not null)
                     errors.Add($"{source}: star swing '{key}' cannot carry a float; it is a pitch's");
-                if (value.Leap is not null)
-                    errors.Add($"{source}: star swing '{key}' cannot carry a leap; it is a pitch's");
                 if (value.Rise is not null)
                     errors.Add($"{source}: star swing '{key}' cannot carry a rise; it is a pitch's");
+                if (value.Undertow is not null)
+                    errors.Add($"{source}: star swing '{key}' cannot carry an undertow; it is a pitch's");
+                // A taller oval, never a wider one (PH-16-R2): the height grows, the barrel and the window do not.
+                if (value.OvalHeightMul is not null && (value.OvalHeightMul < 1 || value.OvalHeightMul > StarSwingSkill.MaxOvalHeightMul))
+                    errors.Add($"{source}: star swing '{key}' ovalHeightMul must be between 1 and {StarSwingSkill.MaxOvalHeightMul.ToString(CultureInfo.InvariantCulture)}; got {value.OvalHeightMul}");
                 // A bigger heart, never a bigger bat (PH-16-R2): the ring grows, the oval and the window do not.
                 if (value.PerfectRingMul is not null && (value.PerfectRingMul < 1 || value.PerfectRingMul > StarSwingSkill.MaxPerfectRingMul))
                     errors.Add($"{source}: star swing '{key}' perfectRingMul must be between 1 and {StarSwingSkill.MaxPerfectRingMul.ToString(CultureInfo.InvariantCulture)}; got {value.PerfectRingMul}");
@@ -329,6 +341,11 @@ public static class ContentDataValidator
                 // The pause ends within the 2 s every special's bend ends in (§13).
                 if (value.FielderPauseSec is not null && (value.FielderPauseSec <= 0 || value.FielderPauseSec > StarSwingSkill.MaxFielderPauseSec))
                     errors.Add($"{source}: star swing '{key}' fielderPauseSec must be greater than 0 and at most {StarSwingSkill.MaxFielderPauseSec.ToString(CultureInfo.InvariantCulture)}; got {value.FielderPauseSec}");
+                if (value.Drop is not null)
+                    errors.Add($"{source}: star swing '{key}' cannot carry a drop; it is a pitch's");
+                // The ball cools within two seconds of contact (§13), and a glove must be able to hold it a moment first.
+                if (value.HotBall is { } hot && (hot.MoltenSec <= 0 || hot.MoltenSec > HotBall.MaxMoltenSec || hot.HoldSec <= 0 || hot.HoldSec >= hot.MoltenSec))
+                    errors.Add($"{source}: star swing '{key}' hotBall needs 0 < holdSec < moltenSec <= {HotBall.MaxMoltenSec.ToString(CultureInfo.InvariantCulture)}");
                 if (value.WindMul is not null && (value.WindMul < 0 || value.WindMul > StarSwingSkill.MaxWindMul))
                     errors.Add($"{source}: star swing '{key}' windMul must be between 0 and {StarSwingSkill.MaxWindMul.ToString(CultureInfo.InvariantCulture)}; got {value.WindMul}");
                 if (value.Pendulum is not null)
@@ -1736,17 +1753,18 @@ internal sealed class StarSkillDto
     public double? LaunchDeg { get; set; }
     public string? Terrain { get; set; }
     public double? FielderPauseSec { get; set; }
-    public bool InfieldChaos { get; set; }
     /// <summary>A pitch's faint twin (<see cref="PitchTwin"/>); pitches only.</summary>
     public PitchTwinDto? Twin { get; set; }
     /// <summary>A pitch's float (<see cref="PitchFloat"/>); pitches only.</summary>
     public PitchFloatDto? Float { get; set; }
-    /// <summary>A pitch's leap (<see cref="PitchLeap"/>); pitches only.</summary>
-    public PitchLeapDto? Leap { get; set; }
     /// <summary>A pitch's late rise (<see cref="PitchRise"/>); pitches only.</summary>
     public PitchRiseDto? Rise { get; set; }
     /// <summary>A swing's Perfect ring is this many times the ordinary one (<see cref="StarSwingSkill.PerfectRingMul"/>); swings only.</summary>
     public double? PerfectRingMul { get; set; }
+    /// <summary>A pitch's ring on home that slows the batter-runner (<see cref="PitchUndertow"/>); pitches only.</summary>
+    public PitchUndertowDto? Undertow { get; set; }
+    /// <summary>A swing's contact oval is this many times as tall (<see cref="StarSwingSkill.OvalHeightMul"/>); swings only.</summary>
+    public double? OvalHeightMul { get; set; }
     /// <summary>A pitch's loop (<see cref="PitchLoop"/>); pitches only.</summary>
     public PitchLoopDto? Loop { get; set; }
     /// <summary>A swing's ball stands still this long at its first hop (<see cref="StarSwingSkill.FirstHopStallSec"/>); swings only.</summary>
@@ -1763,6 +1781,10 @@ internal sealed class StarSkillDto
     public PitchSkipsDto? Skips { get; set; }
     /// <summary>A swing's hop over a glove (<see cref="BallHop"/>); swings only.</summary>
     public BallHopDto? Hop { get; set; }
+    /// <summary>A pitch's late drop (<see cref="PitchDrop"/>); pitches only.</summary>
+    public PitchDropDto? Drop { get; set; }
+    /// <summary>A swing's hot ball (<see cref="Sim.HotBall"/>); swings only.</summary>
+    public HotBallDto? HotBall { get; set; }
     /// <summary>A swing's ball kicks this many degrees off its first hop (<see cref="StarSwingSkill.FirstHopKickDeg"/>); swings only.</summary>
     public double? FirstHopKickDeg { get; set; }
     /// <summary>A swing's ball rides the park's wind this many times as hard (<see cref="StarSwingSkill.WindMul"/>); swings only.</summary>
@@ -1776,18 +1798,44 @@ internal sealed class StarSkillDto
         LateBreak, Decoy, OnCatch,
         Twin is null ? null : new PitchTwin(Twin.OffsetFt, Twin.FadeFrom, Twin.FadeTo),
         Float is null ? null : new PitchFloat(Float.RiseFt, Float.DropFrom),
-        Leap is null ? null : new PitchLeap(Leap.At, Leap.HoldSpan, Leap.HoldPace),
         Rise is null ? null : new PitchRise(Rise.RiseFt, Rise.From),
+        Undertow is null ? null : new PitchUndertow(Undertow.RadiusFt, Undertow.Sec, Undertow.RunnerMul),
         Loop is null ? null : new PitchLoop(Loop.At, Loop.Span, Loop.DiameterFt),
         Sway is null ? null : new PitchSway(Sway.WidthFt, Sway.Cycles, Sway.PeakAt, Sway.SettleBy),
         Pendulum is null ? null : new PitchPendulum(Pendulum.LengthFt, Pendulum.SwingDeg, Pendulum.WidestAt),
+        Drop is null ? null : new PitchDrop(Drop.DropFt, Drop.From),
         Skips: Skips is null ? null : new PitchSkips(Skips.FirstAt, Skips.SecondAt, Skips.HopFt));
 
     public StarSwingSkill ToSwing() => new(Id, Name, Kind, ExitVeloMul ?? 1.0, LaunchDeg, Terrain,
-        FielderPauseSec ?? 0, InfieldChaos, Decoy, FirstHopKickDeg ?? 0,
+        FielderPauseSec ?? 0, Decoy, FirstHopKickDeg ?? 0,
         WindMul ?? 1, FirstHopStallSec ?? 0, FirstHopStallSpeedMul ?? 1, PerfectRingMul ?? 1,
         Jag is null ? null : new BallJag(Jag.OffsetFt, Jag.FirstAt, Jag.SecondAt, Jag.Span),
+        HotBall is null ? null : new Sim.HotBall(HotBall.MoltenSec, HotBall.HoldSec),
+        OvalHeightMul: OvalHeightMul ?? 1,
         Hop: Hop is null ? null : new BallHop(Hop.HeightFt, Hop.PadFt, Hop.RampFt));
+}
+
+internal sealed class PitchDropDto
+{
+    public double DropFt { get; set; }
+    /// <summary>The share of the flight after which the ball starts to drop (a fraction, not seconds).</summary>
+    public double From { get; set; }
+}
+
+internal sealed class HotBallDto
+{
+    public double MoltenSec { get; set; }
+    public double HoldSec { get; set; }
+}
+
+internal sealed class PitchUndertowDto
+{
+    /// <summary>The ring's radius from the centre of home plate, in feet.</summary>
+    public double RadiusFt { get; set; }
+    /// <summary>How long the ring is live from contact, in seconds.</summary>
+    public double Sec { get; set; }
+    /// <summary>What a step of the batter-runner inside the ring is multiplied by.</summary>
+    public double RunnerMul { get; set; }
 }
 
 internal sealed class PitchLoopDto
@@ -1836,13 +1884,6 @@ internal sealed class BallHopDto
     public double RampFt { get; set; }
 }
 
-internal sealed class PitchLeapDto
-{
-    public double At { get; set; }
-    /// <summary>The share of the flight the ball crawls for (a fraction, not seconds).</summary>
-    public double HoldSpan { get; set; }
-    public double HoldPace { get; set; }
-}
 
 internal sealed class PitchSwayDto
 {

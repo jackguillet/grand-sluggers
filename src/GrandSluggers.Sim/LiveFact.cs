@@ -35,3 +35,9 @@ public sealed record GloveHopped(string SwingId, double T, double X, double Z, s
 /// (its position: the nearest fielder, the body the play would have sent) and the play second that body may move again.
 /// </summary>
 public sealed record FielderDazzled(string SwingId, string GloveId, double UntilT) : LiveFact;
+
+/// <summary>
+/// A glove held a molten ball past its hold (§13, <see cref="StarSwingSkill.HotBall"/>) and dropped it at its feet: the swing,
+/// when and where, and the glove (its id and position), which is kept off the ball until it cools.
+/// </summary>
+public sealed record HotBallDropped(string SwingId, double T, double X, double Z, string GloveId, string Pos) : LiveFact;
