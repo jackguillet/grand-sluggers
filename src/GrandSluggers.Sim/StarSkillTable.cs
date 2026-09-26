@@ -15,7 +15,29 @@ public sealed record StarPitchSkill(
     /// <summary>A path that floats high early and drops onto the unchanged crossing late, or null (§13).</summary>
     PitchFloat? Float = null,
     /// <summary>A pace that hangs the ball over one stretch of its path and leaps it to the plate on time, or null (§13).</summary>
-    PitchLeap? Leap = null);
+    PitchLeap? Leap = null,
+    /// <summary>A late rise that lifts the ball over the last stretch of its flight to a crossing above the aimed one, or null (§13).</summary>
+    PitchRise? Rise = null);
+
+/// <summary>
+/// A star pitch's late rise (spec §13): nothing until <see cref="From"/> of the flight, then the ball climbs on a quadratic ease
+/// to <see cref="RiseFt"/> above its ordinary path exactly at the plate. Unlike a float, the crossing moves: the umpire, the
+/// bat and the CPU judge the risen ball, and the timing window is judged at that real crossing. The rise is always up.
+/// </summary>
+public sealed record PitchRise(double RiseFt, double From)
+{
+    /// <summary>The largest rise a row may name, in reference-zone feet: a jump out of the heart of the zone, not over the batter.</summary>
+    public const double MaxRiseFt = 2;
+
+    /// <summary>The height over the ordinary path at <paramref name="u"/>: 0 up to <see cref="From"/>, then (share of the stretch)² × <see cref="RiseFt"/>; the full rise at the plate.</summary>
+    public double Lift(double u)
+    {
+        u = Math.Clamp(u, 0, 1);
+        if (u <= From) return 0;
+        var t = (u - From) / (1 - From);
+        return RiseFt * t * t;
+    }
+}
 
 /// <summary>
 /// A star pitch's leap (spec §13): from <see cref="At"/> of the flight the ball crawls at <see cref="HoldPace"/> of its pace for
@@ -88,8 +110,16 @@ public sealed record StarSwingSkill(
     /// <summary>How strongly the park's wind acts on this swing's ball (§13, <see cref="AtBatResult.WindMul"/>); 1 is the ordinary ball.</summary>
     double WindMul = 1,
     /// <summary>A fair ball off this swing leaves its first hop this many times as fast upward (§13); 1 is the ordinary hop.</summary>
-    double FirstHopBounceMul = 1)
+    double FirstHopBounceMul = 1,
+    /// <summary>
+    /// This swing's Perfect ring is this many times the ordinary one (§13, PH-16-R2: a swing's own contact area); 1 is the
+    /// ordinary ring. The nice oval, the sour rim and the timing window are unchanged, so a miss is still a miss.
+    /// </summary>
+    double PerfectRingMul = 1)
 {
+    /// <summary>The largest Perfect ring a row may name: twice the ordinary heart, and never past the drawn oval (<see cref="SweetSpot.Zone"/>).</summary>
+    public const double MaxPerfectRingMul = 2;
+
     /// <summary>The highest first-hop bounce a row may name: a chopper, not a moon shot.</summary>
     public const double MaxBounceMul = 3;
 
@@ -174,6 +204,10 @@ public static class StarSkills
     /// <summary>How strongly the park's wind acts on a star swing's ball (§13); 1 for a swing whose row names none.</summary>
     public static double SwingWindMul(string? starSwing, StarSkillTable? table = null) =>
         StarSkillTable.Or(table).Swing(starSwing)?.WindMul ?? 1.0;
+
+    /// <summary>How much larger a star swing's Perfect ring is (§13); 1 for a swing whose row names none.</summary>
+    public static double SwingPerfectRingMul(string? starSwing, StarSkillTable? table = null) =>
+        StarSkillTable.Or(table).Swing(starSwing)?.PerfectRingMul ?? 1.0;
 
     /// <summary>A role player's star swing names its launch; a captain's keeps the swing's own.</summary>
     public static double? SwingLaunchDeg(string? starSwing, StarSkillTable? table = null) =>

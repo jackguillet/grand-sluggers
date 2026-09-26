@@ -314,7 +314,6 @@ public sealed class PitchFamilyGoldenTests
         internal double StarX(double x, double u, StarPitchShapeRules st) =>
             !Delivery.Star ? x : Star switch
             {
-                "heatball" => x + Math.Sin(u * st.HeatballWobbleHz) * st.HeatballWobbleFt,
                 "prismball" => x + Math.Sin(u * st.PrismballWobbleHz) * st.PrismballWobbleFt,
                 "charmball" => x + Math.Sin(u * st.CharmballWobbleHz) * st.CharmballWobbleFt,
                 "phonyball" => x + (u > st.PhonyballSwitchAt ? st.PhonyballLateX : st.PhonyballEarlyX),

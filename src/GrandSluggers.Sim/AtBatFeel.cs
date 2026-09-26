@@ -517,11 +517,13 @@ public static class SweetSpot
     /// Where the crossing meets the bat. Cursor decides quality (D4): the perfect heart and the
     /// nice oval are the drawn ellipse (batting.cursor.perfectFraction); the sour rim is the
     /// barrel's rectangle <see cref="CursorRules.RimFraction"/> beyond it, so the corners of the
-    /// zone are on the bat with the box centered.
+    /// zone are on the bat with the box centered. <paramref name="perfectRingMul"/> is one swing's own
+    /// larger heart (§13, PH-16-R2: <see cref="StarSwingSkill.PerfectRingMul"/>); it grows the Perfect
+    /// ring only, never past the drawn oval, so the nice boundary, the rim and a miss are unchanged.
     /// </summary>
     public static ContactQuality Zone(double boxOffsetX, Hand bats, double crossingX, double crossingY,
         RulesTable rules, BatterZone zone,
-        double barrelScale = 1)
+        double barrelScale = 1, double perfectRingMul = 1)
     {
         var c = rules.Batting.Cursor;
         var (cx, cy) = WorldCenter(boxOffsetX, zone);
@@ -531,12 +533,20 @@ public static class SweetSpot
         var nx = NiceHalfWidthFt(bats, dx, barrelScale, rules);
         var ny = HalfHeightFt(zone);
         var d = Math.Sqrt(dx * dx / (nx * nx) + dy * dy / (ny * ny));
-        if (d <= c.PerfectFraction) return ContactQuality.Perfect;
+        if (d <= PerfectFraction(rules, perfectRingMul)) return ContactQuality.Perfect;
         if (d <= 1) return ContactQuality.Nice;
         if (Math.Abs(dx) <= nx * (1 + c.RimFraction) && Math.Abs(dy) <= ny * (1 + c.RimFraction))
             return ContactQuality.Sour;
         return ContactQuality.Miss;
     }
+
+    /// <summary>
+    /// The Perfect ring as a share of the drawn oval for one swing (§5.2, §13): <c>batting.cursor.perfectFraction</c>
+    /// × the swing's own ring multiplier, never past the oval itself.
+    /// </summary>
+    public static double PerfectFraction(RulesTable rules, double perfectRingMul = 1) =>
+        perfectRingMul == 1 ? rules.Batting.Cursor.PerfectFraction
+            : Math.Min(1, rules.Batting.Cursor.PerfectFraction * perfectRingMul);
 
     /// <summary>
     /// The drawn oval: the nice boundary, local to the cursor center, in world feet. The client
