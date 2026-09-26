@@ -75,6 +75,9 @@ public static class ContentDataValidator
         var chemistryPath = root.Resolve("chemistry", "overrides.json");
         data.Chemistry = DataJson.Read<ChemistryOverrides>(chemistryPath, data.ReadErrors) ?? new();
         data.ChemistrySource = chemistryPath;
+        var crewsPath = root.Resolve("chemistry", "crews.json");
+        data.Crews = DataJson.Read<CrewsFile>(crewsPath, data.ReadErrors) ?? new();
+        data.CrewsSource = crewsPath;
 
         // The continent the parks stand on (WD-05): read strictly, like every catalog.
         var worldPath = root.Resolve(WorldMap.Directory, WorldMap.FileName);
@@ -210,6 +213,7 @@ public static class ContentDataValidator
             errors.Add($"{data.ChemistrySource}: chemistry rivals must be an array; got null");
         else
             ValidateChemistry("rivals", data.Chemistry.Rivals, data.ChemistrySource, characters, errors);
+        ValidateCrews(data, errors);
         return errors.OrderBy(e => e, StringComparer.Ordinal).ToList();
     }
 
@@ -272,6 +276,12 @@ public static class ContentDataValidator
                     errors.Add($"{source}: star pitch '{key}' cannot carry a first-hop stall; it is a swing's");
                 if (value.Float is { } rise && (rise.RiseFt <= 0 || rise.RiseFt > PitchFloatLimits.MaxRiseFt || rise.DropFrom <= 0 || rise.DropFrom >= 1))
                     errors.Add($"{source}: star pitch '{key}' float needs 0 < riseFt <= {PitchFloatLimits.MaxRiseFt.ToString(CultureInfo.InvariantCulture)} and 0 < dropFrom < 1");
+                // The sway settles before the plate (§13): the last stretch of the flight and the crossing are the ordinary pitch's.
+                if (value.Sway is { } sway && (sway.WidthFt <= 0 || sway.WidthFt > PitchSway.MaxWidthFt || sway.Cycles <= 0
+                        || sway.Cycles > PitchSway.MaxCycles || sway.PeakAt <= 0 || sway.SettleBy <= sway.PeakAt || sway.SettleBy >= 1))
+                    errors.Add($"{source}: star pitch '{key}' sway needs 0 < widthFt <= {PitchSway.MaxWidthFt.ToString(CultureInfo.InvariantCulture)}, 0 < cycles <= {PitchSway.MaxCycles.ToString(CultureInfo.InvariantCulture)} and 0 < peakAt < settleBy < 1");
+                if (value.FielderPauseSec is not null)
+                    errors.Add($"{source}: star pitch '{key}' cannot carry fielderPauseSec; it is a swing's");
                 // The pendulum swings out and back in on one arc, below its pivot, and hangs straight at the plate (§13).
                 if (value.Pendulum is { } vine && (vine.LengthFt <= 0 || vine.LengthFt > PitchPendulum.MaxLengthFt
                         || vine.SwingDeg <= 0 || vine.SwingDeg > PitchPendulum.MaxSwingDeg || vine.WidestAt <= 0 || vine.WidestAt >= 1))
@@ -310,6 +320,11 @@ public static class ContentDataValidator
                     if (value.LaunchDeg is not { } launch || launch > StarSwingSkill.MaxStallLaunchDeg)
                         errors.Add($"{source}: star swing '{key}' stalls on its first hop, so it must name a grounder's launchDeg of at most {StarSwingSkill.MaxStallLaunchDeg.ToString(CultureInfo.InvariantCulture)}");
                 }
+                if (value.Sway is not null)
+                    errors.Add($"{source}: star swing '{key}' cannot carry a sway; it is a pitch's");
+                // The pause ends within the 2 s every special's bend ends in (§13).
+                if (value.FielderPauseSec is not null && (value.FielderPauseSec <= 0 || value.FielderPauseSec > StarSwingSkill.MaxFielderPauseSec))
+                    errors.Add($"{source}: star swing '{key}' fielderPauseSec must be greater than 0 and at most {StarSwingSkill.MaxFielderPauseSec.ToString(CultureInfo.InvariantCulture)}; got {value.FielderPauseSec}");
                 if (value.FirstHopBounceMul is not null && (value.FirstHopBounceMul < 1 || value.FirstHopBounceMul > StarSwingSkill.MaxBounceMul))
                     errors.Add($"{source}: star swing '{key}' firstHopBounceMul must be between 1 and {StarSwingSkill.MaxBounceMul.ToString(CultureInfo.InvariantCulture)}; got {value.FirstHopBounceMul}");
                 if (value.WindMul is not null && (value.WindMul < 0 || value.WindMul > StarSwingSkill.MaxWindMul))
@@ -1056,6 +1071,32 @@ public static class ContentDataValidator
         FiniteRange(row.Source, $"glove '{g.Id}' errorReduction", g.ErrorReduction, 0, 1, errors);
     }
 
+    /// <summary>The crews (WD-28): unique ids with a name and a line; a rival names another crew; a character names at most
+    /// two known crews, none twice.</summary>
+    static void ValidateCrews(ContentData data, List<string> errors)
+    {
+        var src = data.CrewsSource;
+        var ids = new HashSet<string>(StringComparer.Ordinal);
+        var rows = data.Crews.Crews ?? [];
+        foreach (var c in rows)
+        {
+            if (c is null) { errors.Add($"{src}: a crew row must be an object; got null"); continue; }
+            if (string.IsNullOrWhiteSpace(c.Id) || !ids.Add(c.Id)) errors.Add($"{src}: crew id '{c.Id}' is empty or repeated");
+            if (string.IsNullOrWhiteSpace(c.Name) || string.IsNullOrWhiteSpace(c.Desc)) errors.Add($"{src}: crew '{c.Id}' needs a name and a desc");
+        }
+        foreach (var c in rows)
+            if (c?.Rival is { } r && (!ids.Contains(r) || r == c.Id))
+                errors.Add($"{src}: crew '{c.Id}' rival '{r}' is not another crew");
+        foreach (var row in data.Characters)
+        {
+            var mine = row.Value.Crews ?? [];
+            if (mine.Count > 2) errors.Add($"{row.Source}: character '{row.Value.Id}' names {mine.Count} crews; at most 2");
+            if (mine.Distinct(StringComparer.Ordinal).Count() != mine.Count) errors.Add($"{row.Source}: character '{row.Value.Id}' names a crew twice");
+            foreach (var id in mine)
+                if (id is null || !ids.Contains(id)) errors.Add($"{row.Source}: character '{row.Value.Id}' crew '{id}' is not a row in {src}");
+        }
+    }
+
     static void ValidateChemistry(
         string table,
         IReadOnlyList<string[]> rows,
@@ -1224,6 +1265,8 @@ internal sealed class ContentData
     public List<Sourced<GloveDto>> Gloves { get; } = [];
     public ChemistryOverrides Chemistry { get; set; } = new();
     public string ChemistrySource { get; set; } = "";
+    public CrewsFile Crews { get; set; } = new();
+    public string CrewsSource { get; set; } = "";
     public StarSkillsDto StarSkills { get; set; } = new();
     public string StarSkillsSource { get; set; } = "";
     public RulesTable? Rules { get; set; }
@@ -1336,6 +1379,8 @@ internal sealed class CharacterDto
     public string? ShortName { get; set; }
     public string? SignatureBat { get; set; }
     public ProportionsDto? Proportions { get; set; }
+    /// <summary>Up to two crews (WD-28, <c>data/chemistry/crews.json</c>); none is fine.</summary>
+    public List<string?>? Crews { get; set; }
     /// <summary>A sidekick's species (WD-27, <c>data/world/species.json</c>): its body. Required on a sidekick; a captain names none.</summary>
     public string? Species { get; set; }
 
@@ -1352,7 +1397,8 @@ internal sealed class CharacterDto
         SignatureBat = SignatureBat,
         BodyType = Captain ? Id.ToLowerInvariant() : "",
         Proportions = Proportions?.ToSpec() ?? default,
-        Species = Species ?? ""
+        Species = Species ?? "",
+        CrewIds = string.Join(",", (Crews ?? []).Where(c => c is not null))
     };
 
     /// <summary>
@@ -1699,6 +1745,8 @@ internal sealed class StarSkillDto
     public double? FirstHopStallSec { get; set; }
     /// <summary>The share of its speed a stalled ball runs on at (<see cref="StarSwingSkill.FirstHopStallSpeedMul"/>); swings only.</summary>
     public double? FirstHopStallSpeedMul { get; set; }
+    /// <summary>A pitch's sway (<see cref="PitchSway"/>); pitches only.</summary>
+    public PitchSwayDto? Sway { get; set; }
     /// <summary>A pitch's pendulum (<see cref="PitchPendulum"/>); pitches only.</summary>
     public PitchPendulumDto? Pendulum { get; set; }
     /// <summary>A swing's jagged flight (<see cref="BallJag"/>); swings only.</summary>
@@ -1721,6 +1769,7 @@ internal sealed class StarSkillDto
         Leap is null ? null : new PitchLeap(Leap.At, Leap.HoldSpan, Leap.HoldPace),
         Rise is null ? null : new PitchRise(Rise.RiseFt, Rise.From),
         Loop is null ? null : new PitchLoop(Loop.At, Loop.Span, Loop.DiameterFt),
+        Sway is null ? null : new PitchSway(Sway.WidthFt, Sway.Cycles, Sway.PeakAt, Sway.SettleBy),
         Pendulum is null ? null : new PitchPendulum(Pendulum.LengthFt, Pendulum.SwingDeg, Pendulum.WidestAt));
 
     public StarSwingSkill ToSwing() => new(Id, Name, Kind, ExitVeloMul ?? 1.0, LaunchDeg, Terrain,
@@ -1766,6 +1815,14 @@ internal sealed class PitchLeapDto
     /// <summary>The share of the flight the ball crawls for (a fraction, not seconds).</summary>
     public double HoldSpan { get; set; }
     public double HoldPace { get; set; }
+}
+
+internal sealed class PitchSwayDto
+{
+    public double WidthFt { get; set; }
+    public double Cycles { get; set; }
+    public double PeakAt { get; set; }
+    public double SettleBy { get; set; }
 }
 
 internal sealed class PitchFloatDto

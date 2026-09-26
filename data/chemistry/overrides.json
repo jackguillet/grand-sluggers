@@ -1,41 +1,8 @@
 {
-  // Faction-mates are good by default. This file is the exception list: cross-faction buddies and authored rivalries.
-  "buddies": [
-    ["rio", "vale"],
-    ["rio", "zig"],
-    ["vale", "zig"],
-    ["brondo", "ashlord"],
-    ["konga", "vine"],
-    ["konga", "dart"],
-    ["fenn", "rio"],
-    ["fenn", "vale"],
-    ["pip", "dart"],
-    ["nico", "lace"],
-    ["gull", "pip"],
-    ["basil", "dart"],
-    ["fenn", "reed"],
-    ["reed", "konga"],
-    ["hollis", "vale"],
-    ["hollis", "flint"],
-    ["sable", "brondo"],
-    ["tumble", "dart"]
-  ],
+  // Faction-mates are good by default, and crews (crews.json) carry chemistry across teams. This file keeps only the
+  // story pairs, which beat both: authored buddies and rivalries the story needs (WD-28).
+  "buddies": [],
   "rivals": [
-    ["rio", "ashlord"],
-    ["rio", "brondo"],
-    ["vale", "ashlord"],
-    ["vale", "cinder"],
-    ["zig", "soot"],
-    ["konga", "ashlord"],
-    ["fenn", "ashlord"],
-    ["pip", "cinder"],
-    ["frost", "boom"],
-    ["moss", "cinder"],
-    ["sable", "zig"],
-    ["sable", "vale"],
-    ["hollis", "ashlord"],
-    ["reed", "brondo"],
-    ["cattail", "soot"],
-    ["scree", "boom"]
+    ["rio", "ashlord"]
   ]
 }

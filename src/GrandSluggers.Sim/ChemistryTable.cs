@@ -1,7 +1,8 @@
 namespace GrandSluggers.Sim;
 
 /// <summary>
-/// Pairwise chemistry. Same faction is good unless rivaled; authored buddies/rivals win.
+/// Pairwise chemistry (WD-28). In order: an authored story pair (overrides.json); a shared crew is good; faction-mates are
+/// good; a crew and its rival crew are bad; otherwise neutral.
 /// Chemistry pays off in the field only (§8.5, §12): it does not set starting Stars (PH-16-R16), which are the
 /// same for both teams (<see cref="StarRules.StartingReserve"/>).
 /// </summary>
@@ -10,13 +11,24 @@ public sealed class ChemistryTable
     readonly Dictionary<string, string> _faction = new(StringComparer.OrdinalIgnoreCase);
     readonly HashSet<string> _good = new(StringComparer.OrdinalIgnoreCase);
     readonly HashSet<string> _bad = new(StringComparer.OrdinalIgnoreCase);
+    readonly Dictionary<string, IReadOnlyList<string>> _crews = new(StringComparer.OrdinalIgnoreCase);
+    readonly HashSet<string> _rivalCrews = new(StringComparer.Ordinal);
     readonly RulesTable _rules;
 
-    public ChemistryTable(IEnumerable<Character> roster, ChemistryOverrides overrides, RulesTable rules)
+    public ChemistryTable(IEnumerable<Character> roster, ChemistryOverrides overrides, RulesTable rules, IEnumerable<Crew>? crews = null)
     {
         _rules = rules;
         foreach (var c in roster)
+        {
             _faction[c.Id] = c.Faction;
+            _crews[c.Id] = c.Crews;
+        }
+        foreach (var crew in crews ?? [])
+            if (crew.Rival is { } r)
+            {
+                _rivalCrews.Add(crew.Id + "|" + r);
+                _rivalCrews.Add(r + "|" + crew.Id);
+            }
 
         foreach (var pair in overrides.Buddies)
             if (pair.Length >= 2)
@@ -38,10 +50,18 @@ public sealed class ChemistryTable
         if (_good.Contains(key))
             return Chemistry.Good;
 
+        var ca = _crews.GetValueOrDefault(a) ?? [];
+        var cb = _crews.GetValueOrDefault(b) ?? [];
+        if (ca.Any(x => cb.Contains(x)))
+            return Chemistry.Good;
+
         if (_faction.TryGetValue(a, out var fa) &&
             _faction.TryGetValue(b, out var fb) &&
             fa.Equals(fb, StringComparison.OrdinalIgnoreCase))
             return Chemistry.Good;
+
+        if (ca.Any(x => cb.Any(y => _rivalCrews.Contains(x + "|" + y))))
+            return Chemistry.Bad;
 
         return Chemistry.Neutral;
     }

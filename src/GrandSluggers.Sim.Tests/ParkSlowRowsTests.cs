@@ -54,7 +54,7 @@ public sealed class ParkSlowRowsTests
     {
         var (carry, spray) = RinkFly;
         var rink = Chase(ParkId.Crystal, carry, 50, spray, human);
-        Assert.False(rink.Preview.Frozen, "the landing mark slows nobody (FD-08-R1)");
+        Assert.True(rink.Preview.Dazzled == "", "the landing mark slows nobody (FD-08-R1)");
         Assert.True(rink.Touch is not null, "the fixture: the glove runs into the deep freeze volume");
         var rules = rink.Rules;
         var asked = FieldingResolver.ChaseSpeedFt(rink.Who!, rink.Pos, rink.Preview, rules);
@@ -63,7 +63,7 @@ public sealed class ParkSlowRowsTests
         Assert.Equal(asked * rules.Fielding.Chase.FrozenMul, rink.TopSlowed, 6);
 
         var harbor = Chase(ParkId.Harbor, carry, 50, spray, human);
-        Assert.False(harbor.Preview.Frozen);
+        Assert.Equal("", harbor.Preview.Dazzled);
         Assert.Null(harbor.Touch);
         Assert.Equal(0, harbor.SlowedFrames);
     }
@@ -83,7 +83,7 @@ public sealed class ParkSlowRowsTests
         var hit = FlightFixtures.Hit(park, 100, -12, Math.Atan2(ss.X, ss.Z) * 180 / Math.PI);
         var preview = match.PreviewHit(hit);
         Assert.True(preview.Grounder);
-        Assert.False(preview.Frozen);
+        Assert.Equal("", preview.Dazzled);
         var map = FieldingResolver.Assign(match.DefenseRoster, match.Pitcher, match.Defense.Gloves);
         var rules = match.Rules;
         var live = match.LivePlay;

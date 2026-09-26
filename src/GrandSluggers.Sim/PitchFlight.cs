@@ -115,13 +115,15 @@ public static class PitchFlight
             var toward = Math.Sign(StrikeZoneGeometry.PlateZ - (from ?? Release(r, pitch.RubberX)).Z);
             p = (p.X, p.Y + up, p.Z + forward * toward);
         }
+        // The sway (§13): side to side across the path, widest mid-flight, settled onto the path before the plate.
+        if (row?.Sway is { } sway && sway.OffsetFt(u) is var side and not 0)
+            p = (p.X + side, p.Y, p.Z);
         // The pendulum (§13): the ball swings on its vine about a pivot riding above the ordinary ball, and hangs straight at the plate.
         if (row?.Pendulum is { } vine && vine.Offset(time, PendulumSide(pitch, r, from)) is var swing && swing != (0, 0))
             p = (p.X + swing.X, p.Y + swing.Y, p.Z);
         var st = r.Pitching.StarShapes;
         return starPitchId switch
         {
-            "charmball" => (p.X + Math.Sin(u * st.CharmballWobbleHz) * st.CharmballWobbleFt, p.Y, p.Z),
             "phonyball" => (p.X + (u > st.PhonyballSwitchAt ? st.PhonyballLateX : st.PhonyballEarlyX), p.Y, p.Z),
             _ => p
         };

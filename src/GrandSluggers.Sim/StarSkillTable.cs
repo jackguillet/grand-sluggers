@@ -20,6 +20,8 @@ public sealed record StarPitchSkill(
     PitchRise? Rise = null,
     /// <summary>One full vertical loop mid-flight, then the ordinary crossing on the ordinary time, or null (§13).</summary>
     PitchLoop? Loop = null,
+    /// <summary>A side-to-side sway that swells to its widest mid-flight and settles onto the ordinary path before the plate, or null (§13).</summary>
+    PitchSway? Sway = null,
     /// <summary>A path that swings in on one pendulum arc from a pivot above the ball onto the unchanged crossing, or null (§13).</summary>
     PitchPendulum? Pendulum = null);
 
@@ -78,6 +80,36 @@ public sealed record PitchRise(double RiseFt, double From)
         if (u <= From) return 0;
         var t = (u - From) / (1 - From);
         return RiseFt * t * t;
+    }
+}
+
+/// <summary>
+/// A star pitch's sway (spec §13): the ball swings side to side across its ordinary path, <see cref="Cycles"/> full sways over
+/// the flight, the swing swelling from nothing at the release to exactly <see cref="WidthFt"/> at <see cref="PeakAt"/> of the
+/// flight and settling back to nothing by <see cref="SettleBy"/>. From there to the plate the ball is on its ordinary path, so
+/// the crossing — what the umpire, the bat and the CPU judge — is the ordinary one. Nothing is rolled: the sway is a fixed curve.
+/// </summary>
+public sealed record PitchSway(double WidthFt, double Cycles, double PeakAt, double SettleBy)
+{
+    /// <summary>The widest sway a row may name: a ribbon across the zone, not a pitch thrown at another batter.</summary>
+    public const double MaxWidthFt = 2;
+    /// <summary>The most full sways a row may name over one flight: a sway the eye can follow, not a buzz.</summary>
+    public const double MaxCycles = 4;
+
+    /// <summary>
+    /// The sideways offset from the ordinary path at <paramref name="u"/> of the flight, in feet of world X: the swell (a
+    /// quarter sine up to <see cref="PeakAt"/>, a quarter cosine down to <see cref="SettleBy"/>) times a sway whose crest is at
+    /// <see cref="PeakAt"/>. Its largest size is <see cref="WidthFt"/>, exactly at <see cref="PeakAt"/>; it is exactly 0 at the
+    /// release and from <see cref="SettleBy"/> to the plate.
+    /// </summary>
+    public double OffsetFt(double u)
+    {
+        u = Math.Clamp(u, 0, 1);
+        if (u <= 0 || u >= SettleBy) return 0;
+        var swell = u <= PeakAt
+            ? Math.Sin(Math.PI / 2 * u / PeakAt)
+            : Math.Cos(Math.PI / 2 * (u - PeakAt) / (SettleBy - PeakAt));
+        return WidthFt * swell * Math.Cos(2 * Math.PI * Cycles * (u - PeakAt));
     }
 }
 
@@ -178,6 +210,10 @@ public sealed record StarSwingSkill(
     double ExitVeloMul,
     double? LaunchDeg,
     string? Terrain,
+    /// <summary>
+    /// The nearest fielder — the body the play would send after the ball — stands still this many seconds from the contact
+    /// (§13, <see cref="FieldingPreview.Dazzled"/>); 0 is none.
+    /// </summary>
     double FielderPauseSec,
     bool InfieldChaos,
     bool Decoy,
@@ -218,6 +254,9 @@ public sealed record StarSwingSkill(
 
     /// <summary>The largest wind factor a row may name: the wind may carry a star ball twice as far, never more.</summary>
     public const double MaxWindMul = 2;
+
+    /// <summary>The longest pause a row may name: every special's bend ends within 2 s of the contact (§13).</summary>
+    public const double MaxFielderPauseSec = 2;
 
     /// <summary>The largest kick a row may name: a hop, not a U-turn.</summary>
     public const double MaxKickDeg = 45;

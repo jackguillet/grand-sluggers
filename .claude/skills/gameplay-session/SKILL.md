@@ -31,6 +31,7 @@ Kind: **Gameplay** (AGENTS.md "Session kind" is the list of what you own and may
 - **The sim is also a Unity package** (netstandard 2.1). A BCL call Unity lacks, or a positional call site in `unity/` you did not grep, passes `dotnet` and breaks Unity: run `UNITY_PACKAGE_ASSEMBLIES=/Users/jack/repos/grand-sluggers/unity/Library/ScriptAssemblies tools/unity-compile.sh` from a worktree.
 - **Moving a constant into data** can change it: `(double)4.2f` is 4.19999980926514. Read the C# type first.
 - **A derived table copy names every section** (`RulesTable.AtLevel` / `AtPark`); a new section must be added to each.
+- **Holding a body still is not its lockout alone.** Cover walks start at contact and never read `ReadyAt` / `CanMove`; a rule that stops one body (a pause, a stun) must gate `StepTo` and `StepStick` too, or the body drifts to its bag while "held".
 - **Two changes, one PR:** run the split (each change alone) before you credit a cohort move to either.
 
 ## Balance is not yours

@@ -208,7 +208,7 @@ public sealed class StatusVolumeTests
         var p = Play(match, FlightFixtures.Landing(park, carry, 40, 0));
         Assert.Equal(chaser, p.Preview.Position);
         Assert.Equal(plain, p.Preview with { Ball = plain.Ball });
-        Assert.False(p.Preview.Frozen, "the preview reads no volume");
+        Assert.True(p.Preview.Dazzled == "", "the preview reads no volume");
 
         var touch = Assert.Single(p.Live.SlowsThisPlay);
         Assert.Equal((chaser, index, HazardType.FreezeVolume, false), (touch.Pos, touch.Hazard, touch.Type, touch.IsRunner));
@@ -385,7 +385,7 @@ public sealed class StatusVolumeTests
         var match = Match.Slice(Catalog, seed: 1, parkId: ParkId.Crystal);
         // A high fly (50°): the second baseman who goes out for it is still under it when it comes down, in the disc.
         var p = Play(match, FlightFixtures.Landing(rink, carry + 10, 50, spray));
-        Assert.False(p.Preview.Frozen);
+        Assert.Equal("", p.Preview.Dazzled);
         Assert.NotEmpty(p.Live.SlowsThisPlay);
         Assert.All(p.Live.SlowsThisPlay, t => Assert.Equal(deep.i, t.Hazard));
         var slowedBodies = p.Live.SlowsThisPlay.Select(t => t.Pos).Distinct().ToArray();
@@ -427,7 +427,7 @@ public sealed class StatusVolumeTests
             var hit = FlightFixtures.Landing(park, carry, 70, spray);
             var preview = match.PreviewHit(hit);
             Assert.Equal("SS", preview.Position);
-            Assert.False(preview.Frozen);
+            Assert.Equal("", preview.Dazzled);
             var rng = Count(match);
             var p = Play(match, hit);
             Assert.Equal(0, rng.Draws);
@@ -440,10 +440,10 @@ public sealed class StatusVolumeTests
         }
         Assert.Equal(12, caught);
 
-        // The heart swing freezes the glove and draws no roll either (§8.6): no skill decides a catch by chance.
+        // Follow Spot pauses the nearest fielder and draws no roll either (§8.6): no skill decides a catch by chance.
         var control = new Match(Catalog, PresetTeams.EmberCourt(Catalog), PresetTeams.SparkAllStars(Catalog), park, seed: 1);
         var heart = FlightFixtures.Landing(park, carry, 70, spray) with { StarSwingUsed = "heart-swing" };
-        Assert.True(control.PreviewHit(heart).Frozen);
+        Assert.Equal("SS", control.PreviewHit(heart).Dazzled);
         var counted = Count(control);
         Play(control, heart);
         Assert.Equal(0, counted.Draws);

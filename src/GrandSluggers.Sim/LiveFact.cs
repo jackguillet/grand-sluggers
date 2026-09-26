@@ -23,3 +23,9 @@ public sealed record AssistedRouteStep(string GloveId) : LiveFact;
 /// </summary>
 public sealed record FirstHopKicked(string SwingId, double T, double X, double Z, double TurnDeg, string GloveId, double BounceMul = 1,
     double StallSec = 0) : LiveFact;
+
+/// <summary>
+/// A star swing's pause held one fielder (§13, <see cref="StarSwingSkill.FielderPauseSec"/>): the swing, the glove it held
+/// (its position: the nearest fielder, the body the play would have sent) and the play second that body may move again.
+/// </summary>
+public sealed record FielderDazzled(string SwingId, string GloveId, double UntilT) : LiveFact;
