@@ -1905,9 +1905,10 @@ public sealed partial class LivePlaySystem
         if (_solids.Count > 0)
             goal = VolumeRoute.Waypoint(at, goal, _solids.Select(b => b.AsVolume(ElapsedSeconds)).ToList(), speed, 1e-6,
                 R.Fielding.Chase.VolumeClearFt);
-        return _bodySlows.FielderVolumes.Count == 0 || _routeImmune.Contains(pos)
+        // The park's discs only: a star's disc (the Undertow's ring, a Dust Bowl; §13) is not routed around — going round it is the player's verb.
+        return _bodySlows.ParkVolumes.Count == 0 || _routeImmune.Contains(pos)
             ? goal
-            : VolumeRoute.Waypoint(at, goal, _bodySlows.FielderVolumes, speed, R.Fielding.Chase.FrozenMul, R.Fielding.Chase.VolumeClearFt);
+            : VolumeRoute.Waypoint(at, goal, _bodySlows.ParkVolumes, speed, R.Fielding.Chase.FrozenMul, R.Fielding.Chase.VolumeClearFt);
     }
 
     /// <summary>The redirects the ball went through this play, in order (F4-c).</summary>
@@ -1939,7 +1940,7 @@ public sealed partial class LivePlaySystem
         var before = BallFlight.PointAt(Path, Math.Max(0, t - dt), R);
         var (vx, vy, vz) = ((BallX - before.X) / dt, (BallY - before.Y) / dt, (BallZ - before.Z) / dt);
         if (SolidBodies.Carom(_solids, t, BallX, BallY, BallZ, vx, vz) is not { } hit) return;
-        Path = BallFlight.Continue(Path, t, hit.X, BallY, hit.Z, hit.Vx, vy, hit.Vz, Hit.LaunchDeg, Hit.ExitVeloMph, Park, R, Hit.WindMul);
+        Path = BallFlight.Continue(Path, t, hit.X, BallY, hit.Z, hit.Vx, vy, hit.Vz, Hit.LaunchDeg, Hit.ExitVeloMph, Park, R);
         Ball = BattedBall.Reread(Path, Hit.ExitVeloMph, Hit.LaunchDeg, Ball.Shape == BattedBallClass.Bunt, Park, R);
         (BallX, BallZ) = (hit.X, hit.Z);
         _ballPrev = null;
@@ -1984,7 +1985,7 @@ public sealed partial class LivePlaySystem
         var (vx, vz) = ((BallX - before.X) / dt, (BallZ - before.Z) / dt);
         var (x, y, z, ox, oy, oz) = BallHazards.Launch(exit, vx, vz);
         var entry = (X: BallX, Z: BallZ);
-        Path = BallFlight.Continue(Path, t, x, y, z, ox, oy, oz, Hit.LaunchDeg, Hit.ExitVeloMph, Park, R, Hit.WindMul);
+        Path = BallFlight.Continue(Path, t, x, y, z, ox, oy, oz, Hit.LaunchDeg, Hit.ExitVeloMph, Park, R);
         Ball = BattedBall.Reread(Path, Hit.ExitVeloMph, Hit.LaunchDeg, Ball.Shape == BattedBallClass.Bunt, Park, R);
         (BallX, BallY, BallZ) = (x, y, z);
         _ballPrev = null;
@@ -2765,7 +2766,7 @@ public sealed partial class LivePlaySystem
         var s = retention * speed;
         if (Path is not null && Hit is not null)
         {
-            Path = BallFlight.Continue(Path, ElapsedSeconds, BallX, BallY, BallZ, ox * s, retention * vy, oz * s, Hit.LaunchDeg, Hit.ExitVeloMph, Park, R, Hit.WindMul);
+            Path = BallFlight.Continue(Path, ElapsedSeconds, BallX, BallY, BallZ, ox * s, retention * vy, oz * s, Hit.LaunchDeg, Hit.ExitVeloMph, Park, R);
             if (Ball is not null) Ball = BattedBall.Reread(Path, Hit.ExitVeloMph, Hit.LaunchDeg, Ball.Shape == BattedBallClass.Bunt, Park, R);
             _ballPrev = null;
         }

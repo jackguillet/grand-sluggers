@@ -3,7 +3,7 @@
   "name": "Neighborhood Park",
   "faction": "spark",
   "pickOrder": 1,
-  "region": "south-coast",
+  "region": "neighborhood",
   "surface": "grass",
   "leftFenceFt": 232,
   "centerFenceFt": 280,

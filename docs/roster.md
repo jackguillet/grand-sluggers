@@ -96,13 +96,13 @@ Names are working titles. Replace freely; keep the *roles*.
 ### Sable — Dune Nomads
 
 - Bars: Pitch 8 / Bat 5 / Field 6 / Run 5. Body class `trickster` (borrows Vale's takes until its own style exists).
-- Star abilities: Mirage Ball (a faint twin on the far half of the zone, gone by half the flight), Sidewinder (the first hop turns away from the chaser) and Sand Scoop (extra reach on a low grounder that never bobbles).
+- Star abilities: Mirage (the ball vanishes in heat shimmer for the middle third of its flight while its shadow keeps crossing the dirt), Dust Bowl (a grounder's first landing raises an 8 ft bowl of loose dust, gone 2 s after contact, that slows fielders inside it to half speed) and Sand Scoop (extra reach on a low grounder that never bobbles).
 - Signature bat: Mirage Bat. Bats/throws: R/R. Role players: Sirocco, Tumble, Adobe.
 
 ### Hollis — Peak Guard
 
 - Bars: Pitch 6 / Bat 8 / Field 5 / Run 4. Body class `climber` (borrows Brondo's takes until its own style exists).
-- Star abilities: Rockfall (floats high, drops onto its crossing late), Updraft (the fly rides the wind half again as hard) and Long Toss (a deep throw keeps its pace 80 ft further).
+- Star abilities: Cable Car (stops dead mid-flight for 0.15 s, then runs down its line to cross on time), Summit Gust (at its apex the fly catches a gust and carries 15 % farther along its line) and Long Toss (a deep throw keeps its pace 80 ft further).
 - Signature bat: Summit Axe. Bats/throws: L/R. Role players: Flint, Cairn, Scree.
 
 ### Reed — Marsh Hoppers

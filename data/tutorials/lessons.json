@@ -2373,7 +2373,7 @@
     },
     {
       "id": "T-SP-mirageball",
-      "revision": 4,
+      "revision": 5,
       "mechanics": [
         "star-pitch.mirageball"
       ],
@@ -2398,7 +2398,7 @@
     },
     {
       "id": "T-SP-rockfall",
-      "revision": 4,
+      "revision": 5,
       "mechanics": [
         "star-pitch.rockfall"
       ],
@@ -2698,7 +2698,7 @@
     },
     {
       "id": "T-SS-sidewinder",
-      "revision": 4,
+      "revision": 5,
       "mechanics": [
         "star-swing.sidewinder"
       ],
@@ -2723,7 +2723,7 @@
     },
     {
       "id": "T-SS-updraft",
-      "revision": 4,
+      "revision": 5,
       "mechanics": [
         "star-swing.updraft"
       ],

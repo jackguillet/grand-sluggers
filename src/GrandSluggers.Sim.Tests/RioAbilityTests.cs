@@ -29,7 +29,7 @@ public sealed class RioAbilityTests
         Assert.Equal(1.5, swing.PerfectRingMul);
         Assert.Null(pitch.OnCatch);        // the burn-hop is gone: a caught Skyrocket is an ordinary catch
         Assert.Null(swing.Terrain);        // the burn patch is gone: Sparkler's bend is spent at the plate
-        Assert.Null(pitch.Float);
+        Assert.Null(pitch.Hitch);
         Assert.DoesNotContain(Game.Characters.Values, c => c.Id != "rio" && (c.StarPitch == "heatball" || c.StarSwing == "heat-swing"));
     }
 
