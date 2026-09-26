@@ -2273,7 +2273,7 @@
     },
     {
       "id": "T-SP-fogball",
-      "revision": 4,
+      "revision": 5,
       "mechanics": [
         "star-pitch.fogball"
       ],
@@ -2598,7 +2598,7 @@
     },
     {
       "id": "T-SS-staff-swing",
-      "revision": 4,
+      "revision": 5,
       "mechanics": [
         "star-swing.staff-swing"
       ],

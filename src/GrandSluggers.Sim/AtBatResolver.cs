@@ -76,8 +76,10 @@ public sealed class AtBatResolver
         var barrel = SweetSpot.SwingBarrel(input.Batter, input.Bat, input.Charge01, _rules);
         // A star swing may carry its own larger Perfect ring (§13, PH-16-R2); the bat must still meet the ball.
         var ring = input.UseStarSwing && !input.Bunt ? StarSkills.SwingPerfectRingMul(input.Batter.StarSwing, _skills) : 1.0;
+        // ... or its own taller oval (§13): the height grows for that swing alone; the barrel's width and the window do not.
+        var tall = input.UseStarSwing && !input.Bunt ? StarSkills.SwingOvalHeightMul(input.Batter.StarSwing, _skills) : 1.0;
         var quality = onPlane
-            ? SweetSpot.Zone(input.BoxOffsetX, bats, input.CrossingX, crossingY, _rules, zone, barrel, ring)
+            ? SweetSpot.Zone(input.BoxOffsetX, bats, input.CrossingX, crossingY, _rules, zone, barrel, ring, tall)
             : ContactQuality.Miss;
         // The rim of the window is not square: one tier down, never two (§5.3).
         if (quality > ContactQuality.Sour && Math.Abs(err) > half * b.Window.SquareFraction)
@@ -116,7 +118,7 @@ public sealed class AtBatResolver
         var height = (crossingY - zone.CenterY) / zone.VerticalScale;
         var loft = b.Launch.LoftBaseDeg + (power - 5) * b.Launch.LoftPerPower
                    + (charged ? b.Charge.LoftDeg : 0) + height * b.Launch.PerFtOfHeight;
-        var launch = loft + UnderTheBallDeg(input.BoxOffsetX, crossingY, _rules, zone)
+        var launch = loft + UnderTheBallDeg(input.BoxOffsetX, crossingY, _rules, zone, tall)
                      - launchAim * b.Launch.StickDeg + (rng.NextDouble() - 0.5) * b.Launch.NoiseDeg;
         if (quality == ContactQuality.Sour && input.UseStarSwing && !input.Bunt)
         {
@@ -194,11 +196,13 @@ public sealed class AtBatResolver
     /// bat meets the bottom of the ball — lifts the launch by <c>batting.launch.underBallDegPerFt</c> per foot,
     /// on top of the pitch-height term. Near the rim's top it passes 90°: a foul pop behind the plate. Zero
     /// anywhere at or below the nice top. A bunt reads its own band instead (§5.8). The feet over are this batter's
-    /// zone's, read in the reference frame (§4.4), like the pitch-height term.
+    /// zone's, read in the reference frame (§4.4), like the pitch-height term. A swing's own taller oval (§13,
+    /// <paramref name="ovalHeightMul"/>) raises its nice top, so the rim it reaches is its own.
     /// </summary>
-    public static double UnderTheBallDeg(double boxOffsetX, double crossingY, RulesTable rules, BatterZone zone)
+    public static double UnderTheBallDeg(double boxOffsetX, double crossingY, RulesTable rules, BatterZone zone,
+        double ovalHeightMul = 1)
     {
-        var over = (crossingY - (SweetSpot.WorldCenter(boxOffsetX, zone).Y + SweetSpot.HalfHeightFt(zone))) / zone.VerticalScale;
+        var over = (crossingY - (SweetSpot.WorldCenter(boxOffsetX, zone).Y + SweetSpot.HalfHeightFt(zone, ovalHeightMul))) / zone.VerticalScale;
         return over > 0 ? over * rules.Batting.Launch.UnderBallDegPerFt : 0;
     }
 

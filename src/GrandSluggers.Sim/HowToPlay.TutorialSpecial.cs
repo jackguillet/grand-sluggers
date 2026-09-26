@@ -31,7 +31,7 @@ public static partial class HowToPlay
             "T-SP-phonyball" => "Phonyball",
             "T-SP-caskball" => "Caskball",
             "T-SP-skullball" => "Skullball",
-            "T-SP-fogball" => "Fogball",
+            "T-SP-fogball" => "Undertow",
             "T-SP-fastball" => "Star Fastball",
             "T-SP-changeup" => "Star Change",
             "T-SP-breaker" => "Star Breaker",
@@ -44,7 +44,7 @@ public static partial class HowToPlay
             "T-SS-phony-swing" => "Phony Swing",
             "T-SS-cask-swing" => "Cask Swing",
             "T-SS-furnace" => "Furnace",
-            "T-SS-staff-swing" => "Staff Swing",
+            "T-SS-staff-swing" => "Driftwood Reach",
             "T-SS-sidewinder" => "Sidewinder",
             "T-SS-updraft" => "Updraft",
             "T-SS-pond-skip" => "Pond Skip",
@@ -59,6 +59,8 @@ public static partial class HowToPlay
         {
             "T-SP-heatball" => " It flies fast, then rises up to a foot over the last third, so aim it low.",
             "T-SS-heat-swing" => " Its Perfect ring is half again as wide, but the bat must still meet the ball.",
+            "T-SP-fogball" => " It comes in slow; if it is hit fair, a ring on home slows the batter's first steps for 2 seconds.",
+            "T-SS-staff-swing" => " Its contact oval reaches higher and lower, not wider: a wide pitch still beats it.",
             _ => ""
         };
         return pitch

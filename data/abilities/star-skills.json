@@ -49,10 +49,12 @@
     },
     "fogball": {
       "id": "fogball",
-      "name": "Fogball",
-      "kind": "status",
+      "name": "Undertow",
+      "kind": "payload",
+      "family": "runner-payload",
       "speedMul": 0.82,
-      "staminaCost": 16
+      "staminaCost": 16,
+      "undertow": { "radiusFt": 12, "sec": 2, "runnerMul": 0.8 }
     },
     "mirageball": {
       "id": "mirageball",
@@ -89,7 +91,7 @@
     "phony-swing": { "id": "phony-swing", "name": "Phony Swing", "kind": "decoy", "exitVeloMul": 1.1, "decoy": true },
     "cask-swing": { "id": "cask-swing", "name": "Cask Swing", "kind": "payload", "exitVeloMul": 1.2, "fragments": true },
     "furnace": { "id": "furnace", "name": "Furnace", "kind": "terrain", "exitVeloMul": 1.25, "terrain": "warning-lava" },
-    "staff-swing": { "id": "staff-swing", "name": "Staff Swing", "kind": "bounce", "exitVeloMul": 1.08, "infieldChaos": true },
+    "staff-swing": { "id": "staff-swing", "name": "Driftwood Reach", "kind": "contact", "family": "tall-contact", "exitVeloMul": 1.08, "ovalHeightMul": 1.4 },
     "sidewinder": { "id": "sidewinder", "name": "Sidewinder", "kind": "bounce", "exitVeloMul": 1.12, "launchDeg": 4, "firstHopKickDeg": 20 },
     "updraft": { "id": "updraft", "name": "Updraft", "kind": "wind", "exitVeloMul": 1.1, "launchDeg": 34, "windMul": 1.5 },
     "pond-skip": { "id": "pond-skip", "name": "Pond Skip", "kind": "bounce", "exitVeloMul": 1.05, "launchDeg": 0, "firstHopBounceMul": 2.2 },

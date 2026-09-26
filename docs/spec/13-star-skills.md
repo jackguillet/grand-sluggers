@@ -13,11 +13,12 @@ Each replacement effect for a pitch that lost its window penalty is its own revi
 | Phonyball | Decoy path: the ball shows one side early and switches late (`starShapes.phonyball*`); reading the switch is the counterplay. Contact is contact | |
 | Caskball | Slow, knockback on the catch (0.55 s) | |
 | Skullball | +20% speed, nothing else until its review | |
-| Fogball | Speed ×0.82, nothing else until its review | |
+| Undertow (`fogball`) | Speed ×0.82; path and window are the plain pitch's. A fair ball put in play off it washes an `undertow` ring out on home: a disc of radius `radiusFt` (12 ft, a radius like every status volume's) centred on home plate, live `sec` (2 s) from contact. The batter-runner's every step inside it is at `runnerMul` (0.8) of his speed, read each frame like a park's status volume (§14); nothing lingers after he leaves or the ring goes. No fielder or other runner is touched, a foul washes no ring, and a park's volume and the ring are the one stronger slow | baseball |
 | Sparkler (`heat-swing`) | Exit ×1.15; this swing's Perfect ring is `perfectRingMul` (1.5) times the ordinary one (§5.2 `perfectFraction`), never past the drawn oval (a swing's own contact area, PH-16-R2). The oval, the sour rim and the timing window are the ordinary swing's, so a crossing the ordinary swing misses is a miss, and a bunt keeps the ordinary ring. It leaves nothing on the dirt | |
 | Furnace swing | Exit ×1.25; a lava strip where it lands slows the fielder ×0.45 for 2 s | |
 | Heart swing | The nearest fielder pauses 0.8 s; no drop roll (§8.6) | |
-| Shell / Staff swing | Exit ×1.1 / ×1.08; the warp roll is retired (§8.6) until each swing's own effect is built | |
+| Shell swing | Exit ×1.1; the warp roll is retired (§8.6) until its own effect is built | |
+| Driftwood Reach (`staff-swing`) | Exit ×1.08; this swing's contact oval is `ovalHeightMul` (1.4) times as tall (a swing's own contact area, PH-16-R2): the heart, the nice boundary and the sour rim all stretch up and down around the zone's centre, and the rim a ball is met under is its own. The width along the barrel and the timing window are the ordinary swing's, so a wide pitch or an early or late bat is still a miss, and a bunt keeps the ordinary oval. It leaves nothing on the dirt | |
 | Phony swing | Decoy ball; the real one shows at the apex; no drop roll (§8.6) | |
 | Cask swing | Fragments: two decoy balls fall with it | |
 | Mirage Ball | A faint twin (`twin`) flies `offsetFt` to the far half of the zone from the real crossing, full until `fadeFrom` of the flight and gone by `fadeTo`, never later than half the flight. The real ball is the pitch as thrown; the umpire, the bat and the CPU read only it. Picking the real ball before the twin fades is the counterplay | |

@@ -87,8 +87,8 @@ Names are working titles. Replace freely; keep the *roles*.
 ### Elder Fenn — Stillwater
 
 - Stats: Pitch 7 / Bat 5 / Field 8 / Run 3
-- Star Pitch: **Fogball** — slow wet pitch; batter’s window shrinks in the mist.
-- Star Swing: **Staff Swing** — cane hop that randomizes infield bounces.
+- Star Pitch: **Undertow** (`fogball`) — slow, and a fair ball off it washes a ring out on home for 2 s that slows the batter-runner inside it.
+- Star Swing: **Driftwood Reach** (`staff-swing`) — exit ×1.08 and a contact oval 1.4 times as tall; a wide pitch still beats it.
 - Field: **Withdraw** — shell catch, bigger glove window, still slow.
 - Bats/throws: R/R
 

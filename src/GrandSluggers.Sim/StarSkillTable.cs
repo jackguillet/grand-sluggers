@@ -17,7 +17,34 @@ public sealed record StarPitchSkill(
     /// <summary>A pace that hangs the ball over one stretch of its path and leaps it to the plate on time, or null (§13).</summary>
     PitchLeap? Leap = null,
     /// <summary>A late rise that lifts the ball over the last stretch of its flight to a crossing above the aimed one, or null (§13).</summary>
-    PitchRise? Rise = null);
+    PitchRise? Rise = null,
+    /// <summary>A ring on home plate, from contact, that slows the batter-runner inside it, or null (§13).</summary>
+    PitchUndertow? Undertow = null);
+
+/// <summary>
+/// A star pitch's undertow (spec §13): when a fair ball is put in play off it, a disc of radius <see cref="RadiusFt"/>
+/// centred on home plate is live for <see cref="Sec"/> from contact, and the batter-runner's every step inside it is at
+/// <see cref="RunnerMul"/> of its speed. It is a status volume (<see cref="BodySlows"/>) that touches one body: no fielder,
+/// no other runner, and nothing after the body leaves it or the time runs out. Geometry decides it; nothing is rolled.
+/// </summary>
+public sealed record PitchUndertow(double RadiusFt, double Sec, double RunnerMul)
+{
+    /// <summary>The <see cref="StatusVolume.Type"/> the undertow's disc carries: presentation draws its ring by this name.</summary>
+    public const string Type = "undertow";
+
+    /// <summary>The widest ring a row may name: it may cover the batter's first steps, never the run to first.</summary>
+    public const double MaxRadiusFt = 20;
+
+    /// <summary>Every bend ends within 2 s of contact (§13).</summary>
+    public const double MaxSec = 2;
+
+    /// <summary>
+    /// The disc as the live ball reads it, for a play whose clock starts at contact: centred on home, live until
+    /// <see cref="Sec"/>, no time after the body leaves it (<c>slowSec</c> 0), the batter-runner's alone.
+    /// </summary>
+    public StatusVolume Volume() =>
+        new(StatusVolume.StarHazard, Type, 0, 0, RadiusFt, 0, SlowMul: RunnerMul, UntilT: Sec, BatterRunnerOnly: true);
+}
 
 /// <summary>
 /// A star pitch's late rise (spec §13): nothing until <see cref="From"/> of the flight, then the ball climbs on a quadratic ease
@@ -115,8 +142,17 @@ public sealed record StarSwingSkill(
     /// This swing's Perfect ring is this many times the ordinary one (§13, PH-16-R2: a swing's own contact area); 1 is the
     /// ordinary ring. The nice oval, the sour rim and the timing window are unchanged, so a miss is still a miss.
     /// </summary>
-    double PerfectRingMul = 1)
+    double PerfectRingMul = 1,
+    /// <summary>
+    /// This swing's contact oval is this many times as tall (§13, PH-16-R2: a swing's own contact area); 1 is the ordinary
+    /// oval. Only the height grows, so the width along the barrel and the timing window are unchanged: a wide pitch or a
+    /// late bat is still a miss.
+    /// </summary>
+    double OvalHeightMul = 1)
 {
+    /// <summary>The tallest contact oval a row may name: twice the batter's zone, never more.</summary>
+    public const double MaxOvalHeightMul = 2;
+
     /// <summary>The largest Perfect ring a row may name: twice the ordinary heart, and never past the drawn oval (<see cref="SweetSpot.Zone"/>).</summary>
     public const double MaxPerfectRingMul = 2;
 
@@ -208,6 +244,10 @@ public static class StarSkills
     /// <summary>How much larger a star swing's Perfect ring is (§13); 1 for a swing whose row names none.</summary>
     public static double SwingPerfectRingMul(string? starSwing, StarSkillTable? table = null) =>
         StarSkillTable.Or(table).Swing(starSwing)?.PerfectRingMul ?? 1.0;
+
+    /// <summary>How much taller a star swing's contact oval is (§13); 1 for a swing whose row names none.</summary>
+    public static double SwingOvalHeightMul(string? starSwing, StarSkillTable? table = null) =>
+        StarSkillTable.Or(table).Swing(starSwing)?.OvalHeightMul ?? 1.0;
 
     /// <summary>A role player's star swing names its launch; a captain's keeps the swing's own.</summary>
     public static double? SwingLaunchDeg(string? starSwing, StarSkillTable? table = null) =>
