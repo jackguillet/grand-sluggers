@@ -41,7 +41,7 @@ public static partial class HowToPlay
             "T-SS-heat-swing" => "Sparkler",
             "T-SS-heart-swing" => "Follow Spot",
             "T-SS-shell-swing" => "Spinning Top",
-            "T-SS-phony-swing" => "Phony Swing",
+            "T-SS-phony-swing" => "Double Deal",
             "T-SS-cask-swing" => "Cask Swing",
             "T-SS-furnace" => "Furnace",
             "T-SS-staff-swing" => "Staff Swing",
@@ -63,6 +63,8 @@ public static partial class HowToPlay
             "T-SS-shell-swing" => " The grounder spins in place at its first hop, then rolls on slowly. Run.",
             "T-SP-charmball" => " The ball sways widest at mid-flight, then settles onto your aim before the plate.",
             "T-SS-heart-swing" => " The follow spot holds the nearest fielder still for a moment after contact.",
+            "T-SP-phonyball" => " It shows one side early and switches late. Read the switch.",
+            "T-SS-phony-swing" => " A card-back decoy flies beside the real ball until the top of its arc.",
             _ => ""
         };
         return pitch

@@ -149,6 +149,8 @@ S-49 with the square (the crashing corners, the catcher's pop, the force back in
 | S-211 | Follow Spot (`heart-swing`) on a fly to center at Harbor, CPU gloves; the same ball without the star | Play it | CF, the body the plain play sends, is the one paused: its wait is `fielderPauseSec` (0.8 s) from the contact, it takes no step before that and runs after; one `FielderDazzled` fact; without the star CF is already running |
 | S-212 | Follow Spot on a grounder toward the third-base hole at Harbor; the same ball without the star | Play it | 3B, the plain play's glove, is held still for the pause; the play is chosen again with that wait in it and SS, now the first to the ball, takes it; SS's own wait is unchanged |
 | S-213 | Follow Spot on the fly and on the grounder; a foul; a human glove on the fly | Read every body's wait; play it | Only the named body's wait moves; every other body keeps the plain play's; a foul pauses nobody; the human glove waits the same pause as the CPU's |
+| S-218 | Brondo's shipped row | Read his specials | Phonyball (`family: decoy-switch`) and Double Deal (`phony-swing`, `family: decoy-ball`): two decoy families no other captain carries; the shipped data validates |
+| S-219 | The T-SS-phony-swing lesson | Read its title and brief | The title names Double Deal and the brief names the decoy |
 
 Notes to the table above:
 
