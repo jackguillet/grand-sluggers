@@ -102,7 +102,7 @@ The recommendation is not the decision.
 | AB-09 | Tiers | Which captains hold top-tier specials? | A keep Rio, Konga, Ashlord · B re-tier | **Accepted: tiers are retired** (Jack, 2026-09-25). A captain's Star Pitch and Star Swing cost 2 stars; a sidekick's generic specials cost 1. The price follows who carries the special, not a tier; the balance child may revisit the numbers. Spec §12's tier rows, `star-skills.json` `tier` and the top-tier validator go in AB-C0 |
 | AB-10 | Role players | Generic low-tier specials | A keep the six generics · B faction-flavoured variants | A |
 | AB-11 | Tutorials | Lessons | A every changed ability updates its lesson in the same child (the tutorial rule) | A |
-| AB-12 | Field | Are field abilities per captain? | A distinct per captain · B one shared pool for captains and role players | **Accepted: B** (Jack, 2026-09-25): the pool starts with Snap Throw, Lick Catch, Laser and Clamber |
+| AB-12 | Field | Are field abilities per captain? | A distinct per captain · B one shared pool for captains and role players | **Accepted: B** (Jack, 2026-09-25): the pool is Snap Throw, Lick Catch, Laser, Relay Pivot and Wall Spring; Clamber is out. Canopy Yard's climb wall reads Clamber today, so its wall trait moves to Wall Spring or a park rule in C13 |
 | AB-13 | Look | Do the captains' themes and looks follow their abilities? | A yes: each captain gets a theme, look lines and a tell language that match the two Star abilities, and moves away from any look that reads as another game's character · B abilities only | A, in the matrix (direction for the art sessions; art waits for its gates) |
 
 ## Rounds 3 and 4 (the live review page)
@@ -226,9 +226,10 @@ Field abilities are not captain identity. Captains and role players draw from on
 | Snap Throw | 0.22-s release after a clean *received* throw |
 | Lick Catch | A tongue snap takes a ball just out of reach |
 | Laser | ×1.25 throw home with a live runner on third |
-| Clamber | Rob ≤ 28 ft over at the wall |
+| Relay Pivot | A cutoff fielder catches a throw and throws on in 0.15 s |
+| Wall Spring | Springs off any wall for +4 ft of reach |
 
-The pool starts with these four. The rest (Grow, Withdraw, Spin Check, Sand Scoop, Long Toss, Lily Leap, Super Jump, Ball Dash, Dive, Burrow) are out of the starting pool; one comes back only by a later decision.
+The pool is these five (Jack, 2026-09-25: Relay Pivot and Wall Spring added, Clamber removed). The rest (Clamber, Grow, Withdraw, Spin Check, Sand Scoop, Long Toss, Lily Leap, Super Jump, Ball Dash, Dive, Burrow) are out of the starting pool; one comes back only by a later decision.
 
 ## Build order (after the rounds)
 
