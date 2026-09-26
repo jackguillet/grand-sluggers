@@ -263,8 +263,6 @@ public static class ContentDataValidator
                     errors.Add($"{source}: star pitch '{key}' cannot carry windMul; it is a swing's");
                 if (value.Leap is { } leap && (leap.At <= 0 || leap.HoldSpan <= 0 || leap.At + leap.HoldSpan >= 1 || leap.HoldPace < 0 || leap.HoldPace >= 1))
                     errors.Add($"{source}: star pitch '{key}' leap needs at > 0, holdSpan > 0, at + holdSpan < 1 and 0 <= holdPace < 1");
-                if (value.FirstHopBounceMul is not null)
-                    errors.Add($"{source}: star pitch '{key}' cannot carry firstHopBounceMul; it is a swing's");
                 if (value.PerfectRingMul is not null)
                     errors.Add($"{source}: star pitch '{key}' cannot carry perfectRingMul; it is a swing's");
                 // The rise ends at the plate and is always up (§13): a jump out of the heart of the zone, never a drop.
@@ -288,6 +286,12 @@ public static class ContentDataValidator
                     errors.Add($"{source}: star pitch '{key}' pendulum needs 0 < lengthFt <= {PitchPendulum.MaxLengthFt.ToString(CultureInfo.InvariantCulture)}, 0 < swingDeg <= {PitchPendulum.MaxSwingDeg.ToString(CultureInfo.InvariantCulture)} and 0 < widestAt < 1");
                 if (value.Jag is not null)
                     errors.Add($"{source}: star pitch '{key}' cannot carry a jag; it is a swing's");
+                // Two skips on the dirt, the second shorter than the flight to the first, both before the plate (§13).
+                if (value.Skips is { } skips && (skips.FirstAt <= 0 || skips.SecondAt <= skips.FirstAt || skips.SecondAt >= 1
+                        || skips.SecondAt - skips.FirstAt >= skips.FirstAt || skips.HopFt <= 0 || skips.HopFt > PitchSkips.MaxHopFt))
+                    errors.Add($"{source}: star pitch '{key}' skips needs 0 < firstAt < secondAt < 1, secondAt - firstAt < firstAt and 0 < hopFt <= {PitchSkips.MaxHopFt.ToString(CultureInfo.InvariantCulture)}");
+                if (value.Hop is not null)
+                    errors.Add($"{source}: star pitch '{key}' cannot carry a hop; it is a swing's");
             }
             else
             {
@@ -325,8 +329,6 @@ public static class ContentDataValidator
                 // The pause ends within the 2 s every special's bend ends in (§13).
                 if (value.FielderPauseSec is not null && (value.FielderPauseSec <= 0 || value.FielderPauseSec > StarSwingSkill.MaxFielderPauseSec))
                     errors.Add($"{source}: star swing '{key}' fielderPauseSec must be greater than 0 and at most {StarSwingSkill.MaxFielderPauseSec.ToString(CultureInfo.InvariantCulture)}; got {value.FielderPauseSec}");
-                if (value.FirstHopBounceMul is not null && (value.FirstHopBounceMul < 1 || value.FirstHopBounceMul > StarSwingSkill.MaxBounceMul))
-                    errors.Add($"{source}: star swing '{key}' firstHopBounceMul must be between 1 and {StarSwingSkill.MaxBounceMul.ToString(CultureInfo.InvariantCulture)}; got {value.FirstHopBounceMul}");
                 if (value.WindMul is not null && (value.WindMul < 0 || value.WindMul > StarSwingSkill.MaxWindMul))
                     errors.Add($"{source}: star swing '{key}' windMul must be between 0 and {StarSwingSkill.MaxWindMul.ToString(CultureInfo.InvariantCulture)}; got {value.WindMul}");
                 if (value.Pendulum is not null)
@@ -335,6 +337,12 @@ public static class ContentDataValidator
                 if (value.Jag is { } jag && (jag.OffsetFt <= 0 || jag.OffsetFt > BallJag.MaxOffsetFt || jag.Span <= 0
                         || jag.FirstAt <= 0 || jag.FirstAt + jag.Span > jag.SecondAt || jag.SecondAt + jag.Span >= 1))
                     errors.Add($"{source}: star swing '{key}' jag needs 0 < offsetFt <= {BallJag.MaxOffsetFt.ToString(CultureInfo.InvariantCulture)}, span > 0, 0 < firstAt, firstAt + span <= secondAt and secondAt + span < 1");
+                if (value.Skips is not null)
+                    errors.Add($"{source}: star swing '{key}' cannot carry skips; they are a pitch's");
+                // A hop over a glove, not over the infield, with a ramp to rise into it (§13).
+                if (value.Hop is { } hop && (hop.HeightFt <= 0 || hop.HeightFt > BallHop.MaxHeightFt || hop.PadFt < 0
+                        || hop.PadFt > BallHop.MaxEdgeFt || hop.RampFt <= 0 || hop.RampFt > BallHop.MaxEdgeFt))
+                    errors.Add($"{source}: star swing '{key}' hop needs 0 < heightFt <= {BallHop.MaxHeightFt.ToString(CultureInfo.InvariantCulture)}, 0 <= padFt <= {BallHop.MaxEdgeFt.ToString(CultureInfo.InvariantCulture)} and 0 < rampFt <= {BallHop.MaxEdgeFt.ToString(CultureInfo.InvariantCulture)}");
             }
         }
         return ids;
@@ -1751,8 +1759,10 @@ internal sealed class StarSkillDto
     public PitchPendulumDto? Pendulum { get; set; }
     /// <summary>A swing's jagged flight (<see cref="BallJag"/>); swings only.</summary>
     public BallJagDto? Jag { get; set; }
-    /// <summary>A swing's first hop springs this many times as fast upward (<see cref="StarSwingSkill.FirstHopBounceMul"/>); swings only.</summary>
-    public double? FirstHopBounceMul { get; set; }
+    /// <summary>A pitch's skips on the dirt (<see cref="PitchSkips"/>); pitches only.</summary>
+    public PitchSkipsDto? Skips { get; set; }
+    /// <summary>A swing's hop over a glove (<see cref="BallHop"/>); swings only.</summary>
+    public BallHopDto? Hop { get; set; }
     /// <summary>A swing's ball kicks this many degrees off its first hop (<see cref="StarSwingSkill.FirstHopKickDeg"/>); swings only.</summary>
     public double? FirstHopKickDeg { get; set; }
     /// <summary>A swing's ball rides the park's wind this many times as hard (<see cref="StarSwingSkill.WindMul"/>); swings only.</summary>
@@ -1770,12 +1780,14 @@ internal sealed class StarSkillDto
         Rise is null ? null : new PitchRise(Rise.RiseFt, Rise.From),
         Loop is null ? null : new PitchLoop(Loop.At, Loop.Span, Loop.DiameterFt),
         Sway is null ? null : new PitchSway(Sway.WidthFt, Sway.Cycles, Sway.PeakAt, Sway.SettleBy),
-        Pendulum is null ? null : new PitchPendulum(Pendulum.LengthFt, Pendulum.SwingDeg, Pendulum.WidestAt));
+        Pendulum is null ? null : new PitchPendulum(Pendulum.LengthFt, Pendulum.SwingDeg, Pendulum.WidestAt),
+        Skips: Skips is null ? null : new PitchSkips(Skips.FirstAt, Skips.SecondAt, Skips.HopFt));
 
     public StarSwingSkill ToSwing() => new(Id, Name, Kind, ExitVeloMul ?? 1.0, LaunchDeg, Terrain,
         FielderPauseSec ?? 0, InfieldChaos, Decoy, FirstHopKickDeg ?? 0,
-        WindMul ?? 1, FirstHopBounceMul ?? 1, FirstHopStallSec ?? 0, FirstHopStallSpeedMul ?? 1, PerfectRingMul ?? 1,
-        Jag is null ? null : new BallJag(Jag.OffsetFt, Jag.FirstAt, Jag.SecondAt, Jag.Span));
+        WindMul ?? 1, FirstHopStallSec ?? 0, FirstHopStallSpeedMul ?? 1, PerfectRingMul ?? 1,
+        Jag is null ? null : new BallJag(Jag.OffsetFt, Jag.FirstAt, Jag.SecondAt, Jag.Span),
+        Hop: Hop is null ? null : new BallHop(Hop.HeightFt, Hop.PadFt, Hop.RampFt));
 }
 
 internal sealed class PitchLoopDto
@@ -1807,6 +1819,21 @@ internal sealed class BallJagDto
     public double FirstAt { get; set; }
     public double SecondAt { get; set; }
     public double Span { get; set; }
+}
+
+internal sealed class PitchSkipsDto
+{
+    /// <summary>Shares of the flight (a fraction, not seconds).</summary>
+    public double FirstAt { get; set; }
+    public double SecondAt { get; set; }
+    public double HopFt { get; set; }
+}
+
+internal sealed class BallHopDto
+{
+    public double HeightFt { get; set; }
+    public double PadFt { get; set; }
+    public double RampFt { get; set; }
 }
 
 internal sealed class PitchLeapDto

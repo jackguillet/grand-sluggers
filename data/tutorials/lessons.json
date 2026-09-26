@@ -2423,7 +2423,7 @@
     },
     {
       "id": "T-SP-leapfrog",
-      "revision": 4,
+      "revision": 5,
       "mechanics": [
         "star-pitch.leapfrog"
       ],
@@ -2748,7 +2748,7 @@
     },
     {
       "id": "T-SS-pond-skip",
-      "revision": 4,
+      "revision": 5,
       "mechanics": [
         "star-swing.pond-skip"
       ],

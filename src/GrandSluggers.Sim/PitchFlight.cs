@@ -121,6 +121,13 @@ public static class PitchFlight
         // The pendulum (§13): the ball swings on its vine about a pivot riding above the ordinary ball, and hangs straight at the plate.
         if (row?.Pendulum is { } vine && vine.Offset(time, PendulumSide(pitch, r, from)) is var swing && swing != (0, 0))
             p = (p.X + swing.X, p.Y + swing.Y, p.Z);
+        // The skips (§13): down onto the dirt, one skip, down again, then up off the second skip onto the ordinary crossing.
+        if (row?.Skips is { } skips && u < 1)
+        {
+            var cross = Point(pitch.Type, 1, r, pitch.AimX, pitch.AimY, pitch.BreakX * pitch.BreakMul,
+                pitch.RubberX, from, ChargeFeel.IsCharge(pitch.Charge01, r), pitch.Throws, zone);
+            p = (p.X, skips.Height(u, p.Y, cross.Y, zone.VerticalScale), p.Z);
+        }
         var st = r.Pitching.StarShapes;
         return starPitchId switch
         {

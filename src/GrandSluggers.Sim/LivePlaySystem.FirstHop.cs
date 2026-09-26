@@ -2,8 +2,8 @@ namespace GrandSluggers.Sim;
 
 /// <summary>
 /// A star swing's first-hop kick (spec §13, <see cref="StarSwingSkill.FirstHopKickDeg"/>): a fair ball off the swing turns at
-/// its first ground contact, away from the fielder chasing it, springs (<see cref="StarSwingSkill.FirstHopBounceMul"/>) or stands
-/// still for a while and runs on slower (<see cref="StarSwingSkill.FirstHopStallSec"/>), and runs on on the shared ground physics. The path is
+/// its first ground contact, away from the fielder chasing it, or stands still for a while and runs on slower
+/// (<see cref="StarSwingSkill.FirstHopStallSec"/>), and runs on on the shared ground physics. The path is
 /// continued the way a park redirect continues it, the ball is re-read and every chaser re-plans; the gloves, the throws
 /// and the fair / foul line still decide the play. Nothing is rolled: the turn and its side come from the ball and the bodies.
 /// </summary>
@@ -42,8 +42,6 @@ public sealed partial class LivePlaySystem
         if (vx * vx + vz * vz < 1e-6) return;
         var away = Chaser(now.X, now.Z);
         var turn = swing.FirstHopKickDeg > 0 ? FirstHopTurnDeg(vx, vz, now.X, now.Z, away.X, away.Z, swing.FirstHopKickDeg) : 0;
-        // The hop's spring (§13): the ball leaves the ground this many times as fast upward, its horizontal pace its own.
-        if (swing.FirstHopBounceMul != 1 && vy > 0) vy *= swing.FirstHopBounceMul;
         var r = turn * Math.PI / 180;
         var (kx, kz) = (vx * Math.Cos(r) - vz * Math.Sin(r), vx * Math.Sin(r) + vz * Math.Cos(r));
         // The stall (§13): the ball stands on the ground at its hop for the row's seconds — a glove that reaches it may
@@ -64,7 +62,7 @@ public sealed partial class LivePlaySystem
         _ballPrev = null;
         Preview = Preview with { LandingX = Ball.LandingX, LandingZ = Ball.LandingZ };
         CoverBallX = Ball.LandingX;
-        RecordFact(new FirstHopKicked(swing.Id, t, now.X, now.Z, turn, away.Pos, swing.FirstHopBounceMul, Math.Max(0, stall)));
+        RecordFact(new FirstHopKicked(swing.Id, t, now.X, now.Z, turn, away.Pos, Math.Max(0, stall)));
         Sub = $"{swing.Name}!";
     }
 

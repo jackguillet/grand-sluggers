@@ -37,7 +37,7 @@ public static partial class HowToPlay
             "T-SP-breaker" => "Star Breaker",
             "T-SP-mirageball" => "Mirage Ball",
             "T-SP-rockfall" => "Rockfall",
-            "T-SP-leapfrog" => "Leapfrog",
+            "T-SP-leapfrog" => "Skipping Stone",
             "T-SS-heat-swing" => "Sparkler",
             "T-SS-heart-swing" => "Follow Spot",
             "T-SS-shell-swing" => "Spinning Top",
@@ -47,7 +47,7 @@ public static partial class HowToPlay
             "T-SS-staff-swing" => "Staff Swing",
             "T-SS-sidewinder" => "Sidewinder",
             "T-SS-updraft" => "Updraft",
-            "T-SS-pond-skip" => "Pond Skip",
+            "T-SS-pond-skip" => "Lily Hop",
             "T-SS-ground" => "Star Grounder",
             "T-SS-fly" => "Star Fly",
             "T-SS-line" => "Star Line",
@@ -65,6 +65,8 @@ public static partial class HowToPlay
             "T-SS-heart-swing" => " The follow spot holds the nearest fielder still for a moment after contact.",
             "T-SP-caskball" => " It swings in wide on a vine, then crosses where you aimed, on time.",
             "T-SS-cask-swing" => " The liner jags twice, then lands where a straight one would.",
+            "T-SP-leapfrog" => " It skips twice on the dirt, then pops up where you aimed, on time.",
+            "T-SS-pond-skip" => " The liner hops over the first infielder's glove, then drops back to its line.",
             _ => ""
         };
         return pitch

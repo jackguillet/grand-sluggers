@@ -18,7 +18,7 @@
   "bats": "L",
   "throws": "L",
   "repertoire": ["changeup", "curveball"],
-  // His own three (WD-15 A): Leapfrog's hang and leap, Pond Skip's high first hop, Lily Leap's high jump.
+  // His own three (WD-15 A): Skipping Stone's two skips on the dirt, Lily Hop's hop over a glove, Lily Leap's high jump.
   "starPitch": "leapfrog",
   "starSwing": "pond-skip",
   "fieldAbility": "lily-leap",
