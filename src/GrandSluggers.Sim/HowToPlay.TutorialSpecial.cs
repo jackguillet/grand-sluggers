@@ -30,7 +30,7 @@ public static partial class HowToPlay
             "T-SP-prismball" => "Loop-the-Loop",
             "T-SP-phonyball" => "Phonyball",
             "T-SP-caskball" => "Vine Swing",
-            "T-SP-skullball" => "Skullball",
+            "T-SP-skullball" => "Anvil",
             "T-SP-fogball" => "Fogball",
             "T-SP-fastball" => "Star Fastball",
             "T-SP-changeup" => "Star Change",
@@ -43,7 +43,7 @@ public static partial class HowToPlay
             "T-SS-shell-swing" => "Spinning Top",
             "T-SS-phony-swing" => "Phony Swing",
             "T-SS-cask-swing" => "Lightning Liner",
-            "T-SS-furnace" => "Furnace",
+            "T-SS-furnace" => "Hot Iron",
             "T-SS-staff-swing" => "Staff Swing",
             "T-SS-sidewinder" => "Sidewinder",
             "T-SS-updraft" => "Updraft",
@@ -65,6 +65,8 @@ public static partial class HowToPlay
             "T-SS-heart-swing" => " The follow spot holds the nearest fielder still for a moment after contact.",
             "T-SP-caskball" => " It swings in wide on a vine, then crosses where you aimed, on time.",
             "T-SS-cask-swing" => " The liner jags twice, then lands where a straight one would.",
+            "T-SP-skullball" => " It flies fast, clangs late and drops up to a foot and a half, so aim it above where you want it.",
+            "T-SS-furnace" => " The ball stays hot for two seconds: a glove that holds it drops it, so fielders must throw at once.",
             _ => ""
         };
         return pitch

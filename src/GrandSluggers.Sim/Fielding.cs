@@ -80,7 +80,7 @@ public sealed class FieldingResolver
         // and nothing is decided from where the ball lands.
         var radius = CatchRadiusFt(fielder, park, _rules, air: !grounder);
         var heat = hit.StarPitchUsed is "heatball";
-        // Only the furnace leaves a patch on the dirt; Sparkler's bend is its Perfect ring, spent at the plate (§13).
+        // Only Hot Iron's ball is hot (§13): the flag the client's heat reads; nothing is left on the dirt. Sparkler's bend is its Perfect ring.
         var furnace = hit.StarSwingUsed is "furnace";
         return new FieldingPreview(
             fielder, pos, buddy, hang, landing.X, landing.Z, shape,
