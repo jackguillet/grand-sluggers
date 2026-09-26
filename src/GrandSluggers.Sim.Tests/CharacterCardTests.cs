@@ -14,7 +14,7 @@ public class CharacterCardTests
         var rio = _content.Must("rio");
         var card = CharacterCard.Of(rio);
         Assert.Equal("rio", card.Id);
-        Assert.Equal("Rio Sparks", card.Name);
+        Assert.Equal("Ronnie Sparks", card.Name);
         Assert.True(card.Captain);
         Assert.Equal(6, card.Stats.Pitch);
         Assert.Equal(7, card.Stats.Bat);

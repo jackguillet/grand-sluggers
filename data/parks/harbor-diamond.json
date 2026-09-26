@@ -1,6 +1,6 @@
 {
   "id": "harbor-diamond",
-  "name": "Harbor Diamond",
+  "name": "Neighborhood Park",
   "faction": "spark",
   "pickOrder": 1,
   "region": "south-coast",
@@ -12,5 +12,5 @@
   "windDeg": 20,
   "fenceHeightFt": 12,
   "hazards": [],
-  "notes": "The control park. No gimmicks. Fireworks on night homers are presentation only."
+  "notes": "Rio's neighborhood field, in his own world across the portal (WD-25). The control park: Harbor's dimensions, no gimmicks. Fireworks on night homers are presentation only."
 }

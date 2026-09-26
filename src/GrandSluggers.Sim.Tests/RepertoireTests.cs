@@ -223,7 +223,9 @@ public class RepertoireTests
     /// </summary>
     /// <summary>The world's new captains and role players, whose repertoires are proposals (#1148), not register rows yet.</summary>
     static readonly string[] ProposedWorldCharacters =
-        ["sable", "sirocco", "tumble", "adobe", "hollis", "flint", "cairn", "scree", "reed", "cattail", "bog", "tad"];
+        ["sable", "sirocco", "tumble", "adobe", "hollis", "flint", "cairn", "scree", "reed", "cattail", "bog", "tad",
+         // The sidekicks WD-27 added: their build's repertoire until Jack accepts one.
+         "benny", "hattie", "jojo", "ruby", "tundra", "crispin", "sleet", "flurry", "glimmer", "bingo", "kazoo", "taffy", "tilt", "confetti", "whirl", "vinnie", "slick", "penny", "dice", "ace", "bongo", "thicket", "kiwi", "liana", "fern", "slag", "clinker", "brimsy", "scorch", "kiln", "sedge", "paddle", "ripple", "minnow", "lotus", "barnacle", "breaker", "conch", "sandy", "shelly", "kelp", "coral", "nori", "mesquite", "rattle", "dusty", "pebble", "sage", "boulder", "crag", "tarn", "ridge", "cornice"];
 
     static Dictionary<string, string[]> AcceptedAssignments()
     {

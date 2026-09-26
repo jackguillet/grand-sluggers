@@ -88,9 +88,9 @@ public sealed class BatterZoneScenarioTests
             Assert.True(ordered[i].Top >= ordered[i - 1].Top);
         }
 
-        // A role player stands in its captain's zone.
-        foreach (var who in _content.Characters.Values)
-            Assert.Equal(StrikeZoneGeometry.For(_content.Must(who.BodyType), R), StrikeZoneGeometry.For(who, R));
+        // A sidekick stands in its species' zone (WD-27): two of one species share it.
+        foreach (var group in _content.Characters.Values.Where(c => !c.Captain).GroupBy(c => c.Species))
+            Assert.Single(group.Select(c => StrikeZoneGeometry.For(c, R)).Distinct());
     }
 
     [Fact]

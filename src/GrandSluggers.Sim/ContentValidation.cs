@@ -81,6 +81,11 @@ public static class ContentDataValidator
         data.World = DataJson.Read<WorldDto>(worldPath, data.ReadErrors) ?? new();
         data.WorldSource = worldPath;
 
+        // The sidekick species (WD-27): read strictly, like every catalog.
+        var speciesPath = root.Resolve(WorldMap.Directory, "species.json");
+        data.Species = DataJson.Read<SpeciesFile>(speciesPath, data.ReadErrors) ?? new();
+        data.SpeciesSource = speciesPath;
+
         var skillsPath = root.Resolve("abilities", "star-skills.json");
         // Read strictly (spec §13): a key no skill declares is a stop, so a retired key such as
         // batterWindowMul (PH-16-R1) cannot sit in the file looking like it still bends a pitch.
@@ -149,6 +154,7 @@ public static class ContentDataValidator
         foreach (var row in data.Characters)
             ValidateCharacter(row, pitches, swings, errors);
         ValidateCaptains(data, errors);
+        ValidateSpecies(data, pitches, swings, errors);
         // A sidekick never carries a captain's special, and no two captains share one (§13, AB-02, AB-10): a sidekick's
         // specials are the generic pool's; a captain's belongs to that captain alone.
         SpecialsBelongToTheirCarrier(data.Characters, "starPitch", r => r.StarPitch, data.StarSkills.Pitches, errors);
@@ -289,6 +295,61 @@ public static class ContentDataValidator
             }
         }
         return ids;
+    }
+
+    /// <summary>
+    /// The sidekick species (WD-27): every build has proportions; every species names a known build, a captain's faction
+    /// and generic specials and a field ability that exist; each captain's faction has three species, one of each build,
+    /// and eight sidekicks; every sidekick names a species of its own faction, and a captain names none.
+    /// </summary>
+    static void ValidateSpecies(ContentData data, HashSet<string> pitches, HashSet<string> swings, List<string> errors)
+    {
+        var src = data.SpeciesSource;
+        var builds = data.Species.Builds ?? [];
+        foreach (var b in SpeciesBuilds.All)
+            if (!builds.TryGetValue(b, out var p) || p is null)
+                errors.Add($"{src}: builds.{b} proportions are required");
+        var factions = data.Characters.Where(r => r.Value.Captain).Select(r => r.Value.Faction)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var byId = new Dictionary<string, SpeciesDto>(StringComparer.OrdinalIgnoreCase);
+        foreach (var s in data.Species.Species ?? [])
+        {
+            if (s is null) { errors.Add($"{src}: a species row must be an object; got null"); continue; }
+            if (string.IsNullOrWhiteSpace(s.Id) || !byId.TryAdd(s.Id, s))
+                errors.Add($"{src}: species id '{s.Id}' is empty or repeated");
+            if (!SpeciesBuilds.All.Contains(s.Build))
+                errors.Add($"{src}: species '{s.Id}' build must be one of [{string.Join(", ", SpeciesBuilds.All)}]; got '{s.Build}'");
+            if (!factions.Contains(s.Faction))
+                errors.Add($"{src}: species '{s.Id}' faction '{s.Faction}' has no captain");
+            if (string.IsNullOrWhiteSpace(s.Name) || string.IsNullOrWhiteSpace(s.Blend) || string.IsNullOrWhiteSpace(s.Look))
+                errors.Add($"{src}: species '{s.Id}' needs a name, a blend and a look");
+            if (!pitches.Contains(s.StarPitch)) errors.Add($"{src}: species '{s.Id}' starPitch '{s.StarPitch}' is not a star pitch");
+            if (!swings.Contains(s.StarSwing)) errors.Add($"{src}: species '{s.Id}' starSwing '{s.StarSwing}' is not a star swing");
+            if (!FieldAbilityIds.Contains(s.FieldAbility)) errors.Add($"{src}: species '{s.Id}' fieldAbility '{s.FieldAbility}' is not a field ability");
+        }
+        foreach (var f in factions)
+        {
+            var mine = byId.Values.Where(s => s.Faction.Equals(f, StringComparison.OrdinalIgnoreCase)).ToList();
+            var got = mine.Select(s => s.Build).OrderBy(b => b, StringComparer.Ordinal).ToList();
+            if (!got.SequenceEqual(SpeciesBuilds.All.OrderBy(b => b, StringComparer.Ordinal)))
+                errors.Add($"{src}: faction '{f}' needs three species, one of each build; got [{string.Join(", ", got)}]");
+            var sidekicks = data.Characters.Count(r => !r.Value.Captain && r.Value.Faction.Equals(f, StringComparison.OrdinalIgnoreCase));
+            if (sidekicks != SpeciesBuilds.SidekicksPerCaptain)
+                errors.Add($"{data.Characters.FirstOrDefault(r => !r.Value.Captain).Source}: faction '{f}' needs {SpeciesBuilds.SidekicksPerCaptain} sidekicks; got {sidekicks}");
+        }
+        foreach (var row in data.Characters)
+        {
+            var c = row.Value;
+            if (c.Captain)
+            {
+                if (c.Species is not null) errors.Add($"{row.Source}: captain '{c.Id}' names a species; only a sidekick does");
+                continue;
+            }
+            if (string.IsNullOrEmpty(c.Species) || !byId.TryGetValue(c.Species, out var sp))
+                errors.Add($"{row.Source}: sidekick '{c.Id}' species '{c.Species ?? "null"}' is not a row in {src}");
+            else if (!sp.Faction.Equals(c.Faction, StringComparison.OrdinalIgnoreCase))
+                errors.Add($"{row.Source}: sidekick '{c.Id}' species '{c.Species}' belongs to faction '{sp.Faction}', not '{c.Faction}'");
+        }
     }
 
     static void SpecialsBelongToTheirCarrier(IEnumerable<Sourced<CharacterDto>> characters, string field,
@@ -1148,6 +1209,8 @@ internal sealed class ContentData
     public string MatchSource { get; set; } = "";
     public List<string> ReadErrors { get; } = [];
     public WorldDto World { get; set; } = new();
+    public SpeciesFile Species { get; set; } = new();
+    public string SpeciesSource { get; set; } = "";
     /// <summary>Where the world file was read from — named by a park whose region it does not have.</summary>
     public string WorldSource { get; set; } = "";
 }
@@ -1241,8 +1304,12 @@ internal sealed class CharacterDto
     public string Bio { get; set; } = "";
     /// <summary>A captain's identity (#1032): its team's name, its signature bat, its body on the shared rig. A role player names none.</summary>
     public string? TeamName { get; set; }
+    /// <summary>The name a tight tile shows when the full name will not fit (the captain board); null is the full name.</summary>
+    public string? ShortName { get; set; }
     public string? SignatureBat { get; set; }
     public ProportionsDto? Proportions { get; set; }
+    /// <summary>A sidekick's species (WD-27, <c>data/world/species.json</c>): its body. Required on a sidekick; a captain names none.</summary>
+    public string? Species { get; set; }
 
     public Character ToCharacter() => new(
         Id, Name, Faction, Captain,
@@ -1253,9 +1320,11 @@ internal sealed class CharacterDto
         BodyClass = BodyClass ?? "",
         Repertoire = ParseRepertoire(),
         TeamName = TeamName,
+        ShortName = ShortName ?? "",
         SignatureBat = SignatureBat,
         BodyType = Captain ? Id.ToLowerInvariant() : "",
-        Proportions = Proportions?.ToSpec() ?? default
+        Proportions = Proportions?.ToSpec() ?? default,
+        Species = Species ?? ""
     };
 
     /// <summary>

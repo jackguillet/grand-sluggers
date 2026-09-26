@@ -106,7 +106,7 @@ public sealed class MapPickerTests
         var cove = CarnivalFront.MapCard(Catalog, ParkId.Coconut, night: false, hazards: true);
         Assert.Equal("Coconut Cove", cove[0]);
         Assert.Equal("The Island", cove[1]);
-        Assert.Equal("Home of Elder Fenn · Stillwater", cove[2]);
+        Assert.Equal("Home of Elder Fenn · Tidewater", cove[2]);
         Assert.Contains(cove, l => l.StartsWith("Sand outfield", StringComparison.Ordinal));
         Assert.Equal("Day game", cove[^1]);
         var rink = CarnivalFront.MapCard(Catalog, ParkId.Crystal, night: true, hazards: false);
