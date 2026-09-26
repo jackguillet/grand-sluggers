@@ -74,8 +74,6 @@ public sealed class FieldingResolver
         // shipped. A park's status volume is not read here any more (F4-b, #896, FR-07): it slows the body that touches it,
         // live (BodySlows), and nothing is decided from where the ball lands.
         var freeze = hit.StarSwingUsed == "heart-swing";
-        if (grounder && hit.StarSwingUsed is "shell-swing" or "cask-swing" && rng.NextDouble() < _rules.Fielding.Park.ShellWarpChance)
-            warped = true;
         var radius = CatchRadiusFt(fielder, park, _rules, air: !grounder);
         var heat = hit.StarPitchUsed is "heatball" or "caskball";
         var furnace = hit.StarSwingUsed is "furnace" or "heat-swing";

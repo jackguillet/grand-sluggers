@@ -13,10 +13,9 @@
     "doublePlay": 1.0,
     "robbedHomer": 1.0
   },
-  "tiers": {
-    "low": 1,
-    "mid": 2,
-    "top": 3
+  "prices": {
+    "captain": 2,
+    "sidekick": 1
   },
   "costs": {
     "guestCaptainSurcharge": 1

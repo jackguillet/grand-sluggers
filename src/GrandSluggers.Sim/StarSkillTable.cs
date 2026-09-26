@@ -10,8 +10,6 @@ public sealed record StarPitchSkill(
     bool LateBreak,
     bool Decoy,
     string? OnCatch,
-    /// <summary>The cost tier (<see cref="StarTierRules"/>, PH-16-R7): stars.json prices it.</summary>
-    string Tier = StarTierRules.LowId,
     /// <summary>A faint second ball drawn beside the real one early in the flight, or null (§13).</summary>
     PitchTwin? Twin = null,
     /// <summary>A path that floats high early and drops onto the unchanged crossing late, or null (§13).</summary>
@@ -83,8 +81,6 @@ public sealed record StarSwingSkill(
     bool InfieldChaos,
     bool Decoy,
     bool Fragments,
-    /// <summary>The cost tier (<see cref="StarTierRules"/>, PH-16-R7): stars.json prices it.</summary>
-    string Tier = StarTierRules.LowId,
     /// <summary>
     /// A fair ball off this swing turns this many degrees at its first hop, away from the fielder chasing it (§13); 0 is none.
     /// </summary>
@@ -172,6 +168,9 @@ public static class StarSkills
     public static double SwingExitMul(string? starSwing, StarSkillTable? table = null) =>
         StarSkillTable.Or(table).Swing(starSwing)?.ExitVeloMul ?? 1.0;
 
+    /// <summary>The kind a sidekick's special names: the generic pool (§13). A captain's specials name any other kind.</summary>
+    public const string GenericKind = "generic";
+
     /// <summary>How strongly the park's wind acts on a star swing's ball (§13); 1 for a swing whose row names none.</summary>
     public static double SwingWindMul(string? starSwing, StarSkillTable? table = null) =>
         StarSkillTable.Or(table).Swing(starSwing)?.WindMul ?? 1.0;
@@ -181,18 +180,18 @@ public static class StarSkills
         StarSkillTable.Or(table).Swing(starSwing)?.LaunchDeg;
 
     /// <summary>
-    /// What <paramref name="who"/>'s Star Pitch costs his team (§12, PH-16-R7): the ability's tier price, plus
-    /// <c>costs.guestCaptainSurcharge</c> when he is a captain acting for a team <paramref name="teamCaptain"/> captains.
+    /// What <paramref name="who"/>'s Star Pitch costs their team (§12): the carrier's price (a captain's or a
+    /// sidekick's), plus <c>costs.guestCaptainSurcharge</c> when a captain acts for a team <paramref name="teamCaptain"/> captains.
     /// </summary>
     public static int PitchCost(Character who, Character teamCaptain, RulesTable rules, StarSkillTable? table = null) =>
-        Price(who, teamCaptain, StarSkillTable.Or(table).Pitch(who.StarPitch)?.Tier, rules);
+        Price(who, teamCaptain, rules);
 
     /// <summary>What <paramref name="who"/>'s Star Swing costs his team: the same rule as <see cref="PitchCost"/>.</summary>
     public static int SwingCost(Character who, Character teamCaptain, RulesTable rules, StarSkillTable? table = null) =>
-        Price(who, teamCaptain, StarSkillTable.Or(table).Swing(who.StarSwing)?.Tier, rules);
+        Price(who, teamCaptain, rules);
 
-    static int Price(Character who, Character teamCaptain, string? tier, RulesTable rules) =>
-        rules.Stars.Tiers.Of(tier)
+    static int Price(Character who, Character teamCaptain, RulesTable rules) =>
+        rules.Stars.Prices.Of(who)
         + (who.Captain && !who.Id.Equals(teamCaptain.Id, StringComparison.OrdinalIgnoreCase)
             ? rules.Stars.Costs.GuestCaptainSurcharge
             : 0);

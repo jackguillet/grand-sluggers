@@ -7,7 +7,7 @@ Each replacement effect for a pitch that lost its window penalty is its own revi
 
 | Skill | Bend | Then |
 | --- | --- | --- |
-| Heatball | +15% speed, the catcher's glove smokes; a caught fly from a heat-swing has a burn-hop (drop chance 35% for 2 s) | baseball |
+| Heatball | +15% speed, the catcher's glove smokes. The burn-hop drop roll is retired (§8.6) | baseball |
 | Charmball | Speed ×0.9 and a visible side-to-side wobble (`starShapes.charmball*`); its replacement effect is reviewed separately | |
 | Prismball | Late break, ghost images | |
 | Phonyball | Decoy path: the ball shows one side early and switches late (`starShapes.phonyball*`); reading the switch is the counterplay. Contact is contact | |
@@ -15,9 +15,9 @@ Each replacement effect for a pitch that lost its window penalty is its own revi
 | Skullball | +20% speed, nothing else until its review | |
 | Fogball | Speed ×0.82, nothing else until its review | |
 | Heat / Furnace swing | Exit ×1.15 / ×1.25; a burn patch / lava strip where it lands slows the fielder ×0.45 for 2 s | |
-| Heart swing | The nearest fielder pauses 0.8 s | |
-| Shell / Staff swing | Infield chaos: the first bounce is randomized ±30° | |
-| Phony swing | Decoy ball; the real one shows at the apex | |
+| Heart swing | The nearest fielder pauses 0.8 s; no drop roll (§8.6) | |
+| Shell / Staff swing | Exit ×1.1 / ×1.08; the warp roll is retired (§8.6) until each swing's own effect is built | |
+| Phony swing | Decoy ball; the real one shows at the apex; no drop roll (§8.6) | |
 | Cask swing | Fragments: two decoy balls fall with it | |
 | Mirage Ball | A faint twin (`twin`) flies `offsetFt` to the far half of the zone from the real crossing, full until `fadeFrom` of the flight and gone by `fadeTo`, never later than half the flight. The real ball is the pitch as thrown; the umpire, the bat and the CPU read only it. Picking the real ball before the twin fades is the counterplay | |
 | Sidewinder | A fair ball off the swing turns `firstHopKickDeg` (≤ 45°) at its first ground contact, away from the fielder the play sent after it, and runs on the shared ground physics; every chaser re-plans. A ball caught before its hop never turns | |
@@ -29,4 +29,4 @@ Each replacement effect for a pitch that lost its window penalty is its own revi
 
 Star skills cannot produce a free home run; the exit multipliers are capped so a Perfect charged star swing at Bat 10 clears Harbor's 400 only with a Perfect. ✅ by tuning.
 
-Each skill's row also names its cost `tier` (low 1, mid 2, top 3); which captain carries which tier, who may carry the top tier, and what happens when a team cannot pay are §12.
+A captain's Star Pitch and Star Swing belong to that captain alone, and no two captains share an effect family; a sidekick's are the generic pool's (`kind: generic`). What a special costs and what happens when a team cannot pay are §12.

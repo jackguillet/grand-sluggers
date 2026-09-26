@@ -1832,7 +1832,6 @@ public sealed record FieldingRules
     public FieldStickRules Stick { get; init; } = new();
     public FieldDashRules Dash { get; init; } = new();
     public CatchRules Catch { get; init; } = new();
-    public DropRules Drops { get; init; } = new();
     public WallPlantRules WallPlant { get; init; } = new();
     public FieldAbilityRules Abilities { get; init; } = new();
     public ThrowRules Throw { get; init; } = new();
@@ -1842,7 +1841,6 @@ public sealed record FieldingRules
     public BobbleRules Bobble { get; init; } = new();
     public RecoilRules Recoil { get; init; } = new();
     public HandlingRules Handling { get; init; } = new();
-    public ParkHazardRules Park { get; init; } = new();
     public BuntDefenseRules Bunt { get; init; } = new();
 
     internal void Validate(string source, List<string> errors)
@@ -2107,14 +2105,6 @@ public sealed record FieldDashRules
     public double ItemSmashFt { get; init; }
 }
 
-public sealed record DropRules
-{
-    [Chance] public double Heatball { get; init; }
-    [Chance] public double PhonySwing { get; init; }
-    /// <summary>The heart swing's frozen glove (a special, §13). A park's status volume no longer rolls it (F4-b, #896; FD-08-R1).</summary>
-    [Chance] public double Frozen { get; init; }
-}
-
 public sealed record WallPlantRules
 {
     public double InsideFenceFt { get; init; }
@@ -2303,16 +2293,6 @@ public sealed record HandlingRules
     [Chance] public double DeflectObstruction { get; init; }
     /// <summary>A glancing touch sends the ball on only when it came in at least this fast — the hot ball of the recoil's onset; a slower one drops at the feet.</summary>
     public double DeflectMinFtPerSec { get; init; }
-}
-
-public sealed record ParkHazardRules
-{
-    /// <summary>
-    /// The one number here that is not a park hazard's: a shell or cask star swing flags a grounder
-    /// warped with no can in the park at all (<c>Fielding.cs</c>). The hazard types' own numbers
-    /// moved to <c>hazards.json</c> with the pattern library (#847).
-    /// </summary>
-    [Chance] public double ShellWarpChance { get; init; }
 }
 
 // ---------------------------------------------------------------------------------------
@@ -2816,24 +2796,24 @@ public sealed record StarRules
 {
     [Positive] public double MeterMax { get; init; }
     public StarGainRules Gains { get; init; } = new();
-    /// <summary>The price of each cost tier (§12, PH-16-R7): every Star Pitch and Star Swing names one in star-skills.json.</summary>
-    public StarTierRules Tiers { get; init; } = new();
+    /// <summary>What a special costs (§12): a captain's price and a sidekick's.</summary>
+    public StarPriceRules Prices { get; init; } = new();
     public StarCostRules Costs { get; init; } = new();
     /// <summary>
     /// The Stars each team's one pool holds at the first pitch (§12, PH-16-R6, PH-16-R16): the same for both teams,
-    /// whatever they drafted. Chemistry does not set it. It must buy the cheapest tier and fit the meter.
+    /// whatever they drafted. Chemistry does not set it. It must buy the cheaper price and fit the meter.
     /// </summary>
     public int StartingReserve { get; init; }
     public MvpRules Mvp { get; init; } = new();
 
     internal void Validate(string source, List<string> errors)
     {
-        Tiers.Validate(MeterMax, source, errors);
+        Prices.Validate(MeterMax, source, errors);
         if (StartingReserve > MeterMax)
             errors.Add($"{source}: stars.startingReserve must fit the meter (meterMax {MeterMax}); got {StartingReserve}");
         // A usable reserve (PH-16-R6): at least the cheapest special is affordable from the first plate appearance.
-        if (StartingReserve < Tiers.Low)
-            errors.Add($"{source}: stars.startingReserve must buy the cheapest tier (low {Tiers.Low}); got {StartingReserve}");
+        if (StartingReserve < Prices.Cheapest)
+            errors.Add($"{source}: stars.startingReserve must buy the cheaper price ({Prices.Cheapest}); got {StartingReserve}");
     }
 }
 
@@ -2893,53 +2873,37 @@ public sealed record MvpRules
 }
 
 /// <summary>
-/// The Star cost tiers (§12, PH-16-R7, PH-16-R8): a small, fixed set of named prices. Each ability in
-/// <c>data/abilities/star-skills.json</c> names its tier; <see cref="Top"/> is the highest, and only a captain may
-/// carry a top-tier ability (the content validator refuses anything else).
+/// The Star prices (§12): a special's price follows who carries it, not the special. A captain's Star Pitch or Star
+/// Swing costs <see cref="Captain"/>; a sidekick's generic special costs <see cref="Sidekick"/>.
 /// </summary>
-public sealed record StarTierRules
+public sealed record StarPriceRules
 {
-    public const string LowId = "low";
-    public const string MidId = "mid";
-    public const string TopId = "top";
+    public int Captain { get; init; }
+    public int Sidekick { get; init; }
 
-    /// <summary>Every tier id, cheapest first.</summary>
-    public static readonly IReadOnlyList<string> Ids = [LowId, MidId, TopId];
+    /// <summary>The price of a special carried by <paramref name="who"/>.</summary>
+    public int Of(Character who) => who.Captain ? Captain : Sidekick;
 
-    public static bool IsTier(string? id) => id is not null && Ids.Contains(id, StringComparer.Ordinal);
-
-    public int Low { get; init; }
-    public int Mid { get; init; }
-    public int Top { get; init; }
-
-    /// <summary>The price of <paramref name="tier"/>. An unknown tier never loads (the content validator), so the fallback is only for a character with no ability.</summary>
-    public int Of(string? tier) => tier switch
-    {
-        TopId => Top,
-        MidId => Mid,
-        _ => Low
-    };
+    /// <summary>The cheaper of the two prices.</summary>
+    public int Cheapest => Math.Min(Captain, Sidekick);
 
     internal void Validate(double meterMax, string source, List<string> errors)
     {
-        foreach (var (name, cost) in new[] { (LowId, Low), (MidId, Mid), (TopId, Top) })
+        foreach (var (name, cost) in new[] { ("captain", Captain), ("sidekick", Sidekick) })
         {
             // A free special is not a resource (PH-16 acceptance), and one the meter cannot hold is never usable.
             if (cost < 1)
-                errors.Add($"{source}: stars.tiers.{name} must cost at least 1; got {cost}");
+                errors.Add($"{source}: stars.prices.{name} must cost at least 1; got {cost}");
             else if (cost > meterMax)
-                errors.Add($"{source}: stars.tiers.{name} must fit the meter (meterMax {meterMax}); got {cost}");
+                errors.Add($"{source}: stars.prices.{name} must fit the meter (meterMax {meterMax}); got {cost}");
         }
-        // The top tier is the captains' (PH-16-R8), so it has to be the highest price.
-        if (Low > Mid || Mid > Top)
-            errors.Add($"{source}: stars.tiers must not get cheaper up the ladder; got low {Low}, mid {Mid}, top {Top}");
     }
 }
 
 public sealed record StarCostRules
 {
     /// <summary>
-    /// Added to the ability's tier price when a captain throws or swings for a team he does not captain: a guest
+    /// Added to the special's price when a captain throws or swings for a team he does not captain: a guest
     /// captain from the draft, or a captain swapped onto the mound (§4.7).
     /// </summary>
     public int GuestCaptainSurcharge { get; init; }
