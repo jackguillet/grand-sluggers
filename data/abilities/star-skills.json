@@ -56,34 +56,39 @@
     },
     "fogball": {
       "id": "fogball",
-      "name": "Fogball",
-      "kind": "status",
+      "name": "Undertow",
+      "kind": "payload",
+      "family": "runner-payload",
       "speedMul": 0.82,
-      "staminaCost": 16
+      "staminaCost": 16,
+      "undertow": { "radiusFt": 12, "sec": 2, "runnerMul": 0.8 }
     },
     "mirageball": {
       "id": "mirageball",
-      "name": "Mirage Ball",
-      "kind": "decoy",
+      "name": "Mirage",
+      "kind": "vanish",
+      "family": "vanish-mid-flight",
       "speedMul": 1.0,
       "staminaCost": 16,
-      "twin": { "offsetFt": 1.2, "fadeFrom": 0.25, "fadeTo": 0.45 }
+      "vanish": { "from": 0.3333, "to": 0.6667 }
     },
     "rockfall": {
       "id": "rockfall",
-      "name": "Rockfall",
-      "kind": "break",
-      "speedMul": 0.95,
+      "name": "Cable Car",
+      "kind": "pace",
+      "family": "speed-hitch",
+      "speedMul": 1.0,
       "staminaCost": 16,
-      "float": { "riseFt": 2.2, "dropFrom": 0.6 }
+      "hitch": { "at": 0.5, "holdSec": 0.15 }
     },
     "leapfrog": {
       "id": "leapfrog",
-      "name": "Leapfrog",
-      "kind": "pace",
+      "name": "Skipping Stone",
+      "kind": "path",
+      "family": "skips",
       "speedMul": 1.0,
       "staminaCost": 14,
-      "leap": { "at": 0.35, "holdSpan": 0.25, "holdPace": 0.2 }
+      "skips": { "firstAt": 0.62, "secondAt": 0.84, "hopFt": 1.0 }
     },
     "fastball": { "id": "fastball", "name": "Star Fastball", "kind": "generic", "speedMul": 1.25, "staminaCost": 10 },
     "changeup": { "id": "changeup", "name": "Star Change", "kind": "generic", "speedMul": 0.7, "staminaCost": 8 },
@@ -96,10 +101,10 @@
     "phony-swing": { "id": "phony-swing", "name": "Double Deal", "kind": "decoy", "family": "decoy-ball", "exitVeloMul": 1.1, "decoy": true },
     "cask-swing": { "id": "cask-swing", "name": "Lightning Liner", "kind": "path", "family": "jagged-flight", "exitVeloMul": 1.2, "launchDeg": 18, "jag": { "offsetFt": 3, "firstAt": 0.3, "secondAt": 0.65, "span": 0.08 } },
     "furnace": { "id": "furnace", "name": "Hot Iron", "kind": "hot", "family": "hot-ball", "exitVeloMul": 1.25, "hotBall": { "moltenSec": 2.0, "holdSec": 0.5 } },
-    "staff-swing": { "id": "staff-swing", "name": "Staff Swing", "kind": "bounce", "exitVeloMul": 1.08, "infieldChaos": true },
-    "sidewinder": { "id": "sidewinder", "name": "Sidewinder", "kind": "bounce", "exitVeloMul": 1.12, "launchDeg": 4, "firstHopKickDeg": 20 },
-    "updraft": { "id": "updraft", "name": "Updraft", "kind": "wind", "exitVeloMul": 1.1, "launchDeg": 34, "windMul": 1.5 },
-    "pond-skip": { "id": "pond-skip", "name": "Pond Skip", "kind": "bounce", "exitVeloMul": 1.05, "launchDeg": 0, "firstHopBounceMul": 2.2 },
+    "staff-swing": { "id": "staff-swing", "name": "Driftwood Reach", "kind": "contact", "family": "tall-contact", "exitVeloMul": 1.08, "ovalHeightMul": 1.4 },
+    "sidewinder": { "id": "sidewinder", "name": "Dust Bowl", "kind": "terrain", "family": "terrain-slow", "exitVeloMul": 1.12, "launchDeg": 4, "dustBowl": { "radiusFt": 8, "sec": 2, "mul": 0.5 } },
+    "updraft": { "id": "updraft", "name": "Summit Gust", "kind": "carry", "family": "apex-carry", "exitVeloMul": 1.1, "launchDeg": 34, "apexCarryMul": 1.15 },
+    "pond-skip": { "id": "pond-skip", "name": "Lily Hop", "kind": "path", "family": "hop-over-glove", "exitVeloMul": 1.05, "launchDeg": 10, "hop": { "heightFt": 5, "padFt": 0.5, "rampFt": 1 } },
     "ground": { "id": "ground", "name": "Star Grounder", "kind": "generic", "launchDeg": 8, "exitVeloMul": 1.2 },
     "fly": { "id": "fly", "name": "Star Fly", "kind": "generic", "launchDeg": 38, "exitVeloMul": 1.2 },
     "line": { "id": "line", "name": "Star Line", "kind": "generic", "launchDeg": 18, "exitVeloMul": 1.25 }

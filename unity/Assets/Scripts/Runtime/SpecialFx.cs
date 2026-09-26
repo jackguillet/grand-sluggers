@@ -55,8 +55,6 @@ namespace GrandSluggers.UnityClient
         readonly Transform[] _sparkles = new Transform[6];
         readonly Transform[] _furnaceRim = new Transform[8];
         Transform _buddyFlash;
-        Transform _twin;
-        Material _twinMat;
         float _t;
         float _pitchLinger;
         float _swingLinger;
@@ -82,9 +80,6 @@ namespace GrandSluggers.UnityClient
             FakeFace(_decoy);
             _swingDecoy = Ballish(Group("phony-swing"), "Decoy", new Color(0.98f, 0.94f, 0.55f, 0.92f), 1.55f);
             FakeFace(_swingDecoy);
-            _twinMat = Faint(new Color(0.99f, 0.93f, 0.78f, 0.55f));
-            _twin = Look.Prim(PrimitiveType.Sphere, "Twin", _root, Vector3.zero, Vector3.one, _twinMat).transform;
-            _twin.gameObject.SetActive(false);
             _barrel = Barrel(Group("caskball"));
             _skull = Skull(Group("skullball"));
 
@@ -227,37 +222,6 @@ namespace GrandSluggers.UnityClient
             Burn(_burn, showBurn || swingOn && IdIs(_swingId, "furnace"), body);
             FurnaceRim(swingOn && IdIs(_swingId, "furnace"), body);
             Crack(swingOn && IdIs(_swingId, "furnace"), body);
-        }
-
-        /// <summary>
-        /// A star pitch's twin (spec §13): the sim says where and how strongly (<see cref="PitchFlight.Twin"/>), drawn as the
-        /// ball's size in a pale, see-through sand colour that thins to nothing. Null hides it.
-        /// </summary>
-        public void Twin(Vector3? at, float alpha, float ballScale)
-        {
-            if (_twin == null) return;
-            var on = at.HasValue && alpha > 0.001f;
-            _twin.gameObject.SetActive(on);
-            if (!on) return;
-            _twin.position = at.Value;
-            _twin.localScale = Vector3.one * ballScale;
-            var c = _twinMat.HasProperty("_BaseColor") ? _twinMat.GetColor("_BaseColor") : _twinMat.color;
-            c.a = 0.55f * alpha;
-            if (_twinMat.HasProperty("_BaseColor")) _twinMat.SetColor("_BaseColor", c);
-            else _twinMat.color = c;
-        }
-
-        static Material Faint(Color c)
-        {
-            var m = Look.Unlit(c);
-            m.SetFloat("_Surface", 1f);
-            m.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
-            m.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
-            m.SetFloat("_ZWrite", 0f);
-            m.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
-            m.SetOverrideTag("RenderType", "Transparent");
-            m.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
-            return m;
         }
 
         public static Color ThrowColor(Chemistry rel)

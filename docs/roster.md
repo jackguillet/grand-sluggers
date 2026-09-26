@@ -87,8 +87,8 @@ Names are working titles. Replace freely; keep the *roles*.
 ### Elder Fenn — Stillwater
 
 - Stats: Pitch 7 / Bat 5 / Field 8 / Run 3
-- Star Pitch: **Fogball** — slow wet pitch; batter’s window shrinks in the mist.
-- Star Swing: **Staff Swing** — cane hop that randomizes infield bounces.
+- Star Pitch: **Undertow** (`fogball`) — slow, and a fair ball off it washes a ring out on home for 2 s that slows the batter-runner inside it.
+- Star Swing: **Driftwood Reach** (`staff-swing`) — exit ×1.08 and a contact oval 1.4 times as tall; a wide pitch still beats it.
 - Field: **Snap Throw** — a 0.22-s release after a clean received throw.
 - Bats/throws: R/R
 
@@ -96,19 +96,19 @@ Names are working titles. Replace freely; keep the *roles*.
 ### Sable — Dune Nomads
 
 - Bars: Pitch 8 / Bat 5 / Field 6 / Run 5. Body class `trickster` (borrows Vale's takes until its own style exists).
-- Star abilities: Mirage Ball (a faint twin on the far half of the zone, gone by half the flight), Sidewinder (the first hop turns away from the chaser); field: Snap Throw.
+- Star abilities: Mirage (the ball vanishes in heat shimmer for the middle third of its flight while its shadow keeps crossing the dirt), Dust Bowl (a grounder's first landing raises an 8 ft bowl of loose dust, gone 2 s after contact, that slows fielders inside it to half speed); field: Snap Throw.
 - Signature bat: Mirage Bat. Bats/throws: R/R. Role players: Sirocco, Tumble, Adobe.
 
 ### Hollis — Peak Guard
 
 - Bars: Pitch 6 / Bat 8 / Field 5 / Run 4. Body class `climber` (borrows Brondo's takes until its own style exists).
-- Star abilities: Rockfall (floats high, drops onto its crossing late), Updraft (the fly rides the wind half again as hard); field: Wall Spring.
+- Star abilities: Cable Car (stops dead mid-flight for 0.15 s, then runs down its line to cross on time), Summit Gust (at its apex the fly catches a gust and carries 15 % farther along its line); field: Wall Spring.
 - Signature bat: Summit Axe. Bats/throws: L/R. Role players: Flint, Cairn, Scree.
 
 ### Reed — Marsh Hoppers
 
 - Bars: Pitch 4 / Bat 6 / Field 7 / Run 8. Body class `hopper` (borrows Zig's takes until its own style exists).
-- Star abilities: Leapfrog (hangs mid-flight, then leaps to the plate on time), Pond Skip (the first hop springs high); field: Lick Catch.
+- Star abilities: Skipping Stone (the pitch skips twice on the dirt in front of the plate and pops up onto its aimed crossing, on time), Lily Hop (a liner that hops 5 ft over the first infield glove it reaches, then drops back to its line); field: Lick Catch.
 - Signature bat: Reed Switch. Bats/throws: L/L. Role players: Cattail, Bog, Tad.
 
 ## Role players (slice set)

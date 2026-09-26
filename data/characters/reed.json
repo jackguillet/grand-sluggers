@@ -18,7 +18,7 @@
   "bats": "L",
   "throws": "L",
   "repertoire": ["changeup", "curveball"],
-  // His own three (WD-15 A): Leapfrog's hang and leap, Pond Skip's high first hop; Lick Catch from the shared field pool (AB-12).
+  // His own three (WD-15 A): Skipping Stone's two skips on the dirt, Lily Hop's hop over a glove; Lick Catch from the shared field pool (AB-12).
   "starPitch": "leapfrog",
   "starSwing": "pond-skip",
   "fieldAbility": "lick-catch",

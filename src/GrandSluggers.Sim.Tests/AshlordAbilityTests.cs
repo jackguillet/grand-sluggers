@@ -32,8 +32,7 @@ public sealed class AshlordAbilityTests
         Assert.Equal(1.25, swing.ExitVeloMul);
         Assert.Equal(new HotBall(2.0, 0.5), swing.HotBall);
         Assert.Null(swing.Terrain);          // the lava strip is gone: the heat is in the ball, not on the track
-        Assert.Null(pitch.Float);
-        Assert.Null(pitch.Leap);
+        Assert.Null(pitch.Hitch);
         Assert.DoesNotContain(Game.Characters.Values, c => c.Id != "ashlord" && (c.StarPitch == "skullball" || c.StarSwing == "furnace"));
         // Nobody else's row carries a drop or a hot ball: each captain's effect is its own (AB-02).
         Assert.DoesNotContain(Game.StarSkills.Pitches.Values, p => p.Id != "skullball" && p.Drop is not null);
@@ -196,7 +195,8 @@ public sealed class AshlordAbilityTests
         // A runner on first keeps the play open after the catch; the shortstop holds the molten liner and it drops.
         foreach (var human in new[] { false, true })
         {
-            var run = Run(95, 4, -20, "furnace", human, runnerOnFirst: true);
+            // 6°, not 4°: the shortstop's own ring takes the liner in the air (the pool's reach bonuses are gone, AB-12).
+            var run = Run(95, 6, -20, "furnace", human, runnerOnFirst: true);
             var drop = Assert.Single(run.Drops);
             Assert.True(drop.T > run.Take.T);
             Assert.Equal(PlayKind.FlyOut, run.Play!.Kind);

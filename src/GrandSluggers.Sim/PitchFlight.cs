@@ -85,26 +85,27 @@ public static class PitchFlight
     }
 
     /// <summary>The same delivered ball is used by rendering, contact and the umpire.</summary>
+    /// <remarks>
+    /// <paramref name="airSec"/> is this delivery's flight time (<see cref="AirSeconds"/>): a star shape timed in seconds, the
+    /// hitch's stop, takes its share of this flight from it. The crossing (u = 1) never reads it.
+    /// </remarks>
     public static (double X, double Y, double Z) Point(PitchCommand pitch, double u,
         RulesTable rules,
-        string? starPitchId = null, (double X, double Y, double Z)? from = null, StarSkillTable? skills = null)
+        string? starPitchId = null, (double X, double Y, double Z)? from = null, StarSkillTable? skills = null,
+        double airSec = 0)
     {
         var r = rules;
         u = Math.Clamp(u, 0, 1);
         var zone = StrikeZoneGeometry.Of(pitch);
-        // A row's own pace (§13): the leap hangs the ball over one stretch of its path and makes up the time after it,
-        // so the same path arrives at the same instant — the timing window and the crossing are the ordinary pitch's.
         var row = pitch.Star ? StarSkillTable.Or(skills).Pitch(starPitchId) : null;
         var time = u;
-        if (row?.Leap is { } leap) u = leap.Progress(u);
         // The loop holds the ball at one point of its path while it loops, then runs the rest on the same clock.
         if (row?.Loop is { } loop) u = loop.Progress(u);
+        // The hitch stops the ball dead at its station for a fixed time, then runs it on down the line on the same clock.
+        if (row?.Hitch is { } hitch) u = hitch.Progress(u, airSec, r);
         var p = Point(pitch.Type, u, r, pitch.AimX, pitch.AimY, pitch.BreakX * pitch.BreakMul,
             pitch.RubberX, from, ChargeFeel.IsCharge(pitch.Charge01, r), pitch.Throws, zone);
         if (!pitch.Star) return p;
-        // A row's own path shape (§13): the float rises early and lands on the crossing the pitch was always going to make.
-        if (row?.Float is { } rise && rise.Lift(u) is var lift and not 0)
-            p = (p.X, p.Y + lift * zone.VerticalScale, p.Z);
         // A late rise (§13): the ball climbs over the last stretch to a crossing above the aimed one. This moves the crossing,
         // so the umpire, the bat and the CPU all judge the risen ball; in reference-zone feet, like every vertical star shape.
         if (row?.Rise is { } late && late.Lift(u) is var climb and not 0)
@@ -121,6 +122,13 @@ public static class PitchFlight
         // The pendulum (§13): the ball swings on its vine about a pivot riding above the ordinary ball, and hangs straight at the plate.
         if (row?.Pendulum is { } vine && vine.Offset(time, PendulumSide(pitch, r, from)) is var swing && swing != (0, 0))
             p = (p.X + swing.X, p.Y + swing.Y, p.Z);
+        // The skips (§13): down onto the dirt, one skip, down again, then up off the second skip onto the ordinary crossing.
+        if (row?.Skips is { } skips && u < 1)
+        {
+            var cross = Point(pitch.Type, 1, r, pitch.AimX, pitch.AimY, pitch.BreakX * pitch.BreakMul,
+                pitch.RubberX, from, ChargeFeel.IsCharge(pitch.Charge01, r), pitch.Throws, zone);
+            p = (p.X, skips.Height(u, p.Y, cross.Y, zone.VerticalScale), p.Z);
+        }
         // A late drop (§13, Anvil): after the clang the iron sinks to a crossing below the aimed one. This moves the crossing,
         // so the umpire, the bat and the CPU all judge the dropped ball; in reference-zone feet, like every vertical star shape.
         if (row?.Drop is { } sink && sink.Fall(u) is var fall and not 0)
@@ -171,21 +179,12 @@ public static class PitchFlight
     }
 
     /// <summary>
-    /// Where a star pitch's twin is drawn at <paramref name="u"/> and how strongly (spec §13), or null when the pitch has
-    /// no twin or it has faded. The twin flies beside the real ball, <see cref="PitchTwin.OffsetFt"/> toward the far
-    /// half of the zone from the real crossing, so the hitter sees two balls on either side and must pick the real
-    /// one before it goes. Nothing reads it but the eye: the umpire, the bat and the CPU batter read the real ball's <c>Point</c>.
+    /// Whether the ball itself can be seen at time fraction <paramref name="u"/> of the flight (spec §13): false only while a
+    /// star pitch's <see cref="PitchVanish"/> hides it. The ball is still there — <see cref="Point"/>, the crossing and the
+    /// timing window are the ordinary pitch's — and its shadow is drawn the whole flight; the client hides the ball alone.
     /// </summary>
-    public static (double X, double Y, double Z, double Alpha)? Twin(PitchCommand pitch, double u, RulesTable rules,
-        string? starPitchId, StarSkillTable? skills = null, (double X, double Y, double Z)? from = null)
-    {
-        if (!pitch.Star || StarSkillTable.Or(skills).Pitch(starPitchId)?.Twin is not { } twin) return null;
-        var alpha = twin.Alpha(Math.Clamp(u, 0, 1));
-        if (alpha <= 0) return null;
-        var real = Point(pitch, u, rules, starPitchId, from, skills);
-        var side = Crossing(pitch, rules, starPitchId).X >= 0 ? -1 : 1;
-        return (real.X + side * twin.OffsetFt, real.Y, real.Z, alpha);
-    }
+    public static bool Visible(PitchCommand pitch, double u, string? starPitchId, StarSkillTable? skills = null) =>
+        !pitch.Star || StarSkillTable.Or(skills).Pitch(starPitchId)?.Vanish is not { } vanish || vanish.Visible(Math.Clamp(u, 0, 1));
 
     /// <summary>
     /// Lateral shift from the stick at u: a bend the eye sees mid-flight (gone by the plate) plus

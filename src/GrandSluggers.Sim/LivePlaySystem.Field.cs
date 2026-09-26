@@ -520,6 +520,7 @@ public sealed partial class LivePlaySystem
         Ball = Preview?.Ball ?? BattedBall.Of(Hit, Park, R);
         Path = Ball.Samples;
         BeginFirstHopKick();
+        BeginGloveHop();
         BeginHotBall();
         CoverBallX = Preview?.LandingX ?? Ball.LandingX;
         PlayerFielding = FieldAssist.PlayerStartsOnGlove(Seats.PlayerMustField);
@@ -528,8 +529,9 @@ public sealed partial class LivePlaySystem
         foreach (var kv in FieldingResolver.ReactionLockouts(R, 1, airHang, Hit.Class == BattedBallClass.Bunt)) _readyHuman[kv.Key] = kv.Value;
         BeginDazzle();
         InitGloves();
-        // The park's status volumes, as this play reads them (F4-b): every body starts outside them, unslowed.
-        _bodySlows.Begin(ParkHazards.StatusVolumes(Park, R, _match.Night));
+        // The park's status volumes, as this play reads them (F4-b): every body starts outside them, unslowed. A fair ball put in
+        // play off a star pitch that carries an undertow adds its ring on home (§13), live from contact.
+        _bodySlows.Begin(WithUndertow(ParkHazards.StatusVolumes(Park, R, _match.Night)));
         // The ball's redirects and reward targets (F4-c): read live off the ball, never off where it lands.
         _ballHazards.Begin(Park, _match.Night, R);
         // The solid bodies and movers (F4-f): the ball caroms off them and nobody stands in one.
@@ -707,6 +709,7 @@ public sealed partial class LivePlaySystem
         }
         else if (!Throwing && Path is not null)
         {
+            ReadGloveHop(dt);
             var p = BallFlight.PointAt(Path, ElapsedSeconds, R);
             (BallX, BallY, BallZ) = p;
             OffTheBat |= FlyCatch.OffTheBat(Path, BallX, BallY, BallZ, R);
@@ -1887,6 +1890,19 @@ public sealed partial class LivePlaySystem
         }
     }
 
+    /// <summary>
+    /// The park's volumes plus the Undertow's ring (§13, <see cref="PitchUndertow"/>) when this play's ball is a fair ball put
+    /// in play off a star pitch whose row names one: a disc on home, live for its seconds from contact (the play clock's 0),
+    /// that slows only the batter-runner. Every other play reads the park's volumes exactly as they were.
+    /// </summary>
+    IReadOnlyList<StatusVolume> WithUndertow(IReadOnlyList<StatusVolume> park)
+    {
+        if (Hit is not { Foul: false } hit
+            || StarSkillTable.Or(_match.Content?.StarSkills).Pitch(hit.StarPitchUsed)?.Undertow is not { } undertow)
+            return park;
+        return [.. park, undertow.Volume()];
+    }
+
     void Slowed(BodySlowed touch, StatusVolume volume, Runner? runner)
     {
         _slows.Add(touch);
@@ -1913,9 +1929,10 @@ public sealed partial class LivePlaySystem
         if (_solids.Count > 0)
             goal = VolumeRoute.Waypoint(at, goal, _solids.Select(b => b.AsVolume(ElapsedSeconds)).ToList(), speed, 1e-6,
                 R.Fielding.Chase.VolumeClearFt);
-        return _bodySlows.Volumes.Count == 0
+        // The park's discs only: a star's disc (the Undertow's ring, a Dust Bowl; §13) is not routed around — going round it is the player's verb.
+        return _bodySlows.ParkVolumes.Count == 0
             ? goal
-            : VolumeRoute.Waypoint(at, goal, _bodySlows.Volumes, speed, R.Fielding.Chase.FrozenMul, R.Fielding.Chase.VolumeClearFt);
+            : VolumeRoute.Waypoint(at, goal, _bodySlows.ParkVolumes, speed, R.Fielding.Chase.FrozenMul, R.Fielding.Chase.VolumeClearFt);
     }
 
     /// <summary>The redirects the ball went through this play, in order (F4-c).</summary>
@@ -1947,7 +1964,7 @@ public sealed partial class LivePlaySystem
         var before = BallFlight.PointAt(Path, Math.Max(0, t - dt), R);
         var (vx, vy, vz) = ((BallX - before.X) / dt, (BallY - before.Y) / dt, (BallZ - before.Z) / dt);
         if (SolidBodies.Carom(_solids, t, BallX, BallY, BallZ, vx, vz) is not { } hit) return;
-        Path = BallFlight.Continue(Path, t, hit.X, BallY, hit.Z, hit.Vx, vy, hit.Vz, Hit.LaunchDeg, Hit.ExitVeloMph, Park, R, Hit.WindMul);
+        Path = BallFlight.Continue(Path, t, hit.X, BallY, hit.Z, hit.Vx, vy, hit.Vz, Hit.LaunchDeg, Hit.ExitVeloMph, Park, R);
         Ball = BattedBall.Reread(Path, Hit.ExitVeloMph, Hit.LaunchDeg, Ball.Shape == BattedBallClass.Bunt, Park, R);
         (BallX, BallZ) = (hit.X, hit.Z);
         _ballPrev = null;
@@ -1992,7 +2009,7 @@ public sealed partial class LivePlaySystem
         var (vx, vz) = ((BallX - before.X) / dt, (BallZ - before.Z) / dt);
         var (x, y, z, ox, oy, oz) = BallHazards.Launch(exit, vx, vz);
         var entry = (X: BallX, Z: BallZ);
-        Path = BallFlight.Continue(Path, t, x, y, z, ox, oy, oz, Hit.LaunchDeg, Hit.ExitVeloMph, Park, R, Hit.WindMul);
+        Path = BallFlight.Continue(Path, t, x, y, z, ox, oy, oz, Hit.LaunchDeg, Hit.ExitVeloMph, Park, R);
         Ball = BattedBall.Reread(Path, Hit.ExitVeloMph, Hit.LaunchDeg, Ball.Shape == BattedBallClass.Bunt, Park, R);
         (BallX, BallY, BallZ) = (x, y, z);
         _ballPrev = null;
@@ -2007,7 +2024,7 @@ public sealed partial class LivePlaySystem
         Sub = $"Into the {PlayNarrator.RedirectName(mouth.Type)}!";
     }
 
-    double VolumeMul(string pos) => BodySlows.Mul(_bodySlows.Slowed(pos), R);
+    double VolumeMul(string pos) => _bodySlows.Mul(pos, R);
 
     // ---------------------------------------------------------------------------------
     // The pursuit stick (#718, F693-02-pursuit-neutral-boundary, -analog-response, -arming)
@@ -2278,9 +2295,12 @@ public sealed partial class LivePlaySystem
         HandGloveTo(next);
     }
 
-    double CatchRadius(Dictionary<string, Character> map)
+    double CatchRadius(Dictionary<string, Character> map) =>
+        CatchRadiusOf(map.TryGetValue(GlovePos, out var c) ? c : Preview!.Fielder);
+
+    /// <summary>The catch radius <paramref name="who"/> has for this play's ball: the one reach every glove check reads.</summary>
+    double CatchRadiusOf(Character who)
     {
-        var who = map.TryGetValue(GlovePos, out var c) ? c : Preview!.Fielder;
         // The body class's reach for this ball (§8.1): the ground reach on a ball hit on the ground, the fly reach on one hit in the air.
         return FieldingResolver.CatchRadiusFt(who, Preview is not null ? Park : null, R, air: Preview is not { Grounder: true });
     }
@@ -2801,7 +2821,7 @@ public sealed partial class LivePlaySystem
         var s = retention * speed;
         if (Path is not null && Hit is not null)
         {
-            Path = BallFlight.Continue(Path, ElapsedSeconds, BallX, BallY, BallZ, ox * s, retention * vy, oz * s, Hit.LaunchDeg, Hit.ExitVeloMph, Park, R, Hit.WindMul);
+            Path = BallFlight.Continue(Path, ElapsedSeconds, BallX, BallY, BallZ, ox * s, retention * vy, oz * s, Hit.LaunchDeg, Hit.ExitVeloMph, Park, R);
             if (Ball is not null) Ball = BattedBall.Reread(Path, Hit.ExitVeloMph, Hit.LaunchDeg, Ball.Shape == BattedBallClass.Bunt, Park, R);
             _ballPrev = null;
         }

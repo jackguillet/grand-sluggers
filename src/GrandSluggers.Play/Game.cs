@@ -313,7 +313,7 @@ public sealed class Game : IDisposable
     {
         _flightAge += dt;
         var u = Math.Clamp(_flightAge / _pitchDur, 0, 1);
-        var p = PitchFlight.Point(_pitch!, u, _match.Rules, _match.Pitcher.StarPitch, skills: _match.Content.StarSkills);
+        var p = PitchFlight.Point(_pitch!, u, _match.Rules, _match.Pitcher.StarPitch, skills: _match.Content.StarSkills, airSec: _pitchDur);
         var x = (float)p.X;
         var y = (float)p.Y;
         var z = (float)p.Z;
@@ -391,7 +391,7 @@ public sealed class Game : IDisposable
 
     void StartFly(AtBatResult hit, bool playerField)
     {
-        _hitPath = BallFlight.Trajectory(hit.ExitVeloMph, hit.LaunchDeg, hit.SprayDeg, _match.Park, _match.Rules);
+        _hitPath = BallFlight.Trajectory(hit.ExitVeloMph, hit.LaunchDeg, hit.SprayDeg, _match.Park, _match.Rules, hit.ApexCarryMul);
         _hitT = 0;
         _phase = Phase.InPlay;
         _phaseT = 0;

@@ -136,6 +136,17 @@ public static partial class HowToPlay
     /// <summary>Bottom copy band. Must fit KidLineMax at KidLineH.</summary>
     public const float LineBandMul = 4.6f;
 
+    /// <summary>
+    /// The chemistry page's why lines (WD-28), in the words the lineup card reads (<see cref="CarnivalFront.ChemistryWhyWord"/>),
+    /// so the book and the screen name the same reasons.
+    /// </summary>
+    public static string ChemistryHearts =>
+        "Hearts: " + Why(Chemistry.Good, ChemistryWhy.SharedCrew) + ", " + Why(Chemistry.Good, ChemistryWhy.FactionMates)
+        + " or " + Why(Chemistry.Good, ChemistryWhy.StoryPair) + ".";
+    public static string ChemistryScribbles =>
+        "Scribbles: " + Why(Chemistry.Bad, ChemistryWhy.RivalCrews) + " or " + Why(Chemistry.Bad, ChemistryWhy.StoryPair) + ".";
+    static string Why(Chemistry chemistry, ChemistryWhy why) => CarnivalFront.ChemistryWhyWord(new ChemistryReason(chemistry, why));
+
     public static readonly IReadOnlyList<Page> Pages =
     [
         new("contents", "Contents",
@@ -275,7 +286,7 @@ public static partial class HowToPlay
         ]),
         new("exhibition", "Stadium and captains",
         [
-            "Stadium opens the map of the Grand Reach: the stick moves between parks, South plays there, East keeps yours.",
+            "Stadium opens the map: the Grand Reach, and the neighborhood field through the portal. Stick moves, South plays, East keeps yours.",
             "Back on the stadium postcard, with its crowd, choose time and hazards, 1 vs CPU or 2 controllers, and P1 HOME / AWAY. Home bats the bottom.",
             "Choose captains: Left/right browses portraits and their Bat, Pitch, Field and Run bars; South confirms yours, then the CPU captain.",
             "Two controllers: each player confirms their own captain. Confirmed captains are reserved.",
@@ -284,7 +295,7 @@ public static partial class HowToPlay
         new("lineup", "Lineup",
         [
             "Team Setup: South adds a player; RB fills your team. West removes a roster player.",
-            "Both teams get the same stars when ON. Gold marks P1; blue marks P2/CPU. Focus shows a card and highlights buddies.",
+            "Both teams get the same stars. Gold marks P1; blue P2/CPU. Focus shows a card with crews and chemistry, and highlights buddies.",
             "Two diamonds between batting bars. Stick moves; LB/RB switches order / field. South marks PICKED, then swaps. East cancels.",
             "North continues to settings when both players are ready.",
         ]),
@@ -332,9 +343,9 @@ public static partial class HowToPlay
         ]),
         new("chemistry", "Chemistry",
         [
-            "Hearts are buddies. Scribbles are rivals.",
+            ChemistryHearts,
+            ChemistryScribbles,
             "Buddies throw faster, rivals slower. Buddy jump: both under the ball.",
-            "A buddy on deck can gift a banana after you hit.",
             "Both teams start with the same stars.",
         ]),
         new("stars", "Star skills",
