@@ -859,8 +859,6 @@ public sealed record PitchFamilyRules
 
 public sealed record StarPitchShapeRules
 {
-    public double HeatballWobbleHz { get; init; }
-    public double HeatballWobbleFt { get; init; }
     public double PrismballWobbleHz { get; init; }
     public double PrismballWobbleFt { get; init; }
     public double CharmballWobbleHz { get; init; }

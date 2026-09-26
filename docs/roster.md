@@ -39,8 +39,8 @@ Names are working titles. Replace freely; keep the *roles*.
 ### Rio Sparks — Spark League
 
 - Stats: Pitch 6 / Bat 7 / Field 6 / Run 7
-- Star Pitch: **Heatball** — fire trail; fielders who catch it hop and drop on a timer.
-- Star Swing: **Heat Swing** — line drive that leaves a burn patch (terrain deny, not a free homer).
+- Star Pitch: **Skyrocket** (`heatball`) — fast, and over the last third it rises up to a foot above its aimed crossing.
+- Star Swing: **Sparkler** (`heat-swing`) — exit ×1.15 and a Perfect ring half again as wide; a miss is still a miss.
 - Field: **Grow** — briefly bigger catch radius.
 - Bats/throws: R/R
 

@@ -7,14 +7,15 @@ Each replacement effect for a pitch that lost its window penalty is its own revi
 
 | Skill | Bend | Then |
 | --- | --- | --- |
-| Heatball | +15% speed, the catcher's glove smokes. The burn-hop drop roll is retired (§8.6) | baseball |
+| Skyrocket (`heatball`) | Speed ×1.15 and a `rise`: the ball flies the plain path until `from` (two-thirds) of the flight, then climbs on a quadratic ease to `riseFt` (1 ft, in the batter's zone like every vertical star shape) above it, the whole rise at the plate. The crossing moves: the umpire, the bat and the CPU judge the risen ball, in the ordinary timing window judged at that real crossing. The rise is always straight up; a high strike can rise out of the zone and a low ball into it. Nothing happens on the catch | baseball |
 | Charmball | Speed ×0.9 and a visible side-to-side wobble (`starShapes.charmball*`); its replacement effect is reviewed separately | |
 | Prismball | Late break, ghost images | |
 | Phonyball | Decoy path: the ball shows one side early and switches late (`starShapes.phonyball*`); reading the switch is the counterplay. Contact is contact | |
 | Caskball | Slow, knockback on the catch (0.55 s) | |
 | Skullball | +20% speed, nothing else until its review | |
 | Fogball | Speed ×0.82, nothing else until its review | |
-| Heat / Furnace swing | Exit ×1.15 / ×1.25; a burn patch / lava strip where it lands slows the fielder ×0.45 for 2 s | |
+| Sparkler (`heat-swing`) | Exit ×1.15; this swing's Perfect ring is `perfectRingMul` (1.5) times the ordinary one (§5.2 `perfectFraction`), never past the drawn oval (a swing's own contact area, PH-16-R2). The oval, the sour rim and the timing window are the ordinary swing's, so a crossing the ordinary swing misses is a miss, and a bunt keeps the ordinary ring. It leaves nothing on the dirt | |
+| Furnace swing | Exit ×1.25; a lava strip where it lands slows the fielder ×0.45 for 2 s | |
 | Heart swing | The nearest fielder pauses 0.8 s; no drop roll (§8.6) | |
 | Shell / Staff swing | Exit ×1.1 / ×1.08; the warp roll is retired (§8.6) until each swing's own effect is built | |
 | Phony swing | Decoy ball; the real one shows at the apex; no drop roll (§8.6) | |
