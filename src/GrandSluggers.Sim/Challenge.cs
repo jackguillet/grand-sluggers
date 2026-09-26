@@ -57,7 +57,13 @@ public sealed class Challenge
     public Match MakeMatch(ContentCatalog content, int innings = Match.DefaultInnings, int seed = 1, string? parkId = null, bool night = false)
     {
         var opp = NextOpponentId(content);
-        var (home, away) = PresetTeams.Pair(content, CaptainId, opp, Owned);
+        // A recruit plays: the ones won from other factions are preferred ahead of the captain's own eight sidekicks,
+        // who would otherwise fill the nine on their own (WD-27).
+        var faction = content.Must(CaptainId).Faction;
+        var prefer = Owned
+            .OrderBy(id => content.Must(id).Faction.Equals(faction, StringComparison.OrdinalIgnoreCase) ? 1 : 0)
+            .ToList();
+        var (home, away) = PresetTeams.Pair(content, CaptainId, opp, prefer);
         parkId ??= PresetTeams.HomeParkId(content, opp);
         return new Match(content, away, home, content.MustPark(parkId), innings, seed, night);
     }

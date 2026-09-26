@@ -24,7 +24,7 @@ namespace GrandSluggers.Sim.Tests;
 /// <b>What is stored, and what is composed.</b> A fixture of raw doubles is only honest where the
 /// arithmetic is. Y, Z and mph are pure add/multiply/clamp/table-lookup, so they are stored and
 /// compared bit for bit. X is not always: <see cref="PitchFlight.BreakShiftFt"/> calls
-/// <c>Math.Sin(u * π)</c>, and heatball / charmball add <c>Math.Sin(u * hz)</c> — and
+/// <c>Math.Sin(u * π)</c>, and charmball adds <c>Math.Sin(u * hz)</c> — and
 /// <c>Math.Sin</c> differs by one ULP between macOS libm and glibc (this repository already met that
 /// in #736). A stored X under break would pin the platform, not the pitch.
 ///
@@ -208,7 +208,7 @@ public sealed class PitchFamilyGoldenTests
         /// </summary>
         public bool TouchesSine =>
             Pitch is not null
-            && (Pitch.BreakX * Pitch.BreakMul != 0 || (Pitch.Star && Star is "heatball" or "charmball"));
+            && (Pitch.BreakX * Pitch.BreakMul != 0 || (Pitch.Star && Star is "charmball"));
 
         PitchCommand Delivery => Pitch!;
 
@@ -314,7 +314,6 @@ public sealed class PitchFamilyGoldenTests
         internal double StarX(double x, double u, StarPitchShapeRules st) =>
             !Delivery.Star ? x : Star switch
             {
-                "heatball" => x + Math.Sin(u * st.HeatballWobbleHz) * st.HeatballWobbleFt,
                 "charmball" => x + Math.Sin(u * st.CharmballWobbleHz) * st.CharmballWobbleFt,
                 "phonyball" => x + (u > st.PhonyballSwitchAt ? st.PhonyballLateX : st.PhonyballEarlyX),
                 // caskball lifts Y, not X; every other id falls through untouched.

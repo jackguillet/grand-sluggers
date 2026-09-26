@@ -1,6 +1,6 @@
 {
   "id": "konga",
-  "name": "Konga",
+  "name": "Tambo",
   "faction": "canopy",
   "captain": true,
   // The body class (data/rules/body-classes.json, spec §8.1): reach, contact width, ramp, knockback, motion style.
@@ -20,5 +20,5 @@
   "starPitch": "caskball",
   "starSwing": "cask-swing",
   "fieldAbility": "clamber",
-  "bio": "A strong hitter who treats outfield walls as a ladder."
+  "bio": "Drums the thunder over the canopy. Treats the wall as a ladder and the ball as a drum."
 }

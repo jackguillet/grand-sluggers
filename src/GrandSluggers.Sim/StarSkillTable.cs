@@ -16,6 +16,8 @@ public sealed record StarPitchSkill(
     PitchFloat? Float = null,
     /// <summary>A pace that hangs the ball over one stretch of its path and leaps it to the plate on time, or null (§13).</summary>
     PitchLeap? Leap = null,
+    /// <summary>A late rise that lifts the ball over the last stretch of its flight to a crossing above the aimed one, or null (§13).</summary>
+    PitchRise? Rise = null,
     /// <summary>One full vertical loop mid-flight, then the ordinary crossing on the ordinary time, or null (§13).</summary>
     PitchLoop? Loop = null);
 
@@ -54,6 +56,26 @@ public sealed record PitchLoop(double At, double Span, double DiameterFt)
         var turn = 2 * Math.PI * (u - At) / Span;
         var r = DiameterFt / 2;
         return (r * Math.Sin(turn), r * (1 - Math.Cos(turn)));
+    }
+}
+
+/// <summary>
+/// A star pitch's late rise (spec §13): nothing until <see cref="From"/> of the flight, then the ball climbs on a quadratic ease
+/// to <see cref="RiseFt"/> above its ordinary path exactly at the plate. Unlike a float, the crossing moves: the umpire, the
+/// bat and the CPU judge the risen ball, and the timing window is judged at that real crossing. The rise is always up.
+/// </summary>
+public sealed record PitchRise(double RiseFt, double From)
+{
+    /// <summary>The largest rise a row may name, in reference-zone feet: a jump out of the heart of the zone, not over the batter.</summary>
+    public const double MaxRiseFt = 2;
+
+    /// <summary>The height over the ordinary path at <paramref name="u"/>: 0 up to <see cref="From"/>, then (share of the stretch)² × <see cref="RiseFt"/>; the full rise at the plate.</summary>
+    public double Lift(double u)
+    {
+        u = Math.Clamp(u, 0, 1);
+        if (u <= From) return 0;
+        var t = (u - From) / (1 - From);
+        return RiseFt * t * t;
     }
 }
 
@@ -132,13 +154,21 @@ public sealed record StarSwingSkill(
     /// <summary>A fair ball off this swing stands still at its first hop for this many seconds (§13); 0 is none.</summary>
     double FirstHopStallSec = 0,
     /// <summary>After a first-hop stall the ball runs on at this share of its speed (§13); 1 is its own.</summary>
-    double FirstHopStallSpeedMul = 1)
+    double FirstHopStallSpeedMul = 1,
+    /// <summary>
+    /// This swing's Perfect ring is this many times the ordinary one (§13, PH-16-R2: a swing's own contact area); 1 is the
+    /// ordinary ring. The nice oval, the sour rim and the timing window are unchanged, so a miss is still a miss.
+    /// </summary>
+    double PerfectRingMul = 1)
 {
     /// <summary>The longest stall a row may name: the ball spins, then baseball resumes inside the two-second rule.</summary>
     public const double MaxStallSec = 1.2;
 
     /// <summary>The highest launch a stalling swing may name: the stall is a grounder's, so its first hop comes early.</summary>
     public const double MaxStallLaunchDeg = 4;
+
+    /// <summary>The largest Perfect ring a row may name: twice the ordinary heart, and never past the drawn oval (<see cref="SweetSpot.Zone"/>).</summary>
+    public const double MaxPerfectRingMul = 2;
 
     /// <summary>The highest first-hop bounce a row may name: a chopper, not a moon shot.</summary>
     public const double MaxBounceMul = 3;
@@ -224,6 +254,10 @@ public static class StarSkills
     /// <summary>How strongly the park's wind acts on a star swing's ball (§13); 1 for a swing whose row names none.</summary>
     public static double SwingWindMul(string? starSwing, StarSkillTable? table = null) =>
         StarSkillTable.Or(table).Swing(starSwing)?.WindMul ?? 1.0;
+
+    /// <summary>How much larger a star swing's Perfect ring is (§13); 1 for a swing whose row names none.</summary>
+    public static double SwingPerfectRingMul(string? starSwing, StarSkillTable? table = null) =>
+        StarSkillTable.Or(table).Swing(starSwing)?.PerfectRingMul ?? 1.0;
 
     /// <summary>A role player's star swing names its launch; a captain's keeps the swing's own.</summary>
     public static double? SwingLaunchDeg(string? starSwing, StarSkillTable? table = null) =>

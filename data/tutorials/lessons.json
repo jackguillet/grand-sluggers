@@ -2123,7 +2123,7 @@
     },
     {
       "id": "T-SP-heatball",
-      "revision": 4,
+      "revision": 5,
       "mechanics": [
         "star-pitch.heatball"
       ],
@@ -2448,7 +2448,7 @@
     },
     {
       "id": "T-SS-heat-swing",
-      "revision": 4,
+      "revision": 5,
       "mechanics": [
         "star-swing.heat-swing"
       ],

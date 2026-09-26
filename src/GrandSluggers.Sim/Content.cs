@@ -29,6 +29,9 @@ public sealed class ContentCatalog
     /// <summary>The continent and the region each park stands in (data/world/regions.json; WD-05).</summary>
     public WorldMap World { get; private init; } = null!;
 
+    /// <summary>The sidekick species by id (WD-27, <c>data/world/species.json</c>).</summary>
+    public IReadOnlyDictionary<string, Species> Species { get; private init; } = new Dictionary<string, Species>();
+
     /// <summary>Where this catalog was read from: the data root, and the trial overlay laid over it.</summary>
     public DataRoot Root { get; }
 
@@ -100,18 +103,24 @@ public sealed class ContentCatalog
         var characters = new Dictionary<string, Character>(StringComparer.OrdinalIgnoreCase);
         foreach (var row in data.Characters)
             characters.Add(row.Value.Id, row.Value.ToCharacter());
-        // A role player wears its faction's captain's body (docs/silhouette-bible.md): resolved once, here, from the data.
-        // The validator has already refused a role player whose faction has no captain.
+        // A sidekick wears its species' body (WD-27): the species' own proportions, else its build's. It keeps its faction
+        // captain's rig variant and body class (§8.1), unless it names its own class. Resolved once, here, from the data;
+        // the validator has already refused a sidekick with no species or no captain.
+        var builds = (data.Species.Builds ?? []).ToDictionary(kv => kv.Key, kv => kv.Value!.ToSpec(), StringComparer.OrdinalIgnoreCase);
+        var species = (data.Species.Species ?? []).Select(s => s!).ToDictionary(
+            s => s.Id,
+            s => new Species(s.Id, s.Name, s.Faction, s.Blend, s.Build, s.Look, s.StarPitch, s.StarSwing, s.FieldAbility,
+                s.Proportions?.ToSpec() ?? builds[s.Build]),
+            StringComparer.OrdinalIgnoreCase);
         var captainOf = characters.Values.Where(c => c.Captain)
             .ToDictionary(c => c.Faction, c => c, StringComparer.OrdinalIgnoreCase);
         foreach (var c in characters.Values.Where(c => !c.Captain).ToList())
         {
             var cap = captainOf[c.Faction];
-            // Its body class too (§8.1), unless it names its own.
             characters[c.Id] = c with
             {
                 BodyType = cap.BodyType,
-                Proportions = cap.Proportions,
+                Proportions = species[c.Species].Proportions,
                 BodyClass = string.IsNullOrEmpty(c.BodyClass) ? cap.BodyClass : c.BodyClass
             };
         }
@@ -176,6 +185,7 @@ public sealed class ContentCatalog
         return new ContentCatalog(root, characters, parks, parkPickOrder, bats, gloves, chemistry, shots, feel, rules, starSkills, art)
         {
             World = world,
+            Species = species,
             CaptainIds = captainIds,
             _presets = presets
         };

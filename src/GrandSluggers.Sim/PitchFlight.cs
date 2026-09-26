@@ -105,6 +105,10 @@ public static class PitchFlight
         // A row's own path shape (§13): the float rises early and lands on the crossing the pitch was always going to make.
         if (row?.Float is { } rise && rise.Lift(u) is var lift and not 0)
             p = (p.X, p.Y + lift * zone.VerticalScale, p.Z);
+        // A late rise (§13): the ball climbs over the last stretch to a crossing above the aimed one. This moves the crossing,
+        // so the umpire, the bat and the CPU all judge the risen ball; in reference-zone feet, like every vertical star shape.
+        if (row?.Rise is { } late && late.Lift(u) is var climb and not 0)
+            p = (p.X, p.Y + climb * zone.VerticalScale, p.Z);
         // The loop itself (§13): a circle standing on the path at the held point, in the vertical plane of the flight.
         if (row?.Loop is { } ring && ring.Offset(time) is var (forward, up) && (forward != 0 || up != 0))
         {
@@ -114,7 +118,6 @@ public static class PitchFlight
         var st = r.Pitching.StarShapes;
         return starPitchId switch
         {
-            "heatball" => (p.X + Math.Sin(u * st.HeatballWobbleHz) * st.HeatballWobbleFt, p.Y, p.Z),
             "charmball" => (p.X + Math.Sin(u * st.CharmballWobbleHz) * st.CharmballWobbleFt, p.Y, p.Z),
             "phonyball" => (p.X + (u > st.PhonyballSwitchAt ? st.PhonyballLateX : st.PhonyballEarlyX), p.Y, p.Z),
             "caskball" => (p.X, p.Y + st.CaskballRise * zone.VerticalScale * u, p.Z),

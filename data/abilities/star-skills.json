@@ -2,11 +2,12 @@
   "pitches": {
     "heatball": {
       "id": "heatball",
-      "name": "Heatball",
-      "kind": "element",
+      "name": "Skyrocket",
+      "kind": "break",
+      "family": "late-rise",
       "speedMul": 1.15,
       "staminaCost": 18,
-      "onCatch": "burn-hop"
+      "rise": { "riseFt": 1.0, "from": 0.6667 }
     },
     "charmball": {
       "id": "charmball",
@@ -83,7 +84,7 @@
     "breaker": { "id": "breaker", "name": "Star Breaker", "kind": "generic", "speedMul": 0.85, "staminaCost": 10, "lateBreak": true }
   },
   "swings": {
-    "heat-swing": { "id": "heat-swing", "name": "Heat Swing", "kind": "terrain", "exitVeloMul": 1.15, "terrain": "burn-patch" },
+    "heat-swing": { "id": "heat-swing", "name": "Sparkler", "kind": "contact", "family": "bigger-sweet-spot", "exitVeloMul": 1.15, "perfectRingMul": 1.5 },
     "heart-swing": { "id": "heart-swing", "name": "Heart Swing", "kind": "status", "exitVeloMul": 1.05, "fielderPauseSec": 0.8 },
     "shell-swing": { "id": "shell-swing", "name": "Spinning Top", "kind": "bounce", "family": "first-hop-stall", "exitVeloMul": 1.1, "launchDeg": 0, "firstHopStallSec": 0.8, "firstHopStallSpeedMul": 0.5 },
     "phony-swing": { "id": "phony-swing", "name": "Phony Swing", "kind": "decoy", "exitVeloMul": 1.1, "decoy": true },

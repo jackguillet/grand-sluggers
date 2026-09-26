@@ -280,8 +280,17 @@ public sealed record Character(
     /// </summary>
     public string BodyType { get; init; } = "";
 
-    /// <summary>The body's proportions on the shared rig: a captain's authored row, a role player's captain's.</summary>
+    /// <summary>The body's proportions on the shared rig: a captain's authored row, a sidekick's species' (WD-27).</summary>
     public Silhouette.Spec Proportions { get; init; }
+
+    /// <summary>The name a tight tile shows (the captain board): the authored short name, else the full name.</summary>
+    public string ShortName { get; init; } = "";
+
+    /// <summary>The name for a tile too narrow for <see cref="Name"/>.</summary>
+    public string TileName => string.IsNullOrEmpty(ShortName) ? Name : ShortName;
+
+    /// <summary>A sidekick's species (WD-27, <see cref="Sim.Species"/>); empty for a captain or a character built by hand.</summary>
+    public string Species { get; init; } = "";
 
     /// <summary>A captain's team name (<c>teamName</c>); null for a role player.</summary>
     public string? TeamName { get; init; }

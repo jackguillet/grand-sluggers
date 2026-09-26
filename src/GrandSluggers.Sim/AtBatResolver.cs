@@ -74,8 +74,10 @@ public sealed class AtBatResolver
         var zone = StrikeZoneGeometry.For(input.Batter, _rules);
         var crossingY = input.CrossingY ?? zone.CenterY;
         var barrel = SweetSpot.SwingBarrel(input.Batter, input.Bat, input.Charge01, _rules);
+        // A star swing may carry its own larger Perfect ring (§13, PH-16-R2); the bat must still meet the ball.
+        var ring = input.UseStarSwing && !input.Bunt ? StarSkills.SwingPerfectRingMul(input.Batter.StarSwing, _skills) : 1.0;
         var quality = onPlane
-            ? SweetSpot.Zone(input.BoxOffsetX, bats, input.CrossingX, crossingY, _rules, zone, barrel)
+            ? SweetSpot.Zone(input.BoxOffsetX, bats, input.CrossingX, crossingY, _rules, zone, barrel, ring)
             : ContactQuality.Miss;
         // The rim of the window is not square: one tier down, never two (§5.3).
         if (quality > ContactQuality.Sour && Math.Abs(err) > half * b.Window.SquareFraction)

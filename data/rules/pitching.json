@@ -103,8 +103,6 @@
     }
   },
   "starShapes": {
-    "heatballWobbleHz": 18,
-    "heatballWobbleFt": 0.4,
     "charmballWobbleHz": 9,
     "charmballWobbleFt": 0.7,
     "phonyballSwitchAt": 0.55,

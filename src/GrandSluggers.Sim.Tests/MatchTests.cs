@@ -464,7 +464,7 @@ public class MatchTests
         var match = Match.Slice(_content, seed: 1);
         Assert.Equal(_content.Rules.Stars.StartingReserve, match.HomeStars);
         Assert.Equal(match.HomeStars, match.AwayStars);
-        Assert.Equal("Rio Sparks", match.Home.Captain.Name);
+        Assert.Equal("Ronnie Sparks", match.Home.Captain.Name);
         Assert.Equal("Ashlord", match.Away.Captain.Name);
     }
 

@@ -33,7 +33,7 @@ namespace GrandSluggers.UnityClient
                 var p1 = selection.Id(0) == id;
                 var p2 = selection.Id(1) == id;
                 Portrait(who, new Rect(r.x + 6, r.y + 6, r.width - 12, 104));
-                Text(new Rect(r.x + 4, r.y + 110, r.width - 8, 28), who.Name, _tile);
+                Text(new Rect(r.x + 4, r.y + 110, r.width - 8, 28), who.TileName, _tile);
                 if (p1) Border(r, One, 3);
                 if (p2) Border(new Rect(r.x + (p1 ? 5 : 0), r.y + (p1 ? 5 : 0), r.width - (p1 ? 10 : 0), r.height - (p1 ? 10 : 0)), Two, 3);
                 if (p1 || p2)

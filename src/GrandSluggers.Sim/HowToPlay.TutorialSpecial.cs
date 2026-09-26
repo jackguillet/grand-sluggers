@@ -25,7 +25,7 @@ public static partial class HowToPlay
         {
             "T-P09" => "Heatball",
             "T-B09" => "Heat Swing",
-            "T-SP-heatball" => "Heatball",
+            "T-SP-heatball" => "Skyrocket",
             "T-SP-charmball" => "Charmball",
             "T-SP-prismball" => "Loop-the-Loop",
             "T-SP-phonyball" => "Phonyball",
@@ -38,7 +38,7 @@ public static partial class HowToPlay
             "T-SP-mirageball" => "Mirage Ball",
             "T-SP-rockfall" => "Rockfall",
             "T-SP-leapfrog" => "Leapfrog",
-            "T-SS-heat-swing" => "Heat Swing",
+            "T-SS-heat-swing" => "Sparkler",
             "T-SS-heart-swing" => "Heart Swing",
             "T-SS-shell-swing" => "Spinning Top",
             "T-SS-phony-swing" => "Phony Swing",
@@ -54,19 +54,21 @@ public static partial class HowToPlay
             _ => ""
         };
         if (skill.Length == 0) return null;
-        // What the special does, where its lesson teaches it (§13).
-        var does = id switch
+        // What the special does, where it is its own (§13): the lesson names the bend it teaches.
+        var effect = id switch
         {
+            "T-SP-heatball" => " It flies fast, then rises up to a foot over the last third, so aim it low.",
+            "T-SS-heat-swing" => " Its Perfect ring is half again as wide, but the bat must still meet the ball.",
             "T-SP-prismball" => " It runs one loop mid-flight, then crosses where you aimed, on time.",
             "T-SS-shell-swing" => " The grounder spins in place at its first hop, then rolls on slowly. Run.",
             _ => ""
         };
         return pitch
             ? new("Pitch: " + skill, "Throw " + skill + " and spend its star cost.",
-                "Your pitcher has " + skill + " and enough meter. Hold the star button as you let go of the pitch." + does,
+                "Your pitcher has " + skill + " and enough meter." + effect + " Hold the star button as you let go of the pitch.",
                 "Hold LT as you let go of RT.")
             : new("Swing: " + skill, "Use " + skill + " to make fair contact and spend its star cost.",
-                "Your batter has " + skill + " and enough meter. Hold the star button as you let go of the swing, and time contact with the strike." + does,
+                "Your batter has " + skill + " and enough meter." + effect + " Hold the star button as you let go of the swing, and time contact with the strike.",
                 "Hold LT as you let go of RT, as the pitch arrives.");
     }
 }
