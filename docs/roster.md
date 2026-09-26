@@ -71,8 +71,8 @@ Names are working titles. Replace freely; keep the *roles*.
 ### Konga — Canopy Clan
 
 - Stats: Pitch 6 / Bat 9 / Field 3 / Run 2
-- Star Pitch: **Caskball** — pitch is a barrel; catch it and you eat a knockback.
-- Star Swing: **Cask Swing** — barrel fragments become infield obstacles.
+- Star Pitch: **Vine Swing** — the pitch swings in wide on a vine from a pivot above and crosses where it was aimed, on time.
+- Star Swing: **Lightning Liner** — a liner that jags sideways twice, up to 3 ft, and lands where a straight liner would.
 - Field: **Clamber** — can catch on walls and fences.
 - Bats/throws: L/R
 

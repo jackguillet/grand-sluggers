@@ -118,13 +118,42 @@ public static class PitchFlight
         // The sway (§13): side to side across the path, widest mid-flight, settled onto the path before the plate.
         if (row?.Sway is { } sway && sway.OffsetFt(u) is var side and not 0)
             p = (p.X + side, p.Y, p.Z);
+        // The pendulum (§13): the ball swings on its vine about a pivot riding above the ordinary ball, and hangs straight at the plate.
+        if (row?.Pendulum is { } vine && vine.Offset(time, PendulumSide(pitch, r, from)) is var swing && swing != (0, 0))
+            p = (p.X + swing.X, p.Y + swing.Y, p.Z);
         var st = r.Pitching.StarShapes;
         return starPitchId switch
         {
             "phonyball" => (p.X + (u > st.PhonyballSwitchAt ? st.PhonyballLateX : st.PhonyballEarlyX), p.Y, p.Z),
-            "caskball" => (p.X, p.Y + st.CaskballRise * zone.VerticalScale * u, p.Z),
             _ => p
         };
+    }
+
+    /// <summary>
+    /// The side a pendulum pitch swings in from (spec §13): the half of the plate away from its crossing, so the vine carries
+    /// the ball in across the zone. A crossing on the middle swings in from −X. Read off the ordinary crossing, which the
+    /// pendulum never moves.
+    /// </summary>
+    static double PendulumSide(PitchCommand pitch, RulesTable rules, (double X, double Y, double Z)? from)
+    {
+        var cross = Point(pitch.Type, 1, rules, pitch.AimX, pitch.AimY, pitch.BreakX * pitch.BreakMul,
+            pitch.RubberX, from, ChargeFeel.IsCharge(pitch.Charge01, rules), pitch.Throws, StrikeZoneGeometry.Of(pitch));
+        return cross.X > 0 ? -1 : 1;
+    }
+
+    /// <summary>
+    /// The pivot a pendulum pitch's vine hangs from at <paramref name="u"/> (spec §13): <see cref="PitchPendulum.LengthFt"/>
+    /// straight above the ordinary ball, so the vine drawn from it to the ball is always that long and hangs straight over the
+    /// crossing at the plate. Null for a pitch that is not starred or has no pendulum. The tell draws the vine; nothing
+    /// else reads it.
+    /// </summary>
+    public static (double X, double Y, double Z)? Pivot(PitchCommand pitch, double u, RulesTable rules,
+        string? starPitchId, StarSkillTable? skills = null, (double X, double Y, double Z)? from = null)
+    {
+        if (!pitch.Star || StarSkillTable.Or(skills).Pitch(starPitchId)?.Pendulum is not { } vine) return null;
+        var ball = Point(pitch, u, rules, starPitchId, from, skills);
+        var swing = vine.Offset(Math.Clamp(u, 0, 1), PendulumSide(pitch, rules, from));
+        return (ball.X - swing.X, ball.Y - swing.Y + vine.LengthFt, ball.Z);
     }
 
     /// <summary>

@@ -29,7 +29,7 @@ public static partial class HowToPlay
             "T-SP-charmball" => "Aurora Ribbon",
             "T-SP-prismball" => "Loop-the-Loop",
             "T-SP-phonyball" => "Phonyball",
-            "T-SP-caskball" => "Caskball",
+            "T-SP-caskball" => "Vine Swing",
             "T-SP-skullball" => "Skullball",
             "T-SP-fogball" => "Fogball",
             "T-SP-fastball" => "Star Fastball",
@@ -42,7 +42,7 @@ public static partial class HowToPlay
             "T-SS-heart-swing" => "Follow Spot",
             "T-SS-shell-swing" => "Spinning Top",
             "T-SS-phony-swing" => "Double Deal",
-            "T-SS-cask-swing" => "Cask Swing",
+            "T-SS-cask-swing" => "Lightning Liner",
             "T-SS-furnace" => "Furnace",
             "T-SS-staff-swing" => "Staff Swing",
             "T-SS-sidewinder" => "Sidewinder",
@@ -65,6 +65,8 @@ public static partial class HowToPlay
             "T-SS-heart-swing" => " The follow spot holds the nearest fielder still for a moment after contact.",
             "T-SP-phonyball" => " It shows one side early and switches late. Read the switch.",
             "T-SS-phony-swing" => " A card-back decoy flies beside the real ball until the top of its arc.",
+            "T-SP-caskball" => " It swings in wide on a vine, then crosses where you aimed, on time.",
+            "T-SS-cask-swing" => " The liner jags twice, then lands where a straight one would.",
             _ => ""
         };
         return pitch
