@@ -82,7 +82,7 @@ public sealed class CaptainSelectionTests
         {
             var tile = CarnivalFront.CaptainTile(i, n);
             Assert.True(tile.W - 12 >= 96, $"tile {i} portrait is {tile.W - 12:0} px wide");
-            var name = Shipped.Content.Must(id).Name;
+            var name = Shipped.Content.Must(id).TileName;
             Assert.True(name.Length * perChar <= tile.W - 8, $"{name} needs {name.Length * perChar:0} px of a {tile.W - 8:0} px tile");
         }
         foreach (var mark in new[] { "P1 + CPU", "P1 + P2", "P1  READY", "P2  READY" })

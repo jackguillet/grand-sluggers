@@ -5,7 +5,7 @@
   "captain": true,
   // The body class (data/rules/body-classes.json, spec §8.1): reach, contact width, ramp, knockback, motion style.
   "bodyClass": "villain",
-  "teamName": "Ember Court",
+  "teamName": "Ember Keep",
   "signatureBat": "furnace-club",
   // Body proportions on the shared rig (docs/silhouette-bible.md): root multipliers, height ladder vs the research stills.
   "proportions": { "height": 1.17, "width": 1.28, "head": 1.48, "arms": 1.18, "torso": 1.38 },
@@ -20,5 +20,5 @@
   "starPitch": "skullball",
   "starSwing": "furnace",
   "fieldAbility": "spin-check",
-  "bio": "The bat is a 10. Everything else is a warning."
+  "bio": "A basalt golem who forges bats in the crater. The bat is a 10; everything else is a warning."
 }

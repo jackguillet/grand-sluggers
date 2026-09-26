@@ -1,11 +1,11 @@
 {
   "id": "vale",
-  "name": "Queen Vale",
+  "name": "Vale",
   "faction": "royal",
   "captain": true,
   // The body class (data/rules/body-classes.json, spec §8.1): reach, contact width, ramp, knockback, motion style.
   "bodyClass": "pageant",
-  "teamName": "Royal Rink",
+  "teamName": "Aurora Blades",
   "signatureBat": "pageant-wand",
   // Body proportions on the shared rig (docs/silhouette-bible.md): root multipliers, height ladder vs the research stills.
   "proportions": { "height": 1.09, "width": 0.7, "head": 1.24, "arms": 0.88, "torso": 0.74 },
@@ -20,5 +20,5 @@
   "starPitch": "charmball",
   "starSwing": "heart-swing",
   "fieldAbility": "snap-throw",
-  "bio": "A slap hitter who can pitch the lights out of Aurora Rink."
+  "bio": "A swan who skates the rink at dawn and pitches the lights out at night."
 }

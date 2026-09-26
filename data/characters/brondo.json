@@ -5,7 +5,7 @@
   "captain": true,
   // The body class (data/rules/body-classes.json, spec §8.1): reach, contact width, ramp, knockback, motion style.
   "bodyClass": "brick",
-  "teamName": "Goldrush",
+  "teamName": "Skyline Gold",
   "signatureBat": "gold-brick",
   // Body proportions on the shared rig (docs/silhouette-bible.md): root multipliers, height ladder vs the research stills.
   "proportions": { "height": 0.97, "width": 1.58, "head": 1.16, "arms": 1.28, "torso": 1.48 },
@@ -20,5 +20,5 @@
   "starPitch": "phonyball",
   "starSwing": "phony-swing",
   "fieldAbility": "laser",
-  "bio": "Contact zone for days. Glove like a frying pan. Knows a guy."
+  "bio": "A bulldog who runs the rooftop card game. The glove is for show; the bat is for real."
 }

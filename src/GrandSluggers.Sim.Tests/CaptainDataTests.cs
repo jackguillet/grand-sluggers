@@ -23,10 +23,10 @@ public sealed class CaptainDataTests
     {
         var content = Shipped.Content;
         Assert.Equal(new[] { "rio", "vale", "zig", "brondo", "konga", "ashlord", "fenn", "sable", "hollis", "reed" }, content.CaptainIds);
-        Assert.Equal("Stillwater", PresetTeams.TeamName(content.Must("fenn")));
+        Assert.Equal("Tidewater", PresetTeams.TeamName(content.Must("fenn")));
         Assert.Equal("fen-cane", GearMesh.SignatureBat(content, "fenn").Id);
         Assert.Equal("zig", content.Must("jester").BodyType);
-        Assert.Equal(content.Must("zig").Proportions, content.Must("jester").Proportions);
+        Assert.Equal(content.Species[content.Must("jester").Species].Proportions, content.Must("jester").Proportions);
         Assert.Equal("Ember Court", PresetTeams.EmberCourt(content).Name);
         Assert.Equal(9, PresetTeams.EmberCourt(content).Roster.Count);
         Assert.Equal("vale", PresetTeams.NextCaptain(content, "rio"));
