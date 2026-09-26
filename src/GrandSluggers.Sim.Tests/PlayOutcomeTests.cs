@@ -10,10 +10,10 @@ public class PlayOutcomeTests
     [Fact]
     public void LiveBuddyJumpRobCarriesTypedFeatIntoEvent()
     {
-        // CF dart with LF zig (same faction): two good-chem outfielders under a high fly homer by five feet;
-        // the CPU bodies plant at the wall and the buddy jump's rob height (18) takes it (§8.3, §8.4).
+        // CF dart with LF zig (same faction): two good-chem outfielders under a high fly homer by ten feet — past dart's own
+        // Wall Spring rob (4 + 4); the CPU bodies plant at the wall and the buddy jump's rob height (18) takes it (§8.3, §8.4).
         var match = RobMatch(ParkId.Harbor, "zig", "dart", "nico");
-        var hit = FlightFixtures.OverTheFence(match.Park, 5, 0, 60);
+        var hit = FlightFixtures.OverTheFence(match.Park, 10, 0, 60);
         var preview = match.PreviewHit(hit);
         Assert.Equal("dart", preview.Fielder.Id);
         Assert.NotNull(preview.Buddy);
@@ -29,13 +29,13 @@ public class PlayOutcomeTests
     }
 
     [Fact]
-    public void LiveSuperJumpRobCarriesTypedFeatIntoEvent()
+    public void LiveWallSpringRobCarriesTypedFeatIntoEvent()
     {
-        // CF nico (Super Jump, rob height 18) between two neutral outfielders: the leap at the wall is the glove's own.
-        var match = RobMatch(ParkId.Harbor, "zig", "nico", "dart");
-        var hit = FlightFixtures.OverTheFence(match.Park, 10, 0);
+        // CF Tambo (Wall Spring, rob height 4 + 4) between two neutral outfielders: the leap at the wall is the glove's own.
+        var match = RobMatch(ParkId.Harbor, "zig", "konga", "dart");
+        var hit = FlightFixtures.OverTheFence(match.Park, 6, 0);
         var preview = match.PreviewHit(hit);
-        Assert.Equal("nico", preview.Fielder.Id);
+        Assert.Equal("konga", preview.Fielder.Id);
         Assert.False(FieldingResolver.BuddyJumpOffered(preview));
         var field = match.ResolveFielding(hit, preview);
         Assert.Equal(PlayKind.HomeRun, field.Kind);
@@ -43,7 +43,7 @@ public class PlayOutcomeTests
         var ev = match.FinishAtBat(Pitch(), Swing(), hit, field);
 
         Assert.Equal(PlayKind.FlyOut, ev.Kind);
-        Assert.Equal(DefensiveFeat.SuperJump, ev.Outcome?.DefensiveFeat);
+        Assert.Equal(DefensiveFeat.Jump, ev.Outcome?.DefensiveFeat);
         Assert.Equal(HighlightBeat.RobbedHomer, Highlight.BeatOf(ev with { Caption = "Catch." }));
     }
 
@@ -96,12 +96,14 @@ public class PlayOutcomeTests
     {
         var park = _content.Parks[ParkId.Canopy];
         var konga = Preview(_content.Must("konga"), null, 0, 360, homeRunLikely: true);
-        var nico = Preview(_content.Must("nico"), null, 0, 360, homeRunLikely: true);
+        var ashlord = Preview(_content.Must("ashlord"), null, 0, 360, homeRunLikely: true);
         var buddy = Preview(_content.Must("nico"), _content.Must("gull"), 0, 360, homeRunLikely: true);
 
         Assert.Equal(DefensiveFeat.None, FieldingResolver.PlayerCatchFeat(konga, park, Rules.Default, false, false));
+        // The climb wall is the park's (AB-12): any fielder's leap there is the climb.
         Assert.Equal(DefensiveFeat.Clamber, FieldingResolver.PlayerCatchFeat(konga, park, Rules.Default, false, true));
-        Assert.Equal(DefensiveFeat.SuperJump, FieldingResolver.PlayerCatchFeat(nico, park, Rules.Default, false, true));
+        Assert.Equal(DefensiveFeat.Clamber, FieldingResolver.PlayerCatchFeat(ashlord, park, Rules.Default, false, true));
+        Assert.Equal(DefensiveFeat.Jump, FieldingResolver.PlayerCatchFeat(ashlord, _content.Parks[ParkId.Harbor], Rules.Default, false, true));
         Assert.Equal(DefensiveFeat.BuddyJump, FieldingResolver.PlayerCatchFeat(buddy, park, Rules.Default, true, true));
     }
 

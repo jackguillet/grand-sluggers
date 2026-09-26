@@ -372,15 +372,13 @@ public class InPlayTests
         Assert.False(InPlay.CloseSafe(4.5, 3.1, rules: Rules.Default), "waiting on the bag is not bang-bang");
         var off = InPlay.AlongBases(Diamond.Baseline * 0.2, 1, rules: Rules.Default);
         Assert.False(InPlay.OccupyingBag(off.X, off.Z, Rules.Default, Rules.Default.Running.Bags.TagSafeRadiusFt), "off home toward first");
-        // The reach is 4 ft (§10.3): a glove three feet away tags, ten feet away does not; Lick / Grow add two.
+        // The reach is 4 ft (§10.3): a glove three feet away tags, ten feet away does not; no field ability adds to it.
         Assert.Equal(4, Rules.Default.Running.Bags.TagReachFt);
         Assert.True(InPlay.Touches(true, false, off.X + 3, off.Z, off.X, off.Z, rules: Rules.Default), "inside the reach");
         Assert.False(InPlay.Touches(true, false, off.X + 10, off.Z, off.X, off.Z, rules: Rules.Default), "ten feet is no tag");
-        var grow = _content.Must("rio");
-        Assert.Equal("grow", grow.FieldAbility);
-        Assert.Equal(6, InPlay.TagReachFt(grow, rules: Rules.Default));
-        Assert.True(InPlay.Touches(true, false, off.X + 5, off.Z, off.X, off.Z, fielder: grow, rules: Rules.Default), "Grow reaches five feet");
-        Assert.False(InPlay.Touches(true, false, off.X + 5, off.Z, off.X, off.Z, rules: Rules.Default), "an ordinary glove does not");
+        var zig = _content.Must("zig");
+        Assert.Equal(4, InPlay.TagReachFt(zig, rules: Rules.Default));
+        Assert.False(InPlay.Touches(true, false, off.X + 5, off.Z, off.X, off.Z, fielder: zig, rules: Rules.Default), "the tongue is a press, not a tag");
         // A slide narrows the window but never closes it: the safe radius stays inside the slid reach.
         Assert.True(Rules.Default.Running.Bags.TagSafeRadiusFt < InPlay.TagReachFt(null, sliding: true, rules: Rules.Default));
         var stepOffFirst = InPlay.AlongBases(Diamond.Baseline - 8, 1, rules: Rules.Default);

@@ -30,9 +30,6 @@ public sealed class ParkSlowRowsTests
         Assert.Equal(FieldingResolver.ChaseSpeedFt(rio, false, rules: Rules.Default) * chase.FrozenMul, FieldingResolver.ChaseSpeedFt(rio, true, rules: Rules.Default), 9);
         Assert.Equal(chase.FrozenMul, BodySlows.Mul(true, rules: Rules.Default));
         Assert.Equal(1.0, BodySlows.Mul(false, rules: Rules.Default));
-        // Burrow is the one body the park cannot slow (§8.1), on both tables.
-        Assert.True(FieldAbilities.IgnoresParkSlow(_content.Must("soot")));
-        Assert.False(FieldAbilities.IgnoresParkSlow(rio));
     }
 
     /// <summary>

@@ -20,7 +20,7 @@ public sealed class BuddyJumpTests
     public void PreviewRejectsEitherOutfielderWhoCannotReachThePlant(bool mainLate)
     {
         var match = Defense();
-        var hit = FlightFixtures.OverTheFence(match.Park, 5, 0, 60);
+        var hit = FlightFixtures.OverTheFence(match.Park, 10, 0, 60);
         var pre = match.PreviewHit(hit);
         var plant = FlyCatch.ChaseTarget(pre, match.Rules, match.Park);
         var map = FieldingResolver.Assign(match.Defense, match.Pitcher);
@@ -41,7 +41,7 @@ public sealed class BuddyJumpTests
     public void BothBodiesMustBeDirectlyUnderTheLiveBall(double gloveOffset, double buddyOffset, double ballOffset, bool expected)
     {
         var match = Defense();
-        var pre = match.PreviewHit(FlightFixtures.OverTheFence(match.Park, 5, 0, 60));
+        var pre = match.PreviewHit(FlightFixtures.OverTheFence(match.Park, 10, 0, 60));
         Assert.True(FieldingResolver.BuddyJumpOffered(pre));
         var plant = FlyCatch.ChaseTarget(pre, match.Rules, match.Park);
         Assert.Equal(expected, FlyCatch.BuddyInPosition(pre, match.Park,
@@ -61,7 +61,7 @@ public sealed class BuddyJumpTests
     public void APlannedPairCannotGrantBuddyReachAfterItsBodiesAreSlowed(bool human)
     {
         var match = Defense();
-        var hit = FlightFixtures.OverTheFence(match.Park, 5, 0, 60);
+        var hit = FlightFixtures.OverTheFence(match.Park, 10, 0, 60);
         var pre = match.PreviewHit(hit);
         Assert.NotNull(pre.Buddy);
         // Retain the original offer but hold the glove's body until the ball is down: the live gate must recheck arrival.
@@ -88,7 +88,7 @@ public sealed class BuddyJumpTests
     public void LiveBuddyRunsAtNormalSpeedAndCatchesOnlyWithBothBodiesUnderBall(bool human, bool versus)
     {
         var match = Defense();
-        var hit = FlightFixtures.OverTheFence(match.Park, 5, 0, 60);
+        var hit = FlightFixtures.OverTheFence(match.Park, 10, 0, 60);
         var pre = match.PreviewHit(hit);
         Assert.True(FieldingResolver.BuddyJumpOffered(pre));
         var map = FieldingResolver.Assign(match.Defense, match.Pitcher);

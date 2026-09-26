@@ -22,7 +22,7 @@ public class CharacterCardTests
         Assert.Equal(7, card.Stats.Run);
         Assert.Equal("Skyrocket", card.StarPitch);
         Assert.Equal("Sparkler", card.StarSwing);
-        Assert.Equal("Grow", card.FieldVerb);
+        Assert.Equal("Laser", card.FieldVerb);
         Assert.Equal(Hand.R, card.Bats);
         Assert.Equal("BATS RIGHT", HowToPlay.CardBatHand(card.Bats));
         Assert.Equal(0.7, CharacterCard.BarFill(7), 3);
@@ -57,7 +57,8 @@ public class CharacterCardTests
     {
         Assert.Equal("Lick Catch", CharacterCard.Title("lick-catch"));
         Assert.Equal("Snap Throw", CharacterCard.Title("snap-throw"));
-        Assert.Equal("Super Jump", CharacterCard.Title("super-jump"));
+        Assert.Equal("Wall Spring", CharacterCard.Title("wall-spring"));
+        Assert.Equal("Relay Pivot", CharacterCard.Title("relay-pivot"));
         Assert.Equal("Heat Ball", CharacterCard.Title("heatball"));
         Assert.Equal("Charm Ball", CharacterCard.Title("charmball"));
         Assert.Equal("Fast Ball", CharacterCard.Title("fastball"));

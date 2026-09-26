@@ -82,11 +82,11 @@ public class FlyCatchTests
         var pre = Routine(rio);
         Assert.False(FlyCatch.NeedsJump(pre));
         Assert.True(FlyCatch.IsFly(pre));
-        Assert.True(FlyCatch.JumpWindow(pre.HangTimeSec - 0.2, pre.HangTimeSec, Rules.Default, rio, Harbor));
+        Assert.True(FlyCatch.JumpWindow(pre.HangTimeSec - 0.2, pre.HangTimeSec, Rules.Default));
         Assert.True(FlyCatch.PlayerCaught(jumpDown: true, southDown: false, under: true, inWindow: true, needsJump: false));
         Assert.Equal(PlayKind.FlyOut, FlyCatch.PlayerKind(true, pre));
 
-        Assert.False(FlyCatch.JumpWindow(pre.HangTimeSec + 0.4, pre.HangTimeSec, Rules.Default, rio, Harbor), "jump late");
+        Assert.False(FlyCatch.JumpWindow(pre.HangTimeSec + 0.4, pre.HangTimeSec, Rules.Default), "jump late");
         Assert.False(FlyCatch.PlayerCaught(jumpDown: true, southDown: false, under: true, inWindow: false, needsJump: false));
         // A ball that falls in is live: the bodies name the hit at Complete, never the carry (§10.6).
         Assert.Equal(PlayKind.InPlay, FlyCatch.PlayerKind(false, pre));
@@ -136,7 +136,7 @@ public class FlyCatchTests
         var rioRadius = FieldingResolver.CatchRadiusFt(rio, park, rules: Rules.Default, air: true);
         var ashRadius = FieldingResolver.CatchRadiusFt(ashlord, park, rules: Rules.Default, air: true);
         // The stand-up reach is the body class's fly reach (§8.1).
-        Assert.Equal(BodyClasses.ReachFt(rio, true, Rules.Default) + FieldAbilities.CatchBonus(rio, rules: Rules.Default), rioRadius);
+        Assert.Equal(BodyClasses.ReachFt(rio, true, Rules.Default), rioRadius);   // no field ability widens the ring (AB-12)
         Assert.Equal(BodyClasses.ReachFt(ashlord, true, Rules.Default), ashRadius);
         var standUp = FieldingResolver.StandUpCatchFt(rioRadius);
         var diveWin = FieldingResolver.DiveCatchFt(rioRadius, rules: Rules.Default);
@@ -254,20 +254,22 @@ public class FlyCatchTests
     }
 
     [Fact]
-    public void SuperJumpWidensTheWindowItDoesNotSkipIt()
+    public void WallSpringReachesHigherOverTheFenceTheWindowIsEveryonesOwn()
     {
-        var nico = _content.Must("nico");
-        var rio = _content.Must("rio");
-        Assert.Equal("super-jump", nico.FieldAbility);
+        var hollis = _content.Must("hollis");
+        var ashlord = _content.Must("ashlord");
+        Assert.Equal(FieldAbilityId.WallSpring, hollis.FieldAbility);
         var hang = 3.2;
         var early = hang - Rules.Default.Fielding.Catch.WindowBeforeSec - 0.10;
-        Assert.False(FlyCatch.JumpWindow(early, hang, Rules.Default, rio, Harbor));
-        Assert.True(FlyCatch.JumpWindow(early, hang, Rules.Default, nico, Harbor));
-        Assert.False(FlyCatch.JumpWindow(hang + 0.5, hang, Rules.Default, nico, Harbor), "late is still late");
-        var tenOver = FlightFixtures.OverTheFence(Harbor, 10, 0);
-        Assert.True(FieldAbilities.AirRob(Harbor, nico, tenOver, rules: Rules.Default));
-        Assert.False(FieldAbilities.AirRob(Harbor, rio, tenOver, rules: Rules.Default));
-        Assert.False(FieldAbilities.AirRob(Harbor, nico, FlightFixtures.OverTheFence(Harbor, 25, 0), rules: Rules.Default), "past the rob height it is gone");
+        Assert.False(FlyCatch.JumpWindow(early, hang, Rules.Default), "no ability widens the window");
+        Assert.False(FlyCatch.JumpWindow(hang + 0.5, hang, Rules.Default), "late is still late");
+        var c = Rules.Default.Fielding.Catch;
+        var spring = Rules.Default.Fielding.Abilities.WallSpringReachFt;
+        Assert.Equal(c.JumpRobFt + spring, FlyCatch.RobHeightFt(hollis, Harbor, Rules.Default));
+        Assert.Equal(c.JumpRobFt, FlyCatch.RobHeightFt(ashlord, Harbor, Rules.Default));
+        Assert.True(FlyCatch.CanRob(c.JumpRobFt + spring - 0.5, hollis, Harbor, Rules.Default));
+        Assert.False(FlyCatch.CanRob(c.JumpRobFt + spring - 0.5, ashlord, Harbor, Rules.Default));
+        Assert.False(FlyCatch.CanRob(c.JumpRobFt + spring + 0.5, hollis, Harbor, Rules.Default), "past the rob height it is gone");
     }
 
     [Fact]
@@ -352,8 +354,8 @@ public class FlyCatchTests
         Assert.True(LandingMark.RadiusFt(fly) >= Rules.Default.Fielding.Catch.StandUpReachFt);
         Assert.True(LandingMark.WorldY > LandingMark.DirtY);
         Assert.True(LandingMark.ThickFt > 0.4, "tube must read from the fly 3/4, not a pancake");
-        Assert.False(LandingMark.Hot(0.2, fly.HangTimeSec, Rules.Default, rio, Harbor));
-        Assert.True(LandingMark.Hot(fly.HangTimeSec - 0.2, fly.HangTimeSec, Rules.Default, rio, Harbor));
+        Assert.False(LandingMark.Hot(0.2, fly.HangTimeSec, Rules.Default));
+        Assert.True(LandingMark.Hot(fly.HangTimeSec - 0.2, fly.HangTimeSec, Rules.Default));
 
         var liner = FlightFixtures.Preview(rio, "SS", BattedBallClass.Liner, 1.1, 20, 110, radius: 12);
         Assert.True(LandingMark.On(liner, ballY: 7, hitT: 0.2, caught: false, buddy: false, rules: Rules.Default),

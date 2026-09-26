@@ -18,9 +18,9 @@
   "bats": "L",
   "throws": "R",
   "repertoire": ["curveball", "slider"],
-  // His own three (WD-15 A): Cable Car's stop, Summit Gust's apex carry, Long Toss's range.
+  // His own three (WD-15 A): Cable Car's stop, Summit Gust's apex carry; Wall Spring from the shared field pool (AB-12).
   "starPitch": "rockfall",
   "starSwing": "updraft",
-  "fieldAbility": "long-toss",
+  "fieldAbility": "wall-spring",
   "bio": "A mountain goat from the high peaks. Climbs anything, hits it into thin air and lets the gust do the rest."
 }

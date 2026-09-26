@@ -28,7 +28,7 @@ In stack order ([AGENTS.md](../AGENTS.md) "The stack"):
 Also open, not ahead of the stack:
 
 - **Fields and the world** ([#1133](https://github.com/jackguillet/grand-sluggers/issues/1133)): the ten parks of the Grand Reach and ten captains are built as rails, data and greyboxes. Left: Jack's greybox sittings, one park at a time, Aurora Rink first (checklist in [screenshot-gate.md](screenshot-gate.md)); each park's art after its sitting and #346.
-- **Specials:** Spin Check [#1010](https://github.com/jackguillet/grand-sluggers/issues/1010) and the Phase 6 effect reviews [#1011](https://github.com/jackguillet/grand-sluggers/issues/1011).
+- **Specials:** the Phase 6 effect reviews [#1011](https://github.com/jackguillet/grand-sluggers/issues/1011). The field pool is five (AB-12, [#1231](https://github.com/jackguillet/grand-sluggers/issues/1231)): Spin Check and the rest left the game; Relay Pivot has no carrier yet.
 - **Items are dormant:** the code stays, no item source offers one, and the item lessons wait.
 
 ## Not started

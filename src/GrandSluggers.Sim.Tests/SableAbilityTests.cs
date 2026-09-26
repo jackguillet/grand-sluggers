@@ -7,7 +7,7 @@ namespace GrandSluggers.Sim.Tests;
 /// <summary>
 /// Arroyo's three (`sable`; spec §13, §8.4): Mirage hides the ball for the middle third of its flight and leaves its path,
 /// its crossing and its window alone; Dust Bowl raises a bowl of loose dust where the grounder first lands that slows the
-/// fielders inside it; Sand Scoop reaches for the low ball. What the eye sees and how fast a glove runs change; the ball, the
+/// fielders inside it; his field ability is the pool's Snap Throw (AB-12). What the eye sees and how fast a glove runs change; the ball, the
 /// bodies and the geometry still decide the play, and nothing is rolled.
 /// </summary>
 public sealed class SableAbilityTests
@@ -22,9 +22,9 @@ public sealed class SableAbilityTests
         Assert.Equal("Arroyo", sable.Name);
         Assert.Equal("mirageball", sable.StarPitch);
         Assert.Equal("sidewinder", sable.StarSwing);
-        Assert.Equal(FieldAbilityId.SandScoop, sable.FieldAbility);
+        Assert.Equal(FieldAbilityId.SnapThrow, sable.FieldAbility);   // the shared field pool (AB-12)
         Assert.DoesNotContain(Game.Characters.Values, c => c.Id != "sable"
-            && (c.StarPitch == "mirageball" || c.StarSwing == "sidewinder" || c.FieldAbility == FieldAbilityId.SandScoop));
+            && (c.StarPitch == "mirageball" || c.StarSwing == "sidewinder"));
         var pitch = Game.StarSkills.Pitch("mirageball")!;
         var swing = Game.StarSkills.Swing("sidewinder")!;
         Assert.Equal("Mirage", pitch.Name);
@@ -219,7 +219,7 @@ public sealed class SableAbilityTests
         both.Add(disc);
         both.Read("2B", 20, 60, 0.5, immune: false);
         Assert.Equal(Math.Min(rules.Fielding.Chase.FrozenMul, bowl.Mul), both.Mul("2B", rules));
-        // A Burrow body touches nothing, bowl or park.
+        // An immune read touches nothing, bowl or park.
         both.Read("3B", 20, 60, 0.5, immune: true);
         Assert.Equal(1.0, both.Mul("3B", rules));
 
@@ -298,29 +298,6 @@ public sealed class SableAbilityTests
                     if (live.IsSlowed(pos)) slowedInBowl.Add((live.ElapsedSeconds, at.X, at.Z));
         }
         return new RunResult(kicks, bowls, path, balls, volumes, slowedInBowl, runnerSlowed, play);
-    }
-
-    // ---------------------------------------------------------------------------------
-    // Sand Scoop
-    // ---------------------------------------------------------------------------------
-
-    [Fact]
-    public void SandScoopReachesOnlyForTheLowBallAndThatScoopNeverBobbles()
-    {
-        var rules = Game.Rules;
-        var a = rules.Fielding.Abilities;
-        var sable = Game.Must("sable");
-        Assert.Equal(8, a.SandScoopFt);
-        Assert.Equal(1.0, a.SandScoopMaxFt);
-        Assert.True(a.SandScoopFt < a.DiveGroundRangeFt, "half Dive's reach, for the low ball only");
-        Assert.Equal(a.SandScoopFt, FieldAbilities.GroundRangeBonus(sable, rules, 0));
-        Assert.Equal(a.SandScoopFt, FieldAbilities.GroundRangeBonus(sable, rules, a.SandScoopMaxFt));
-        Assert.Equal(0, FieldAbilities.GroundRangeBonus(sable, rules, a.SandScoopMaxFt + 0.01));
-        Assert.True(FieldAbilities.SureScoop(sable, rules, 0.4));
-        Assert.False(FieldAbilities.SureScoop(sable, rules, 1.4));
-        Assert.False(FieldAbilities.SureScoop(Game.Must("soot"), rules, 0.4));
-        Assert.Equal(0, FieldAbilities.CatchBonus(sable, rules));   // nothing in the air
-        Assert.Equal(0, FieldAbilities.FlyRangeBonus(sable, rules));
     }
 
     // ---------------------------------------------------------------------------------

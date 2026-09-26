@@ -18,9 +18,9 @@
   "bats": "L",
   "throws": "L",
   "repertoire": ["changeup", "curveball"],
-  // His own three (WD-15 A): Skipping Stone's two skips on the dirt, Lily Hop's hop over a glove, Lily Leap's high jump.
+  // His own three (WD-15 A): Skipping Stone's two skips on the dirt, Lily Hop's hop over a glove; Lick Catch from the shared field pool (AB-12).
   "starPitch": "leapfrog",
   "starSwing": "pond-skip",
-  "fieldAbility": "lily-leap",
+  "fieldAbility": "lick-catch",
   "bio": "A frog from the river delta. One leap covers half the outfield; the landing is optional."
 }

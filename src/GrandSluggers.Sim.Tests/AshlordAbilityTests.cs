@@ -195,7 +195,8 @@ public sealed class AshlordAbilityTests
         // A runner on first keeps the play open after the catch; the shortstop holds the molten liner and it drops.
         foreach (var human in new[] { false, true })
         {
-            var run = Run(95, 4, -20, "furnace", human, runnerOnFirst: true);
+            // 6°, not 4°: the shortstop's own ring takes the liner in the air (the pool's reach bonuses are gone, AB-12).
+            var run = Run(95, 6, -20, "furnace", human, runnerOnFirst: true);
             var drop = Assert.Single(run.Drops);
             Assert.True(drop.T > run.Take.T);
             Assert.Equal(PlayKind.FlyOut, run.Play!.Kind);

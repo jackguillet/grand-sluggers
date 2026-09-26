@@ -103,14 +103,14 @@ public sealed class ThrowCommandTests
     // ---------------------------------------------------------------------------------
 
     /// <summary>
-    /// hex (Laser) in centre, konga on third, a 245-ft fly. The boost rides only a throw home with the runner on
+    /// moss (Laser, from his species) in centre, konga on third, a 245-ft fly. The boost rides only a throw home with the runner on
     /// third: a throw home carries ×1.25, a cutoff feed carries none.
     /// </summary>
     [Fact]
     public void LaserRidesOnlyTheThrowHomeWithARunnerOnThird()
     {
         var content = Game;
-        var (match, bodies) = Defence(content, centre: "hex", second: "jester", shortstop: "marlow");
+        var (match, bodies) = Defence(content, centre: "moss", second: "jester", shortstop: "tumble");
         var konga = content.Must("konga");
         Assert.True(match.StationRunner(3, konga));
         Assert.True(match.SetOuts(1));
@@ -118,40 +118,40 @@ public sealed class ThrowCommandTests
         var preview = match.PreviewHit(hit);
         Assert.Equal("CF", preview.Position);
         var throws = RunCpu(match, hit, preview);
-        var hex = content.Must("hex");
+        var cf = content.Must("moss");
         var byCf = throws.Where(f => f.FromPos == "CF").ToList();
         Assert.NotEmpty(byCf);
         var a = match.Rules.Fielding.Abilities;
         foreach (var f in byCf)
         {
             var receiver = bodies[f.ReceiverPos];
-            var chem = Pair(content, hex, receiver, match.Rules);
+            var chem = Pair(content, cf, receiver, match.Rules);
             var laser = f.Bag == 4 ? a.LaserMul : 1.0;
-            Assert.Equal(InPlay.ArmMul(hex, match.Rules) * chem * laser, f.SpeedMul, 9);
+            Assert.Equal(InPlay.ArmMul(cf, match.Rules) * chem * laser, f.SpeedMul, 9);
         }
-        // The boosted direct throw is the faster leg, so hex throws home direct.
+        // The boosted direct throw is the faster leg, so moss throws home direct.
         Assert.Equal(4, byCf[0].Bag);
-        Assert.Equal(InPlay.ArmMul(hex, match.Rules) * Pair(content, hex, bodies["C"], match.Rules) * 1.25, byCf[0].SpeedMul, 9);
+        Assert.Equal(InPlay.ArmMul(cf, match.Rules) * Pair(content, cf, bodies["C"], match.Rules) * 1.25, byCf[0].SpeedMul, 9);
     }
 
-    /// <summary>With nobody on third there is no throw Laser is for: hex's throws carry no boost.</summary>
+    /// <summary>With nobody on third there is no throw Laser is for: moss's throws carry no boost.</summary>
     [Fact]
     public void LaserCarriesNothingWhenNobodyIsOnThird()
     {
         var content = Game;
-        var (match, bodies) = Defence(content, centre: "hex", second: "jester", shortstop: "marlow");
+        var (match, bodies) = Defence(content, centre: "moss", second: "jester", shortstop: "tumble");
         Assert.True(match.StationRunner(1, content.Must("dart")));
         var hit = FlightFixtures.Landing(match.Park, 230, 30, 0, rules: match.Rules);
         var preview = match.PreviewHit(hit);
         Assert.Equal("CF", preview.Position);
         var throws = RunCpu(match, hit, preview);
-        var hex = content.Must("hex");
+        var cf = content.Must("moss");
         var byCf = throws.Where(f => f.FromPos == "CF").ToList();
         Assert.NotEmpty(byCf);
         foreach (var f in byCf)
         {
-            var chem = Pair(content, hex, bodies[f.ReceiverPos], match.Rules);
-            Assert.Equal(InPlay.ArmMul(hex, match.Rules) * chem, f.SpeedMul, 9);
+            var chem = Pair(content, cf, bodies[f.ReceiverPos], match.Rules);
+            Assert.Equal(InPlay.ArmMul(cf, match.Rules) * chem, f.SpeedMul, 9);
         }
     }
 

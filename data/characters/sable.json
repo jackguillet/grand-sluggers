@@ -18,9 +18,9 @@
   "bats": "R",
   "throws": "R",
   "repertoire": ["sinker", "changeup"],
-  // His own three (WD-15 A): the Mirage Ball's twin, the Sidewinder's first-hop kick, the Sand Scoop's low reach.
+  // His own three (WD-15 A): the Mirage Ball's twin, the Sidewinder's first-hop kick; Snap Throw from the shared field pool (AB-12).
   "starPitch": "mirageball",
   "starSwing": "sidewinder",
-  "fieldAbility": "sand-scoop",
+  "fieldAbility": "snap-throw",
   "bio": "A coyote from the mesa rim. The sinker drops out of the heat haze; nobody reads where it went."
 }

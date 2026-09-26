@@ -40,6 +40,6 @@ public static class LandingMark
     /// <summary>The yellow ring is the stand-up catch (§8.3, #669), not a 16 ft floor.</summary>
     public static double RadiusFt(FieldingPreview pre) => pre.CatchRadius;
 
-    public static bool Hot(double hitT, double hangSec, RulesTable rules, Character? fielder = null, Park? park = null) =>
-        FlyCatch.JumpWindow(hitT, hangSec, rules, fielder, park);
+    public static bool Hot(double hitT, double hangSec, RulesTable rules) =>
+        FlyCatch.JumpWindow(hitT, hangSec, rules);
 }

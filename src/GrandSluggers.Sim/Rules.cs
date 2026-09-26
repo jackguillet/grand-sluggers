@@ -2017,7 +2017,6 @@ public sealed record CatchRules
     /// <see cref="BodyClassRow.GroundReachFt"/> / <see cref="BodyClassRow.FlyReachFt"/> instead (§8.1); the ability bonuses add to whichever applies.
     /// </summary>
     [Positive] public double StandUpReachFt { get; init; }
-    public double ClamberRadiusFt { get; init; }
     public double WindowPadFt { get; init; }
     public double DiveReachFt { get; init; }
     public double JumpReachFt { get; init; }
@@ -2025,8 +2024,6 @@ public sealed record CatchRules
     public double NeedsJumpReachFt { get; init; }
     /// <summary>Rob heights (§8.4): a leap at the wall takes a ball clearing the fence by at most this.</summary>
     public double JumpRobFt { get; init; }
-    public double SuperJumpRobFt { get; init; }
-    public double ClamberRobFt { get; init; }
     public double BuddyJumpRobFt { get; init; }
     public double TouchScoopY { get; init; }
     /// <summary>Highest ball center a planted glove can take; a live jump adds its actual root rise.</summary>
@@ -2047,9 +2044,6 @@ public sealed record CatchRules
     public double WindowBeforeSec { get; init; }
     public double WindowAfterSec { get; init; }
     public double WallSitSec { get; init; }
-    public double SuperJumpWindowSec { get; init; }
-    public double GrowWindowSec { get; init; }
-    public double ClamberWindowSec { get; init; }
     /// <summary>Each partner must be this close to both the wall plant and the live ball in XZ.</summary>
     public double BuddyPlantFt { get; init; }
     public double BuddyJumpHoldSec { get; init; }
@@ -2101,19 +2095,25 @@ public sealed record WallPlantRules
 
 public sealed record FieldAbilityRules
 {
-    public double BigCatchBonusFt { get; init; }
-    /// <summary>Lick Catch / Grow reach further on the tag too (§10.3): added to running.bags.tagReachFt.</summary>
-    public double TagReachBonusFt { get; init; }
-    public double SuperJumpCatchBonusFt { get; init; }
-    public double SuperJumpFlyRangeFt { get; init; }
-    public double DiveGroundRangeFt { get; init; }
-    /// <summary>Sand Scoop (§8.4): the extra ground reach, only for a ball at or below <see cref="SandScoopMaxFt"/>; a scoop that low never bobbles.</summary>
-    public double SandScoopFt { get; init; }
-    public double SandScoopMaxFt { get; init; }
-    /// <summary>Long Toss (§8.5): feet added to the holder's comfortable throwing range before the long-throw loss starts.</summary>
-    public double LongTossRangeFt { get; init; }
-    /// <summary>Lily Leap (§8.4): the holder's normal-jump peak rise, in place of <c>catch.jumpRiseFt</c>; same press, same airtime.</summary>
-    public double LilyLeapRiseFt { get; init; }
+    /// <summary>
+    /// Lick Catch (§8.4): the tongue bodies — the factions whose characters may carry it (Zig's, Reed's and their sidekicks). The
+    /// validator refuses the ability on a character of any other faction.
+    /// </summary>
+    public IReadOnlyList<string> LickCatchFactions { get; init; } = [];
+    /// <summary>Lick Catch: how far ahead of the body, along its facing, the pressed tongue takes a ball.</summary>
+    [Positive] public double LickReachFt { get; init; }
+    /// <summary>Lick Catch: how far either side of the tongue's line a ball may pass and still be taken.</summary>
+    [Positive] public double LickWidthFt { get; init; }
+    /// <summary>Lick Catch: how long the tongue is out after the press; a ball on it inside this is taken.</summary>
+    [Positive] public double LickSnapSec { get; init; }
+    /// <summary>Lick Catch: the recovery the press owes from the commitment, snap included: the body neither moves nor throws.</summary>
+    [Positive] public double LickRecoverySec { get; init; }
+    /// <summary>Relay Pivot (§8.5): the cutoff's release on the relay it caught clean, against the ordinary <c>throw.releaseSec</c>.</summary>
+    [Positive] public double RelayPivotReleaseSec { get; init; }
+    /// <summary>Wall Spring (§8.4): the feet a holder's leap reaches past the ordinary one at a wall.</summary>
+    [Positive] public double WallSpringReachFt { get; init; }
+    /// <summary>Wall Spring: a body this close to the outfield fence is at the wall and springs off it.</summary>
+    [Positive] public double WallSpringFromFt { get; init; }
     [Positive] public double LaserMul { get; init; }
     [Positive] public double SnapThrowMul { get; init; }
     /// <summary>
@@ -2121,13 +2121,6 @@ public sealed record FieldAbilityRules
     /// with the flight boost at 1.0. A pickup, a bobble, a sail or a hand-off clears the eligibility.
     /// </summary>
     [Positive] public double SnapReleaseSec { get; init; }
-    /// <summary>
-    /// Ball Dash's carry (F693-02-ball-dash-carrier, #718): a holder with the ball securely in the glove moves at this multiple
-    /// of its ordinary pursuit speed, automatically — no press, no timer, no cooldown — and the CPU's carry forecast reads the
-    /// same number. Only the cap moves: the response rates stay the body's own (F693-02-carry-movement-response). The role
-    /// players dart, pip and jester hold it.
-    /// </summary>
-    [Positive] public double BallDashMul { get; init; }
 }
 
 /// <summary>
@@ -2329,7 +2322,7 @@ public sealed record HazardRules
     /// <summary>Rooftop's star signs: a ball whose live path passes under the top inside the disc pays the batting team (F4-c).</summary>
     public HazardTypeRules Billboard { get; init; } = new();
 
-    /// <summary>Canopy's climbable wall: a Clamber fielder's reach and rob.</summary>
+    /// <summary>Canopy's climb wall (a park rule): any fielder at it climbs and robs up to <see cref="HazardTypeRules.RobFt"/> over.</summary>
     public HazardTypeRules ClimbWall { get; init; } = new();
 
     /// <summary>
@@ -2501,6 +2494,12 @@ public sealed record HazardRules
             if (row.TopFt is { } top && !topped)
                 errors.Add($"{source}: {key}.topFt is {top}, but only a {HazardPattern.RewardTarget} or a {HazardPattern.Drift} reads it; "
                            + "give the row that pattern or leave topFt out");
+            // The climb wall (§14): every wall trait says how high a climber robs, and nothing else may.
+            var climb = row.Pattern == HazardPattern.WallTrait;
+            if (climb && row.RobFt is null)
+                errors.Add($"{source}: {key} is a {HazardPattern.WallTrait} and must author robFt, how far over the fence a climber robs");
+            if (!climb && row.RobFt is { } rob)
+                errors.Add($"{source}: {key}.robFt is {rob}, but only a {HazardPattern.WallTrait} reads it; leave robFt out");
             if (drift && row.FloorFt is { } floor2 && row.TopFt is { } top2 && floor2 >= top2)
                 errors.Add($"{source}: {key}.floorFt is {floor2}, but it must stand below topFt {top2}");
         }
@@ -2582,6 +2581,12 @@ public sealed record HazardTypeRules
 
     /// <summary>A <c>drift</c>: the seconds the push is spread over, so the ball bends rather than jumps.</summary>
     [Optional, Positive] public double? PushSec { get; init; }
+
+    /// <summary>
+    /// A <c>wallTrait</c> (the climb wall, a park rule, §14): any fielder whose leap is at the wall inside the park's disc climbs
+    /// it and robs a ball clearing the fence by at most this, whatever ability they carry.
+    /// </summary>
+    [Optional, Positive] public double? RobFt { get; init; }
 }
 
 // ---------------------------------------------------------------------------------------
@@ -2644,7 +2649,7 @@ public sealed record BagSecRules
 public sealed record BagRules
 {
     [Positive] public double OccupyRadiusFt { get; init; }
-    /// <summary>A glove with the ball inside this of a runner's body is the tag (§10.3); Lick / Grow add fielding.abilities.tagReachBonusFt.</summary>
+    /// <summary>A glove with the ball inside this of a runner's body is the tag (§10.3); No field ability adds to it.</summary>
     [Positive] public double TagReachFt { get; init; }
     /// <summary>A runner inside this of a bag is touching it: safe from the tag. Inside the slid reach so a slide never closes the window.</summary>
     [Positive] public double TagSafeRadiusFt { get; init; }

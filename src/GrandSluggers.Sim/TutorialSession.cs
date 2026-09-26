@@ -168,7 +168,7 @@ public sealed partial class TutorialSession
         var hit = TutorialContact.Create(Match.Park, ball, Match.Rules);
         var preview = Match.PreviewHit(hit);
         if ((_setup.Policy == "grounder") != preview.Grounder || hit.Foul
-            || (hit.HomeRun && Lesson.Objective is not ("human-wall-rob" or "human-buddy-rob" or "human-super-rob")))
+            || (hit.HomeRun && Lesson.Objective is not ("human-wall-rob" or "human-buddy-rob" or "human-ability-reach")))
             throw new InvalidDataException("Tutorial setup no longer produces its intended ball class: " + Lesson.Id);
         LastHit = hit;
         Match.LivePlay.Recording = true;
@@ -330,7 +330,7 @@ public sealed partial class TutorialSession
         // The jump arc raises JumpTakeoff. A same-tick completed catch may reset both live flags, so use its typed feat.
         var acceptedJump = live.JumpT > 0 || live.Events.Contains(LiveEvent.JumpTakeoff)
             || result.CompletedPlay?.Fielder?.Id == who && result.CompletedPlay?.Outcome?.DefensiveFeat is
-                DefensiveFeat.Jump or DefensiveFeat.BuddyJump or DefensiveFeat.SuperJump or DefensiveFeat.Clamber;
+                DefensiveFeat.Jump or DefensiveFeat.BuddyJump or DefensiveFeat.Clamber;
         if (owned && pad.WestDown && acceptedJump)
             _humanJumpPresses.Add(who);
         var moved = Math.Abs(live.GloveX - x) + Math.Abs(live.GloveZ - z) > 1e-6;

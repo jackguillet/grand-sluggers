@@ -23,13 +23,9 @@ public sealed partial class TutorialSession
     double _bobbleLastBallZ;
     bool _bobbleHeldBefore;
     bool _fumbleScooped;
-    double _dashLastTime;
-    double _dashLastX;
-    double _dashLastZ;
-    string _dashLastHolder = "";
-    bool _dashLastHeld;
     bool _relayHumanFeed;
     bool _relayHumanOnward;
+    double _relayOnwardReleaseSec;
     bool _laserHumanThrow;
     bool _laserWasThrowing;
     bool _bufferQueued;
@@ -53,13 +49,9 @@ public sealed partial class TutorialSession
         _bobbleLastX = _bobbleLastZ = _bobbleLastBallX = _bobbleLastBallZ = 0;
         _bobbleHeldBefore = false;
         _fumbleScooped = false;
-        _dashLastTime = 0;
-        _dashLastX = 0;
-        _dashLastZ = 0;
-        _dashLastHolder = "";
-        _dashLastHeld = false;
         _relayHumanFeed = false;
         _relayHumanOnward = false;
+        _relayOnwardReleaseSec = 0;
         _laserHumanThrow = false;
         _laserWasThrowing = false;
         _bufferQueued = false;
@@ -253,7 +245,7 @@ public sealed partial class TutorialSession
                     : "Queue the onward throw while the feed flies; retarget or cancel as the lesson asks.");
             return;
         }
-        if (Lesson.Objective is "human-laser-home" or "human-long-toss")
+        if (Lesson.Objective is "human-laser-home")
         {
             var input = _inputs[^1];
             if (input.Source == LivePlayCommandSource.Human && !Demonstration
@@ -270,15 +262,6 @@ public sealed partial class TutorialSession
             var thrower = flight is null ? null : live.FielderAt(flight.FromPos);
             var receiver = flight is null ? null : live.FielderAt(flight.ReceiverPos);
             var eligibleBag = flight?.Bag == 4;
-            if (Lesson.Objective == "human-long-toss")
-            {
-                var tossed = _laserHumanThrow && flight is not null && thrower?.FieldAbility == FieldAbilityId.LongToss
-                    && receiver is not null && eligibleBag && LongTossCarried(flight, thrower!);
-                Finish(tossed, tossed ? "long-toss-home" : "long-toss-not-used",
-                    tossed ? "Your Long Toss reached home past an ordinary arm's range without losing pace."
-                        : "Catch the deep fly with the Long Toss glove, then command the throw home yourself.");
-                return;
-            }
             var success = _laserHumanThrow && flight is not null && thrower?.FieldAbility == FieldAbilityId.Laser
                 && receiver is not null && eligibleBag;
             if (success)
@@ -297,7 +280,7 @@ public sealed partial class TutorialSession
                     : "Catch with a Laser glove, then command a throw home while the runner is on third.");
             return;
         }
-        if (Lesson.Objective is "human-relay" or "human-snap-relay")
+        if (Lesson.Objective is "human-relay" or "human-snap-relay" or "human-relay-pivot")
         {
             var input = _inputs[^1];
             var owned = input.Source == LivePlayCommandSource.Human && !Demonstration;
@@ -305,6 +288,8 @@ public sealed partial class TutorialSession
             if (owned && pad?.Cutoff == true && live.Events.Contains(LiveEvent.ThrowCommitted) && live.ThrowBag == 0)
                 _relayHumanFeed = true;
             if (live.Events.Contains(LiveEvent.ThrowQueueCleared)) _relayHumanOnward = false;
+            // The onward leg's release as the throw commits (§8.5): Relay Pivot's, Snap Throw's or the ordinary one.
+            if (live.Events.Contains(LiveEvent.ThrowCommitted) && live.ThrowBag == 4) _relayOnwardReleaseSec = live.ThrowReleaseSec;
             if (owned && pad?.SouthDown == true &&
                 (live.Events.Contains(LiveEvent.ThrowQueued) && live.QueuedThrowBag == 4
                  || live.Events.Contains(LiveEvent.ThrowCommitted) && live.ThrowBag == 4))
@@ -347,7 +332,16 @@ public sealed partial class TutorialSession
                     success = Math.Abs(flight.DurationSec - (expected - abilities.SnapReleaseSec)) <= 1e-5;
                 }
             }
-            Finish(success, success ? Lesson.Objective == "human-snap-relay" ? "snap-relay" : "relay-handoff" : "relay-not-completed",
+            // Relay Pivot (§8.5): the cutoff carries it, and the onward throw committed on its release, not the ordinary one.
+            if (Lesson.Objective == "human-relay-pivot" && success)
+                success = live.FielderAt(onward!.Flight!.FromPos)?.FieldAbility == FieldAbilityId.RelayPivot
+                    && Math.Abs(_relayOnwardReleaseSec - Match.Rules.Fielding.Abilities.RelayPivotReleaseSec) <= 1e-9;
+            Finish(success, success ? Lesson.Objective switch
+                    {
+                        "human-snap-relay" => "snap-relay",
+                        "human-relay-pivot" => "pivot-relay",
+                        _ => "relay-handoff"
+                    } : "relay-not-completed",
                 success ? "Your cutoff feed was received and the ball went on toward home."
                     : "Catch the fly, send it through the cutoff, and complete the onward throw toward home.");
             return;
@@ -375,42 +369,9 @@ public sealed partial class TutorialSession
             return;
         }
 
-        if (Lesson.Objective == "human-ball-dash")
-        {
-            var previousTime = _dashLastTime;
-            var previousX = _dashLastX;
-            var previousZ = _dashLastZ;
-            var previousHolder = _dashLastHolder;
-            var previousHeld = _dashLastHeld;
-            _dashLastTime = Elapsed;
-            _dashLastX = live.GloveX;
-            _dashLastZ = live.GloveZ;
-            _dashLastHolder = live.GloveId;
-            _dashLastHeld = live.HoldsBall && !live.Throwing;
-            var input = _inputs[^1];
-            var pad = input.Field;
-            if (live.HoldsBall && !live.Throwing && input.Source == LivePlayCommandSource.Human && !Demonstration
-                && pad is { StickX: var sx, StickY: var sz } && sx * sx + sz * sz >= .95 * .95
-                && previousHeld && previousHolder == live.GloveId
-                && previousTime > 0 && Elapsed > previousTime)
-            {
-                var carrier = _content.Must(live.GloveId);
-                var ordinary = FieldingResolver.ChaseSpeedFt(carrier, live.GlovePos, live.Preview, Match.Rules);
-                var actual = Diamond.Dist(previousX, previousZ, live.GloveX, live.GloveZ) / (Elapsed - previousTime);
-                if (FieldAbilities.HasBallDash(carrier) && actual >= ordinary * 1.15)
-                {
-                    Finish(true, "ball-dash-carried", "You carried the live ball at Ball Dash speed.");
-                    return;
-                }
-            }
-            if (result.CompletedPlay is not null)
-                Finish(false, "ball-dash-not-carried", "Secure the ball with a Ball Dash holder, then steer that glove at full speed.");
+        if (Lesson.Objective != "human-buddy-rob" || result.CompletedPlay is not { } play)
             return;
-        }
-
-        if (Lesson.Objective is not ("human-buddy-rob" or "human-super-rob") || result.CompletedPlay is not { } play)
-            return;
-        var feat = Lesson.Objective == "human-buddy-rob" ? DefensiveFeat.BuddyJump : DefensiveFeat.SuperJump;
+        var feat = DefensiveFeat.BuddyJump;
         var succeeded = LastHit?.HomeRun == true
             && play.Outcome?.OutsMade.Any(o => o.Type == OutType.Catch) == true
             && play.Outcome.DefensiveFeat == feat
@@ -418,22 +379,5 @@ public sealed partial class TutorialSession
         Finish(succeeded, succeeded ? "wall-rob" : "wall-rob-missed",
             succeeded ? "Your jump took a ball that would have cleared the wall for an out."
                 : "Take the outfield glove and press West in the wall window. The ball must be caught for an out.");
-    }
-
-    /// <summary>
-    /// The Long Toss receipt (§8.5): the throw went further than the thrower's ordinary comfortable range, and it flew on the
-    /// one throw clock with Long Toss's range, so the loss an ordinary arm pays there was not paid.
-    /// </summary>
-    bool LongTossCarried(PlayTraceThrow flight, Character thrower)
-    {
-        var rules = Match.Rules;
-        var t = rules.Fielding.Throw;
-        var at = DiamondGeometry.Of(rules).Bag(flight.Bag);
-        var distance = Diamond.Dist(flight.FromX, flight.FromZ, at.X, at.Z);
-        var ordinaryRange = t.ComfortableRangeFt + t.RangePerArmFt * (thrower.Stats.Arm - InPlay.NeutralArm);
-        if (distance <= ordinaryRange) return false;
-        var expected = InPlay.ThrowSec(distance, new ThrowResult(Chemistry.Neutral, flight.SpeedMul, false, Arm: thrower.Stats.Arm,
-            RangeBonusFt: FieldAbilities.RangeBonusFt(thrower, rules)), rules);
-        return Math.Abs(flight.DurationSec - (expected - t.ReleaseSec)) <= 1e-5;
     }
 }

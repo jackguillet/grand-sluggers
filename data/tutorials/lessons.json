@@ -918,7 +918,7 @@
       "mechanics": [
         "fielding.12"
       ],
-      "title": "buddy jump/wall rob (ability dependent)",
+      "title": "buddy jump/wall rob",
       "category": "fielding",
       "status": "implemented",
       "issue": 797,
@@ -936,33 +936,6 @@
       "tests": [
         "TutorialAdvancedFieldTests",
         "BuddyJumpTests"
-      ]
-    },
-    {
-      "id": "T-F13",
-      "revision": 3,
-      "mechanics": [
-        "fielding.13"
-      ],
-      "title": "Ball Dash",
-      "category": "fielding",
-      "status": "implemented",
-      "issue": 797,
-      "reason": "Ball Dash carrier (dart, pip, jester); standalone learning gate pending",
-      "profiles": [
-        "shipped"
-      ],
-      "requires": [
-        "ball-dash"
-      ],
-      "prerequisites": [],
-      "setup": "T-F13",
-      "objective": "human-ball-dash",
-      "controls": [
-        "control:fielding/Take the glove"
-      ],
-      "tests": [
-        "TutorialAdvancedFieldTests"
       ]
     },
     {
@@ -995,7 +968,7 @@
     },
     {
       "id": "T-F15",
-      "revision": 3,
+      "revision": 4,
       "mechanics": [
         "fielding.15"
       ],
@@ -1018,34 +991,6 @@
       ],
       "tests": [
         "TutorialAdvancedFieldTests"
-      ]
-    },
-    {
-      "id": "T-F16",
-      "revision": 3,
-      "mechanics": [
-        "fielding.16"
-      ],
-      "title": "Ability reach: grow",
-      "category": "fielding",
-      "status": "implemented",
-      "issue": 799,
-      "reason": "Headless authored ability-reach exercise; standalone learning gate pending",
-      "profiles": [
-        "shipped"
-      ],
-      "requires": [
-        "grow"
-      ],
-      "prerequisites": [],
-      "setup": "T-F16",
-      "objective": "human-ability-reach",
-      "controls": [
-        "control:fielding/Take the glove",
-        "control:fielding/Catch"
-      ],
-      "tests": [
-        "TutorialAbilityTests"
       ]
     },
     {
@@ -1176,7 +1121,7 @@
     },
     {
       "id": "T-D06",
-      "revision": 5,
+      "revision": 6,
       "mechanics": [
         "outs.06"
       ],
@@ -1904,72 +1849,16 @@
       "tests": []
     },
     {
-      "id": "T-A-burrow",
-      "revision": 3,
-      "mechanics": [
-        "ability.burrow"
-      ],
-      "title": "Ability reach: burrow",
-      "category": "fielding",
-      "status": "implemented",
-      "issue": 799,
-      "reason": "Headless authored ability-reach exercise; standalone learning gate pending",
-      "profiles": [
-        "shipped"
-      ],
-      "requires": [
-        "burrow"
-      ],
-      "prerequisites": [],
-      "setup": "T-A-burrow",
-      "objective": "human-ability-reach",
-      "controls": [
-        "control:fielding/Take the glove",
-        "control:fielding/Dive"
-      ],
-      "tests": [
-        "TutorialAbilityTests"
-      ]
-    },
-    {
-      "id": "T-A-grow",
-      "revision": 3,
-      "mechanics": [
-        "ability.grow"
-      ],
-      "title": "Ability reach: grow",
-      "category": "fielding",
-      "status": "implemented",
-      "issue": 799,
-      "reason": "Headless authored ability-reach exercise; standalone learning gate pending",
-      "profiles": [
-        "shipped"
-      ],
-      "requires": [
-        "grow"
-      ],
-      "prerequisites": [],
-      "setup": "T-A-grow",
-      "objective": "human-ability-reach",
-      "controls": [
-        "control:fielding/Take the glove",
-        "control:fielding/Catch"
-      ],
-      "tests": [
-        "TutorialAbilityTests"
-      ]
-    },
-    {
       "id": "T-A-lick-catch",
-      "revision": 3,
+      "revision": 4,
       "mechanics": [
         "ability.lick-catch"
       ],
-      "title": "Ability reach: lick-catch",
+      "title": "Lick Catch",
       "category": "fielding",
       "status": "implemented",
-      "issue": 799,
-      "reason": "Headless authored ability-reach exercise; standalone learning gate pending",
+      "issue": 1231,
+      "reason": "Headless authored pressed-tongue exercise; standalone learning gate pending",
       "profiles": [
         "shipped"
       ],
@@ -1981,145 +1870,62 @@
       "objective": "human-ability-reach",
       "controls": [
         "control:fielding/Take the glove",
-        "control:fielding/Catch"
-      ],
-      "tests": [
-        "TutorialAbilityTests"
-      ]
-    },
-    {
-      "id": "T-A-spin-check",
-      "revision": 2,
-      "mechanics": [
-        "ability.spin-check"
-      ],
-      "title": "spin-check",
-      "category": "fielding",
-      "status": "planned",
-      "issue": 799,
-      "reason": "Spin Check extra-base result helper is not wired to live runner decisions; accepted commitment and geometry contract needs definition",
-      "profiles": [
-        "shipped"
-      ],
-      "requires": [
-        "spin-check"
-      ],
-      "prerequisites": [],
-      "setup": "",
-      "objective": "",
-      "controls": [],
-      "tests": []
-    },
-    {
-      "id": "T-A-sand-scoop",
-      "revision": 3,
-      "mechanics": [
-        "ability.sand-scoop"
-      ],
-      "title": "Ability reach: sand-scoop",
-      "category": "fielding",
-      "status": "implemented",
-      "issue": 1149,
-      "reason": "Headless authored ability-reach exercise; standalone learning gate pending",
-      "profiles": [
-        "shipped"
-      ],
-      "requires": [
-        "sand-scoop"
-      ],
-      "prerequisites": [],
-      "setup": "T-A-sand-scoop",
-      "objective": "human-ability-reach",
-      "controls": [
-        "control:fielding/Take the glove",
         "control:fielding/Dive"
       ],
       "tests": [
-        "TutorialAbilityTests"
+        "FieldPoolTests"
       ]
     },
     {
-      "id": "T-A-withdraw",
-      "revision": 3,
-      "mechanics": [
-        "ability.withdraw"
-      ],
-      "title": "Ability reach: withdraw",
-      "category": "fielding",
-      "status": "implemented",
-      "issue": 799,
-      "reason": "Headless authored ability-reach exercise; standalone learning gate pending",
-      "profiles": [
-        "shipped"
-      ],
-      "requires": [
-        "withdraw"
-      ],
-      "prerequisites": [],
-      "setup": "T-A-withdraw",
-      "objective": "human-ability-reach",
-      "controls": [
-        "control:fielding/Take the glove",
-        "control:fielding/Catch"
-      ],
-      "tests": [
-        "TutorialAbilityTests"
-      ]
-    },
-    {
-      "id": "T-A-long-toss",
+      "id": "T-A-wall-spring",
       "revision": 1,
       "mechanics": [
-        "ability.long-toss"
+        "ability.wall-spring"
       ],
-      "title": "Long Toss",
+      "title": "Wall Spring",
       "category": "fielding",
       "status": "implemented",
-      "issue": 1150,
-      "reason": "Headless Long Toss throw exercise; standalone learning gate pending",
+      "issue": 1231,
+      "reason": "Headless authored wall-rob exercise; standalone learning gate pending",
       "profiles": [
         "shipped"
       ],
       "requires": [
-        "long-toss"
+        "wall-spring"
       ],
       "prerequisites": [],
-      "setup": "T-A-long-toss",
-      "objective": "human-long-toss",
-      "controls": [
-        "control:fielding/Throw"
-      ],
-      "tests": [
-        "TutorialAdvancedFieldTests"
-      ]
-    },
-    {
-      "id": "T-A-lily-leap",
-      "revision": 1,
-      "mechanics": [
-        "ability.lily-leap"
-      ],
-      "title": "Ability reach: lily-leap",
-      "category": "fielding",
-      "status": "implemented",
-      "issue": 1151,
-      "reason": "Headless authored ability-reach exercise; standalone learning gate pending",
-      "profiles": [
-        "shipped"
-      ],
-      "requires": [
-        "lily-leap"
-      ],
-      "prerequisites": [],
-      "setup": "T-A-lily-leap",
+      "setup": "T-A-wall-spring",
       "objective": "human-ability-reach",
       "controls": [
         "control:fielding/Take the glove",
         "control:fielding/Jump"
       ],
       "tests": [
-        "TutorialAbilityTests"
+        "FieldPoolTests"
       ]
+    },
+    {
+      "id": "T-A-relay-pivot",
+      "revision": 1,
+      "mechanics": [
+        "ability.relay-pivot"
+      ],
+      "title": "Relay Pivot",
+      "category": "fielding",
+      "status": "planned",
+      "issue": 1011,
+      "reason": "No character carries Relay Pivot yet (every species and captain carries another pool ability), so no lesson roster can field the cutoff; the objective human-relay-pivot is built and waits for a carrier",
+      "profiles": [
+        "shipped"
+      ],
+      "requires": [
+        "relay-pivot"
+      ],
+      "prerequisites": [],
+      "setup": "",
+      "objective": "",
+      "controls": [],
+      "tests": []
     },
     {
       "id": "T-SP-heatball",
@@ -3068,7 +2874,7 @@
     },
     {
       "id": "T-F08-C",
-      "revision": 3,
+      "revision": 4,
       "mechanics": [
         "fielding.08"
       ],
@@ -4885,43 +4691,6 @@
       }
     },
     {
-      "id": "T-F13",
-      "policy": "grounder",
-      "seed": 1,
-      "timeoutSec": 30,
-      "home": [
-        "vale",
-        "pewter",
-        "lace",
-        "frost",
-        "basil",
-        "dart",
-        "vine",
-        "moss",
-        "hex"
-      ],
-      "away": [
-        "zig",
-        "cinder",
-        "nico",
-        "jester",
-        "grit",
-        "soot",
-        "boom",
-        "nugget",
-        "rio"
-      ],
-      "runners": [],
-      "balls": {
-        "shipped": {
-          "carryFt": 0,
-          "exitMph": 85,
-          "launchDeg": -12,
-          "sprayDeg": -18
-        }
-      }
-    },
-    {
       "id": "T-F07",
       "policy": "airborne",
       "seed": 1,
@@ -5012,7 +4781,7 @@
         "grit",
         "frost",
         "basil",
-        "hex",
+        "moss",
         "gull"
       ],
       "away": [
@@ -5234,7 +5003,7 @@
         "grit",
         "frost",
         "basil",
-        "moss",
+        "hex",
         "gull"
       ],
       "away": [
@@ -6964,82 +6733,6 @@
       "balls": {}
     },
     {
-      "id": "T-F16",
-      "policy": "airborne",
-      "seed": 1,
-      "timeoutSec": 30,
-      "home": [
-        "vale",
-        "pewter",
-        "lace",
-        "frost",
-        "basil",
-        "ashlord",
-        "vine",
-        "rio",
-        "hex"
-      ],
-      "away": [
-        "zig",
-        "cinder",
-        "dart",
-        "jester",
-        "grit",
-        "soot",
-        "boom",
-        "nugget",
-        "rio"
-      ],
-      "runners": [],
-      "balls": {
-        "shipped": {
-          "carryFt": 0,
-          "exitMph": 88,
-          "launchDeg": 32,
-          "sprayDeg": 0
-        }
-      },
-      "skill": "grow"
-    },
-    {
-      "id": "T-A-grow",
-      "policy": "airborne",
-      "seed": 1,
-      "timeoutSec": 30,
-      "home": [
-        "vale",
-        "pewter",
-        "lace",
-        "frost",
-        "basil",
-        "ashlord",
-        "vine",
-        "rio",
-        "hex"
-      ],
-      "away": [
-        "zig",
-        "cinder",
-        "dart",
-        "jester",
-        "grit",
-        "soot",
-        "boom",
-        "nugget",
-        "rio"
-      ],
-      "runners": [],
-      "balls": {
-        "shipped": {
-          "carryFt": 0,
-          "exitMph": 88,
-          "launchDeg": 32,
-          "sprayDeg": 0
-        }
-      },
-      "skill": "grow"
-    },
-    {
       "id": "T-A-lick-catch",
       "policy": "airborne",
       "seed": 1,
@@ -7078,7 +6771,7 @@
       "skill": "lick-catch"
     },
     {
-      "id": "T-A-withdraw",
+      "id": "T-A-wall-spring",
       "policy": "airborne",
       "seed": 1,
       "timeoutSec": 30,
@@ -7090,160 +6783,7 @@
         "basil",
         "ashlord",
         "vine",
-        "fenn",
-        "hex"
-      ],
-      "away": [
-        "zig",
-        "cinder",
-        "dart",
-        "jester",
-        "grit",
-        "soot",
-        "boom",
-        "nugget",
-        "rio"
-      ],
-      "runners": [],
-      "balls": {
-        "shipped": {
-          "carryFt": 0,
-          "exitMph": 88,
-          "launchDeg": 32,
-          "sprayDeg": 0
-        }
-      },
-      "skill": "withdraw"
-    },
-    {
-      "id": "T-A-burrow",
-      "policy": "grounder",
-      "seed": 1,
-      "timeoutSec": 30,
-      "home": [
-        "vale",
-        "pewter",
-        "lace",
-        "frost",
-        "basil",
-        "soot",
-        "vine",
-        "moss",
-        "hex"
-      ],
-      "away": [
-        "zig",
-        "cinder",
-        "dart",
-        "jester",
-        "grit",
-        "soot",
-        "boom",
-        "nugget",
-        "rio"
-      ],
-      "runners": [],
-      "balls": {
-        "shipped": {
-          "carryFt": 0,
-          "exitMph": 85,
-          "launchDeg": -12,
-          "sprayDeg": -18
-        }
-      },
-      "skill": "burrow"
-    },
-    {
-      "id": "T-A-sand-scoop",
-      "policy": "grounder",
-      "seed": 1,
-      "timeoutSec": 30,
-      "home": [
-        "vale",
-        "pewter",
-        "lace",
-        "frost",
-        "basil",
-        "sable",
-        "vine",
-        "moss",
-        "hex"
-      ],
-      "away": [
-        "zig",
-        "cinder",
-        "dart",
-        "jester",
-        "grit",
-        "soot",
-        "boom",
-        "nugget",
-        "rio"
-      ],
-      "runners": [],
-      "balls": {
-        "shipped": {
-          "carryFt": 0,
-          "exitMph": 85,
-          "launchDeg": -12,
-          "sprayDeg": -18
-        }
-      },
-      "skill": "sand-scoop"
-    },
-    {
-      "id": "T-A-long-toss",
-      "policy": "airborne",
-      "seed": 1,
-      "timeoutSec": 30,
-      "home": [
-        "vale",
-        "pewter",
-        "lace",
-        "marlow",
-        "grit",
-        "frost",
-        "basil",
-        "hollis",
-        "gull"
-      ],
-      "away": [
-        "zig",
-        "boom",
-        "cinder",
-        "soot",
         "konga",
-        "ashlord",
-        "nugget",
-        "dart",
-        "rio"
-      ],
-      "runners": [
-        3
-      ],
-      "balls": {
-        "shipped": {
-          "carryFt": 245,
-          "exitMph": 0,
-          "launchDeg": 34,
-          "sprayDeg": 0
-        }
-      }
-    },
-    {
-      "id": "T-A-lily-leap",
-      "policy": "airborne",
-      "seed": 1,
-      "timeoutSec": 30,
-      "home": [
-        "vale",
-        "pewter",
-        "lace",
-        "frost",
-        "basil",
-        "reed",
-        "vine",
-        "moss",
         "hex"
       ],
       "away": [
@@ -7261,12 +6801,12 @@
       "balls": {
         "shipped": {
           "carryFt": 0,
-          "exitMph": 90,
-          "launchDeg": 12,
-          "sprayDeg": -20
+          "exitMph": 118.4,
+          "launchDeg": 30,
+          "sprayDeg": 0
         }
       },
-      "skill": "lily-leap"
+      "skill": "wall-spring"
     },
     {
       "id": "T-D06",
@@ -7306,9 +6846,9 @@
       "balls": {
         "shipped": {
           "carryFt": 0,
-          "exitMph": 100,
+          "exitMph": 105,
           "launchDeg": -6,
-          "sprayDeg": 26
+          "sprayDeg": 20
         }
       },
       "seat": "offense"

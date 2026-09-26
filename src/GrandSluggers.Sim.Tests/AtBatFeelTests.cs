@@ -416,7 +416,7 @@ public class AtBatFeelTests
         var dash = RunnerSystem.SpeedFtPerSec(dart, Rules.Default, 1);
         Assert.True(dash > still, $"dash {dash} vs {still}");
         Assert.True(dash < still * 1.3, "dash is not a teleport");
-        // The fielder's dash is no free chase multiplier (dash.chaseMul 1.0); the faster carry is the Ball Dash carrier's (#718).
+        // The fielder's dash is no free chase multiplier (dash.chaseMul 1.0); no field ability carries faster (AB-12).
         Assert.Equal(1.0, FieldDash.ChaseMul(rules: Rules.Default));
         var rio = _content.Must("rio");
         var nico = _content.Must("nico");

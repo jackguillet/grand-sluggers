@@ -35,7 +35,7 @@ public static class ChemBook
         new("pitches", "Pitches", "Star pitch on the mound owns the ball about two seconds."),
         new("swings", "Swings", "Star swing at the plate, then baseball."),
         new("running", "Running", "Close play: first button wins."),
-        new("fielding", "Fielding", "One field verb: Super Jump, Grow, Lick Catch add range."),
+        new("fielding", "Fielding", "One field verb: Wall Spring, Lick Catch reach further."),
     ];
 
     public static (float X, float Y, float W, float H) ChemCell(int index, float screenW, float screenH)

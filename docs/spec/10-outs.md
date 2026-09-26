@@ -19,7 +19,7 @@ a forced body short of the bag is out, a body on it beat the throw, an unforced 
 
 ## 10.3 Tag geometry
 
-- A tag is a glove with the ball inside **reach** of the runner: `TagReachFt` = 4 ft (+2 with Lick / Grow, `fielding.abilities.tagReachBonusFt`); the runner is not touching a bag (`TagSafeRadiusFt` **1.5**). Home plate is a bag for a runner coming home, **not** for the batter leaving the box. ✅ P5 (`InPlay.TagReachFt`, `InPlay.Touches(fielder:)`). The safe radius moved from the 3.5 of the first draft to 1.5:
+- A tag is a glove with the ball inside **reach** of the runner: `TagReachFt` = 4 ft (no field ability adds to it); the runner is not touching a bag (`TagSafeRadiusFt` **1.5**). Home plate is a bag for a runner coming home, **not** for the batter leaving the box. ✅ P5 (`InPlay.TagReachFt`, `InPlay.Touches(fielder:)`). The safe radius moved from the 3.5 of the first draft to 1.5:
   the slide takes 2 ft off the reach (§9.4), and a safe radius wider than the slid reach would make every slide untaggable; the table validates `tagSafeRadiusFt ≤ tagReachFt − slideReachCutFt`. The tag is judged **through the frame** (`InPlay.TagWithinFrame`): a body that crossed the reach on its way to the bag was tagged before it touched, however short the step, so a 60 Hz body cannot skip the four-foot window. A tag records the bag the glove stands on (or 0 in the field).
 - Human: have the ball, touch the runner (walk into them). South is not required. ✅
 - The runner on a bag is safe. A runner who overran second or third is off the bag and taggable. Overrun first is protected (§9.4). ✅ P5 (`Runner.OverrunProtected`; nobody overruns second or third — a body stops on the bag it is stopping at, and one that rounds is off it and live).

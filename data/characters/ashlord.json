@@ -20,6 +20,6 @@
   "repertoire": ["slider", "sinker"],
   "starPitch": "skullball",
   "starSwing": "furnace",
-  "fieldAbility": "spin-check",
+  "fieldAbility": "laser",
   "bio": "A basalt golem who forges bats in the crater. The bat is a 10; everything else is a warning."
 }

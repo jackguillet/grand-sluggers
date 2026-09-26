@@ -244,7 +244,7 @@ public static partial class HowToPlay
         new("tutorial-recovery", "Recovery and reach",
         [
             "Bobble: wait for the helper's error, then steer with the stick through the loose-ball scoop. Assistance cannot finish the pickup for you.",
-            "Ability reach: move to the landing ring's edge, catch automatically beyond ordinary reach. Burrow scoops at its reach edge.",
+            "Ability reach: Zig presses East to snap his tongue at a ball ahead; a Wall Spring leap reaches higher at the wall.",
         ]),
         new("tutorial-field-plays", "Fielding scenario lessons",
         [
@@ -375,7 +375,7 @@ public static partial class HowToPlay
         ]),
         new("abilities", "Who you are",
         [
-            "Each toy has one field verb. Super Jump / Grow / Lick Catch add range.",
+            "Each toy has one field verb: Snap Throw, Laser, Relay Pivot, Wall Spring or Lick Catch.",
             "The card shows P / B / F / R, the star pitch, the star swing, and the field verb.",
             "TIRED pitcher? Start → Arrange defense.",
         ]),

@@ -73,16 +73,6 @@ public class GameplayTests
     }
 
     [Fact]
-    public void SuperJumpHasAirRobRange()
-    {
-        var park = _content.Parks[ParkId.Harbor];
-        var nico = _content.Must("nico");
-        var hit = FlightFixtures.OverTheFence(park, 10, 0);
-        Assert.True(FieldAbilities.AirRob(park, nico, hit, rules: Rules.Default));
-        Assert.False(FieldAbilities.AirRob(park, _content.Must("rio"), hit, rules: Rules.Default));
-    }
-
-    [Fact]
     public void BananaIsAFieldEffectNotAKindConversion()
     {
         // §12: an item is a field effect with seconds; it never turns an out into a caption. The
@@ -506,15 +496,5 @@ public class GameplayTests
         while (match.Third is null && !match.Over)
             match.Play(wild, take);
         Assert.NotNull(match.Third);
-    }
-
-    [Fact]
-    public void LickCatchAddsCatchRadius()
-    {
-        Assert.Equal(6, FieldAbilities.CatchBonus(_content.Must("zig"), rules: Rules.Default));
-        Assert.Equal(6, FieldAbilities.CatchBonus(_content.Must("rio"), rules: Rules.Default));
-        Assert.Equal(6, FieldAbilities.CatchBonus(_content.Must("fenn"), rules: Rules.Default));
-        Assert.Equal(0, FieldAbilities.CatchBonus(_content.Must("ashlord"), rules: Rules.Default));
-        Assert.Equal(PlayKind.Single, FieldAbilities.SpinCheck(_content.Must("ashlord"), PlayKind.Double));
     }
 }

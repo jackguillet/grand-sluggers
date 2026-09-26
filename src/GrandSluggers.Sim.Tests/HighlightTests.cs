@@ -61,8 +61,6 @@ public class HighlightTests
     public void RobbedHomerBeatsHomeRun()
     {
         var hr = Ev(PlayKind.HomeRun, "goes deep.");
-        var jump = Ev(PlayKind.FlyOut, "Una atrapada imposible.", feat: DefensiveFeat.SuperJump);
-        Assert.Equal(HighlightBeat.RobbedHomer, Highlight.Pick([hr, jump])!.Beat);
         var climb = Ev(PlayKind.FlyOut, "Se queda con la pelota.", feat: DefensiveFeat.Clamber);
         Assert.Equal(HighlightBeat.RobbedHomer, Highlight.Pick([hr, climb])!.Beat);
     }
@@ -70,14 +68,13 @@ public class HighlightTests
     [Fact]
     public void BuddyJumpPreferredOverRobbedHomer()
     {
-        var rob = Ev(PlayKind.FlyOut, "defensive play", feat: DefensiveFeat.SuperJump);
+        var rob = Ev(PlayKind.FlyOut, "defensive play", feat: DefensiveFeat.Clamber);
         var buddy = Ev(PlayKind.FlyOut, "two gloves", feat: DefensiveFeat.BuddyJump);
         Assert.Equal(HighlightBeat.BuddyJump, Highlight.Pick([rob, buddy])!.Beat);
     }
 
     [Theory]
     [InlineData(DefensiveFeat.BuddyJump, HighlightBeat.BuddyJump)]
-    [InlineData(DefensiveFeat.SuperJump, HighlightBeat.RobbedHomer)]
     [InlineData(DefensiveFeat.Clamber, HighlightBeat.RobbedHomer)]
     public void ReplacingCaptionDoesNotChangeDefensiveHighlight(DefensiveFeat feat, HighlightBeat expected)
     {

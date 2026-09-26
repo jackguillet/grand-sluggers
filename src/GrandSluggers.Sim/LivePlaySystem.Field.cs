@@ -108,6 +108,8 @@ public enum LiveEvent
     ThrowQueueCleared,
     /// <summary>A dive was committed — East, or the CPU's deliberate choice — and its recovery is owed (#719).</summary>
     DiveCommit,
+    /// <summary>A tongue body pressed East (Lick Catch, §8.4): the tongue snapped out along its facing and its recovery is owed.</summary>
+    TongueSnap,
     /// <summary>The glove took off on a normal jump (#719): the airborne clock started this frame.</summary>
     JumpTakeoff,
     /// <summary>A hard ball's take cost the hands (#720): the ordinary impact recoil began this frame — the brace and the skid.</summary>
@@ -159,8 +161,6 @@ public sealed partial class LivePlaySystem
     int? _caromLock;
     readonly List<BallRedirected> _redirectsThisPlay = [];
     RewardHit? _reward;
-    /// <summary>The fielding positions whose body a volume never slows (Burrow), read with the touches each frame: their route goes straight (F4-g).</summary>
-    readonly HashSet<string> _routeImmune = new(StringComparer.OrdinalIgnoreCase);
     readonly List<BodySlowed> _slows = [];
     readonly List<BodySlowed> _slowsThisPlay = [];
     readonly List<LiveFact> _facts = [];
@@ -196,6 +196,8 @@ public sealed partial class LivePlaySystem
     (int Inning, bool Top)? _stickHalf;
     /// <summary>The glove holds a ball it received cleanly from a teammate's throw (#723): Snap Throw's eligibility. A pickup, a bobble, a sail or a hand-off clears it.</summary>
     bool _receivedClean;
+    /// <summary>The clean received throw is a relay the cutoff caught (§8.7): its onward leg is Relay Pivot's (§8.5).</summary>
+    bool _relayLeg;
     /// <summary>The human's remembered throw presses (#723): the approach, the relay and the recovery.</summary>
     readonly ThrowCommands _commands = new();
 
@@ -287,6 +289,16 @@ public sealed partial class LivePlaySystem
     public bool BuddyWindow { get; private set; }
     /// <summary>The dive's arm window left (<see cref="GloveDive.ArmT"/>).</summary>
     public double DiveT => _dive.ArmT;
+    /// <summary>Lick Catch's tongue out time left (<see cref="GloveTongue.SnapT"/>): a ball on it is taken.</summary>
+    public double TongueT => _tongue.SnapT;
+    /// <summary>The tongue's recovery still owed by <see cref="TonguePos"/> (<see cref="GloveTongue.RecoveryT"/>): no move, no throw until it is 0.</summary>
+    public double TongueRecoveryT => _tongue.RecoveryT;
+    /// <summary>The body that snapped the tongue (<see cref="GloveTongue.Pos"/>).</summary>
+    public string TonguePos => _tongue.Pos;
+    /// <summary>The tongue's line, fixed at the press: from the body, along its facing (<see cref="GloveTongue"/>).</summary>
+    public (double X, double Z) TongueFrom => _tongue.From;
+    public (double X, double Z) TongueFace => _tongue.Face;
+    readonly GloveTongue _tongue = new();
     public double JumpT { get; private set; }
     public double SwapLock { get; private set; }
     /// <summary>The glove's impact recovery left (<see cref="GloveRecoil.T"/>).</summary>
@@ -326,7 +338,7 @@ public sealed partial class LivePlaySystem
     public double JumpAirT => _jump.AirT;
     /// <summary>The body's root rise this frame (<see cref="NormalJump.HeightFt"/>).</summary>
     public double JumpHeightFt => _jump.HeightFt;
-    /// <summary>The current jump's peak rise (Lily Leap's, or <c>catch.jumpRiseFt</c>); 0 on the ground.</summary>
+    /// <summary>The current jump's peak rise (<c>catch.jumpRiseFt</c>, the same for every body); 0 on the ground.</summary>
     public double JumpRiseFt => _jump.RiseFt;
     /// <summary>A grounded West press waiting on its first eligible instant (<see cref="NormalJump.Pending"/>).</summary>
     public bool JumpPending => _jump.Pending;
@@ -463,7 +475,7 @@ public sealed partial class LivePlaySystem
     bool HumanGlove(string pos) => Seats.HumanFields && string.Equals(pos, GlovePos, StringComparison.OrdinalIgnoreCase);
     /// <summary>The body on the ball: the thrower while a throw is in the air (the YOU ring is already on the receiver), else the glove.</summary>
     string OnBallPos => Throwing && !string.IsNullOrEmpty(_throwerPos) ? _throwerPos : GlovePos;
-    bool CanMove(string pos) => ElapsedSeconds + 1e-9 >= ReadyAt(pos) && !_dive.Recovering(pos)
+    bool CanMove(string pos) => ElapsedSeconds + 1e-9 >= ReadyAt(pos) && !_dive.Recovering(pos) && !_tongue.Recovering(pos)
                                 && !(ImpactRecoil && RecoilT > 0 && pos == GlovePos) && !Stunned(pos);
     /// <summary>The fumbler inside the bobble's stun (#721): no steering, no jump, no dive, no take.</summary>
     bool Stunned(string pos) => StunT > 0 && pos == StunPos;
@@ -601,6 +613,7 @@ public sealed partial class LivePlaySystem
         BuddyWindow = false;
         JumpT = SwapLock = 0;
         _dive.Reset();
+        _tongue.Reset();
         _recoil.Reset();
         StunT = 0;
         StunPos = "";
@@ -623,7 +636,7 @@ public sealed partial class LivePlaySystem
         _firstGlove = null;
         _coast.Reset();
         _response.Reset();
-        _receivedClean = false;
+        _receivedClean = _relayLeg = false;
         _throwerPos = "";
         _support.Reset();
         _cpuClock.Restart();
@@ -707,6 +720,7 @@ public sealed partial class LivePlaySystem
         }
 
         _dive.Tick(dt);
+        _tongue.Tick(dt);
         if (JumpT > 0) JumpT -= dt;
         if (SwapLock > 0) SwapLock -= dt;
         _jump.Tick(dt, R.Fielding.Catch);
@@ -892,9 +906,11 @@ public sealed partial class LivePlaySystem
                 }
             }
         }
-        if (pad.EastDown && CanMove(GlovePos) && LungeToward(pre, plant))
+        // East: a tongue body snaps its tongue (Lick Catch, §8.4); every other body dives.
+        if (pad.EastDown && CanMove(GlovePos))
         {
-            CommitDive(GlovePos, catchRules.DiveArmSec);
+            if (who.FieldAbility == FieldAbilityId.LickCatch) SnapTongue(chasing);
+            else if (LungeToward(pre, plant)) CommitDive(GlovePos, catchRules.DiveArmSec);
         }
 
         var radius = CatchRadius(map);
@@ -918,13 +934,17 @@ public sealed partial class LivePlaySystem
                     CatchDive = true;
                     TakeBattedBall();
                 }
+                if (!HoldsBall && pickupInPlay && TongueOnBall())
+                    TakeOnTongue(who);
             }
             else
             {
-                var inWin = FlyCatch.JumpWindow(ElapsedSeconds, hang, R, who, Park);
+                var inWin = FlyCatch.JumpWindow(ElapsedSeconds, hang, R);
                 var linerInAir = !needsJump && ElapsedSeconds < hang;
+                // Wall Spring (§8.4): a leap at the wall reaches wallSpringReachFt higher for its holder.
+                var spring = Airborne ? FieldAbilities.WallSpringFt(who, Park, GloveX, GloveZ, R) : 0;
                 var underStand = FlyCatch.InPosition(pre, GloveX, GloveZ, BallX, BallZ, BallY, plant.X, plant.Z, standUp,
-                    ElapsedSeconds, hang, needsJump, R, JumpHeightFt);
+                    ElapsedSeconds, hang, needsJump, R, JumpHeightFt + spring);
                 var underDive = FlyCatch.InPosition(pre, GloveX, GloveZ, BallX, BallZ, BallY, plant.X, plant.Z, diveWin,
                     ElapsedSeconds, hang, needsJump, R, JumpHeightFt);
                 // The leap: the body actually in the air (#719).
@@ -932,16 +952,18 @@ public sealed partial class LivePlaySystem
                 var jumpTry = leaping && FlyCatch.HighEnough(BallY, needsJump || buddyOn, R);
                 var buddyRob = BuddyReady();
                 BuddyWindow = buddyRob;
-                var canRob = !needsJump || FlyCatch.CanRob(pre.Ball?.FenceClearFt ?? double.NaN, who, Park, R, buddyRob);
+                var clear = pre.Ball?.FenceClearFt ?? double.NaN;
+                var canRob = !needsJump || FlyCatch.CanRob(clear, who, Park, R, buddyRob, plant);
                 // Dead stick runs the glove and may take a standing catch, never a dive.
                 if (dead && FlyCatch.AutoCatch(underStand, inWin, needsJump, canRob: false, linerInAir: linerInAir))
                     TakeBattedBall();
                 if (FlyCatch.PlayerCaught(jumpTry, false, underStand, inWin, needsJump, canRob, linerInAir))
                 {
                     if (jumpTry) CatchJump = true;
-                    // A leap's catch over a height only its higher rise reaches (§8.4): the ordinary jump at the same instant would not.
-                    if (jumpTry && !needsJump && _jump.RiseFt > catchRules.JumpRiseFt
-                        && BallY > catchRules.StandingHeightFt + NormalJump.HeightAt(JumpAirT, catchRules.JumpAirSec, catchRules.JumpRiseFt))
+                    // Wall Spring's catch over a height only its spring reaches (§8.4): the ordinary leap at the same instant would not.
+                    if (jumpTry && (needsJump
+                            ? !FlyCatch.CanRob(clear, null, Park, R, buddyRob, plant)
+                            : spring > 0 && BallY > catchRules.StandingHeightFt + JumpHeightFt))
                         RecordFact(new ReachBonusTake(who.Id, who.FieldAbility));
                     if (buddyRob && jumpTry)
                     {
@@ -955,6 +977,9 @@ public sealed partial class LivePlaySystem
                     CatchDive = true;
                     TakeBattedBall();
                 }
+                // The tongue takes a ball in the air before it leaves the field (§8.4); it never robs one over the wall.
+                if (!HoldsBall && !needsJump && ElapsedSeconds < hang && TongueOnBall())
+                    TakeOnTongue(who);
             }
         }
 
@@ -1045,13 +1070,13 @@ public sealed partial class LivePlaySystem
                 var plant = FlyCatch.ChaseTarget(pre, R, Park);
                 var needsJump = FlyCatch.NeedsJump(pre);
                 var who = PlayFielder();
-                var inWin = FlyCatch.JumpWindow(ElapsedSeconds, hang, R, who, Park);
+                var inWin = FlyCatch.JumpWindow(ElapsedSeconds, hang, R);
                 var linerInAir = !needsJump && ElapsedSeconds < hang;
                 var underStand = FlyCatch.InPosition(pre, GloveX, GloveZ, BallX, BallZ, BallY, plant.X, plant.Z, cpuStandUp,
                     ElapsedSeconds, hang, needsJump, R, JumpHeightFt);
                 var buddyAt = BuddyReady();
                 BuddyWindow = buddyAt;
-                var canRob = needsJump && FlyCatch.CanRob(pre.Ball?.FenceClearFt ?? double.NaN, who, Park, R, buddyAt);
+                var canRob = needsJump && FlyCatch.CanRob(pre.Ball?.FenceClearFt ?? double.NaN, who, Park, R, buddyAt, plant);
                 var autoStand = FlyCatch.AutoCatch(underStand, inWin, needsJump, canRob, linerInAir: linerInAir);
                 if (autoStand)
                 {
@@ -1363,7 +1388,7 @@ public sealed partial class LivePlaySystem
         }
     }
 
-    /// <summary>Seconds for this glove to carry the ball to <paramref name="bag"/> at its carry speed (§8.1; Ball Dash's boost included, #718).</summary>
+    /// <summary>Seconds for this glove to carry the ball to <paramref name="bag"/> at its carry speed (§8.1).</summary>
     double CpuWalkSec(int bag)
     {
         var at = Geometry.Bag(bag);
@@ -1405,16 +1430,17 @@ public sealed partial class LivePlaySystem
         var cover = !string.IsNullOrEmpty(coverPos) && map.TryGetValue(coverPos, out var c) ? c : null;
         var dist = Diamond.Dist(fromX, fromZ, to.X, to.Z);
         var holding = throwerPos == GlovePos && _receivedClean;
-        var direct = InPlay.ThrowSec(dist, Forecast(thrower, cover, level.ReadsChemistry, bag, holding), R);
+        var holdingRelay = holding && _relayLeg;
+        var direct = InPlay.ThrowSec(dist, Forecast(thrower, cover, level.ReadsChemistry, bag, holding, holdingRelay), R);
         var forced = dist > R.Fielding.Throw.OnTheFlyFt;
         var cut = InPlay.CutoffFor(fromX, fromZ, to.X, to.Z, _fielders, throwerPos, coverPos, R);
         if (cut is null || !map.TryGetValue(cut.Value.Pos, out var cutter))
             return new ThrowPlan(direct, direct, null, forced, false);
         var (_, cx, cz) = cut.Value;
-        // The cutter will hold a received ball, so its leg gets Snap Throw's release if it carries the ability.
-        var relay = InPlay.ThrowSec(Diamond.Dist(fromX, fromZ, cx, cz), Forecast(thrower, cutter, level.ReadsChemistry, 0, holding), R)
+        // The cutter will hold a relay it caught, so its leg gets Relay Pivot's or Snap Throw's release if it carries one.
+        var relay = InPlay.ThrowSec(Diamond.Dist(fromX, fromZ, cx, cz), Forecast(thrower, cutter, level.ReadsChemistry, 0, holding, holdingRelay), R)
                     + InPlay.ThrowReactionSec(cutter, R)
-                    + InPlay.ThrowSec(Diamond.Dist(cx, cz, to.X, to.Z), Forecast(cutter, cover, level.ReadsChemistry, bag, true), R);
+                    + InPlay.ThrowSec(Diamond.Dist(cx, cz, to.X, to.Z), Forecast(cutter, cover, level.ReadsChemistry, bag, true, relayLeg: true), R);
         return new ThrowPlan(direct, relay, cut, forced, InPlay.RelayWins(direct, relay, forced, level.RelayBiasSec));
     }
 
@@ -1422,18 +1448,18 @@ public sealed partial class LivePlaySystem
     double CpuThrowArrivalSec(int bag) => PlanThrow(GloveX, GloveZ, GloveChar(), GlovePos, bag).Sec;
 
     /// <summary>The arm alone (no chemistry roll): the fielder's own estimate of a throw to <paramref name="bag"/> (0 for a cutoff feed), with the ability the command allows there and Snap Throw's release when the thrower holds a received ball (#723).</summary>
-    ThrowResult ArmOnly(Character who, int bag, bool receivedClean) =>
-        new(Chemistry.Neutral, InPlay.ArmMul(who, R) * AbilityMul(who, bag), false, Arm: who.Stats.Arm, ReleaseSec: SnapRelease(who, receivedClean),
-            RangeBonusFt: FieldAbilities.RangeBonusFt(who, R));
+    ThrowResult ArmOnly(Character who, int bag, bool receivedClean, bool relayLeg = false) =>
+        new(Chemistry.Neutral, InPlay.ArmMul(who, R) * AbilityMul(who, bag), false, Arm: who.Stats.Arm,
+            ReleaseSec: SnapRelease(who, receivedClean, relayLeg));
 
     /// <summary>
     /// The CPU's forecast of a throw from <paramref name="from"/> to <paramref name="to"/>: the arm and ability exactly, and
     /// the pair chemistry as far as the rung reads it (<c>cpu.*.readsChemistry</c>) — the deterministic pair factor, never a
     /// sampled roll (F693-03-good-chemistry). At 0 it is the arm alone, which is what the shipped CPU forecasts.
     /// </summary>
-    ThrowResult Forecast(Character from, Character? to, double chemistryRead, int bag, bool receivedClean)
+    ThrowResult Forecast(Character from, Character? to, double chemistryRead, int bag, bool receivedClean, bool relayLeg = false)
     {
-        var thr = ArmOnly(from, bag, receivedClean);
+        var thr = ArmOnly(from, bag, receivedClean, relayLeg);
         if (to is null || chemistryRead <= 0) return thr;
         var chem = R.Fielding.Chem;
         var pair = _match.Chemistry.Between(from, to) switch
@@ -1478,8 +1504,7 @@ public sealed partial class LivePlaySystem
         var pairPart = real.SpeedMul / armPart;
         var speed = (1 + level.RunnerReadsArm * (armPart - 1)) * pairPart;
         var arm = (int)Math.Round(InPlay.NeutralArm + level.RunnerReadsArm * (who.Stats.Arm - InPlay.NeutralArm));
-        return new ThrowResult(Chemistry.Neutral, speed, false, Arm: arm,
-            RangeBonusFt: level.RunnerReadsArm * FieldAbilities.RangeBonusFt(who, R));
+        return new ThrowResult(Chemistry.Neutral, speed, false, Arm: arm);
     }
 
     /// <summary>The runner's clock (§9.9): <see cref="RunnerThrowSec"/> with the body at <paramref name="pos"/> as the thrower — whoever holds the ball next.</summary>
@@ -1642,12 +1667,12 @@ public sealed partial class LivePlaySystem
     void HandGloveTo(string pos, bool coast = true)
     {
         if (pos == GlovePos) return;
-        _receivedClean = false;
+        _receivedClean = _relayLeg = false;
         _fielders[GlovePos] = (GloveX, GloveZ);
         // A body in its dive is on the ground: it does not coast. Its last frame can be the lunge — a displacement, not a
         // run — and read as a velocity it slid the diver a hundred feet. The dive's arm window on every table, and the
         // recovery the diver still owes after it (#719).
-        var down = _dive.Down(GlovePos);
+        var down = _dive.Down(GlovePos) || _tongue.Recovering(GlovePos);
         if (coast && !down) _coast.Leave(GlovePos, R.Fielding.Chase.HandoffCoastSec);
         GlovePos = pos;
         if (_fielders.TryGetValue(GlovePos, out var at))
@@ -1814,8 +1839,7 @@ public sealed partial class LivePlaySystem
 
     /// <summary>
     /// The rated speed the response rates are measured against: the body's own pursuit top speed (§8.1), never the speed it
-    /// happens to be asked for this frame — a Ball Dash carry raises the cap and not the rates (F693-02-carry-movement-response,
-    /// #718), so the boosted body takes 0.24 s to its 1.20 V and not 0.20. The asked speed stands in only for a body the
+    /// happens to be asked for this frame (F693-02-carry-movement-response, #718). The asked speed stands in only for a body the
     /// formation does not name.
     /// </summary>
     double RatedSpeed(string pos, double asked)
@@ -1825,12 +1849,14 @@ public sealed partial class LivePlaySystem
     }
 
     /// <summary>
-    /// The glove's speed with the ball in its hand (F693-02-ordinary-carry-speed, -ball-dash-carrier, #718): the pursuit speed it
-    /// was asked for, × <c>abilities.ballDashMul</c> for a Ball Dash holder in secure possession — the ball caught or handed,
-    /// not in flight. Without the ball, or for any other body, it is the asked speed itself.
+    /// The glove's speed with the ball in its hand (F693-02-ordinary-carry-speed, #718): the pursuit speed it was asked for. No
+    /// field ability carries faster (AB-12).
     /// </summary>
-    double CarrySpeed(Character who, double asked) =>
-        HoldsBall && !Throwing ? FieldingResolver.CarrySpeedFt(who, asked, R) : asked;
+    static double CarrySpeed(Character who, double asked)
+    {
+        _ = who;
+        return asked;
+    }
 
     // ---------------------------------------------------------------------------------
     // The status volume, live (F4-b, #896; FR-07, FD-08-R1, FD-08-R2)
@@ -1840,7 +1866,7 @@ public sealed partial class LivePlaySystem
     /// Once a frame, before anybody moves (FR-07): every fielder and every live runner, where the last frame left them, against
     /// the park's status volumes (<see cref="BodySlows"/>). A body that entered one runs slowed from this frame: a
     /// <see cref="LiveEvent.BodySlowed"/> cue, one <see cref="BodySlowed"/> on <see cref="Slows"/> and <see cref="SlowsThisPlay"/>
-    /// per volume entered, and a <see cref="PlayTraceMarkKind.BodySlowed"/> mark in the trace. A Burrow body touches nothing.
+    /// per volume entered, and a <see cref="PlayTraceMarkKind.BodySlowed"/> mark in the trace.
     /// No draw, and nothing read from where the ball lands.
     /// </summary>
     void ReadStatusVolumes()
@@ -1848,20 +1874,18 @@ public sealed partial class LivePlaySystem
         if (_bodySlows.Volumes.Count == 0) return;
         var t = ElapsedSeconds;
         var map = Assigned();
-        _routeImmune.Clear();
         foreach (var pos in Diamond.Order)
         {
             if (!map.TryGetValue(pos, out var who)) continue;
-            if (FieldAbilities.IgnoresParkSlow(who)) _routeImmune.Add(pos);
             var at = pos == GlovePos ? (GloveX, GloveZ) : _fielders.TryGetValue(pos, out var feet) ? feet : Starts[pos];
-            foreach (var (v, until) in _bodySlows.Read(pos, at.Item1, at.Item2, t, FieldAbilities.IgnoresParkSlow(who)))
+            foreach (var (v, until) in _bodySlows.Read(pos, at.Item1, at.Item2, t, immune: false))
                 Slowed(new BodySlowed(pos, who, v.Hazard, v.Type, t, until), v, null);
         }
         foreach (var r in Runners)
         {
             if (!r.Live) continue;
             var (x, z) = r.Position;
-            foreach (var (v, until) in _bodySlows.Read(r, x, z, t, FieldAbilities.IgnoresParkSlow(r.Who)))
+            foreach (var (v, until) in _bodySlows.Read(r, x, z, t, immune: false))
                 Slowed(new BodySlowed(FieldBody.Runner, r.Who, v.Hazard, v.Type, t, until), v, r);
         }
     }
@@ -1896,7 +1920,7 @@ public sealed partial class LivePlaySystem
     /// <summary>
     /// The route cost of a status volume (FD-14, SF-26; F4-g): every step to a goal — the CPU's chase, cover, cutoff and backup
     /// walk and the assistance's — heads around a volume in the way when that costs less time than its slow
-    /// (<see cref="VolumeRoute"/>), at the body's own asked speed. A park with no volume, a Burrow body and a straight line
+    /// (<see cref="VolumeRoute"/>), at the body's own asked speed. A park with no volume and a straight line
     /// that meets no volume leave the goal exactly as it was. The stick is never steered.
     /// </summary>
     (double X, double Z) RouteAround(string pos, (double X, double Z) at, (double X, double Z) goal, double speed)
@@ -1906,7 +1930,7 @@ public sealed partial class LivePlaySystem
             goal = VolumeRoute.Waypoint(at, goal, _solids.Select(b => b.AsVolume(ElapsedSeconds)).ToList(), speed, 1e-6,
                 R.Fielding.Chase.VolumeClearFt);
         // The park's discs only: a star's disc (the Undertow's ring, a Dust Bowl; §13) is not routed around — going round it is the player's verb.
-        return _bodySlows.ParkVolumes.Count == 0 || _routeImmune.Contains(pos)
+        return _bodySlows.ParkVolumes.Count == 0
             ? goal
             : VolumeRoute.Waypoint(at, goal, _bodySlows.ParkVolumes, speed, R.Fielding.Chase.FrozenMul, R.Fielding.Chase.VolumeClearFt);
     }
@@ -2168,9 +2192,12 @@ public sealed partial class LivePlaySystem
 
     static bool HasAbility(Character who, string id) => who.FieldAbility == id;
 
-    /// <summary>Snap Throw's release for <paramref name="who"/> when they hold a clean received throw (F693-03-snap-throw); null is the ordinary release.</summary>
-    double? SnapRelease(Character who, bool receivedClean) =>
-        receivedClean && HasAbility(who, FieldAbilityId.SnapThrow) ? R.Fielding.Abilities.SnapReleaseSec : null;
+    /// <summary>
+    /// The ability's release for <paramref name="who"/> holding a clean received throw (<see cref="FieldAbilities.ReleaseSec"/>):
+    /// Relay Pivot's on the relay the cutoff caught (<paramref name="relayLeg"/>), Snap Throw's on any; null is the ordinary release.
+    /// </summary>
+    double? SnapRelease(Character who, bool receivedClean, bool relayLeg) =>
+        FieldAbilities.ReleaseSec(who, receivedClean, relayLeg, R);
 
     /// <summary>A built throw with the command's rules on it (#723): the Laser boost confined, the Snap release when it applies.</summary>
     ThrowResult WithCommand(ThrowResult thr, Character from, int bag)
@@ -2178,7 +2205,7 @@ public sealed partial class LivePlaySystem
         var a = R.Fielding.Abilities;
         if (HasAbility(from, FieldAbilityId.Laser) && !LaserEligible(bag))
             thr = thr with { SpeedMul = thr.SpeedMul / a.LaserMul };
-        var release = SnapRelease(from, _receivedClean);
+        var release = SnapRelease(from, _receivedClean, _relayLeg);
         if (release is { } sec) thr = thr with { ReleaseSec = sec };
         return thr;
     }
@@ -2275,13 +2302,7 @@ public sealed partial class LivePlaySystem
     double CatchRadiusOf(Character who)
     {
         // The body class's reach for this ball (§8.1): the ground reach on a ball hit on the ground, the fly reach on one hit in the air.
-        var radius = FieldingResolver.CatchRadiusFt(who, Preview is not null ? Park : null, R, air: Preview is not { Grounder: true });
-        // Abilities widen the reach for their ball (§8.4): Super Jump on a fly, Dive / Burrow on the dirt, Sand Scoop on a low one.
-        if (Preview is not null && FlyCatch.IsFly(Preview))
-            radius += FieldAbilities.FlyRangeBonus(who, R);
-        if (Preview is { Grounder: true })
-            radius += FieldAbilities.GroundRangeBonus(who, R, BallY);
-        return radius;
+        return FieldingResolver.CatchRadiusFt(who, Preview is not null ? Park : null, R, air: Preview is not { Grounder: true });
     }
 
     double CatchWindow(Dictionary<string, Character> map) =>
@@ -2321,6 +2342,39 @@ public sealed partial class LivePlaySystem
         _events.Add(LiveEvent.DiveCommit);
     }
 
+    // ---------------------------------------------------------------------------------
+    // Lick Catch: the pressed tongue (§8.4, AB-12)
+    // ---------------------------------------------------------------------------------
+
+    /// <summary>
+    /// East on a tongue body (Lick Catch): the tongue snaps out along the body's facing (<see cref="FieldAbilities.Facing"/>)
+    /// for <c>lickSnapSec</c>, from where the body stands, and the recovery is owed from the press whether the ball comes or
+    /// not. Nothing happens with the ball already in the glove.
+    /// </summary>
+    void SnapTongue(bool chasing)
+    {
+        if (!chasing || _tongue.Out(GlovePos)) return;
+        var v = _response.TryVelocity(GlovePos, out var vel) ? vel : (X: 0.0, Z: 0.0);
+        var face = FieldAbilities.Facing(v.X, v.Z, GloveX, GloveZ, BallX, BallZ);
+        var a = R.Fielding.Abilities;
+        _tongue.Commit(GlovePos, (GloveX, GloveZ), face, a.LickSnapSec, a.LickRecoverySec);
+        _commands.DropRecovery();
+        _events.Add(LiveEvent.TongueSnap);
+    }
+
+    /// <summary>The live ball is on the play glove's tongue this frame (<see cref="FieldAbilities.TongueReaches"/>).</summary>
+    bool TongueOnBall() =>
+        _tongue.Out(GlovePos)
+        && FieldAbilities.TongueReaches(_tongue.From.X, _tongue.From.Z, _tongue.Face.X, _tongue.Face.Z, BallX, BallY, BallZ, R);
+
+    /// <summary>The tongue takes the ball (§8.4): a catch in the air, a pickup on the ground; the take is the ability's fact.</summary>
+    void TakeOnTongue(Character who)
+    {
+        _tongue.Retract();
+        RecordFact(new ReachBonusTake(who.Id, FieldAbilityId.LickCatch));
+        TakeBattedBall();
+    }
+
     /// <summary>
     /// The human's throw press through the dive's recovery (F693-02-ordinary-recoil-actions): nothing releases while the body
     /// recovers; a South / cutoff press inside the last <c>throw.relayBufferSec</c> of it is remembered and fires at readiness;
@@ -2342,10 +2396,11 @@ public sealed partial class LivePlaySystem
         // Nothing releases while the body recovers from a dive, or while it is still in the air after a jumping catch
         // (F693-02-jump-catch-throw-readiness): the landing comes first, and a press inside the buffer waits for it.
         var recovering = _dive.Recovering(GlovePos);
+        var licking = _tongue.Recovering(GlovePos);   // Lick Catch's recovery (§8.4) is the same wait
         var bracing = ImpactRecoil && RecoilT > 0;   // the ordinary impact recoil (#720) is the same wait
-        if (recovering || bracing || Airborne)
+        if (recovering || licking || bracing || Airborne)
         {
-            var remaining = Math.Max(Math.Max(recovering ? DiveRecoveryT : 0, bracing ? RecoilT : 0),
+            var remaining = Math.Max(Math.Max(Math.Max(recovering ? DiveRecoveryT : 0, licking ? TongueRecoveryT : 0), bracing ? RecoilT : 0),
                 Airborne ? R.Fielding.Catch.JumpAirSec - JumpAirT : 0);
             if (pressed && R.Fielding.Throw.RelayBufferSec > 0 && remaining <= R.Fielding.Throw.RelayBufferSec + 1e-9)
             {
@@ -2364,13 +2419,13 @@ public sealed partial class LivePlaySystem
     // ---------------------------------------------------------------------------------
 
     /// <summary>A takeoff is eligible when the body may move, holds nothing, throws nothing and is not committed to a dive.</summary>
-    bool JumpEligible() => !Airborne && !HoldsBall && !Throwing && DiveT <= 0 && RecoilT <= 0 && CanMove(GlovePos);
+    bool JumpEligible() => !Airborne && !HoldsBall && !Throwing && DiveT <= 0 && !_tongue.Out(GlovePos) && RecoilT <= 0 && CanMove(GlovePos);
 
     /// <summary>West this frame (<see cref="NormalJump.Press"/>): a takeoff starts the arm window for the client's pose and the buddy leap.</summary>
     void TickJumpPress(LivePadInput pad, double dt)
     {
         if (!_jump.Press(pad.WestDown, GlovePos, HoldsBall || Throwing || DiveT > 0, JumpEligible, dt, R.Fielding.Catch,
-                FieldAbilities.JumpRiseFt(GloveChar(), R))) return;
+                R.Fielding.Catch.JumpRiseFt)) return;
         JumpT = R.Fielding.Catch.JumpAirSec;
         _events.Add(LiveEvent.JumpTakeoff);
     }
@@ -2645,7 +2700,7 @@ public sealed partial class LivePlaySystem
         _flight.EndLob();
         _support.ClearCutoff();
         CatchGlove();
-        _receivedClean = true;
+        _receivedClean = _relayLeg = true;
         if (PlayerFielding || Seats.HumanOwnsThrow)
         {
             // The relay is player-owned (F693-03-relay-ownership, #723): the cutoff holds until commanded. A press remembered
@@ -2670,7 +2725,7 @@ public sealed partial class LivePlaySystem
     void SailThrow(string receiverPos)
     {
         _sailed = true;
-        _receivedClean = false;
+        _receivedClean = _relayLeg = false;
         Throwing = false;
         Caught = false;
         Buddy = false;
@@ -2726,7 +2781,7 @@ public sealed partial class LivePlaySystem
     {
         var h = R.Fielding.Handling;
         var quality = FieldingResolver.HandlingQuality(who, R, _match.DefenseGlove);
-        HandlingChance = FieldAbilities.SureScoop(who, R, BallY) ? 0 : FieldingResolver.HandlingErrorChance(HopDifficulty, quality, R);
+        HandlingChance = FieldingResolver.HandlingErrorChance(HopDifficulty, quality, R);
         if (!_match.RollHandling(HandlingChance)) return false;
         // The outcome is the contact's, never a second roll (F693-02-error-outcome-selection): how squarely the ring met the ball and how
         // much speed the ball keeps. A glancing touch on a ball with pace gets past; anything else drops at the feet.
@@ -2752,7 +2807,7 @@ public sealed partial class LivePlaySystem
     void ContinuingDeflection(Character who, HandlingRules h, double retention, double vx, double vy, double vz)
     {
         _bobbled = true;
-        _receivedClean = false;
+        _receivedClean = _relayLeg = false;
         Caught = false;
         PlayerBobble = true;
         Deflected = true;
@@ -2783,7 +2838,7 @@ public sealed partial class LivePlaySystem
     void LocalBobble(Character who, HandlingRules h)
     {
         _bobbled = true;
-        _receivedClean = false;
+        _receivedClean = _relayLeg = false;
         Caught = false;
         PlayerBobble = true;
         StunT = h.StunSec;
@@ -2830,6 +2885,7 @@ public sealed partial class LivePlaySystem
         _support.ClearCutoff();
         CatchGlove();
         _receivedClean = true;
+        _relayLeg = false;
 
         InPlay.GroundThrowStep? step = null;
         if (bag is >= 1 and <= 4)
@@ -3008,7 +3064,7 @@ public sealed partial class LivePlaySystem
     /// <summary>A glove takes a thrown or loose ball: no fair / foul call, no bobble roll.</summary>
     void TakeBall()
     {
-        _receivedClean = false;
+        _receivedClean = _relayLeg = false;
         CatchGlove();
         _cpuClock.Restart();
     }
@@ -3021,27 +3077,9 @@ public sealed partial class LivePlaySystem
     /// </summary>
     void TakeBattedBall()
     {
-        _receivedClean = false;
+        _receivedClean = _relayLeg = false;
         var first = !Caught;
         var wasLoose = LooseBall;
-        if (first && !wasLoose && Preview is { } preview)
-        {
-            var who = GloveChar();
-            var bonus = FieldAbilities.CatchBonus(who, R)
-                + (preview.Grounder ? FieldAbilities.GroundRangeBonus(who, R, BallY) : 0);
-            if (bonus > 0)
-            {
-                var ordinary = CatchRadius(Assigned()) - bonus;
-                var d = Diamond.Dist(GloveX, GloveZ, BallX, BallZ);
-                var ordinaryCouldTake = preview.Grounder
-                    ? d < FieldingResolver.CatchWindowFt(ordinary, CatchDive, CatchJump, R)
-                    : FlyCatch.InPosition(preview, GloveX, GloveZ, BallX, BallZ, BallY,
-                        FlyCatch.ChaseTarget(preview, R, Park).X, FlyCatch.ChaseTarget(preview, R, Park).Z,
-                        CatchDive ? FieldingResolver.DiveCatchFt(ordinary, R) : ordinary,
-                        ElapsedSeconds, Hang, FlyCatch.NeedsJump(preview), R);
-                if (!ordinaryCouldTake) RecordFact(new ReachBonusTake(who.Id, who.FieldAbility));
-            }
-        }
         // The ball's speed the frame before the take (F693-02-ground-pickup-recoil-basis): the one input the recoil reads,
         // sampled on both tables before possession attaches the ball to the glove.
         if (first) _recoil.SampleIncoming(_ballVel);

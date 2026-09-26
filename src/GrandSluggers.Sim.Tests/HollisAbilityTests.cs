@@ -5,7 +5,8 @@ using Xunit;
 namespace GrandSluggers.Sim.Tests;
 
 /// <summary>
-/// Hollis's three (spec §13, §8.5): Cable Car's stop, Summit Gust's apex carry and Long Toss's range. The pitch keeps its path,
+/// Hollis's three (spec §13, §8.5): Cable Car's stop and Summit Gust's apex carry; his field ability is the pool's Wall Spring
+/// (AB-12). The pitch keeps its path,
 /// its crossing and its arrival instant, so the timing window is the ordinary one; the gust stretches the fly's fall along its
 /// own line in any park and any wind, and every reader of the ball reads the same carried path. Nothing is rolled.
 /// </summary>
@@ -19,9 +20,9 @@ public sealed class HollisAbilityTests
         var hollis = Game.Must("hollis");
         Assert.Equal("rockfall", hollis.StarPitch);
         Assert.Equal("updraft", hollis.StarSwing);
-        Assert.Equal(FieldAbilityId.LongToss, hollis.FieldAbility);
+        Assert.Equal(FieldAbilityId.WallSpring, hollis.FieldAbility);   // the shared field pool (AB-12)
         Assert.DoesNotContain(Game.Characters.Values, c => c.Id != "hollis"
-            && (c.StarPitch == "rockfall" || c.StarSwing == "updraft" || c.FieldAbility == FieldAbilityId.LongToss));
+            && (c.StarPitch == "rockfall" || c.StarSwing == "updraft"));
         var pitch = Game.StarSkills.Pitch("rockfall")!;
         var swing = Game.StarSkills.Swing("updraft")!;
         Assert.Equal("Cable Car", pitch.Name);
@@ -226,33 +227,6 @@ public sealed class HollisAbilityTests
             .FirstOrDefault(e => !BattedBall.Of(e, 34, 0, false, park, Game.Rules).HomeRun
                 && BattedBall.Of(e, 34, 0, false, park, Game.Rules, 1.15).HomeRun);
         Assert.True(cleared > 0, "a fly short of the fence plain clears it with the gust");
-    }
-
-    // ---------------------------------------------------------------------------------
-    // Long Toss
-    // ---------------------------------------------------------------------------------
-
-    [Fact]
-    public void LongTossKeepsALongThrowAtPaceAndLeavesTheShortOneAlone()
-    {
-        var rules = Game.Rules;
-        var t = rules.Fielding.Throw;
-        var hollis = Game.Must("hollis");
-        var bonus = FieldAbilities.RangeBonusFt(hollis, rules);
-        Assert.Equal(80, bonus);
-        Assert.Equal(0, FieldAbilities.RangeBonusFt(Game.Must("brondo"), rules));
-        var arm = hollis.Stats.Arm;
-        var range = t.ComfortableRangeFt + t.RangePerArmFt * (arm - InPlay.NeutralArm);
-        var tossed = FieldAbilities.ApplyThrow(hollis, new ThrowResult(Chemistry.Neutral, 1, false), rules);
-        var ordinary = tossed with { RangeBonusFt = 0 };
-        Assert.Equal(bonus, tossed.RangeBonusFt);
-        // Inside the ordinary range nothing moves; past it the ordinary arm pays the loss and Long Toss does not until its own range.
-        Assert.Equal(InPlay.ThrowSec(range - 10, ordinary, rules), InPlay.ThrowSec(range - 10, tossed, rules));
-        Assert.True(InPlay.ThrowSec(range + 60, tossed, rules) < InPlay.ThrowSec(range + 60, ordinary, rules));
-        var flat = InPlay.ThrowSec(range + bonus, tossed, rules) - InPlay.ThrowSec(range, tossed, rules);
-        Assert.Equal(bonus / (t.BaseFtPerSec * tossed.SpeedMul), flat, 9);
-        Assert.True(InPlay.ThrowSec(range + bonus + 40, tossed, rules) - InPlay.ThrowSec(range + bonus, tossed, rules)
-            > 40 / (t.BaseFtPerSec * tossed.SpeedMul), "past its own range the loss comes back");
     }
 
     // ---------------------------------------------------------------------------------

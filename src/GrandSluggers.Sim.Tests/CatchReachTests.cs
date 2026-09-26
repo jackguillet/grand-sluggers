@@ -56,8 +56,7 @@ public sealed class CatchReachTests
         var hit = FlightFixtures.Landing(match.Park, 245, 34, 0, rules: match.Rules);
         var preview = match.PreviewHit(hit);
         Assert.Equal("CF", preview.Position);
-        Assert.Equal(BodyClasses.ReachFt(preview.Fielder, air: true, match.Rules) + FieldAbilities.CatchBonus(preview.Fielder, match.Rules),
-            preview.CatchRadius, 9);
+        Assert.Equal(BodyClasses.ReachFt(preview.Fielder, air: true, match.Rules), preview.CatchRadius, 9);
         Assert.Equal(preview.CatchRadius, LandingMark.RadiusFt(preview), 9);
     }
 

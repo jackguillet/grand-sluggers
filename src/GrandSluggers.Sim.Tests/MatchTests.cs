@@ -573,8 +573,7 @@ public class MatchTests
         barrels.Begin(park, false, _content.Rules);
         Assert.NotNull(barrels.Entered(22, 0, 58));
         Assert.Equal("barrel cannon", PlayNarrator.RedirectName(HazardType.Barrel));
-        Assert.True(ParkHazards.CanClamber(park, _content.Must("konga"), rules: Rules.Default));
-        Assert.False(ParkHazards.CanClamber(park, _content.Must("rio"), rules: Rules.Default));
+        Assert.True(ParkHazards.ClimbsAt(park, (0, park.CenterFenceFt - 8), rules: Rules.Default));
     }
 
     [Fact]
@@ -596,13 +595,15 @@ public class MatchTests
     }
 
     [Fact]
-    public void ClamberRobsAJustOverFenceHomer()
+    public void AnyFielderClimbsCanopysWallToRobAJustOverFenceHomer()
     {
         var park = _content.Parks[ParkId.Canopy];
-        var hit = FlightFixtures.OverTheFence(park, 12, 0);
-        Assert.True(ParkHazards.CanClamberRob(park, _content.Must("konga"), hit, rules: Rules.Default));
-        Assert.False(ParkHazards.CanClamberRob(park, _content.Must("ashlord"), hit, rules: Rules.Default));
-        Assert.False(ParkHazards.CanClamberRob(_content.Parks[ParkId.Harbor], _content.Must("konga"), hit, rules: Rules.Default));
+        var at = (0.0, park.CenterFenceFt - 8);
+        foreach (var id in new[] { "konga", "ashlord", "rio" })
+        {
+            Assert.True(FlyCatch.CanRob(12, _content.Must(id), park, Rules.Default, at: at));
+            Assert.False(FlyCatch.CanRob(12, _content.Must(id), _content.Parks[ParkId.Harbor], Rules.Default, at: at));
+        }
     }
 
     [Fact]

@@ -63,7 +63,7 @@ public static class PlayStamp
         if (feat == DefensiveFeat.BuddyJump && kind == PlayKind.FlyOut) return "BUDDY JUMP";
         if (bunt && kind is PlayKind.GroundOut or PlayKind.Single or PlayKind.FlyOut)
             return "BUNT";
-        if (feat is DefensiveFeat.Jump or DefensiveFeat.SuperJump or DefensiveFeat.Clamber && kind == PlayKind.FlyOut) return "JUMP";
+        if (feat is DefensiveFeat.Jump or DefensiveFeat.Clamber && kind == PlayKind.FlyOut) return "JUMP";
         if (feat == DefensiveFeat.Dive && kind is PlayKind.GroundOut or PlayKind.FlyOut) return "DIVE";
         return kind switch
         {
