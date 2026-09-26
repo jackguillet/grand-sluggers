@@ -2,6 +2,7 @@
   "id": "fenn",
   "name": "Elder Fenn",
   "faction": "fen",
+  "crews": ["splash-club", "brainiacs"],
   "captain": true,
   // The body class (data/rules/body-classes.json, spec §8.1): reach, contact width, ramp, knockback, motion style.
   "bodyClass": "turtle",
