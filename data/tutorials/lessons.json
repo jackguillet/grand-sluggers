@@ -2398,7 +2398,7 @@
     },
     {
       "id": "T-SP-rockfall",
-      "revision": 4,
+      "revision": 5,
       "mechanics": [
         "star-pitch.rockfall"
       ],
@@ -2723,7 +2723,7 @@
     },
     {
       "id": "T-SS-updraft",
-      "revision": 4,
+      "revision": 5,
       "mechanics": [
         "star-swing.updraft"
       ],

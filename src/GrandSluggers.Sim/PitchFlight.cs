@@ -85,9 +85,14 @@ public static class PitchFlight
     }
 
     /// <summary>The same delivered ball is used by rendering, contact and the umpire.</summary>
+    /// <remarks>
+    /// <paramref name="airSec"/> is this delivery's flight time (<see cref="AirSeconds"/>): a star shape timed in seconds, the
+    /// hitch's stop, takes its share of this flight from it. The crossing (u = 1) never reads it.
+    /// </remarks>
     public static (double X, double Y, double Z) Point(PitchCommand pitch, double u,
         RulesTable rules,
-        string? starPitchId = null, (double X, double Y, double Z)? from = null, StarSkillTable? skills = null)
+        string? starPitchId = null, (double X, double Y, double Z)? from = null, StarSkillTable? skills = null,
+        double airSec = 0)
     {
         var r = rules;
         u = Math.Clamp(u, 0, 1);
@@ -99,12 +104,11 @@ public static class PitchFlight
         if (row?.Leap is { } leap) u = leap.Progress(u);
         // The loop holds the ball at one point of its path while it loops, then runs the rest on the same clock.
         if (row?.Loop is { } loop) u = loop.Progress(u);
+        // The hitch stops the ball dead at its station for a fixed time, then runs it on down the line on the same clock.
+        if (row?.Hitch is { } hitch) u = hitch.Progress(u, airSec, r);
         var p = Point(pitch.Type, u, r, pitch.AimX, pitch.AimY, pitch.BreakX * pitch.BreakMul,
             pitch.RubberX, from, ChargeFeel.IsCharge(pitch.Charge01, r), pitch.Throws, zone);
         if (!pitch.Star) return p;
-        // A row's own path shape (§13): the float rises early and lands on the crossing the pitch was always going to make.
-        if (row?.Float is { } rise && rise.Lift(u) is var lift and not 0)
-            p = (p.X, p.Y + lift * zone.VerticalScale, p.Z);
         // A late rise (§13): the ball climbs over the last stretch to a crossing above the aimed one. This moves the crossing,
         // so the umpire, the bat and the CPU all judge the risen ball; in reference-zone feet, like every vertical star shape.
         if (row?.Rise is { } late && late.Lift(u) is var climb and not 0)

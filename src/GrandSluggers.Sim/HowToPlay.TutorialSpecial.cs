@@ -36,7 +36,7 @@ public static partial class HowToPlay
             "T-SP-changeup" => "Star Change",
             "T-SP-breaker" => "Star Breaker",
             "T-SP-mirageball" => "Mirage Ball",
-            "T-SP-rockfall" => "Rockfall",
+            "T-SP-rockfall" => "Cable Car",
             "T-SP-leapfrog" => "Leapfrog",
             "T-SS-heat-swing" => "Sparkler",
             "T-SS-heart-swing" => "Follow Spot",
@@ -46,7 +46,7 @@ public static partial class HowToPlay
             "T-SS-furnace" => "Hot Iron",
             "T-SS-staff-swing" => "Driftwood Reach",
             "T-SS-sidewinder" => "Sidewinder",
-            "T-SS-updraft" => "Updraft",
+            "T-SS-updraft" => "Summit Gust",
             "T-SS-pond-skip" => "Pond Skip",
             "T-SS-ground" => "Star Grounder",
             "T-SS-fly" => "Star Fly",
@@ -71,6 +71,8 @@ public static partial class HowToPlay
             "T-SS-cask-swing" => " The liner jags twice, then lands where a straight one would.",
             "T-SP-skullball" => " It flies fast, clangs late and drops up to a foot and a half, so aim it above where you want it.",
             "T-SS-furnace" => " The ball stays hot for two seconds: a glove that holds it drops it, so fielders must throw at once.",
+            "T-SP-rockfall" => " It stops dead mid-flight for a beat, then runs down its line to cross where you aimed, on time.",
+            "T-SS-updraft" => " At the top of its flight the fly catches a gust and carries farther along its line.",
             _ => ""
         };
         return pitch

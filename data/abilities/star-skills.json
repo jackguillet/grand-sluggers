@@ -73,11 +73,12 @@
     },
     "rockfall": {
       "id": "rockfall",
-      "name": "Rockfall",
-      "kind": "break",
-      "speedMul": 0.95,
+      "name": "Cable Car",
+      "kind": "pace",
+      "family": "speed-hitch",
+      "speedMul": 1.0,
       "staminaCost": 16,
-      "float": { "riseFt": 2.2, "dropFrom": 0.6 }
+      "hitch": { "at": 0.5, "holdSec": 0.15 }
     },
     "leapfrog": {
       "id": "leapfrog",
@@ -100,7 +101,7 @@
     "furnace": { "id": "furnace", "name": "Hot Iron", "kind": "hot", "family": "hot-ball", "exitVeloMul": 1.25, "hotBall": { "moltenSec": 2.0, "holdSec": 0.5 } },
     "staff-swing": { "id": "staff-swing", "name": "Driftwood Reach", "kind": "contact", "family": "tall-contact", "exitVeloMul": 1.08, "ovalHeightMul": 1.4 },
     "sidewinder": { "id": "sidewinder", "name": "Sidewinder", "kind": "bounce", "exitVeloMul": 1.12, "launchDeg": 4, "firstHopKickDeg": 20 },
-    "updraft": { "id": "updraft", "name": "Updraft", "kind": "wind", "exitVeloMul": 1.1, "launchDeg": 34, "windMul": 1.5 },
+    "updraft": { "id": "updraft", "name": "Summit Gust", "kind": "carry", "family": "apex-carry", "exitVeloMul": 1.1, "launchDeg": 34, "apexCarryMul": 1.15 },
     "pond-skip": { "id": "pond-skip", "name": "Pond Skip", "kind": "bounce", "exitVeloMul": 1.05, "launchDeg": 0, "firstHopBounceMul": 2.2 },
     "ground": { "id": "ground", "name": "Star Grounder", "kind": "generic", "launchDeg": 8, "exitVeloMul": 1.2 },
     "fly": { "id": "fly", "name": "Star Fly", "kind": "generic", "launchDeg": 38, "exitVeloMul": 1.2 },
