@@ -77,7 +77,8 @@ public class ChallengeTests
         Assert.Contains("marlow", run.Owned);
         Assert.Contains("gull", run.Owned);
         Assert.DoesNotContain("ashlord", run.Owned);
-        Assert.Equal("ashlord", run.NextOpponentId(_content));
+        // The first opponent is the last captain on the board with bad chemistry: Arroyo's Brainiacs rival Rio's Showboats.
+        Assert.Equal("sable", run.NextOpponentId(_content));
     }
 
     [Fact]
@@ -115,8 +116,8 @@ public class ChallengeTests
     {
         var run = Challenge.Start(_content, "rio");
         var match = run.MakeMatch(_content, seed: 1);
-        Assert.Equal("ashlord", match.Away.Captain.Id);
-        Assert.Equal(ParkId.Ember, match.Park.Id);
+        Assert.Equal("sable", match.Away.Captain.Id);
+        Assert.Equal(PresetTeams.HomeParkId(_content, "sable"), match.Park.Id);
     }
 
     [Fact]

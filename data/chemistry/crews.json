@@ -1,0 +1,15 @@
+// Crews (WD-28, docs/decisions/plan-world.md): shared traits across parks and builds. Two players who share a crew
+// have good chemistry whatever their team; a crew's rival crew is bad chemistry across factions. Each character names
+// up to two crews (`crews` in its row).
+{
+  "crews": [
+    {"id": "cool-kids", "name": "Cool Kids", "desc": "The hip ones: shades, skate decks, sneakers", "rival": "brainiacs"},
+    {"id": "garage-band", "name": "Garage Band", "desc": "They make noise", "rival": "night-crew"},
+    {"id": "night-crew", "name": "Night Crew", "desc": "Awake after dark", "rival": "early-birds"},
+    {"id": "early-birds", "name": "Early Birds", "desc": "Up at dawn", "rival": "night-crew"},
+    {"id": "splash-club", "name": "Splash Club", "desc": "Swimmers", "rival": null},
+    {"id": "snack-squad", "name": "Snack Squad", "desc": "Always eating", "rival": null},
+    {"id": "showboats", "name": "Showboats", "desc": "Play to the crowd", "rival": "brainiacs"},
+    {"id": "brainiacs", "name": "Brainiacs", "desc": "Know the count", "rival": "showboats"}
+  ]
+}
