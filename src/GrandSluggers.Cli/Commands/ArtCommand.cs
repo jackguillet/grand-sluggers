@@ -15,7 +15,10 @@ sealed class ArtCommand : Command
         Console.WriteLine($"CLIPS  {art.Clips.Count}  {string.Join(" ", art.Clips.Select(c => c.Id))}");
         Console.WriteLine($"STYLES {art.Styles.Count}  {string.Join(" ", art.Styles.Select(s => s.Id + "(" + s.Clips.Count + (s.OwnsEveryClip ? " all" : "") + ")"))}  styled: {string.Join(" ", art.StyledClips)}  receipt {art.Receipt.Count} takes");
         Console.WriteLine($"SKINS  {art.Skins.Count} captains authored, role players inherit body type");
-        Console.WriteLine($"VFX    {art.Vfx.Count} events");
+        var tells = art.Vfx.Where(v => v.Tell is not null).ToList();
+        var standIns = tells.Where(v => !art.VfxFilled(content, v)).Select(v => v.Id).ToList();
+        Console.WriteLine($"VFX    {art.Vfx.Count} events, {tells.Count} special tells ({tells.Count(v => v.Cue is not null)} with a cue); " +
+            $"procedural stand-in: {(standIns.Count == 0 ? "none" : string.Join(" ", standIns))}");
         Console.WriteLine($"AUDIO  {art.Audio.Count} events ({art.Audio.Count(e => e.Authored)} authored)");
         Console.WriteLine($"PARKS  {art.Parks.Count} kit slots ({art.Parks.Count(p => p.Placed)} placed)");
         foreach (var kit in art.Parks)

@@ -183,7 +183,11 @@ namespace GrandSluggers.UnityClient
             _puff.gameObject.SetActive(false);
         }
 
-        public void Place(Vector3 p, string starPitch, string pitchType, bool inPlayHeat, bool inFlight = false, bool inPlay = false)
+        /// <summary>
+        /// Place the ball (the sim's point) and give it its look: the pitch family's colour in flight, or a special's tell tint
+        /// (<see cref="Tint"/>). The ball keeps its own size and shape for every special: a tell rides on it, never replaces it.
+        /// </summary>
+        public void Place(Vector3 p, string pitchType, bool inFlight = false, bool inPlay = false)
         {
             _inFlight = inFlight;
             _inPlay = inPlay;
@@ -208,13 +212,26 @@ namespace GrandSluggers.UnityClient
 
             TickPuff();
 
-            var key = (starPitch ?? "") + "|" + pitchType + "|" + inPlayHeat + "|" + _inFlight + "|" + _inPlay;
-            if (key != _look || starPitch == "prismball")
+            var key = pitchType + "|" + _inFlight + "|" + _inPlay + "|" + _tint + "|" + _tintGlow;
+            if (key != _look)
             {
                 _look = key;
-                ApplyLook(starPitch, pitchType, inPlayHeat);
+                ApplyLook(pitchType);
             }
-            StampScale(starPitch, inPlayHeat);
+            StampScale();
+        }
+
+        Color? _tint;
+        float _tintGlow;
+
+        /// <summary>
+        /// A special's tell colours the ball (AB-C15): the anvil's glow and then its cold iron, the hot iron's glow as it cools.
+        /// Null gives the ball back its own look. The tell decides the colour from the sim's instants; the ball only wears it.
+        /// </summary>
+        public void Tint(Color? color, float glow = 0f)
+        {
+            _tint = color;
+            _tintGlow = glow;
         }
 
         public void Hold(Transform glove)
@@ -254,56 +271,20 @@ namespace GrandSluggers.UnityClient
             }
         }
 
-        void ApplyLook(string star, string type, bool heat)
+        void ApplyLook(string type)
         {
             Color col;
-            var glow = 0f;
-            var glowCol = Colors.EmberFire;
+            float glow;
+            Color glowCol;
             var matCol = new Color(0.96f, 0.93f, 0.86f);
             var smooth = 0.45f;
-
-            if (star == "heatball" || heat)
+            if (_tint is { } tint)
             {
-                matCol = Colors.EmberFire;
-                col = Colors.EmberFire;
-                glow = 3.6f;
+                matCol = tint;
+                col = tint;
+                glow = _tintGlow;
+                glowCol = tint;
                 smooth = 0.15f;
-            }
-            else if (star == "charmball")
-            {
-                matCol = new Color(1f, 0.42f, 0.68f);
-                col = matCol;
-                glow = 2.8f;
-                glowCol = matCol;
-                smooth = 0.35f;
-            }
-            else if (star == "prismball")
-            {
-                matCol = new Color(0.55f, 1f, 0.75f);
-                col = Color.HSVToRGB((Time.time * 0.4f) % 1f, 0.7f, 1f);
-                glow = 1.8f;
-                glowCol = col;
-            }
-            else if (star == "skullball")
-            {
-                matCol = new Color(0.12f, 0.08f, 0.14f);
-                col = new Color(0.7f, 0.2f, 0.85f);
-                glow = 2.4f;
-                glowCol = col;
-                smooth = 0.1f;
-            }
-            else if (star == "caskball")
-            {
-                matCol = new Color(0.42f, 0.24f, 0.1f);
-                col = matCol;
-                glow = 0.6f;
-                glowCol = matCol;
-                smooth = 0.08f;
-            }
-            else if (star == "phonyball")
-            {
-                matCol = new Color(0.96f, 0.93f, 0.86f);
-                col = Color.white;
             }
             else
             {
@@ -315,25 +296,15 @@ namespace GrandSluggers.UnityClient
 
             Look.Paint(_ball, Look.Lit(matCol, smooth: smooth));
             SetTrailColor(col);
-            _trail.time = star == "prismball" ? 0.7f : (float)SetTells.TrailSeconds;
+            _trail.time = (float)SetTells.TrailSeconds;
             _glow.color = glowCol;
-            _glow.intensity = _inFlight ? glow : 0f;
+            _glow.intensity = _inFlight || _tint.HasValue ? glow : 0f;
         }
 
-        void StampScale(string star, bool heat)
+        void StampScale()
         {
             if (_ball == null) return;
-            float scale;
-            if (star == "heatball" || heat)
-                scale = ToyMesh.BallViewScale(false, 0) * 1.15f;
-            else if (star == "caskball")
-                scale = ToyMesh.BallViewScale(false, 0) * 1.3f;
-            else if (star == "skullball")
-                scale = ToyMesh.BallViewScale(false, 0) * 1.22f;
-            else if (!_inFlight && star == "charmball")
-                scale = ToyMesh.BallViewScale(false, 0) * 1.08f;
-            else
-                scale = ToyMesh.BallViewScale(_inFlight, _root.position.z, _inPlay);
+            var scale = ToyMesh.BallViewScale(_inFlight, _root.position.z, _inPlay);
             _ball.transform.localScale = Vector3.one * scale;
             _ball.transform.localPosition = new Vector3(0f, Sit, 0f);
             if (_halo != null)

@@ -124,8 +124,11 @@ namespace GrandSluggers.UnityClient
             if (live.Field != null) _live.CpuField = live.Field;
             if (live.Preview != null) _play.Preview = live.Preview;
             if (live.Hit != null) _play.Pending = live.Hit;
-            if (live.Path != null && (_play.Path == null || _play.Path.Length != live.Path.Count))
+            // The sim rewrites its path whole (a first-hop stall, a hop over a glove laid on each frame): copy it whenever it is a
+            // new path, not only when its length changes, so the highlight replay draws the ball the play really had.
+            if (live.Path != null && (_play.Path == null || !ReferenceEquals(live.Path, _pathFrom) || _play.Path.Length != live.Path.Count))
             {
+                _pathFrom = live.Path;
                 _play.Path = new Sample[live.Path.Count];
                 for (var i = 0; i < _play.Path.Length; i++) _play.Path[i] = live.Path[i];
             }
@@ -142,6 +145,9 @@ namespace GrandSluggers.UnityClient
             if (!string.IsNullOrEmpty(live.Sub)) _host.Sub = live.Sub;
             ShowSlowRings(live);
         }
+
+        /// <summary>The live path <see cref="PlayState.Path"/> was last copied from.</summary>
+        IReadOnlyList<Sample> _pathFrom;
 
         readonly Dictionary<string, GameObject> _slowRings = new Dictionary<string, GameObject>();
 

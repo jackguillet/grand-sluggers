@@ -215,7 +215,7 @@ public sealed class LineupScreens
     public string ChemLine(Character who, bool home) =>
         CarnivalFront.LineupChemLine(_content, home ? HomeCaptain : AwayCaptain, who);
 
-    public CharacterCard? CardFor(Character? who) => who == null ? null : CharacterCard.Of(who, Chemistry.Neutral);
+    public CharacterCard? CardFor(Character? who) => who == null ? null : CharacterCard.Of(who, Chemistry.Neutral, _content.StarSkills);
 
     public bool ToggleArea(LineupSeat seat)
     {
@@ -288,7 +288,7 @@ public sealed class LineupScreens
         var vs = who.Id.Equals(cap.Id, StringComparison.OrdinalIgnoreCase)
             ? Chemistry.Good
             : _content.Chemistry.Between(cap, who);
-        return CharacterCard.Of(who, vs);
+        return CharacterCard.Of(who, vs, _content.StarSkills);
     }
 
     public bool SeatOwns(LineupSeat seat, LineupFocus focus)

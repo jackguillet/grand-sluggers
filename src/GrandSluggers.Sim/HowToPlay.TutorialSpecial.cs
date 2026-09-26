@@ -2,6 +2,18 @@ namespace GrandSluggers.Sim.Front;
 
 public static partial class HowToPlay
 {
+    /// <summary>
+    /// The star skill a special lesson teaches, by its id: a T-SP- / T-SS- lesson names it; the two first star lessons teach
+    /// the skills their setups hand the player (T-P09 Aurora Ribbon, T-B09 Spinning Top). Empty for any other lesson.
+    /// </summary>
+    public static string LessonSkill(string id) => id switch
+    {
+        "T-P09" => "charmball",
+        "T-B09" => "shell-swing",
+        _ when id.StartsWith("T-SP-", StringComparison.Ordinal) || id.StartsWith("T-SS-", StringComparison.Ordinal) => id[5..],
+        _ => ""
+    };
+
     static TutorialCopy? SpecialTutorial(string id)
     {
         if (id == "T-G03") return new("Earn and spend stars", "Earn stars with a strikeout, then spend them on a star pitch.",
@@ -21,49 +33,13 @@ public static partial class HowToPlay
                 "RT hits. D-pad left/right cycles items; left stick aims. North throws.");
         }
         var pitch = id == "T-P09" || id.StartsWith("T-SP-", StringComparison.Ordinal);
-        var skill = id switch
-        {
-            "T-P09" => "Heatball",
-            "T-B09" => "Heat Swing",
-            "T-SP-heatball" => "Skyrocket",
-            "T-SP-charmball" => "Aurora Ribbon",
-            "T-SP-prismball" => "Loop-the-Loop",
-            "T-SP-phonyball" => "Phonyball",
-            "T-SP-caskball" => "Vine Swing",
-            "T-SP-skullball" => "Anvil",
-            "T-SP-fogball" => "Undertow",
-            "T-SP-fastball" => "Star Fastball",
-            "T-SP-changeup" => "Star Change",
-            "T-SP-breaker" => "Star Breaker",
-            "T-SP-dot" => "Star Dot",
-            "T-SP-sinkball" => "Star Sinker",
-            "T-SP-lob" => "Star Lob",
-            "T-SP-sidearm" => "Star Sidearm",
-            "T-SP-mirageball" => "Mirage",
-            "T-SP-rockfall" => "Cable Car",
-            "T-SP-leapfrog" => "Skipping Stone",
-            "T-SS-heat-swing" => "Sparkler",
-            "T-SS-heart-swing" => "Follow Spot",
-            "T-SS-shell-swing" => "Spinning Top",
-            "T-SS-phony-swing" => "Double Deal",
-            "T-SS-cask-swing" => "Lightning Liner",
-            "T-SS-furnace" => "Hot Iron",
-            "T-SS-staff-swing" => "Driftwood Reach",
-            "T-SS-sidewinder" => "Dust Bowl",
-            "T-SS-updraft" => "Summit Gust",
-            "T-SS-pond-skip" => "Lily Hop",
-            "T-SS-ground" => "Star Grounder",
-            "T-SS-fly" => "Star Fly",
-            "T-SS-line" => "Star Line",
-            "T-SS-pull" => "Star Pull",
-            "T-SS-opposite" => "Star Opposite",
-            "T-SS-chopper" => "Star Chopper",
-            "T-SS-drag-bunt" => "Star Drag Bunt",
-            _ => ""
-        };
-        if (skill.Length == 0) return null;
+        var skillId = LessonSkill(id);
+        if (skillId.Length == 0) return null;
+        // The name is the row's (§13): the one the card, the book and the tell name, never typed again here.
+        var skill = pitch ? StarSkills.PitchName(skillId) : StarSkills.SwingName(skillId);
         // What the special does, where it is its own (§13): the lesson names the bend it teaches.
-        var effect = id switch
+        var lesson = (pitch ? "T-SP-" : "T-SS-") + skillId;
+        var effect = lesson switch
         {
             "T-SP-heatball" => " It flies fast, then rises up to a foot over the last third, so aim it low.",
             "T-SS-heat-swing" => " Its Perfect ring is half again as wide, but the bat must still meet the ball.",

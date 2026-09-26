@@ -824,6 +824,17 @@ public static class StarSkills
     public static double SwingExitMul(string? starSwing, StarSkillTable? table = null) =>
         StarSkillTable.Or(table).Swing(starSwing)?.ExitVeloMul ?? 1.0;
 
+    /// <summary>
+    /// The name a player reads for a star pitch (§13): its row's <c>name</c>, the one copy. An id with no row reads as the id
+    /// itself, so a missing row shows up on screen instead of hiding behind a made-up name.
+    /// </summary>
+    public static string PitchName(string? id, StarSkillTable? table = null) =>
+        string.IsNullOrEmpty(id) ? "" : StarSkillTable.Or(table).Pitch(id)?.Name is { Length: > 0 } name ? name : id;
+
+    /// <summary>The name a player reads for a star swing: its row's <c>name</c>, else the id (<see cref="PitchName"/>).</summary>
+    public static string SwingName(string? id, StarSkillTable? table = null) =>
+        string.IsNullOrEmpty(id) ? "" : StarSkillTable.Or(table).Swing(id)?.Name is { Length: > 0 } name ? name : id;
+
     /// <summary>The kind a sidekick's special names: the generic pool (§13). A captain's specials name any other kind.</summary>
     public const string GenericKind = "generic";
 

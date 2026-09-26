@@ -44,9 +44,16 @@ public class ThrowTrailTests
     [Fact]
     public void SpecialFxNeverBuildsBallToFielderOrDestinationLines()
     {
-        var src = File.ReadAllText(Path.Combine(_repo, "unity/Assets/Scripts/Runtime/SpecialFx.cs"));
-        Assert.DoesNotContain("LineRenderer", src, StringComparison.Ordinal);
+        var path = Path.Combine(_repo, "unity/Assets/Scripts/Runtime/SpecialFx.cs");
+        var src = File.ReadAllText(path);
         Assert.DoesNotContain("TrailRenderer", src, StringComparison.Ordinal);
+        // A tell may draw its own line (a ribbon, a vine, a cable, a bolt, a ring: AB-C15), built in one place, keyed by the
+        // tell. No line point is ever a glove or a throw's end: the special never draws a beam to a fielder or a destination.
+        Assert.Equal(1, CountOf(src, "AddComponent<LineRenderer>"));
+        var lines = File.ReadAllLines(path);
+        foreach (var line in lines.Where(l => l.Contains("SetPosition(", StringComparison.Ordinal)))
+            foreach (var banned in new[] { "Glove", "Throw", "Cover", "Bag" })
+                Assert.DoesNotContain(banned, line, StringComparison.Ordinal);
         // Catalog throw slots remain metadata, never loaded as connector prefabs.
         foreach (var slot in ThrowTrail.Slots(_content.Art))
             Assert.DoesNotContain("\"" + slot.Id + "\"", src, StringComparison.Ordinal);
@@ -61,5 +68,12 @@ public class ThrowTrailTests
         Assert.True(place >= 0, "live ball still Places");
         Assert.True(tint >= 0, "throw chemistry still tints the sphere trail");
         Assert.True(tint > place, "Place's pitch color must not overwrite the throw trail");
+    }
+
+    static int CountOf(string text, string needle)
+    {
+        var n = 0;
+        for (var i = text.IndexOf(needle, StringComparison.Ordinal); i >= 0; i = text.IndexOf(needle, i + needle.Length, StringComparison.Ordinal)) n++;
+        return n;
     }
 }

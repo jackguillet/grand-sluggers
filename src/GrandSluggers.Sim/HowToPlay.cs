@@ -356,6 +356,23 @@ public static partial class HowToPlay
             "A special breaks a baseball rule for about two seconds, then baseball resumes.",
             "Not a free home run. The ball or the field changes.",
         ]),
+        // Each special's tell (AB-C15): the name is its row's (§13), the picture is the tell its VFX slot draws.
+        new("star-tells", "Star tells",
+        [
+            "Skyrocket: gold sparks, a rising whistle. Sparkler: a spark ring on your oval.",
+            "Aurora Ribbon: a ribbon traces the sway. Follow Spot: a light cone on one fielder.",
+            "Loop-the-Loop: a coaster track, a clack. Spinning Top: the ball spins and whistles.",
+            "Phonyball: a card flips at the switch. Double Deal: the card-back ball is the decoy.",
+            "Vine Swing: a vine from pivot to ball. Lightning Liner: a bolt trail, then thunder.",
+        ]),
+        new("star-tells-2", "More star tells",
+        [
+            "Anvil: a clang, and the glow turns to iron. Hot Iron: the ball glows and hisses.",
+            "Undertow: a wave ring washes out from home. Driftwood Reach: a taller oval.",
+            "Mirage: a shimmer; the shadow stays. Dust Bowl: dust swirls where it lands.",
+            "Cable Car: a cable line, a bell at the stop. Summit Gust: snow bursts at the top.",
+            "Skipping Stone: a splash ring at each skip. Lily Hop: a lily pad and a croak.",
+        ]),
         new("abilities", "Who you are",
         [
             "Each toy has one field verb: Snap Throw, Laser, Relay Pivot, Wall Spring or Lick Catch.",
