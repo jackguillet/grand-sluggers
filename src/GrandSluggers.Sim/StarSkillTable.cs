@@ -10,8 +10,6 @@ public sealed record StarPitchSkill(
     bool LateBreak,
     bool Decoy,
     string? OnCatch,
-    /// <summary>A pace that hangs the ball over one stretch of its path and leaps it to the plate on time, or null (§13).</summary>
-    PitchLeap? Leap = null,
     /// <summary>A late rise that lifts the ball over the last stretch of its flight to a crossing above the aimed one, or null (§13).</summary>
     PitchRise? Rise = null,
     /// <summary>A ring on home plate, from contact, that slows the batter-runner inside it, or null (§13).</summary>
@@ -27,7 +25,49 @@ public sealed record StarPitchSkill(
     /// <summary>A full stop at one point of the path for a fixed time, then a run on down the line to arrive on time, or null (§13).</summary>
     PitchHitch? Hitch = null,
     /// <summary>A stretch of the flight in which the ball is hidden and only its shadow shows, or null (§13).</summary>
-    PitchVanish? Vanish = null);
+    PitchVanish? Vanish = null,
+    /// <summary>A path that skips twice on the dirt in front of the plate and pops up onto the unchanged crossing, or null (§13).</summary>
+    PitchSkips? Skips = null);
+
+/// <summary>
+/// A star pitch's skips (spec §13): the ball comes down onto the dirt at <see cref="FirstAt"/> of the flight, skips up
+/// <see cref="HopFt"/> and back down onto the dirt at <see cref="SecondAt"/>, then pops up off the second skip onto the aimed
+/// crossing, highest at the plate. Only the height changes: every point of the flight is over the ordinary ball's ground point
+/// at the ordinary instant, and at the plate the ball is on the ordinary crossing, so the umpire, the bat, the timing window
+/// and the CPU read the ordinary pitch. The dirt touches are part of the pitch's path, not a bounce the umpire calls: a
+/// Skipping Stone is a strike or a ball by its crossing alone. Nothing is rolled: the skips are a fixed curve.
+/// </summary>
+public sealed record PitchSkips(double FirstAt, double SecondAt, double HopFt)
+{
+    /// <summary>The highest skip a row may name, in reference-zone feet: a skip along the dirt, not a hop over the batter.</summary>
+    public const double MaxHopFt = 2;
+
+    /// <summary>
+    /// The ball's height at <paramref name="u"/> of the flight, from the ordinary ball's height <paramref name="ordinaryY"/> at
+    /// the same instant and its crossing height <paramref name="crossingY"/>: down onto the dirt by <see cref="FirstAt"/> (the
+    /// ordinary height × (1 − (u / firstAt)²)), one skip of <see cref="HopFt"/> × <paramref name="scale"/> to
+    /// <see cref="SecondAt"/>, then up onto the crossing along (1 − (1 − s)²), s the share of the last stretch, so the ball
+    /// climbs the whole way into the zone and is exactly the ordinary ball at the plate.
+    /// </summary>
+    public double Height(double u, double ordinaryY, double crossingY, double scale)
+    {
+        u = Math.Clamp(u, 0, 1);
+        if (u >= 1) return ordinaryY;
+        if (u <= FirstAt)
+        {
+            var a = u / FirstAt;
+            return ordinaryY * (1 - a * a);
+        }
+        if (u <= SecondAt)
+        {
+            var b = (u - FirstAt) / (SecondAt - FirstAt);
+            return 4 * HopFt * scale * b * (1 - b);
+        }
+        var c = 1 - (u - SecondAt) / (1 - SecondAt);
+        return crossingY * (1 - c * c);
+    }
+}
+
 
 /// <summary>
 /// A star pitch's hitch (spec §13): at <see cref="At"/> of the flight the ball stops dead at one point of its path — a cable car
@@ -256,25 +296,6 @@ public sealed record PitchPendulum(double LengthFt, double SwingDeg, double Wide
     }
 }
 
-/// <summary>
-/// A star pitch's leap (spec §13): from <see cref="At"/> of the flight the ball crawls at <see cref="HoldPace"/> of its pace for
-/// <see cref="Hold"/> of the flight, then leaps over the rest of its path to arrive at the ordinary instant. The path, the
-/// crossing and the arrival time are the ordinary pitch's; only where the ball is along its path, and when, changes.
-/// </summary>
-public sealed record PitchLeap(double At, double Hold, double HoldPace)
-{
-    /// <summary>How far along its path the ball is at time fraction <paramref name="u"/>: the identity, a crawl, then a catch-up; 1 at 1.</summary>
-    public double Progress(double u)
-    {
-        u = Math.Clamp(u, 0, 1);
-        if (u <= At) return u;
-        var held = At + HoldPace * Hold;
-        if (u <= At + Hold) return At + HoldPace * (u - At);
-        if (u >= 1) return 1;
-        return held + (1 - held) * (u - At - Hold) / (1 - At - Hold);
-    }
-}
-
 /// <summary>A captain's star swing (data/abilities/star-skills.json, spec §13).</summary>
 public sealed record StarSwingSkill(
     string Id,
@@ -289,8 +310,6 @@ public sealed record StarSwingSkill(
     /// </summary>
     double FielderPauseSec,
     bool Decoy,
-    /// <summary>A fair ball off this swing leaves its first hop this many times as fast upward (§13); 1 is the ordinary hop.</summary>
-    double FirstHopBounceMul = 1,
     /// <summary>A fair ball off this swing stands still at its first hop for this many seconds (§13); 0 is none.</summary>
     double FirstHopStallSec = 0,
     /// <summary>After a first-hop stall the ball runs on at this share of its speed (§13); 1 is its own.</summary>
@@ -316,7 +335,9 @@ public sealed record StarSwingSkill(
     /// </summary>
     double ApexCarryMul = 1,
     /// <summary>A bowl of loose dust this swing's grounder raises where it first lands, slowing the fielders inside it, or null (§13).</summary>
-    SwingDustBowl? DustBowl = null)
+    SwingDustBowl? DustBowl = null,
+    /// <summary>A ball off this swing that hops over the first infield glove it reaches, then drops back onto its line, or null (§13).</summary>
+    BallHop? Hop = null)
 {
     /// <summary>The tallest contact oval a row may name: twice the batter's zone, never more.</summary>
     public const double MaxOvalHeightMul = 2;
@@ -329,14 +350,11 @@ public sealed record StarSwingSkill(
     /// <summary>The largest Perfect ring a row may name: twice the ordinary heart, and never past the drawn oval (<see cref="SweetSpot.Zone"/>).</summary>
     public const double MaxPerfectRingMul = 2;
 
-    /// <summary>The highest first-hop bounce a row may name: a chopper, not a moon shot.</summary>
-    public const double MaxBounceMul = 3;
-
     /// <summary>The swing changes its ball's first hop.</summary>
-    public bool ShapesFirstHop => FirstHopBounceMul != 1 || FirstHopStallSec > 0 || DustBowl is not null;
+    public bool ShapesFirstHop => FirstHopStallSec > 0 || DustBowl is not null;
 
-    /// <summary>The swing changes its ball's path at the first hop (a spring or a stall); a dust bowl leaves the path alone.</summary>
-    public bool BendsFirstHop => FirstHopBounceMul != 1 || FirstHopStallSec > 0;
+    /// <summary>The swing changes its ball's path at the first hop (a stall); a dust bowl leaves the path alone.</summary>
+    public bool BendsFirstHop => FirstHopStallSec > 0;
 
     /// <summary>The largest apex carry a row may name: a gust, not a launch; the fly's fall carries at most half again as far.</summary>
     public const double MaxApexCarryMul = 1.5;
@@ -486,6 +504,136 @@ public sealed record BallJag(double OffsetFt, double FirstAt, double SecondAt, d
 }
 
 /// <summary>
+/// A star swing's hop over a glove (spec §13): when the ball's path in the air enters the reach of an infield glove (the pitcher
+/// and the four infielders, not the catcher) at glove height — at or under the standing catch height — the ball hops over that
+/// glove and drops back onto its line. The hop is laid on the path by the ball's distance, across the ground, from the glove's
+/// spot: <see cref="HeightFt"/> up while within the glove's reach plus <see cref="PadFt"/>, rising into that and dropping back
+/// out over <see cref="RampFt"/> on either side, 0 beyond. Only the height of that one pass changes: the ball's ground track,
+/// its clock, its landing and everything after it are the straight ball's. The hop is decided live, against where the bodies
+/// stand as the ball comes, and it must end before the ball lands and within <see cref="WithinSec"/> of contact, or there is
+/// none. The hopped ball is the one real ball for every glove, the pursuit and the CPU.
+/// </summary>
+public sealed record BallHop(double HeightFt, double PadFt, double RampFt)
+{
+    /// <summary>The highest hop a row may name: over a glove, not over the infield.</summary>
+    public const double MaxHeightFt = 8;
+
+    /// <summary>The widest pad or ramp a row may name.</summary>
+    public const double MaxEdgeFt = 4;
+
+    /// <summary>Every bend ends within two seconds of contact (§13).</summary>
+    public const double WithinSec = 2;
+
+    /// <summary>How far from the glove the hop reaches: the glove's reach, the pad and the ramp.</summary>
+    public double OuterFt(double reachFt) => reachFt + PadFt + RampFt;
+
+    /// <summary>
+    /// The lift at <paramref name="d"/> feet across the ground from the glove's spot: <see cref="HeightFt"/> inside the reach and
+    /// the pad, a half-cosine down to 0 across the ramp, 0 past it.
+    /// </summary>
+    public double Lift(double d, double reachFt)
+    {
+        var top = reachFt + PadFt;
+        if (d <= top) return HeightFt;
+        if (d >= top + RampFt) return 0;
+        return HeightFt * 0.5 * (1 + Math.Cos(Math.PI * (d - top) / RampFt));
+    }
+
+    /// <summary>
+    /// When the path from <paramref name="now"/> first enters the glove's reach at glove height: the first sample, before the
+    /// landing mark and not after <paramref name="untilT"/>, within <paramref name="reachFt"/> of (<paramref name="gx"/>,
+    /// <paramref name="gz"/>) across the ground with a height from 0 to <paramref name="gloveHeightFt"/>. Null when it never does.
+    /// </summary>
+    public static double? Entry(IReadOnlyList<Sample> path, double now, double gx, double gz, double reachFt,
+        double gloveHeightFt, double untilT)
+    {
+        for (var i = 0; i < path.Count; i++)
+        {
+            var s = path[i];
+            if (i > 0 && s.Event != SampleEvent.None) return null;
+            if (s.T < now) continue;
+            if (s.T > untilT) return null;
+            if (s.Height >= 0 && s.Height <= gloveHeightFt && Diamond.Dist(s.X, s.Z, gx, gz) <= reachFt) return s.T;
+        }
+        return null;
+    }
+
+    /// <summary>Does the path between <paramref name="from"/> and <paramref name="to"/> come within <paramref name="radiusFt"/> of the spot across the ground?</summary>
+    public static bool Nears(IReadOnlyList<Sample> path, double from, double to, double gx, double gz, double radiusFt, RulesTable rules)
+    {
+        var a = BallFlight.PointAt(path, from, rules);
+        var b = BallFlight.PointAt(path, to, rules);
+        if (Diamond.Dist(a.X, a.Z, gx, gz) < radiusFt || Diamond.Dist(b.X, b.Z, gx, gz) < radiusFt) return true;
+        foreach (var s in path)
+        {
+            if (s.T <= from) continue;
+            if (s.T >= to) break;
+            if (Diamond.Dist(s.X, s.Z, gx, gz) < radiusFt) return true;
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// The path with the hop over the glove at (<paramref name="gx"/>, <paramref name="gz"/>) laid on it: the pass through the
+    /// hop's ring (<see cref="OuterFt"/>) that the ball is in or comes to next at <paramref name="now"/> is lifted by
+    /// <see cref="Lift"/>, and the points where the path crosses the ring are added as samples, so the ball leaves its line and
+    /// rejoins it exactly there. Every other sample is untouched. Null when the path has no such pass, or the pass would not be
+    /// over before the landing mark or before <see cref="WithinSec"/>: then there is no hop.
+    /// </summary>
+    public List<Sample>? Apply(IReadOnlyList<Sample> path, double now, double gx, double gz, double reachFt)
+    {
+        var outer = OuterFt(reachFt);
+        bool Inside(int i) => Diamond.Dist(path[i].X, path[i].Z, gx, gz) < outer;
+        var (i0, i1) = (-1, -1);
+        for (var i = 1; i < path.Count; i++)
+        {
+            if (Inside(i))
+            {
+                if (i0 < 0) i0 = i;
+                continue;
+            }
+            if (i0 < 0) continue;
+            if (path[i].T >= now)
+            {
+                i1 = i;
+                break;
+            }
+            i0 = -1;
+        }
+        if (i0 < 0 || i1 < 0) return null;
+        var land = BallFlight.LandingIndex(path);
+        if ((land >= 0 && i1 >= land) || path[i1].T > WithinSec) return null;
+        var list = new List<Sample>(path.Count + 2);
+        for (var i = 0; i < i0; i++) list.Add(path[i]);
+        list.Add(OnRing(path[i0 - 1], path[i0], gx, gz, outer));
+        for (var i = i0; i < i1; i++)
+        {
+            var s = path[i];
+            list.Add(s with { Height = s.Height + Lift(Diamond.Dist(s.X, s.Z, gx, gz), reachFt) });
+        }
+        list.Add(OnRing(path[i1 - 1], path[i1], gx, gz, outer));
+        for (var i = i1; i < path.Count; i++) list.Add(path[i]);
+        return list;
+    }
+
+    /// <summary>The point on the straight segment from <paramref name="a"/> to <paramref name="b"/> where it crosses the ring, found by halving; its height is the line's.</summary>
+    static Sample OnRing(Sample a, Sample b, double gx, double gz, double radiusFt)
+    {
+        var inA = Diamond.Dist(a.X, a.Z, gx, gz) < radiusFt;
+        var (lo, hi) = (0.0, 1.0);
+        for (var n = 0; n < 40; n++)
+        {
+            var mid = (lo + hi) / 2;
+            var inside = Diamond.Dist(a.X + (b.X - a.X) * mid, a.Z + (b.Z - a.Z) * mid, gx, gz) < radiusFt;
+            if (inside == inA) lo = mid; else hi = mid;
+        }
+        var u = (lo + hi) / 2;
+        var (x, z) = (a.X + (b.X - a.X) * u, a.Z + (b.Z - a.Z) * u);
+        return new Sample(a.T + (b.T - a.T) * u, Math.Sqrt(x * x + z * z), a.Height + (b.Height - a.Height) * u, x, z);
+    }
+}
+
+/// <summary>
 /// The star skills as loaded from JSON. The JSON is the only copy (spec §13): no C# switch may
 /// re-type a multiplier. Callers with a <see cref="ContentCatalog"/> use its table; a caller
 /// without one falls back to the table found from the data root, like <see cref="Rules"/>.
@@ -560,6 +708,10 @@ public static class StarSkills
     /// <summary>How much larger a star swing's Perfect ring is (§13); 1 for a swing whose row names none.</summary>
     public static double SwingPerfectRingMul(string? starSwing, StarSkillTable? table = null) =>
         StarSkillTable.Or(table).Swing(starSwing)?.PerfectRingMul ?? 1.0;
+
+    /// <summary>The hop over a glove a star swing's ball makes (§13); null for a swing whose row names none.</summary>
+    public static BallHop? SwingHop(string? starSwing, StarSkillTable? table = null) =>
+        StarSkillTable.Or(table).Swing(starSwing)?.Hop;
 
     /// <summary>How much taller a star swing's contact oval is (§13); 1 for a swing whose row names none.</summary>
     public static double SwingOvalHeightMul(string? starSwing, StarSkillTable? table = null) =>

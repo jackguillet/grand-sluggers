@@ -508,6 +508,7 @@ public sealed partial class LivePlaySystem
         Ball = Preview?.Ball ?? BattedBall.Of(Hit, Park, R);
         Path = Ball.Samples;
         BeginFirstHopKick();
+        BeginGloveHop();
         BeginHotBall();
         CoverBallX = Preview?.LandingX ?? Ball.LandingX;
         PlayerFielding = FieldAssist.PlayerStartsOnGlove(Seats.PlayerMustField);
@@ -695,6 +696,7 @@ public sealed partial class LivePlaySystem
         }
         else if (!Throwing && Path is not null)
         {
+            ReadGloveHop(dt);
             var p = BallFlight.PointAt(Path, ElapsedSeconds, R);
             (BallX, BallY, BallZ) = p;
             OffTheBat |= FlyCatch.OffTheBat(Path, BallX, BallY, BallZ, R);
@@ -2266,9 +2268,12 @@ public sealed partial class LivePlaySystem
         HandGloveTo(next);
     }
 
-    double CatchRadius(Dictionary<string, Character> map)
+    double CatchRadius(Dictionary<string, Character> map) =>
+        CatchRadiusOf(map.TryGetValue(GlovePos, out var c) ? c : Preview!.Fielder);
+
+    /// <summary>The catch radius <paramref name="who"/> has for this play's ball: the one reach every glove check reads.</summary>
+    double CatchRadiusOf(Character who)
     {
-        var who = map.TryGetValue(GlovePos, out var c) ? c : Preview!.Fielder;
         // The body class's reach for this ball (§8.1): the ground reach on a ball hit on the ground, the fly reach on one hit in the air.
         var radius = FieldingResolver.CatchRadiusFt(who, Preview is not null ? Park : null, R, air: Preview is not { Grounder: true });
         // Abilities widen the reach for their ball (§8.4): Super Jump on a fly, Dive / Burrow on the dirt, Sand Scoop on a low one.

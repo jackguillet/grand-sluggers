@@ -33,12 +33,10 @@ public sealed class SableAbilityTests
         Assert.Equal(new PitchVanish(0.3333, 0.6667), pitch.Vanish);
         Assert.Equal(1.0, pitch.SpeedMul);
         Assert.Null(pitch.Hitch);
-        Assert.Null(pitch.Leap);
         Assert.Null(pitch.Loop);
         // An 8-ft bowl (a radius, like a park's slow disc) for 2 s at half speed; the ball's hop is left alone.
         Assert.Equal(new SwingDustBowl(8, 2, 0.5), swing.DustBowl);
         Assert.False(swing.BendsFirstHop);
-        Assert.Equal(1, swing.FirstHopBounceMul);
         Assert.Equal(0, swing.FirstHopStallSec);
     }
 

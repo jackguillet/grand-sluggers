@@ -33,7 +33,6 @@ public sealed class AshlordAbilityTests
         Assert.Equal(new HotBall(2.0, 0.5), swing.HotBall);
         Assert.Null(swing.Terrain);          // the lava strip is gone: the heat is in the ball, not on the track
         Assert.Null(pitch.Hitch);
-        Assert.Null(pitch.Leap);
         Assert.DoesNotContain(Game.Characters.Values, c => c.Id != "ashlord" && (c.StarPitch == "skullball" || c.StarSwing == "furnace"));
         // Nobody else's row carries a drop or a hot ball: each captain's effect is its own (AB-02).
         Assert.DoesNotContain(Game.StarSkills.Pitches.Values, p => p.Id != "skullball" && p.Drop is not null);
