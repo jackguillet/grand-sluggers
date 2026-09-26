@@ -254,11 +254,11 @@ public static class ContentDataValidator
                     errors.Add($"{source}: star pitch '{key}' speedMul must be greater than 0; got {value.SpeedMul?.ToString(CultureInfo.InvariantCulture) ?? "null"}");
                 if (value.StaminaCost is null || value.StaminaCost < 0)
                     errors.Add($"{source}: star pitch '{key}' staminaCost must be at least 0; got {value.StaminaCost?.ToString(CultureInfo.InvariantCulture) ?? "null"}");
-                // The twin is gone before the zone (§13): the hitter judges the one real ball in the second half of every flight.
-                if (value.Twin is { } twin && (twin.OffsetFt <= 0 || twin.FadeFrom < 0 || twin.FadeTo <= twin.FadeFrom || twin.FadeTo > PitchTwin.GoneBy))
-                    errors.Add($"{source}: star pitch '{key}' twin needs offsetFt > 0 and 0 <= fadeFrom < fadeTo <= {PitchTwin.GoneBy.ToString(CultureInfo.InvariantCulture)}");
-                if (value.FirstHopKickDeg is not null)
-                    errors.Add($"{source}: star pitch '{key}' cannot carry firstHopKickDeg; it is a swing's");
+                // The ball comes back before the plate (§13): the hitter always sees the last stretch of every flight.
+                if (value.Vanish is { } vanish && (vanish.From <= 0 || vanish.To <= vanish.From || vanish.To > PitchVanish.BackBy))
+                    errors.Add($"{source}: star pitch '{key}' vanish needs 0 < from < to <= {PitchVanish.BackBy.ToString(CultureInfo.InvariantCulture)}");
+                if (value.DustBowl is not null)
+                    errors.Add($"{source}: star pitch '{key}' cannot carry a dust bowl; it is a swing's");
                 if (value.WindMul is not null)
                     errors.Add($"{source}: star pitch '{key}' cannot carry windMul; it is a swing's");
                 if (value.Leap is { } leap && (leap.At <= 0 || leap.HoldSpan <= 0 || leap.At + leap.HoldSpan >= 1 || leap.HoldPace < 0 || leap.HoldPace >= 1))
@@ -289,10 +289,17 @@ public static class ContentDataValidator
                     errors.Add($"{source}: star swing '{key}' exitVeloMul must be greater than 0; got {value.ExitVeloMul?.ToString(CultureInfo.InvariantCulture) ?? "null"}");
                 if (value.LaunchDeg is not null && (value.LaunchDeg < 0 || value.LaunchDeg > 60))
                     errors.Add($"{source}: star swing '{key}' launchDeg must be between 0 and 60; got {value.LaunchDeg}");
-                if (value.FirstHopKickDeg is not null && (value.FirstHopKickDeg <= 0 || value.FirstHopKickDeg > StarSwingSkill.MaxKickDeg))
-                    errors.Add($"{source}: star swing '{key}' firstHopKickDeg must be greater than 0 and at most {StarSwingSkill.MaxKickDeg.ToString(CultureInfo.InvariantCulture)}; got {value.FirstHopKickDeg}");
-                if (value.Twin is not null)
-                    errors.Add($"{source}: star swing '{key}' cannot carry a twin; it is a pitch's");
+                if (value.Vanish is not null)
+                    errors.Add($"{source}: star swing '{key}' cannot carry a vanish; it is a pitch's");
+                // The bowl is a grounder's first landing (§13): a disc no wider than the park's, gone inside two seconds, a slow and not a wall.
+                if (value.DustBowl is { } bowl)
+                {
+                    if (bowl.RadiusFt <= 0 || bowl.RadiusFt > SwingDustBowl.MaxRadiusFt || bowl.Sec <= 0 || bowl.Sec > SwingDustBowl.MaxSec
+                        || bowl.Mul <= 0 || bowl.Mul >= 1)
+                        errors.Add($"{source}: star swing '{key}' dustBowl needs 0 < radiusFt <= {SwingDustBowl.MaxRadiusFt.ToString(CultureInfo.InvariantCulture)}, 0 < sec <= {SwingDustBowl.MaxSec.ToString(CultureInfo.InvariantCulture)} and 0 < mul < 1");
+                    if (value.LaunchDeg is not { } launch || launch > SwingDustBowl.MaxLaunchDeg)
+                        errors.Add($"{source}: star swing '{key}' raises a dust bowl at its first landing, so it must name a grounder's launchDeg of at most {SwingDustBowl.MaxLaunchDeg.ToString(CultureInfo.InvariantCulture)}");
+                }
                 if (value.Float is not null)
                     errors.Add($"{source}: star swing '{key}' cannot carry a float; it is a pitch's");
                 if (value.Leap is not null)
@@ -1718,8 +1725,10 @@ internal sealed class StarSkillDto
     public double? FielderPauseSec { get; set; }
     public bool InfieldChaos { get; set; }
     public bool Fragments { get; set; }
-    /// <summary>A pitch's faint twin (<see cref="PitchTwin"/>); pitches only.</summary>
-    public PitchTwinDto? Twin { get; set; }
+    /// <summary>A pitch's vanish (<see cref="PitchVanish"/>); pitches only.</summary>
+    public PitchVanishDto? Vanish { get; set; }
+    /// <summary>A swing's dust bowl at its first landing (<see cref="SwingDustBowl"/>); swings only.</summary>
+    public SwingDustBowlDto? DustBowl { get; set; }
     /// <summary>A pitch's float (<see cref="PitchFloat"/>); pitches only.</summary>
     public PitchFloatDto? Float { get; set; }
     /// <summary>A pitch's leap (<see cref="PitchLeap"/>); pitches only.</summary>
@@ -1738,8 +1747,6 @@ internal sealed class StarSkillDto
     public PitchSwayDto? Sway { get; set; }
     /// <summary>A swing's first hop springs this many times as fast upward (<see cref="StarSwingSkill.FirstHopBounceMul"/>); swings only.</summary>
     public double? FirstHopBounceMul { get; set; }
-    /// <summary>A swing's ball kicks this many degrees off its first hop (<see cref="StarSwingSkill.FirstHopKickDeg"/>); swings only.</summary>
-    public double? FirstHopKickDeg { get; set; }
     /// <summary>A swing's ball rides the park's wind this many times as hard (<see cref="StarSwingSkill.WindMul"/>); swings only.</summary>
     public double? WindMul { get; set; }
     /// <summary>The effect family a captain's special belongs to (§13, AB-02); no two captains' specials share one.</summary>
@@ -1749,16 +1756,17 @@ internal sealed class StarSkillDto
 
     public StarPitchSkill ToPitch() => new(Id, Name, Kind, SpeedMul ?? 1.0, StaminaCost ?? 0,
         LateBreak, Decoy, OnCatch,
-        Twin is null ? null : new PitchTwin(Twin.OffsetFt, Twin.FadeFrom, Twin.FadeTo),
         Float is null ? null : new PitchFloat(Float.RiseFt, Float.DropFrom),
         Leap is null ? null : new PitchLeap(Leap.At, Leap.HoldSpan, Leap.HoldPace),
         Rise is null ? null : new PitchRise(Rise.RiseFt, Rise.From),
         Loop is null ? null : new PitchLoop(Loop.At, Loop.Span, Loop.DiameterFt),
-        Sway is null ? null : new PitchSway(Sway.WidthFt, Sway.Cycles, Sway.PeakAt, Sway.SettleBy));
+        Sway is null ? null : new PitchSway(Sway.WidthFt, Sway.Cycles, Sway.PeakAt, Sway.SettleBy),
+        Vanish is null ? null : new PitchVanish(Vanish.From, Vanish.To));
 
     public StarSwingSkill ToSwing() => new(Id, Name, Kind, ExitVeloMul ?? 1.0, LaunchDeg, Terrain,
-        FielderPauseSec ?? 0, InfieldChaos, Decoy, Fragments, FirstHopKickDeg ?? 0,
-        WindMul ?? 1, FirstHopBounceMul ?? 1, FirstHopStallSec ?? 0, FirstHopStallSpeedMul ?? 1, PerfectRingMul ?? 1);
+        FielderPauseSec ?? 0, InfieldChaos, Decoy, Fragments,
+        WindMul ?? 1, FirstHopBounceMul ?? 1, FirstHopStallSec ?? 0, FirstHopStallSpeedMul ?? 1, PerfectRingMul ?? 1,
+        DustBowl is null ? null : new SwingDustBowl(DustBowl.RadiusFt, DustBowl.Sec, DustBowl.Mul));
 }
 
 internal sealed class PitchLoopDto
@@ -1798,9 +1806,19 @@ internal sealed class PitchFloatDto
     public double DropFrom { get; set; }
 }
 
-internal sealed class PitchTwinDto
+internal sealed class PitchVanishDto
 {
-    public double OffsetFt { get; set; }
-    public double FadeFrom { get; set; }
-    public double FadeTo { get; set; }
+    /// <summary>The share of the flight the ball vanishes at (a fraction, not seconds).</summary>
+    public double From { get; set; }
+    /// <summary>The share of the flight it shows again at.</summary>
+    public double To { get; set; }
+}
+
+internal sealed class SwingDustBowlDto
+{
+    public double RadiusFt { get; set; }
+    /// <summary>Seconds from the first landing.</summary>
+    public double Sec { get; set; }
+    /// <summary>What a fielder's step inside the bowl is multiplied by.</summary>
+    public double Mul { get; set; }
 }
