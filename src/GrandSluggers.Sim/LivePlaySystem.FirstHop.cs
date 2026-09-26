@@ -1,8 +1,7 @@
 namespace GrandSluggers.Sim;
 
 /// <summary>
-/// A star swing's first hop (spec §13): a fair ball off the swing springs at its first ground contact
-/// (<see cref="StarSwingSkill.FirstHopBounceMul"/>), or stands still for a while and runs on slower
+/// A star swing's first hop (spec §13): a fair ball off the swing stands still at its first ground contact for a while and runs on slower
 /// (<see cref="StarSwingSkill.FirstHopStallSec"/>), on the shared ground physics; or it raises a bowl of loose dust there
 /// (<see cref="SwingDustBowl"/>) that slows the fielders inside it and leaves the ball alone. A bent path is continued the way
 /// a park redirect continues it, the ball is re-read and every chaser re-plans; the gloves, the throws and the fair / foul
@@ -44,7 +43,7 @@ public sealed partial class LivePlaySystem
         var (kx, vy, kz) = ((next.X - now.X) / step, (next.Y - now.Y) / step, (next.Z - now.Z) / step);
         if (kx * kx + kz * kz < 1e-6) return;
         var away = Chaser(now.X, now.Z);
-        // The hop's spring (§13): the ball leaves the ground this many times as fast upward, its horizontal pace its own.
+        // The hop's spring (§13, Star Chopper): the ball leaves the ground this many times as fast upward, its horizontal pace its own.
         if (swing.FirstHopBounceMul != 1 && vy > 0) vy *= swing.FirstHopBounceMul;
         // The stall (§13): the ball stands on the ground at its hop for the row's seconds — a glove that reaches it may
         // take it there — then runs on from the same spot at the row's share of its speed, on the shared ground physics.
@@ -64,7 +63,7 @@ public sealed partial class LivePlaySystem
         _ballPrev = null;
         Preview = Preview with { LandingX = Ball.LandingX, LandingZ = Ball.LandingZ };
         CoverBallX = Ball.LandingX;
-        RecordFact(new FirstHopKicked(swing.Id, t, now.X, now.Z, away.Pos, swing.FirstHopBounceMul, Math.Max(0, stall)));
+        RecordFact(new FirstHopKicked(swing.Id, t, now.X, now.Z, away.Pos, Math.Max(0, stall), swing.FirstHopBounceMul));
         Sub = $"{swing.Name}!";
     }
 

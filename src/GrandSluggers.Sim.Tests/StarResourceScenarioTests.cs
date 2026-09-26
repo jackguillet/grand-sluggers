@@ -262,6 +262,15 @@ public sealed class StarResourceScenarioTests
     }
 
     [Fact]
+    public void S174_ACaptainsSpecialWithNoEffectFamilyIsRefused()
+    {
+        using var fixture = new ContentFixture();
+        fixture.ChangeObject("abilities/star-skills.json", json => json["pitches"]!["heatball"]!.AsObject().Remove("family"));
+        var errors = ContentDataValidator.Validate(new DataRoot(fixture.Root));
+        Assert.Contains(errors, e => e.Contains("starPitch 'heatball' names no effect family", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public void S174_TwoCaptainsSpecialsInOneEffectFamilyAreRefused()
     {
         using var fixture = new ContentFixture();

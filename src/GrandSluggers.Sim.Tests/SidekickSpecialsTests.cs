@@ -373,6 +373,8 @@ public sealed class SidekickSpecialsTests
             json["swings"]!["opposite"]!["dot"] = true;
             json["swings"]!["drag-bunt"]!["dragBunt"] = new JsonObject { ["insetFt"] = 2 };
             json["swings"]!["chopper"]!["launchDeg"] = -20;
+            json["swings"]!["drag-bunt"]!["firstHopBounceMul"] = 0.8;
+            json["pitches"]!["lob"]!["firstHopBounceMul"] = 1.6;
         });
         var errors = ContentDataValidator.Validate(fixture.Root);
         Assert.Contains(errors, e => e.Contains("star pitch 'sinkball' sinkDeg must be greater than 0", StringComparison.Ordinal));
@@ -383,6 +385,8 @@ public sealed class SidekickSpecialsTests
         Assert.Contains(errors, e => e.Contains("star swing 'opposite' cannot carry dot", StringComparison.Ordinal));
         Assert.Contains(errors, e => e.Contains("star swing 'drag-bunt' dragBunt insetFt must be greater than 0 and at most 1", StringComparison.Ordinal));
         Assert.Contains(errors, e => e.Contains("star swing 'chopper' launchDeg must be between -15 and 60", StringComparison.Ordinal));
+        Assert.Contains(errors, e => e.Contains("star swing 'drag-bunt' firstHopBounceMul must be greater than 1 and at most 3", StringComparison.Ordinal));
+        Assert.Contains(errors, e => e.Contains("star pitch 'lob' cannot carry firstHopBounceMul", StringComparison.Ordinal));
     }
 
     // ---------------------------------------------------------------------------------

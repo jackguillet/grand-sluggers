@@ -26,7 +26,6 @@ public sealed class ZigAbilityTests
         // The late break and the ghosts are gone: the row is a loop and nothing else.
         var pitch = Game.StarSkills.Pitch("prismball")!;
         Assert.False(pitch.LateBreak);
-        Assert.Null(pitch.Leap);
         Assert.Null(pitch.Hitch);
         Assert.NotNull(pitch.Loop);
     }

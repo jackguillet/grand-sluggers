@@ -98,11 +98,8 @@ public static class PitchFlight
         var r = rules;
         u = Math.Clamp(u, 0, 1);
         var zone = StrikeZoneGeometry.Of(pitch);
-        // A row's own pace (§13): the leap hangs the ball over one stretch of its path and makes up the time after it,
-        // so the same path arrives at the same instant — the timing window and the crossing are the ordinary pitch's.
         var row = pitch.Star ? StarSkillTable.Or(skills).Pitch(starPitchId) : null;
         var time = u;
-        if (row?.Leap is { } leap) u = leap.Progress(u);
         // The loop holds the ball at one point of its path while it loops, then runs the rest on the same clock.
         if (row?.Loop is { } loop) u = loop.Progress(u);
         // The hitch stops the ball dead at its station for a fixed time, then runs it on down the line on the same clock.
@@ -138,6 +135,13 @@ public static class PitchFlight
         // The pendulum (§13): the ball swings on its vine about a pivot riding above the ordinary ball, and hangs straight at the plate.
         if (row?.Pendulum is { } vine && vine.Offset(time, PendulumSide(pitch, r, from)) is var swing && swing != (0, 0))
             p = (p.X + swing.X, p.Y + swing.Y, p.Z);
+        // The skips (§13): down onto the dirt, one skip, down again, then up off the second skip onto the ordinary crossing.
+        if (row?.Skips is { } skips && u < 1)
+        {
+            var cross = Point(pitch.Type, 1, r, pitch.AimX, pitch.AimY, pitch.BreakX * pitch.BreakMul,
+                pitch.RubberX, from, ChargeFeel.IsCharge(pitch.Charge01, r), pitch.Throws, zone);
+            p = (p.X, skips.Height(u, p.Y, cross.Y, zone.VerticalScale), p.Z);
+        }
         // A late drop (§13, Anvil): after the clang the iron sinks to a crossing below the aimed one. This moves the crossing,
         // so the umpire, the bat and the CPU all judge the dropped ball; in reference-zone feet, like every vertical star shape.
         if (row?.Drop is { } sink && sink.Fall(u) is var fall and not 0)
