@@ -30,6 +30,7 @@ public sealed class CpuFieldDeciderTests
         public double ThrowArrivalSec(int bag) => 1;
         public double WalkSec(int bag) => 1;
         public double ThrowReadySec(int bag) => 1;
+        public double HoldLeftSec { get; init; } = double.PositiveInfinity;
     }
 
     [Fact]

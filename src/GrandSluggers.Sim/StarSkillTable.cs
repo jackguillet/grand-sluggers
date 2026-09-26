@@ -18,10 +18,41 @@ public sealed record StarPitchSkill(
     PitchLeap? Leap = null,
     /// <summary>A late rise that lifts the ball over the last stretch of its flight to a crossing above the aimed one, or null (§13).</summary>
     PitchRise? Rise = null,
+    /// <summary>A ring on home plate, from contact, that slows the batter-runner inside it, or null (§13).</summary>
+    PitchUndertow? Undertow = null,
     /// <summary>One full vertical loop mid-flight, then the ordinary crossing on the ordinary time, or null (§13).</summary>
     PitchLoop? Loop = null,
     /// <summary>A side-to-side sway that swells to its widest mid-flight and settles onto the ordinary path before the plate, or null (§13).</summary>
-    PitchSway? Sway = null);
+    PitchSway? Sway = null,
+    /// <summary>A path that swings in on one pendulum arc from a pivot above the ball onto the unchanged crossing, or null (§13).</summary>
+    PitchPendulum? Pendulum = null,
+    /// <summary>A late drop that sinks the ball over the last stretch of its flight to a crossing below the aimed one, or null (§13).</summary>
+    PitchDrop? Drop = null);
+
+/// <summary>
+/// A star pitch's undertow (spec §13): when a fair ball is put in play off it, a disc of radius <see cref="RadiusFt"/>
+/// centred on home plate is live for <see cref="Sec"/> from contact, and the batter-runner's every step inside it is at
+/// <see cref="RunnerMul"/> of its speed. It is a status volume (<see cref="BodySlows"/>) that touches one body: no fielder,
+/// no other runner, and nothing after the body leaves it or the time runs out. Geometry decides it; nothing is rolled.
+/// </summary>
+public sealed record PitchUndertow(double RadiusFt, double Sec, double RunnerMul)
+{
+    /// <summary>The <see cref="StatusVolume.Type"/> the undertow's disc carries: presentation draws its ring by this name.</summary>
+    public const string Type = "undertow";
+
+    /// <summary>The widest ring a row may name: it may cover the batter's first steps, never the run to first.</summary>
+    public const double MaxRadiusFt = 20;
+
+    /// <summary>Every bend ends within 2 s of contact (§13).</summary>
+    public const double MaxSec = 2;
+
+    /// <summary>
+    /// The disc as the live ball reads it, for a play whose clock starts at contact: centred on home, live until
+    /// <see cref="Sec"/>, no time after the body leaves it (<c>slowSec</c> 0), the batter-runner's alone.
+    /// </summary>
+    public StatusVolume Volume() =>
+        new(StatusVolume.StarHazard, Type, 0, 0, RadiusFt, 0, SlowMul: RunnerMul, UntilT: Sec, BatterRunnerOnly: true);
+}
 
 /// <summary>
 /// A star pitch's loop (spec §13): from <see cref="At"/> of the flight the ball runs one full vertical loop,
@@ -82,6 +113,30 @@ public sealed record PitchRise(double RiseFt, double From)
 }
 
 /// <summary>
+/// A star pitch's late drop (spec §13, Anvil): the ball flies its ordinary path until <see cref="From"/> of the flight — the
+/// clang, where it turns to cold iron — then sinks on a quadratic ease to <see cref="DropFt"/> below that path exactly at the
+/// plate. The crossing moves: the umpire, the bat and the CPU judge the dropped ball, and the timing window is judged at that
+/// real crossing. The drop is always straight down. <see cref="From"/> is the turn the client reads for the clang and the colour.
+/// </summary>
+public sealed record PitchDrop(double DropFt, double From)
+{
+    /// <summary>The largest drop a row may name, in reference-zone feet: out of the bottom of the zone, never into the dirt.</summary>
+    public const double MaxDropFt = 2;
+
+    /// <summary>How far below the ordinary path the ball is at <paramref name="u"/>: 0 up to <see cref="From"/>, then (share of the stretch)² × <see cref="DropFt"/>; the whole drop at the plate.</summary>
+    public double Fall(double u)
+    {
+        u = Math.Clamp(u, 0, 1);
+        if (u <= From) return 0;
+        var t = (u - From) / (1 - From);
+        return DropFt * t * t;
+    }
+
+    /// <summary>The ball has clanged and turned to cold iron at <paramref name="u"/> of the flight (the tell's instant is <see cref="From"/>).</summary>
+    public bool Turned(double u) => u >= From;
+}
+
+/// <summary>
 /// A star pitch's sway (spec §13): the ball swings side to side across its ordinary path, <see cref="Cycles"/> full sways over
 /// the flight, the swing swelling from nothing at the release to exactly <see cref="WidthFt"/> at <see cref="PeakAt"/> of the
 /// flight and settling back to nothing by <see cref="SettleBy"/>. From there to the plate the ball is on its ordinary path, so
@@ -108,6 +163,43 @@ public sealed record PitchSway(double WidthFt, double Cycles, double PeakAt, dou
             ? Math.Sin(Math.PI / 2 * u / PeakAt)
             : Math.Cos(Math.PI / 2 * (u - PeakAt) / (SettleBy - PeakAt));
         return WidthFt * swell * Math.Cos(2 * Math.PI * Cycles * (u - PeakAt));
+    }
+}
+
+/// <summary>
+/// A star pitch's pendulum (spec §13): the ball hangs on a vine <see cref="LengthFt"/> long from a pivot that rides
+/// <see cref="LengthFt"/> above the ordinary ball. The vine swings out from straight down to <see cref="SwingDeg"/> by
+/// <see cref="WidestAt"/> of the flight, then swings back in on one pendulum arc to straight down at the plate. Every point
+/// of the flight is on the circle about the pivot, so the ball is always exactly <see cref="LengthFt"/> from it; at the plate
+/// the vine hangs straight and the ball is on the ordinary crossing at the ordinary instant, so the umpire, the bat and the
+/// CPU read the ordinary pitch.
+/// </summary>
+public sealed record PitchPendulum(double LengthFt, double SwingDeg, double WidestAt)
+{
+    /// <summary>The longest vine a row may name: a swing into the zone, not across the infield.</summary>
+    public const double MaxLengthFt = 12;
+
+    /// <summary>The widest swing a row may name, from straight down: the ball never swings above the pivot.</summary>
+    public const double MaxSwingDeg = 80;
+
+    /// <summary>The vine's angle from straight down at <paramref name="u"/>, in degrees: out along a quarter sine, in along a pendulum's quarter swing, exactly 0 at the plate.</summary>
+    public double AngleDeg(double u)
+    {
+        u = Math.Clamp(u, 0, 1);
+        if (u >= 1) return 0;
+        if (u <= WidestAt) return SwingDeg * Math.Sin(Math.PI / 2 * u / WidestAt);
+        return SwingDeg * Math.Cos(Math.PI / 2 * (u - WidestAt) / (1 - WidestAt));
+    }
+
+    /// <summary>
+    /// The ball's offset from the ordinary path at <paramref name="u"/>, in world feet: sideways toward <paramref name="side"/>
+    /// (+1 or −1 in X) and up, both exactly 0 at the plate.
+    /// </summary>
+    public (double X, double Y) Offset(double u, double side)
+    {
+        var a = AngleDeg(u) * Math.PI / 180;
+        if (a == 0) return (0, 0);
+        return (side * LengthFt * Math.Sin(a), LengthFt * (1 - Math.Cos(a)));
     }
 }
 
@@ -176,9 +268,7 @@ public sealed record StarSwingSkill(
     /// (§13, <see cref="FieldingPreview.Dazzled"/>); 0 is none.
     /// </summary>
     double FielderPauseSec,
-    bool InfieldChaos,
     bool Decoy,
-    bool Fragments,
     /// <summary>
     /// A fair ball off this swing turns this many degrees at its first hop, away from the fielder chasing it (§13); 0 is none.
     /// </summary>
@@ -195,8 +285,20 @@ public sealed record StarSwingSkill(
     /// This swing's Perfect ring is this many times the ordinary one (§13, PH-16-R2: a swing's own contact area); 1 is the
     /// ordinary ring. The nice oval, the sour rim and the timing window are unchanged, so a miss is still a miss.
     /// </summary>
-    double PerfectRingMul = 1)
+    double PerfectRingMul = 1,
+    /// <summary>A ball off this swing that jags sideways twice in the air and lands where the straight ball would, or null (§13).</summary>
+    BallJag? Jag = null,
+    /// <summary>The ball off this swing stays molten after contact and burns a glove that holds it, or null (§13, Hot Iron).</summary>
+    HotBall? HotBall = null,
+    /// <summary>
+    /// This swing's contact oval is this many times as tall (§13, PH-16-R2: a swing's own contact area); 1 is the ordinary
+    /// oval. Only the height grows, so the width along the barrel and the timing window are unchanged: a wide pitch or a
+    /// late bat is still a miss.
+    /// </summary>
+    double OvalHeightMul = 1)
 {
+    /// <summary>The tallest contact oval a row may name: twice the batter's zone, never more.</summary>
+    public const double MaxOvalHeightMul = 2;
     /// <summary>The longest stall a row may name: the ball spins, then baseball resumes inside the two-second rule.</summary>
     public const double MaxStallSec = 1.2;
 
@@ -220,6 +322,109 @@ public sealed record StarSwingSkill(
 
     /// <summary>The largest kick a row may name: a hop, not a U-turn.</summary>
     public const double MaxKickDeg = 45;
+}
+
+/// <summary>
+/// A star swing's hot ball (spec §13, Hot Iron): the ball stays molten for <see cref="MoltenSec"/> after contact. A glove that
+/// holds it more than <see cref="HoldSec"/> of that time drops it at its feet, live, and cannot take it again until it cools.
+/// Decided by the play clock and the possession, never a roll; the same rule for a CPU glove and a player's. A catch still
+/// counts: a caught fly is an out before any drop.
+/// </summary>
+public sealed record HotBall(double MoltenSec, double HoldSec)
+{
+    /// <summary>The longest a ball may stay molten: every bend ends within two seconds of contact (§13).</summary>
+    public const double MaxMoltenSec = 2;
+
+    /// <summary>Seconds the ball stays molten from <paramref name="elapsed"/> (seconds since contact); 0 once it has cooled.</summary>
+    public double MoltenLeft(double elapsed) => Math.Max(0, MoltenSec - elapsed);
+
+    /// <summary>
+    /// Seconds of the molten window a possession that began at <paramref name="heldSince"/> has spent in the glove by
+    /// <paramref name="elapsed"/>: the hold, counted only while the ball is molten.
+    /// </summary>
+    public double HeldHot(double heldSince, double elapsed) =>
+        heldSince < 0 ? 0 : Math.Max(0, Math.Min(elapsed, MoltenSec) - heldSince);
+
+    /// <summary>The glove holding since <paramref name="heldSince"/> drops the ball now: it has held it more than <see cref="HoldSec"/> while molten.</summary>
+    public bool Drops(double heldSince, double elapsed) => HeldHot(heldSince, elapsed) > HoldSec;
+
+    /// <summary>
+    /// Seconds a glove that takes the ball at <paramref name="elapsed"/> may hold it before it drops; infinite when it takes the
+    /// ball late enough, or cool, that the hold cannot pass <see cref="HoldSec"/> inside the molten window.
+    /// </summary>
+    public double HoldLeft(double heldSince, double elapsed) =>
+        heldSince < 0 || heldSince + HoldSec >= MoltenSec ? double.PositiveInfinity : Math.Max(0, heldSince + HoldSec - elapsed);
+}
+
+/// <summary>
+/// A star swing's jagged flight (spec §13): the batted ball jags sideways <see cref="OffsetFt"/> at <see cref="FirstAt"/> of its
+/// jag window, runs on beside its line, and jags back onto the line at <see cref="SecondAt"/>; each jag takes
+/// <see cref="Span"/> of the window. The window is the ball's air time to its first landing (the ground, the wall, the fence or
+/// the stands) and never longer than <see cref="WithinSec"/>, so the ball is back on its line before it lands: the landing, the
+/// fair / foul verdict and the fence are the straight ball's. The jagged ball is the real ball — the gloves, the CPU's read and
+/// the drawn ball all take its position from the one path.
+/// </summary>
+public sealed record BallJag(double OffsetFt, double FirstAt, double SecondAt, double Span)
+{
+    /// <summary>The largest jag a row may name.</summary>
+    public const double MaxOffsetFt = 3;
+
+    /// <summary>Every bend ends within two seconds of contact (§13).</summary>
+    public const double WithinSec = 2;
+
+    /// <summary>How far the ball is off its line at <paramref name="s"/> of the jag window: out, beside, back, 0 outside it.</summary>
+    public double OffFt(double s)
+    {
+        if (s <= FirstAt || s >= SecondAt + Span) return 0;
+        if (s < FirstAt + Span) return OffsetFt * (s - FirstAt) / Span;
+        if (s <= SecondAt) return OffsetFt;
+        return OffsetFt * (1 - (s - SecondAt) / Span);
+    }
+
+    /// <summary>
+    /// The jag window for a path: the time of its first landing mark, capped at <see cref="WithinSec"/>; 0 when the path
+    /// has none.
+    /// </summary>
+    public static double WindowSec(IReadOnlyList<Sample> samples)
+    {
+        var i = BallFlight.LandingIndex(samples);
+        var land = i < 0 ? (samples.Count > 0 ? samples[^1].T : 0) : samples[i].T;
+        return Math.Min(land, WithinSec);
+    }
+
+    /// <summary>
+    /// The side the ball jags to, as a unit vector in (X, Z): square to its line from contact to its landing mark, toward the
+    /// middle of the field, so the jag never carries a fair ball over a foul line. A ball straight up the middle jags to −X.
+    /// </summary>
+    public static (double X, double Z) Side(IReadOnlyList<Sample> samples)
+    {
+        if (samples.Count == 0) return (0, 0);
+        var i = BallFlight.LandingIndex(samples);
+        var end = i < 0 ? samples[^1] : samples[i];
+        var (dx, dz) = (end.X - samples[0].X, end.Z - samples[0].Z);
+        var len = Math.Sqrt(dx * dx + dz * dz);
+        if (len < 1e-9) return (0, 0);
+        var (nx, nz) = (-dz / len, dx / len);
+        return nx * dx <= 0 ? (nx, nz) : (-nx, -nz);
+    }
+
+    /// <summary>The path with the jags laid on it: every sample before the window's end moved sideways, every one after it untouched.</summary>
+    public IReadOnlyList<Sample> Apply(IReadOnlyList<Sample> samples)
+    {
+        var w = WindowSec(samples);
+        if (w <= 0) return samples;
+        var (sx, sz) = Side(samples);
+        if (sx == 0 && sz == 0) return samples;
+        var list = new List<Sample>(samples.Count);
+        foreach (var s in samples)
+        {
+            var off = s.T < w ? OffFt(s.T / w) : 0;
+            if (off == 0) { list.Add(s); continue; }
+            var (x, z) = (s.X + sx * off, s.Z + sz * off);
+            list.Add(s with { X = x, Z = z, Dist = Math.Sqrt(x * x + z * z) });
+        }
+        return list;
+    }
 }
 
 /// <summary>
@@ -297,6 +502,14 @@ public static class StarSkills
     /// <summary>How much larger a star swing's Perfect ring is (§13); 1 for a swing whose row names none.</summary>
     public static double SwingPerfectRingMul(string? starSwing, StarSkillTable? table = null) =>
         StarSkillTable.Or(table).Swing(starSwing)?.PerfectRingMul ?? 1.0;
+
+    /// <summary>How much taller a star swing's contact oval is (§13); 1 for a swing whose row names none.</summary>
+    public static double SwingOvalHeightMul(string? starSwing, StarSkillTable? table = null) =>
+        StarSkillTable.Or(table).Swing(starSwing)?.OvalHeightMul ?? 1.0;
+
+    /// <summary>The jagged flight a star swing's ball flies (§13); null for a swing whose row names none.</summary>
+    public static BallJag? SwingJag(string? starSwing, StarSkillTable? table = null) =>
+        StarSkillTable.Or(table).Swing(starSwing)?.Jag;
 
     /// <summary>A role player's star swing names its launch; a captain's keeps the swing's own.</summary>
     public static double? SwingLaunchDeg(string? starSwing, StarSkillTable? table = null) =>

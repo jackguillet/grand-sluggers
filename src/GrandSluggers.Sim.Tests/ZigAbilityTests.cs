@@ -30,7 +30,6 @@ public sealed class ZigAbilityTests
         Assert.Null(pitch.Float);
         Assert.Null(pitch.Twin);
         Assert.NotNull(pitch.Loop);
-        Assert.False(Game.StarSkills.Swing("shell-swing")!.InfieldChaos);
     }
 
     // ---------------------------------------------------------------------------------

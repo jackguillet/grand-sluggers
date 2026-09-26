@@ -67,7 +67,7 @@ public sealed class PitchFamilyGoldenTests
     static readonly double[] Rubbers = [-1, 0, 0.6];
     static readonly (double X, double Y)[] Aims = [(0, 0), (0.35, -0.6), (-0.5, 0.4)];
     static readonly int[] Stats = [1, 5, 10];
-    static readonly string?[] StarIds = [null, "heatball", "prismball", "charmball", "phonyball", "caskball"];
+    static readonly string?[] StarIds = [null, "heatball", "prismball", "charmball", "phonyball"];
 
     /// <summary>
     /// The three spellings of the two shipped deliveries as the pre-#810 API took them, and the
@@ -204,7 +204,7 @@ public sealed class PitchFamilyGoldenTests
         /// True when a <c>Math.Sin</c> stands between the rules table and this sample's X: a stick
         /// break (<see cref="PitchFlight.BreakShiftFt"/>) or one of the wobbling star pitches.
         /// Phonyball shifts X too, but by a table constant, so it stays reproducible from the
-        /// fixture alone; caskball lifts Y and never touches X.
+        /// fixture alone.
         /// </summary>
         public bool TouchesSine =>
             Pitch is not null
@@ -317,7 +317,7 @@ public sealed class PitchFamilyGoldenTests
                 // Aurora Ribbon's sway is its row's (star-skills.json `sway`), added where Point adds it.
                 "charmball" => StarSkillTable.Default.Pitch("charmball")?.Sway is { } sway && sway.OffsetFt(u) is var side and not 0 ? x + side : x,
                 "phonyball" => x + (u > st.PhonyballSwitchAt ? st.PhonyballLateX : st.PhonyballEarlyX),
-                // caskball lifts Y, not X; every other id falls through untouched.
+                // every other id falls through untouched.
                 _ => x
             };
     }
@@ -368,7 +368,7 @@ public sealed class PitchFamilyGoldenTests
                 foreach (var breakX in CrossBreaks)
                     foreach (var rubberX in Rubbers)
                         foreach (var (aimX, aimY) in Aims.Take(2))
-                            foreach (var star in new string?[] { null, "prismball", "caskball" })
+                            foreach (var star in new string?[] { null, "prismball" })
                                 yield return new Sample(
                                     $"cross|{SpellingKeys[s]}|c{Name(charge)}|b{Name(breakX)}|r{Name(rubberX)}|x{Name(aimX)}|{star ?? "none"}",
                                     Command(s, charge, star is not null, aimX, aimY, breakX, rubberX), 1, star, Crossing: true);
