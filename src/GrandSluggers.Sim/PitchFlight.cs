@@ -95,7 +95,10 @@ public static class PitchFlight
         // A row's own pace (§13): the leap hangs the ball over one stretch of its path and makes up the time after it,
         // so the same path arrives at the same instant — the timing window and the crossing are the ordinary pitch's.
         var row = pitch.Star ? StarSkillTable.Or(skills).Pitch(starPitchId) : null;
+        var time = u;
         if (row?.Leap is { } leap) u = leap.Progress(u);
+        // The loop holds the ball at one point of its path while it loops, then runs the rest on the same clock.
+        if (row?.Loop is { } loop) u = loop.Progress(u);
         var p = Point(pitch.Type, u, r, pitch.AimX, pitch.AimY, pitch.BreakX * pitch.BreakMul,
             pitch.RubberX, from, ChargeFeel.IsCharge(pitch.Charge01, r), pitch.Throws, zone);
         if (!pitch.Star) return p;
@@ -106,10 +109,15 @@ public static class PitchFlight
         // so the umpire, the bat and the CPU all judge the risen ball; in reference-zone feet, like every vertical star shape.
         if (row?.Rise is { } late && late.Lift(u) is var climb and not 0)
             p = (p.X, p.Y + climb * zone.VerticalScale, p.Z);
+        // The loop itself (§13): a circle standing on the path at the held point, in the vertical plane of the flight.
+        if (row?.Loop is { } ring && ring.Offset(time) is var (forward, up) && (forward != 0 || up != 0))
+        {
+            var toward = Math.Sign(StrikeZoneGeometry.PlateZ - (from ?? Release(r, pitch.RubberX)).Z);
+            p = (p.X, p.Y + up, p.Z + forward * toward);
+        }
         var st = r.Pitching.StarShapes;
         return starPitchId switch
         {
-            "prismball" => (p.X + Math.Sin(u * st.PrismballWobbleHz) * st.PrismballWobbleFt, p.Y, p.Z),
             "charmball" => (p.X + Math.Sin(u * st.CharmballWobbleHz) * st.CharmballWobbleFt, p.Y, p.Z),
             "phonyball" => (p.X + (u > st.PhonyballSwitchAt ? st.PhonyballLateX : st.PhonyballEarlyX), p.Y, p.Z),
             "caskball" => (p.X, p.Y + st.CaskballRise * zone.VerticalScale * u, p.Z),

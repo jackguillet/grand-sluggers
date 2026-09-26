@@ -18,11 +18,12 @@
     },
     "prismball": {
       "id": "prismball",
-      "name": "Prismball",
-      "kind": "break",
+      "name": "Loop-the-Loop",
+      "kind": "path",
+      "family": "loop",
       "speedMul": 1.0,
       "staminaCost": 14,
-      "lateBreak": true
+      "loop": { "at": 0.35, "span": 0.2, "diameterFt": 4 }
     },
     "phonyball": {
       "id": "phonyball",
@@ -85,7 +86,7 @@
   "swings": {
     "heat-swing": { "id": "heat-swing", "name": "Sparkler", "kind": "contact", "family": "bigger-sweet-spot", "exitVeloMul": 1.15, "perfectRingMul": 1.5 },
     "heart-swing": { "id": "heart-swing", "name": "Heart Swing", "kind": "status", "exitVeloMul": 1.05, "fielderPauseSec": 0.8 },
-    "shell-swing": { "id": "shell-swing", "name": "Shell Swing", "kind": "bounce", "exitVeloMul": 1.1, "infieldChaos": true },
+    "shell-swing": { "id": "shell-swing", "name": "Spinning Top", "kind": "bounce", "family": "first-hop-stall", "exitVeloMul": 1.1, "launchDeg": 0, "firstHopStallSec": 0.8, "firstHopStallSpeedMul": 0.5 },
     "phony-swing": { "id": "phony-swing", "name": "Phony Swing", "kind": "decoy", "exitVeloMul": 1.1, "decoy": true },
     "cask-swing": { "id": "cask-swing", "name": "Cask Swing", "kind": "payload", "exitVeloMul": 1.2, "fragments": true },
     "furnace": { "id": "furnace", "name": "Furnace", "kind": "terrain", "exitVeloMul": 1.25, "terrain": "warning-lava" },
