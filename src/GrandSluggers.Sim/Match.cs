@@ -1462,7 +1462,7 @@ public sealed partial class Match
                         if (runs > 0) Scorebook.CreditBatter(0, runs, ledBefore);
                         if (_outsThisPlay.Count >= 2) AddStars(defense: true, Rules.Stars.Gains.DoublePlay);
                         // A leap that took a ball clearing the fence (§8.4): the robbed homer, and the buddy who jumped with them.
-                        if (kind == PlayKind.FlyOut && field.Feat is DefensiveFeat.SuperJump or DefensiveFeat.Clamber or DefensiveFeat.BuddyJump && hit.HomeRun)
+                        if (kind == PlayKind.FlyOut && field.Feat is DefensiveFeat.Jump or DefensiveFeat.Clamber or DefensiveFeat.BuddyJump && hit.HomeRun)
                         {
                             Scorebook.Credit(field.Fielder?.Id, mvp.RobbedHomer);
                             if (field.Feat == DefensiveFeat.BuddyJump) Scorebook.Credit(field.Buddy?.Id, mvp.RobbedHomer);
@@ -1476,7 +1476,6 @@ public sealed partial class Match
                             : kind == PlayKind.FlyOut && field.Feat == DefensiveFeat.BuddyJump && field.Buddy is not null
                                 ? new(CallBeat.BuddyJump, Who: who, Other: field.Buddy.Name)
                             : kind == PlayKind.FlyOut && field.Feat == DefensiveFeat.Clamber ? new(CallBeat.Clamber, Who: who)
-                            : kind == PlayKind.FlyOut && field.Feat == DefensiveFeat.SuperJump ? new(CallBeat.SuperJump, Who: who)
                             : kind == PlayKind.FlyOut ? new(CallBeat.PutAway, Who: who)
                             : new(CallBeat.ToFirst, Who: who));
                         if (kind == PlayKind.FlyOut && runs > 0)

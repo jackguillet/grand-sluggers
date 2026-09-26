@@ -2,8 +2,8 @@ namespace GrandSluggers.Sim;
 
 /// <summary>
 /// Timed fly / wall catch. CPU dead-stick still uses <see cref="FieldingResolver.Resolve"/>.
-/// Player with the glove owns the jump. Super Jump / Grow / Clamber widen the window,
-/// they do not skip it. Camera: <see cref="PlayCamera.Beat.Line"/> / Fly / Homer / Wall.
+/// Player with the glove owns the jump. Wall Spring and a park's climb wall reach higher over the
+/// fence; nothing widens the window or skips it. Camera: <see cref="PlayCamera.Beat.Line"/> / Fly / Homer / Wall.
 /// Harbor wall only — no extra parks, no Nintendo mesh.
 /// </summary>
 public static class FlyCatch
@@ -19,25 +19,23 @@ public static class FlyCatch
 
     /// <summary>
     /// The rob height (§8.4, fielding.catch.*RobFt): a leap takes a ball clearing the fence by at
-    /// most the glove's reach over it — plain jump, Super Jump, Clamber on a climb wall, or a
-    /// buddy jump. A ball higher than that is gone whatever the window says.
+    /// most the glove's reach over it — the plain jump (plus Wall Spring's reach for its holder), a
+    /// buddy jump, or the park's climb wall when the leap's plant <paramref name="at"/> is on it (§14).
+    /// A ball higher than that is gone whatever the window says.
     /// </summary>
-    public static double RobHeightFt(Character? fielder, Park? park, RulesTable rules, bool buddy = false)
+    public static double RobHeightFt(Character? fielder, Park? park, RulesTable rules, bool buddy = false, (double X, double Z)? at = null)
     {
         var c = rules.Fielding.Catch;
-        var reach = c.JumpRobFt;
+        var reach = c.JumpRobFt + FieldAbilities.WallSpringRobFt(fielder, rules);
         if (buddy) reach = Math.Max(reach, c.BuddyJumpRobFt);
-        if (fielder is null) return reach;
-        if (fielder.FieldAbility == FieldAbilityId.SuperJump)
-            reach = Math.Max(reach, c.SuperJumpRobFt);
-        if (park != null && ParkHazards.CanClamber(park, fielder, rules))
-            reach = Math.Max(reach, c.ClamberRobFt);
+        if (park != null && at is { } plant)
+            reach = Math.Max(reach, ParkHazards.ClimbRobFt(park, plant, rules));
         return reach;
     }
 
-    /// <summary>Can this glove's leap reach a ball clearing the fence by <paramref name="clearFt"/>?</summary>
-    public static bool CanRob(double clearFt, Character? fielder, Park? park, RulesTable rules, bool buddy = false) =>
-        !double.IsNaN(clearFt) && clearFt <= RobHeightFt(fielder, park, rules, buddy);
+    /// <summary>Can this glove's leap, planted at <paramref name="at"/>, reach a ball clearing the fence by <paramref name="clearFt"/>?</summary>
+    public static bool CanRob(double clearFt, Character? fielder, Park? park, RulesTable rules, bool buddy = false, (double X, double Z)? at = null) =>
+        !double.IsNaN(clearFt) && clearFt <= RobHeightFt(fielder, park, rules, buddy, at);
 
     /// <summary>Both outfielders must plant together and meet the live ball overhead before it leaves play.</summary>
     public static bool BuddyInPosition(FieldingPreview pre, Park park,
@@ -49,42 +47,21 @@ public static class FlyCatch
         var plant = ChaseTarget(pre, r, park);
         return FieldingResolver.BuddyJumpOffered(pre) && hitT < hangSec
             && (pre.Ball?.LeavesT is not double leaves || hitT < leaves)
-            && JumpWindow(hitT, hangSec, r, pre.Fielder, park)
+            && JumpWindow(hitT, hangSec, r)
             && HighEnough(ballY, true, r)
             && ballY <= AtBatResolver.FenceSpotAt(park, FieldBounds.SprayDeg(plant.X, plant.Z)).TopFt + c.BuddyJumpRobFt
-            && CanRob(pre.Ball?.FenceClearFt ?? double.NaN, pre.Fielder, park, r, true)
+            && CanRob(pre.Ball?.FenceClearFt ?? double.NaN, pre.Fielder, park, r, true, plant)
             && Diamond.Dist(gloveX, gloveZ, plant.X, plant.Z) < c.BuddyPlantFt
             && Diamond.Dist(buddyX, buddyZ, plant.X, plant.Z) < c.BuddyPlantFt
             && Diamond.Dist(gloveX, gloveZ, ballX, ballZ) < c.BuddyPlantFt
             && Diamond.Dist(buddyX, buddyZ, ballX, ballZ) < c.BuddyPlantFt;
     }
 
-    /// <summary>
-    /// Super Jump / Grow / Clamber add seconds, not an auto-rob.
-    /// Harbor has no climb wall, so Clamber is zero there.
-    /// </summary>
-    public static double ExtraWindowSec(Character? fielder, Park? park, RulesTable rules)
-    {
-        if (fielder is null) return 0;
-        var c = rules.Fielding.Catch;
-        var extra = 0.0;
-        if (fielder.FieldAbility == FieldAbilityId.SuperJump)
-            extra += c.SuperJumpWindowSec;
-        if (fielder.FieldAbility == FieldAbilityId.Grow
-            || fielder.FieldAbility == FieldAbilityId.LickCatch)
-            extra += c.GrowWindowSec;
-        if (park != null && ParkHazards.CanClamber(park, fielder, rules))
-            extra += c.ClamberWindowSec;
-        return extra;
-    }
-
-    /// <summary>[hang − windowBefore − extra, hang + windowAfter + extra/2] (fielding.catch).</summary>
-    public static bool JumpWindow(double hitT, double hangSec, RulesTable rules, Character? fielder = null, Park? park = null)
+    /// <summary>[hang − windowBefore, hang + windowAfter] (fielding.catch): the same window for every body.</summary>
+    public static bool JumpWindow(double hitT, double hangSec, RulesTable rules)
     {
         var c = rules.Fielding.Catch;
-        var extra = ExtraWindowSec(fielder, park, rules);
-        return hitT >= hangSec - (c.WindowBeforeSec + extra)
-               && hitT <= hangSec + (c.WindowAfterSec + extra * 0.5);
+        return hitT >= hangSec - c.WindowBeforeSec && hitT <= hangSec + c.WindowAfterSec;
     }
 
     public static bool SitOnWall(double hitT, double hangSec, RulesTable rules) =>

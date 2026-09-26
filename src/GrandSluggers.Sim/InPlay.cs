@@ -49,7 +49,7 @@ public static class InPlay
         var fps = t.BaseFtPerSec * (thr?.SpeedMul ?? 1);
         var flight = distFt / Math.Max(t.MinFtPerSec, fps);
         var arm = thr?.Arm ?? NeutralArm;
-        var over = Math.Max(0, distFt - (t.ComfortableRangeFt + t.RangePerArmFt * (arm - NeutralArm) + (thr?.RangeBonusFt ?? 0))) / t.LongThrowScaleFt;
+        var over = Math.Max(0, distFt - (t.ComfortableRangeFt + t.RangePerArmFt * (arm - NeutralArm))) / t.LongThrowScaleFt;
         // The pair-and-ability factor alone: the arm is already in the speed, and the loss is divided by the rest.
         var pair = (thr?.SpeedMul ?? 1) / ArmMul(arm, rules);
         return (thr?.ReleaseSec ?? t.ReleaseSec) + flight + t.LongThrowLossSec * over * over / pair;
@@ -489,14 +489,14 @@ public static class InPlay
         !FieldingResolver.OutfieldGrass(gloveX, gloveZ, rules);
 
     /// <summary>
-    /// The tag reach of this glove (§10.3): running.bags.tagReachFt, plus the Lick / Grow bonus,
-    /// less the slide cut when the runner is sliding (§9.4).
+    /// The tag reach of this glove (§10.3): running.bags.tagReachFt, less the slide cut when the runner is sliding (§9.4). No
+    /// field ability reaches further on a tag.
     /// </summary>
     public static double TagReachFt(Character? fielder, RulesTable rules, bool sliding = false)
     {
-        var r = rules;
-        var bags = r.Running.Bags;
-        return bags.TagReachFt + FieldAbilities.TagReachBonus(fielder, r) - (sliding ? bags.SlideReachCutFt : 0);
+        _ = fielder;
+        var bags = rules.Running.Bags;
+        return bags.TagReachFt - (sliding ? bags.SlideReachCutFt : 0);
     }
 
     /// <summary>

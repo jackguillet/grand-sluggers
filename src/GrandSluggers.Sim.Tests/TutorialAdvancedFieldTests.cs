@@ -49,11 +49,9 @@ public sealed class TutorialAdvancedFieldTests
                 var length = Math.Max(1e-6, Math.Sqrt(dx * dx + dz * dz));
                 pad = new(StickX: dx / length, StickY: dz / length, SouthDown: length <= 3.5);
             }
-            else if (act && run.Lesson.Id == "T-F13" && live.HoldsBall && !live.Throwing)
-                pad = new(StickY: 1);
             else if (act && run.Lesson.Id == "T-F10" && live.HoldsBall && !live.Throwing)
                 pad = new(KeysBag: wrongBag ? 2 : 1, SouthDown: true);
-            else if (act && run.Lesson.Id is "T-F15" or "T-A-long-toss" && live.HoldsBall && live.GlovePos == "CF" && !live.Throwing)
+            else if (act && run.Lesson.Id == "T-F15" && live.HoldsBall && live.GlovePos == "CF" && !live.Throwing)
             {
                 pad = laserArmed ? new(SouthDown: true) : new(KeysBag: 4);
                 laserArmed = true;
@@ -165,28 +163,6 @@ public sealed class TutorialAdvancedFieldTests
         Assert.Equal(2, run.Successes);
     }
 
-    [Fact]
-    public void BallDashIsEarnedOnlyByHumanCarryOnTheProfileWithAnEligibleHolder()
-    {
-        var run = Start("T-F13");
-        for (var attempt = 1; attempt <= 3; attempt++)
-        {
-            Drive(run, act: true);
-            Assert.Equal("ball-dash-carried", run.Feedback?.Code);
-            Assert.True(run.Feedback!.Success);
-            Assert.Equal(attempt, run.Successes);
-            var replay = TutorialSession.Replay(_content, TutorialCatalog.Load(_content), run.Recording());
-            Assert.Equal(run.Feedback, replay.Feedback);
-            run.Retry();
-        }
-        var cpu = Start("T-F13");
-        Drive(cpu, act: true, source: LivePlayCommandSource.Cpu);
-        Assert.Equal(0, cpu.Successes);
-        var dead = Start("T-F13");
-        Drive(dead, act: false);
-        Assert.Equal(0, dead.Successes);
-    }
-
     [Theory]
     [InlineData("T-F07")]
     [InlineData("T-F14")]
@@ -233,28 +209,6 @@ public sealed class TutorialAdvancedFieldTests
         Drive(dead, act: false);
         Assert.Equal(0, dead.Successes);
         var cpu = Start("T-F15");
-        Drive(cpu, act: true, source: LivePlayCommandSource.Cpu);
-        Assert.Equal(0, cpu.Successes);
-    }
-
-    [Fact]
-    public void LongTossHolderMustThrowHomeHimselfFromPastAnOrdinaryArmsRange()
-    {
-        var run = Start("T-A-long-toss");
-        for (var attempt = 1; attempt <= 3; attempt++)
-        {
-            Drive(run, act: true);
-            Assert.True(run.Feedback?.Success == true, $"{run.Feedback}; play {run.LastPlay?.Kind}");
-            Assert.Equal("long-toss-home", run.Feedback?.Code);
-            Assert.Equal(attempt, run.Successes);
-            var replay = TutorialSession.Replay(_content, TutorialCatalog.Load(_content), run.Recording());
-            Assert.Equal(run.Feedback, replay.Feedback);
-            run.Retry();
-        }
-        var dead = Start("T-A-long-toss");
-        Drive(dead, act: false);
-        Assert.Equal(0, dead.Successes);
-        var cpu = Start("T-A-long-toss");
         Drive(cpu, act: true, source: LivePlayCommandSource.Cpu);
         Assert.Equal(0, cpu.Successes);
     }

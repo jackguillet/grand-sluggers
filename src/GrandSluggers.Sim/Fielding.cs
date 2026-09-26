@@ -128,29 +128,21 @@ public sealed class FieldingResolver
             return DefensiveFeat.BuddyJump;
         if (!shown.HomeRunLikely)
             return DefensiveFeat.None;
-        if (ParkHazards.CanClamber(park, shown.Fielder, rules))
-            return DefensiveFeat.Clamber;
-        if (shown.Fielder.FieldAbility == FieldAbilityId.SuperJump)
-            return DefensiveFeat.SuperJump;
-        return DefensiveFeat.None;
+        return ParkHazards.ClimbsAt(park, FlyCatch.ChaseTarget(shown, rules, park), rules)
+            ? DefensiveFeat.Clamber : DefensiveFeat.None;
     }
 
     /// <summary>The live glove verb the player actually completed on this catch.</summary>
     /// <summary>
     /// The feat the glove made the catch with (§8.4), typed for the outcome and the stamp (§15):
-    /// the buddy jump, a wall rob by ability, a plain jump in the window, or a dive.
+    /// the buddy jump, a rob at a park's climb wall, a plain jump in the window, or a dive.
     /// </summary>
     public static DefensiveFeat PlayerCatchFeat(FieldingPreview shown, Park park, RulesTable rules, bool buddyJump, bool jumped, bool dived = false)
     {
         if (buddyJump)
             return DefensiveFeat.BuddyJump;
-        if (jumped && shown.HomeRunLikely)
-        {
-            if (ParkHazards.CanClamber(park, shown.Fielder, rules))
-                return DefensiveFeat.Clamber;
-            if (shown.Fielder.FieldAbility == FieldAbilityId.SuperJump)
-                return DefensiveFeat.SuperJump;
-        }
+        if (jumped && shown.HomeRunLikely && ParkHazards.ClimbsAt(park, FlyCatch.ChaseTarget(shown, rules, park), rules))
+            return DefensiveFeat.Clamber;
         if (jumped) return DefensiveFeat.Jump;
         if (dived) return DefensiveFeat.Dive;
         return DefensiveFeat.None;
@@ -313,18 +305,15 @@ public sealed class FieldingResolver
         StandUpCatchFt(catchRadius) + rules.Fielding.Catch.DiveReachFt;
 
     /// <summary>
-    /// Base catch radius for a glove (abilities, clamber parks). The stand-up reach is the body class's (§8.1, §8.3): its
-    /// <c>flyReachFt</c> on a ball hit in the air (<paramref name="air"/>), its <c>groundReachFt</c> on a ball hit on the ground —
-    /// authored in data, never measured off the mesh. A character with no class has the table's <c>standUpReachFt</c>.
+    /// Base catch radius for a glove. The stand-up reach is the body class's (§8.1, §8.3): its <c>flyReachFt</c> on a ball hit
+    /// in the air (<paramref name="air"/>), its <c>groundReachFt</c> on a ball hit on the ground — authored in data, never
+    /// measured off the mesh. A character with no class has the table's <c>standUpReachFt</c>. No field ability widens it
+    /// (AB-12): Lick Catch is a press, Wall Spring a leap.
     /// </summary>
     public static double CatchRadiusFt(Character fielder, Park? park, RulesTable rules, bool air)
     {
-        var r = rules;
-        var standUp = BodyClasses.ReachFt(fielder, air, r);
-        var radius = standUp + FieldAbilities.CatchBonus(fielder, r);
-        if (park != null && ParkHazards.CanClamber(park, fielder, r))
-            radius += r.Fielding.Catch.ClamberRadiusFt;
-        return radius;
+        _ = park;
+        return BodyClasses.ReachFt(fielder, air, rules);
     }
 
     public static bool IsOutfield(string pos) => pos is "LF" or "CF" or "RF";
@@ -440,14 +429,6 @@ public sealed class FieldingResolver
         if (c.ChaseSpeedWeight <= 0) return c.FtPerSec;
         return c.FtPerSec + c.ChaseSpeedWeight * (ChaseSpeedFt(who, false, r) - c.FtPerSec);
     }
-
-    /// <summary>
-    /// The speed a body carries the ball (F693-02-ordinary-carry-speed, -ball-dash-carrier, #718): the pursuit speed it was
-    /// asked for, × <c>fielding.abilities.ballDashMul</c> for a Ball Dash holder. For every other body it is the asked speed
-    /// itself, not a product, so the walk the game shipped with is the same double it always was.
-    /// </summary>
-    public static double CarrySpeedFt(Character who, double pursuitFt, RulesTable rules) =>
-        FieldAbilities.HasBallDash(who) ? pursuitFt * rules.Fielding.Abilities.BallDashMul : pursuitFt;
 
     static double AirMul(string pos, FieldingPreview? pre, RulesTable rules)
     {
@@ -747,22 +728,25 @@ public static class ParkHazards
     }
 
     /// <summary>
-    /// A Clamber fielder in a park that lists a <see cref="HazardPattern.WallTrait"/>. Park-wide
-    /// today — the row's position and radius are never read — which is what FD-06 turns into a
-    /// property of one wall span.
+    /// The climb wall (§14, a park rule): the <see cref="HazardPattern.WallTrait"/> disc of this park that holds the wall
+    /// point (<paramref name="at"/>, the leap's plant), or null. Any fielder whose leap is there climbs, whatever ability.
     /// </summary>
-    public static bool CanClamber(Park park, Character fielder, RulesTable rules)
+    public static HazardTypeRules? ClimbWallAt(Park park, (double X, double Z) at, RulesTable rules)
     {
-        if (fielder.FieldAbility != FieldAbilityId.Clamber) return false;
         var hazards = rules.Hazards;
-        return park.Hazards.Any(h => hazards.Of(h.Type).Pattern == HazardPattern.WallTrait);
+        foreach (var h in park.Hazards)
+        {
+            var row = hazards.Of(h.Type);
+            if (row.Pattern == HazardPattern.WallTrait && Diamond.Dist(h.X, h.Z, at.X, at.Z) <= h.Radius)
+                return row;
+        }
+        return null;
     }
 
-    /// <summary>Clamber robs a ball clearing the fence by at most fielding.catch.clamberRobFt (§8.4).</summary>
-    public static bool CanClamberRob(Park park, Character fielder, AtBatResult hit, RulesTable rules)
-    {
-        if (!CanClamber(park, fielder, rules)) return false;
-        var ball = BattedBall.Of(hit, park, rules);
-        return ball.HomeRun && ball.FenceClearFt <= rules.Fielding.Catch.ClamberRobFt;
-    }
+    /// <summary>A leap planted at <paramref name="at"/> is on this park's climb wall (§14).</summary>
+    public static bool ClimbsAt(Park park, (double X, double Z) at, RulesTable rules) => ClimbWallAt(park, at, rules) is not null;
+
+    /// <summary>How far over the fence a climber robs at <paramref name="at"/> (<c>hazards.*.robFt</c>); 0 off the climb wall.</summary>
+    public static double ClimbRobFt(Park park, (double X, double Z) at, RulesTable rules) =>
+        ClimbWallAt(park, at, rules)?.RobFt ?? 0;
 }

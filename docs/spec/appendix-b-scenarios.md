@@ -249,11 +249,19 @@ The S-29 figures this row once recorded stay in [`docs/research/plate-window-p2b
 | S-54 | Runner on 3rd tags on a 250 ft fly to LF (arm Field 9), goes (the runner reads the race and holds on a 222-ft fly) | | Throw home; out or safe by arrival; a close-play icon only if within 0.25 s |
 | S-55 | Bases loaded, pop to SS dropped on purpose | CPU runners | Runners on bags; force at home only |
 | S-55b | Runner on 3rd tags on a caught fly; the relay then loses the ball (sail, uncovered lob, or item) | CPU runners | The catch is the out and is never re-read as a drop: no second retouch, so no force back at the bag he legally left. His fate from there is geometry — he scores, or the recovered ball beats him to the plate |
-| S-56 | Fly 12 ft over the fence, CF Super Jump in the window at the wall | West | Robbed, out |
+| S-56 | Fly 6 ft over the fence, CF with Wall Spring in the window at the wall | West | Robbed, out |
 | S-57 | Same, no ability | West | Home run |
 | S-58 | Fly hits the wall below the top | | Carom; live; batter to 2B by geometry |
 | S-58b | Fly crosses the fence line at `fenceHeightFt` ± 0.5 ft (D15) | | +0.5 home run; −0.5 carom off the padding you see |
 | S-59 | Bounce then over the fence (101 mph at 44°: under drag 0.0040 only flies from 42° up hop Harbor's 12-ft wall) | | Ground-rule double: every runner +2 |
+| S-254 | Relay Pivot: a deep fly to CF with a runner on third; the cutoff carries Relay Pivot, then the same with no throw ability | RB feed, RT at the catch | The onward throw leaves on a 0.15-s release, against the ordinary 0.30; Snap Throw's 0.22 on any clean received throw; not a relay or not clean is the ordinary release (`FieldPoolTests`) |
+| S-255 | Wall Spring: a fly 6 ft over the fence to a CPU CF with Wall Spring, then one without | CPU | Robbed with the jump, a RobbedHomer highlight; without it a home run. The spring is 4 ft at the wall and 0 at 60 ft in; the stand-up ring is the body's (`FieldPoolTests`) |
+| S-256 | Lick Catch: Zig planted 2.5 ft past his ring's reach behind a fly's landing, facing the ball | East as it comes in | The tongue takes it in the air: a fly out and the Lick Catch fact; no press, the ball lands out of reach (`FieldPoolTests`) |
+| S-257 | Lick Catch past its reach, behind, beside or over the head | East | Nothing on the tongue: 8 ft ahead along the facing, 1.5 ft either side, no higher than 6 ft; 0.3 s out, 0.8 s recovery from the press (`FieldPoolTests`) |
+| S-258 | East on a body with no tongue (Hex) under the same fly | East | No tongue snaps and no tongue recovery holds the body; East is its own verb (`FieldPoolTests`) |
+| S-259 | Canopy Yard: a fly 12 ft over the centre fence, CF Ashlord (Laser) or Tambo; then Ashlord at Harbor | West in the window | At Canopy any fielder climbs and robs it (the Clamber feat, `hazards.climbWall.robFt` 28); at Harbor a home run (`FieldPoolTests`) |
+| S-260 | The content names a retired ability, a sixth one, Lick Catch on a non-tongue captain or species, or a sidekick's own field ability | | Refused by name; the shipped root is clean (`FieldPoolTests`) |
+| S-261 | The shipped roster | | Five abilities in the pool; every character carries one; every sidekick carries its species'; the captains carry the plan's; Lick Catch only on tongue bodies (`FieldPoolTests`) |
 
 ## B.5 Steals and pickoffs — S-60 … S-72 as tabled in §11.5. ✅ P6 (`StealScenarioTests`).
 

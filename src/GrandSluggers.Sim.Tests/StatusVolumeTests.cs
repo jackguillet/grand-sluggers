@@ -126,7 +126,7 @@ public sealed class StatusVolumeTests
         Assert.False(slows.Slowed("LF"));
     }
 
-    /// <summary><c>SF-20</c>: a Burrow body is never slowed and touches nothing; a park with no volume slows nobody.</summary>
+    /// <summary><c>SF-20</c>: an immune body touches nothing (the clock's own switch; no field ability is immune since AB-12); a park with no volume slows nobody.</summary>
     [Fact]
     public void SF20_AnImmuneBodyAndAParkWithNoVolumeSlowNobody()
     {
@@ -301,32 +301,6 @@ public sealed class StatusVolumeTests
         Assert.True(touches[1].T > touches[0].T);
         Assert.Equal(touches[1].T + SlowSec, touches[1].UntilT, 9);
         Assert.Equal(touches.Length, p.Trace.Marks!.Count(m => m.Kind == PlayTraceMarkKind.BodySlowed && m.Fielder == "SS"));
-    }
-
-    /// <summary><c>SF-20</c>: a Burrow fielder standing in a volume is not slowed and touches nothing (FieldAbilities.IgnoresParkSlow).</summary>
-    [Fact]
-    public void SF20_TheBurrowFielderIsNeverSlowed()
-    {
-        // Ember Court defends the top here, so Soot is on the field.
-        var probe = new Match(Catalog, PresetTeams.SparkAllStars(Catalog), PresetTeams.EmberCourt(Catalog), Catalog.MustPark(ParkId.Harbor), seed: 1);
-        var map = FieldingResolver.Assign(probe.DefenseRoster, probe.Pitcher, probe.Defense.Gloves);
-        var burrow = map.Single(kv => FieldAbilities.IgnoresParkSlow(kv.Value));
-        var other = map.First(kv => kv.Key is not ("P" or "C") && !FieldAbilities.IgnoresParkSlow(kv.Value));
-        var at = Diamond.Positions[burrow.Key];
-        var near = Diamond.Positions[other.Key];
-        var harbor = Catalog.MustPark(ParkId.Harbor);
-        var park = harbor with
-        {
-            Hazards = [.. harbor.Hazards, new Hazard(HazardType.FreezeVolume, at.X, at.Z, 6, null), new Hazard(HazardType.FreezeVolume, near.X, near.Z, 6, null)]
-        };
-        var match = new Match(Catalog, PresetTeams.SparkAllStars(Catalog), PresetTeams.EmberCourt(Catalog), park, seed: 1);
-        var p = Play(match, FlightFixtures.Landing(park, 200, 30, 20));
-        // Both stood inside from the first frame; only the one without Burrow was slowed.
-        Assert.DoesNotContain(p.Live.SlowsThisPlay, t => t.Pos == burrow.Key);
-        Assert.All(p.Bodies, frame => Assert.False(frame[burrow.Key].Slowed));
-        Assert.Equal(other.Key, p.Live.SlowsThisPlay[0].Pos);
-        Assert.Equal(0.0, p.Live.SlowsThisPlay[0].T);
-        Assert.True(p.Bodies[0][other.Key].Slowed);
     }
 
     /// <summary>

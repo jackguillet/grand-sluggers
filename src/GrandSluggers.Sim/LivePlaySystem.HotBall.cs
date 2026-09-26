@@ -45,7 +45,7 @@ public sealed partial class LivePlaySystem
         var who = GloveChar();
         RecordFact(new HotBallDropped(Hit?.StarSwingUsed ?? "", ElapsedSeconds, GloveX, GloveZ, who.Id, pos));
         _cpuWalkBag = 0;
-        _receivedClean = false;
+        _receivedClean = _relayLeg = false;
         Sub = $"Too hot! {who.Name} drops it.";
         Foil(pos, Math.Max(_items.OffLeft(pos), Math.Max(hot.MoltenLeft(ElapsedSeconds), 1e-6)));
         _cpuClock.Restart();

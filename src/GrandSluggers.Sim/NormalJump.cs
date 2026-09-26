@@ -20,7 +20,7 @@ public sealed class NormalJump
     /// <summary>The root rise now, <c>4 H u (1 − u)</c> over the airtime; 0 on the ground.</summary>
     public double HeightFt { get; private set; }
 
-    /// <summary>This jump's peak rise <c>H</c>: <c>catch.jumpRiseFt</c> for every body but a Lily Leap (§8.4), set at takeoff.</summary>
+    /// <summary>This jump's peak rise <c>H</c>: <c>catch.jumpRiseFt</c> for every body (§8.4), set at takeoff.</summary>
     public double RiseFt { get; private set; }
 
     /// <summary>A blocked press is remembered, bound to the body it was made on.</summary>

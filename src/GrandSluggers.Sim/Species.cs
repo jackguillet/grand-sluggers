@@ -3,8 +3,8 @@ namespace GrandSluggers.Sim;
 /// <summary>
 /// A sidekick species (WD-27, <c>data/world/species.json</c>): an animal hybrid or a made-up creature themed to its park
 /// (the neighborhood's are human kids). Each captain's faction has three, one of each <see cref="Build"/>; a sidekick
-/// names its species, wears its body and carries its Star Pitch and Star Swing (AB-10: the sidekick's row names none; they
-/// are generic specials). The sidekick's own row still names its field ability.
+/// names its species, wears its body and carries its Star Pitch, Star Swing (AB-10: generic specials) and field ability
+/// (AB-12). The sidekick's row names none of the three.
 /// </summary>
 public sealed record Species(
     string Id, string Name, string Faction, string Blend, string Build, string Look,

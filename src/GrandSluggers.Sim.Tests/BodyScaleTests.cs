@@ -6,59 +6,27 @@ namespace GrandSluggers.Sim.Tests;
 public class BodyScaleTests
 {
     readonly string _repo = Path.GetFullPath(Path.Combine(Shipped.Content.Root.Shipped, ".."));
-    readonly ContentCatalog _content = Shipped.Content;
 
-    static readonly string[] NotGrow =
-        ["lick-catch", "super-jump", "dive", "laser", "clamber", "snap-throw", "sand-scoop", "long-toss", "lily-leap", ""];
-
+    /// <summary>
+    /// The debug protocol's promoted row (a glove with the ball scaled up): every captain carries a pool ability, none of the
+    /// pool grows the body (AB-12), and the scale is rest, highlighted or not.
+    /// </summary>
     [Fact]
     public void AGloveWithTheBallIsRestScaleForEveryCaptain()
     {
-        Assert.True(BodyScale.Grow > BodyScale.Rest);
         foreach (var id in Shipped.CaptainIds)
-        {
-            var who = _content.Must(id);
-            Assert.Equal(BodyScale.Rest, BodyScale.Live(
-                who.FieldAbility, playGlove: true, holdBall: true, highlighted: true, hint: true));
-            Assert.Equal(BodyScale.Rest, BodyScale.Live(
-                who.FieldAbility, playGlove: true, holdBall: true, highlighted: false, hint: false));
-            Assert.Equal(BodyScale.Rest, BodyScale.Of(
-                grow: BodyScale.IsGrow(who.FieldAbility), holdBall: true, highlighted: true, hint: true));
-        }
-    }
-
-    [Fact]
-    public void GrowAbilityIsTheOnlyScaleUp()
-    {
-        Assert.Equal(BodyScale.Grow, BodyScale.Live("grow", playGlove: true, holdBall: false));
-        Assert.Equal(BodyScale.Grow, BodyScale.Live(
-            "grow", playGlove: true, holdBall: false, highlighted: true, hint: true));
-        Assert.Equal(BodyScale.Rest, BodyScale.Live("grow", playGlove: false, holdBall: false, highlighted: true));
-        Assert.Equal(BodyScale.Rest, BodyScale.Live("grow", playGlove: true, holdBall: true, highlighted: true));
-        foreach (var ability in NotGrow)
-        {
-            Assert.Equal(BodyScale.Rest, BodyScale.Live(
-                ability, playGlove: true, holdBall: false, highlighted: true, hint: true));
-            Assert.Equal(BodyScale.Rest, BodyScale.Live(
-                ability, playGlove: true, holdBall: true, highlighted: true, hint: true));
-        }
-        foreach (var id in Shipped.CaptainIds)
-        {
-            var who = _content.Must(id);
-            var chasing = BodyScale.Live(who.FieldAbility, playGlove: true, holdBall: false, highlighted: true);
-            Assert.Equal(BodyScale.IsGrow(who.FieldAbility) ? BodyScale.Grow : BodyScale.Rest, chasing);
-        }
+            Assert.Contains(Shipped.Content.Must(id).FieldAbility, FieldAbilityId.All);
+        Assert.Equal(BodyScale.Rest, BodyScale.Of());
+        Assert.Equal(BodyScale.Rest, BodyScale.Of(highlighted: true, hint: true));
     }
 
     [Fact]
     public void HighlightAndHintNeverScaleTheToy()
     {
-        Assert.Equal(BodyScale.Rest, BodyScale.Of(grow: false, highlighted: true, hint: false));
-        Assert.Equal(BodyScale.Rest, BodyScale.Of(grow: false, highlighted: false, hint: true));
-        Assert.Equal(BodyScale.Rest, BodyScale.Of(grow: false, highlighted: true, hint: true));
-        Assert.Equal(BodyScale.Grow, BodyScale.Of(grow: true, highlighted: false, hint: false));
-        Assert.Equal(BodyScale.Grow, BodyScale.Of(grow: true, highlighted: true, hint: true));
-        Assert.Equal(BodyScale.Rest, BodyScale.Of(grow: true, holdBall: true, highlighted: true, hint: true));
+        Assert.Equal(BodyScale.Rest, BodyScale.Of());
+        Assert.Equal(BodyScale.Rest, BodyScale.Of(highlighted: true, hint: false));
+        Assert.Equal(BodyScale.Rest, BodyScale.Of(highlighted: false, hint: true));
+        Assert.Equal(BodyScale.Rest, BodyScale.Of(highlighted: true, hint: true));
     }
 
     [Fact]
@@ -73,16 +41,11 @@ public class BodyScaleTests
         Assert.DoesNotContain("_hint ?", src, StringComparison.Ordinal);
     }
 
+    /// <summary>No field ability grows the toy (AB-12): the director never asks for a bigger body.</summary>
     [Fact]
-    public void ActorDirectorDoesNotGrowAGloveThatHoldsTheBall()
+    public void ActorDirectorNeverGrowsABody()
     {
         var src = File.ReadAllText(Path.Combine(_repo, "unity/Assets/Scripts/Runtime/ActorDirector.cs"));
-        Assert.Contains("BodyScale.GrowOn", src, StringComparison.Ordinal);
-        Assert.Contains("holdBall", src, StringComparison.Ordinal);
-        Assert.DoesNotContain(
-            "SetGrow(who.FieldAbility == \"grow\" && highlighted)",
-            src,
-            StringComparison.Ordinal);
-        Assert.Contains("SetGrow(false)", src, StringComparison.Ordinal);
+        Assert.DoesNotContain("SetGrow", src, StringComparison.Ordinal);
     }
 }

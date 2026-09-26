@@ -51,7 +51,7 @@ The park file is `crystal-rink` (its id); the name a player reads is Aurora Rink
 - Faction: Canopy Clan
 - Surface: dirt
 - Fence: 312 / 378 / 318
-- Gimmick: **Barrel cannons** warp grounders (same rule as Funfair cans). **Climb wall** — fielders with Clamber (Konga, Vine, Moss) can rob a homer that only just cleared the fence. *Partly built:* `climb_wall` is a flag for the whole park; its place and size are not read, and it also widens a Clamber fielder's catch anywhere in the park. It becomes a property of a wall span (FD-06). `tree` has no sim effect.
+- Gimmick: **Barrel cannons** warp grounders (same rule as Funfair cans). **Climb wall** — a park rule (AB-12): any fielder whose wall leap is inside the climb wall's disc (centre field) climbs it and robs a homer up to 28 ft over (`hazards.climbWall.robFt`, a trial number). *Built* as a disc on the fence; a property of a wall span is FD-06. `tree` has no sim effect.
 - Night: fireflies, same play. Presentation only.
 - Why it exists: jungle walls you can clamber, barrels you can see kick a grounder. Trees, vine walls with ledges at fence height, barrel-cannon actors (mouths + tags, not anonymous cylinders). Same diamond kit. Spark lofts, royal palace, and carnival tents stay out.
 

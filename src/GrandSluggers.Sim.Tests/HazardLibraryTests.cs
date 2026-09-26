@@ -288,17 +288,18 @@ public sealed class HazardLibraryTests
     }
 
     /// <summary>
-    /// The wall trait, against the oracle, for a Clamber fielder and for one without the
-    /// ability, in every park. It is still a park-wide flag and the row's disc is still never read.
+    /// The wall trait, against the oracle, at points along every park's fence: a park rule (AB-12), so it reads the wall point
+    /// against the row's disc and never the fielder.
     /// </summary>
     [Fact]
     public void TheWallTraitDispatchEqualsTheOracle()
     {
         foreach (var park in Parks)
-            foreach (var id in new[] { "konga", "rio", "ashlord" })
+            for (var spray = -45; spray <= 45; spray += 5)
             {
-                var fielder = Content.Must(id);
-                Assert.Equal(OldDispatch.CanClamber(park, fielder), ParkHazards.CanClamber(park, fielder, Table));
+                var r = AtBatResolver.FenceAt(park, spray) - 8;
+                var at = (r * Math.Sin(spray * Math.PI / 180), r * Math.Cos(spray * Math.PI / 180));
+                Assert.Equal(OldDispatch.Climbs(park, at), ParkHazards.ClimbsAt(park, at, Table));
             }
     }
 
@@ -363,12 +364,11 @@ public sealed class HazardLibraryTests
             .Select(h => h.Type).Distinct().OrderBy(t => t, StringComparer.Ordinal).ToList();
         Assert.Equal([HazardType.AcUnit, HazardType.LilyPad, HazardType.Statue, HazardType.Train, HazardType.Tree], bodies);
 
-        var konga = Content.Must("konga");
         var scenery = new Park(
             "scenery", "Scenery", "none", "grass", 330, 400, 330, 0,
             [new Hazard(HazardType.Tree, 40, 200, 6, null), new Hazard(HazardType.Statue, -40, 200, 6, null)],
             WindDeg: 0, FenceHeightFt: 12);
-        Assert.False(ParkHazards.CanClamber(scenery, konga, Table));
+        Assert.False(ParkHazards.ClimbsAt(scenery, (0, 392), Table));
         Assert.Empty(Live(scenery).Mouths);
         Assert.Null(Live(scenery).Reward(40, 0, 200));
         Assert.Equal(2, SolidBodies.Of(scenery, Table).Count);
@@ -468,9 +468,8 @@ public sealed class HazardLibraryTests
             return false;
         }
 
-        public static bool CanClamber(Park park, Character fielder) =>
-            fielder.FieldAbility.Equals("clamber", StringComparison.OrdinalIgnoreCase) &&
-            park.Hazards.Any(h => h.Type == "climb_wall");
+        public static bool Climbs(Park park, (double X, double Z) at) =>
+            park.Hazards.Any(h => h.Type == "climb_wall" && Diamond.Dist(h.X, h.Z, at.X, at.Z) <= h.Radius);
     }
 
     /// <summary>

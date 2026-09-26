@@ -158,6 +158,7 @@ public static class ContentDataValidator
             ValidateCharacter(row, pitches, swings, errors);
         ValidateCaptains(data, errors);
         ValidateSpecies(data, pitches, swings, errors);
+        ValidateTongueBodies(data, errors);
         // A sidekick never carries a captain's special, and no two captains share one (§13, AB-02, AB-10): a sidekick's
         // specials are the generic pool's; a captain's belongs to that captain alone.
         SpecialsBelongToTheirCarrier(data.Characters, "starPitch", r => r.StarPitch, data.StarSkills.Pitches, errors);
@@ -474,6 +475,27 @@ public static class ContentDataValidator
         }
     }
 
+    /// <summary>
+    /// Lick Catch is for tongue bodies only (§8.4, AB-12): a captain or a species that carries it belongs to a faction that
+    /// <c>fielding.abilities.lickCatchFactions</c> names, and every faction that list names has a captain.
+    /// </summary>
+    static void ValidateTongueBodies(ContentData data, List<string> errors)
+    {
+        if (data.Rules is not { } rules) return;
+        var factions = data.Characters.Where(r => r.Value.Captain).Select(r => r.Value.Faction)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        foreach (var f in rules.Fielding.Abilities.LickCatchFactions.Where(f => !factions.Contains(f)))
+            errors.Add($"fielding.abilities.lickCatchFactions names '{f}', a faction with no captain");
+        foreach (var row in data.Characters.Where(r => r.Value.Captain && r.Value.FieldAbility == FieldAbilityId.LickCatch
+                     && !FieldAbilities.TongueBody(r.Value.Faction, rules)))
+            errors.Add($"{row.Source}: character '{row.Value.Id}' carries lick-catch, but faction '{row.Value.Faction}' is not a tongue body "
+                       + "(fielding.abilities.lickCatchFactions)");
+        foreach (var s in (data.Species.Species ?? []).Where(s => s is not null && s.FieldAbility == FieldAbilityId.LickCatch
+                     && !FieldAbilities.TongueBody(s.Faction, rules)))
+            errors.Add($"{data.SpeciesSource}: species '{s!.Id}' carries lick-catch, but faction '{s.Faction}' is not a tongue body "
+                       + "(fielding.abilities.lickCatchFactions)");
+    }
+
     static void SpecialsBelongToTheirCarrier(IEnumerable<Sourced<CharacterDto>> characters, string field,
         Func<CharacterDto, string?> skillOf, Dictionary<string, StarSkillDto?>? rows, List<string> errors)
     {
@@ -752,7 +774,11 @@ public static class ContentDataValidator
                        + "(data/rules/body-classes.json, spec §8.1), so name a bodyClass instead");
         Known(row.Source, $"character '{c.Id}' bats", c.Bats, Hands, errors);
         Known(row.Source, $"character '{c.Id}' throws", c.Throws, Hands, errors);
-        Known(row.Source, $"character '{c.Id}' fieldAbility", c.FieldAbility, FieldAbilityIds, errors);
+        // A captain names its own field ability; a sidekick names none — its species' is its (AB-12, WD-27).
+        if (c.Captain)
+            Known(row.Source, $"character '{c.Id}' fieldAbility", c.FieldAbility, FieldAbilityIds, errors);
+        else if (!string.IsNullOrEmpty(c.FieldAbility))
+            errors.Add($"{row.Source}: sidekick '{c.Id}' names fieldAbility '{c.FieldAbility}'; a sidekick carries its species' field ability, so leave it out");
         ValidateRepertoire(row.Source, c, errors);
         // A captain names its own specials; a sidekick names none — its species' are its (AB-10, WD-27).
         if (c.Captain)

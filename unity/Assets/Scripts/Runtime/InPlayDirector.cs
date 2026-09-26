@@ -66,9 +66,8 @@ namespace GrandSluggers.UnityClient
                 if (LandingMark.On(_play.Preview, _play.Ball.y, LiveTime, _live.Caught, _live.Buddy, _play.Match.Rules, hang))
                 {
                     var plant = LandingMark.At(_play.Preview, _play.Match.Rules, _play.Match.Park);
-                    var who = PlayFielder();
                     _scene.Ring.Show(plant.X, plant.Z, (float)LandingMark.RadiusFt(_play.Preview),
-                        LandingMark.Hot(LiveTime, hang, _play.Match.Rules, who, _play.Match.Park));
+                        LandingMark.Hot(LiveTime, hang, _play.Match.Rules));
                 }
                 else
                     _scene.Ring.Hide();

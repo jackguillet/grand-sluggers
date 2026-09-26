@@ -35,11 +35,13 @@ public sealed class OutsScenarioTests
         // The C80 copy (#715): the second baseman stands at (37, 105) not (42, 118), and the 120-ft ball up the middle is past him — the
         // compact 4-6-3 is 105 ft at 9°.
         yield return [new DpRow("S-41 4-6-3", 125, -3, 14, [1], 0, [2, 1], "2B")];
-        yield return [new DpRow("S-42 5-4-3", 110, -6, -40, [1], 0, [2, 1], "3B")];
+        // AB-12: with the dive's ground reach gone from the pool, the third baseman turns two on the ball hit right at him.
+        yield return [new DpRow("S-42 5-4-3", 140, -6, -44, [1], 0, [2, 1], "3B")];
         // C80: the 92-ft ball is taken 16 ft in front of the 80-ft bag, a throw away from it; the ball the first baseman takes beside the bag is 70 ft at 43°.
         yield return [new DpRow("S-43 3 then the tag", 92, -6, 43, [1], 0, [0, 2], "1B")];
         // C80: at 110 ft the ball's line passes between the compact first and second basemen and the preview names second; 95 ft is the first baseman's.
-        yield return [new DpRow("S-44 3-6-3", 105, -6, 38, [1], 0, [2, 1], "1B")];
+        // AB-12: the first baseman turns it on the hard ball at him (the dive's ground reach is gone from the pool).
+        yield return [new DpRow("S-44 3-6-3", 135, -6, 42, [1], 0, [2, 1], "1B")];
         yield return [new DpRow("S-45 1-6-3", 60, -12, 1, [1], 0, [2, 1], "P")];
         // C80: from the 92-ft ball the CPU's second out goes to second and the batter reaches; 85 ft at 3° is the step on third then the throw to first.
         yield return [new DpRow("S-46 5 unassisted then 3", 67, -12, -44, [1, 2], 0, [0, 1], "3B")];
@@ -426,7 +428,7 @@ public sealed class OutsScenarioTests
         S73_Row(S73Compact);
 
     /// <summary>The sharper right-side grounder reaches third before the runner enters the close margin.</summary>
-    static readonly (int OrderIndex, double Exit, double Spray) S73Compact = (2, 120, 26);
+    static readonly (int OrderIndex, double Exit, double Spray) S73Compact = (2, 120, 20);
 
     void S73_Row((int OrderIndex, double Exit, double Spray) row)
     {
@@ -448,7 +450,7 @@ public sealed class OutsScenarioTests
         S74_Row(pressFramesAfterIcon, safe, S74Compact);
 
     /// <summary>The softer right-side grounder puts the dashing Run-5 body inside the close margin.</summary>
-    static readonly (int OrderIndex, double Exit, double Spray) S74Compact = (5, 100, 26);
+    static readonly (int OrderIndex, double Exit, double Spray) S74Compact = (5, 105, 20);
 
     void S74_Row(int pressFramesAfterIcon, bool safe, (int OrderIndex, double Exit, double Spray) row)
     {
@@ -857,7 +859,4 @@ public sealed class OutsScenarioTests
         foreach (var bag in bags)
             Assert.True(match.StationRunner(bag, roster[bag + 1]), $"station bag {bag}");
     }
-
-
-
 }

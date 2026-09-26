@@ -12,7 +12,6 @@
     "bats": "R",
     "throws": "R",
     "repertoire": ["changeup", "curveball"],
-    "fieldAbility": "super-jump",
     "bio": "The other 5-tool kid from the neighborhood field. Came through the portal right behind Rio."
   },
   {
@@ -29,7 +28,6 @@
     "bats": "L",
     "throws": "L",
     "repertoire": ["changeup", "slider"],
-    "fieldAbility": "ball-dash",
     "bio": "Small, fast, lives for close plays."
   },
   {
@@ -45,7 +43,6 @@
     "bats": "R",
     "throws": "R",
     "repertoire": ["curveball", "sinker"],
-    "fieldAbility": "dive",
     "bio": "Reliable everywhere, famous nowhere."
   },
   {
@@ -61,7 +58,6 @@
     "bats": "R",
     "throws": "R",
     "repertoire": ["curveball", "slider"],
-    "fieldAbility": "snap-throw",
     "bio": "Owner of the wickedest curve in the rink."
   },
   {
@@ -77,7 +73,6 @@
     "bats": "L",
     "throws": "R",
     "repertoire": ["changeup", "sinker"],
-    "fieldAbility": "dive",
     "bio": "The glove is the whole scouting report."
   },
   {
@@ -93,7 +88,6 @@
     "bats": "L",
     "throws": "R",
     "repertoire": ["changeup", "slider"],
-    "fieldAbility": "ball-dash",
     "bio": "An extra-speedy fairground rat who loves to run."
   },
   {
@@ -109,7 +103,6 @@
     "bats": "R",
     "throws": "R",
     "repertoire": ["slider", "sinker"],
-    "fieldAbility": "laser",
     "bio": "Charge swing first, ask the glove later."
   },
   {
@@ -125,7 +118,6 @@
     "bats": "L",
     "throws": "L",
     "repertoire": ["curveball", "slider"],
-    "fieldAbility": "clamber",
     "bio": "A mini dynamo who can clamber and field."
   },
   {
@@ -141,7 +133,6 @@
     "bats": "R",
     "throws": "R",
     "repertoire": ["slider", "sinker"],
-    "fieldAbility": "spin-check",
     "bio": "A mighty charge swing and a worse attitude."
   },
   {
@@ -157,7 +148,6 @@
     "bats": "R",
     "throws": "R",
     "repertoire": ["changeup", "sinker"],
-    "fieldAbility": "spin-check",
     "bio": "Eats innings and glares."
   },
   {
@@ -174,7 +164,6 @@
     "bats": "L",
     "throws": "L",
     "repertoire": ["changeup", "curveball"],
-    "fieldAbility": "laser",
     "bio": "A junkballer who always knows the count."
   },
   {
@@ -191,7 +180,6 @@
     "bats": "R",
     "throws": "L",
     "repertoire": ["curveball", "sinker"],
-    "fieldAbility": "burrow",
     "bio": "Disappears into the dirt and comes up with the ball."
   },
   {
@@ -208,7 +196,6 @@
     "bats": "R",
     "throws": "R",
     "repertoire": ["slider", "sinker"],
-    "fieldAbility": "super-jump",
     "bio": "Harbor outfielder who treats the warning track like a runway."
   },
   {
@@ -224,7 +211,6 @@
     "bats": "R",
     "throws": "R",
     "repertoire": ["curveball", "sinker"],
-    "fieldAbility": "snap-throw",
     "bio": "Pageant catcher. The mask is half the intimidation."
   },
   {
@@ -241,7 +227,6 @@
     "bats": "L",
     "throws": "R",
     "repertoire": ["changeup", "curveball"],
-    "fieldAbility": "ball-dash",
     "bio": "Bunts for sport and steals because the crowd asked."
   },
   {
@@ -258,7 +243,6 @@
     "bats": "R",
     "throws": "R",
     "repertoire": ["changeup", "sinker"],
-    "fieldAbility": "laser",
     "bio": "Pays for the long ball. The glove is a sunk cost."
   },
   {
@@ -274,7 +258,6 @@
     "bats": "L",
     "throws": "L",
     "repertoire": ["curveball", "sinker"],
-    "fieldAbility": "clamber",
     "bio": "Slow feet, heavy lumber, sleeps in the batter's eye."
   },
   {
@@ -291,7 +274,6 @@
     "bats": "R",
     "throws": "L",
     "repertoire": ["changeup", "sinker"],
-    "fieldAbility": "dive",
     "bio": "The Canopy's range glove. Climbs first, throws second."
   },
   {
@@ -308,7 +290,6 @@
     "bats": "R",
     "throws": "R",
     "repertoire": ["sinker", "slider"],
-    "fieldAbility": "dive",
     "bio": "Pitches like the wind off the dunes: hot, dry and late."
   },
   {
@@ -324,7 +305,6 @@
     "bats": "L",
     "throws": "R",
     "repertoire": ["changeup", "curveball"],
-    "fieldAbility": "dive",
     "bio": "Rolls into every base. Nobody has seen the brakes."
   },
   {
@@ -340,7 +320,6 @@
     "bats": "R",
     "throws": "R",
     "repertoire": ["curveball", "sinker"],
-    "fieldAbility": "dive",
     "bio": "Built like a canyon wall and about as easy to get past."
   },
   {
@@ -357,7 +336,6 @@
     "bats": "R",
     "throws": "R",
     "repertoire": ["curveball", "slider"],
-    "fieldAbility": "dive",
     "bio": "Strikes sparks off the bat. Strikes out, too."
   },
   {
@@ -373,7 +351,6 @@
     "bats": "R",
     "throws": "R",
     "repertoire": ["sinker", "curveball"],
-    "fieldAbility": "super-jump",
     "bio": "Stacks outs one on top of the other."
   },
   {
@@ -389,7 +366,6 @@
     "bats": "L",
     "throws": "L",
     "repertoire": ["changeup", "slider"],
-    "fieldAbility": "super-jump",
     "bio": "Comes down the slope at full speed and never slips."
   },
   {
@@ -406,7 +382,6 @@
     "bats": "L",
     "throws": "R",
     "repertoire": ["changeup", "curveball"],
-    "fieldAbility": "super-jump",
     "bio": "Stands still in the reeds until the ball comes. Then it does not."
   },
   {
@@ -422,7 +397,6 @@
     "bats": "R",
     "throws": "R",
     "repertoire": ["sinker", "curveball"],
-    "fieldAbility": "dive",
     "bio": "Heavy, patient and very hard to move off a bag."
   },
   {
@@ -439,7 +413,6 @@
     "bats": "L",
     "throws": "L",
     "repertoire": ["changeup", "slider"],
-    "fieldAbility": "super-jump",
     "bio": "The smallest hopper. Already the fastest."
   },
   {
@@ -455,7 +428,6 @@
     "bats": "R",
     "throws": "R",
     "repertoire": ["slider", "sinker"],
-    "fieldAbility": "laser",
     "bio": "Hits it far and runs like he means to. Mostly means to."
   },
   {
@@ -471,7 +443,6 @@
     "bats": "L",
     "throws": "R",
     "repertoire": ["slider", "sinker"],
-    "fieldAbility": "laser",
     "bio": "Borrowed the catcher's gear in second grade and never gave it back."
   },
   {
@@ -488,7 +459,6 @@
     "bats": "R",
     "throws": "L",
     "repertoire": ["changeup", "slider"],
-    "fieldAbility": "dive",
     "bio": "Too fast to wait for the bus. Too small to see over the plate."
   },
   {
@@ -504,7 +474,6 @@
     "bats": "R",
     "throws": "R",
     "repertoire": ["changeup", "slider"],
-    "fieldAbility": "dive",
     "bio": "Steals second before the pitcher has a grip."
   },
   {
@@ -520,7 +489,6 @@
     "bats": "L",
     "throws": "R",
     "repertoire": ["slider", "sinker"],
-    "fieldAbility": "laser",
     "bio": "A walram who plants at the plate and does not move."
   },
   {
@@ -537,7 +505,6 @@
     "bats": "R",
     "throws": "R",
     "repertoire": ["slider", "sinker"],
-    "fieldAbility": "laser",
     "bio": "Swings once, hard, and knows the count while doing it."
   },
   {
@@ -554,7 +521,6 @@
     "bats": "R",
     "throws": "R",
     "repertoire": ["changeup", "slider"],
-    "fieldAbility": "dive",
     "bio": "Belly-slides into every bag, whether it needs it or not."
   },
   {
@@ -571,7 +537,6 @@
     "bats": "L",
     "throws": "L",
     "repertoire": ["changeup", "slider"],
-    "fieldAbility": "dive",
     "bio": "A frostling who is already at second."
   },
   {
@@ -588,7 +553,6 @@
     "bats": "R",
     "throws": "R",
     "repertoire": ["changeup", "slider"],
-    "fieldAbility": "dive",
     "bio": "Slides in a spray of snow and grins about it."
   },
   {
@@ -605,7 +569,6 @@
     "bats": "R",
     "throws": "R",
     "repertoire": ["slider", "sinker"],
-    "fieldAbility": "laser",
     "bio": "Juggles three balls in the dugout and hits the fourth."
   },
   {
@@ -622,7 +585,6 @@
     "bats": "L",
     "throws": "R",
     "repertoire": ["slider", "sinker"],
-    "fieldAbility": "laser",
     "bio": "Hums through every at-bat. Pitchers hate it."
   },
   {
@@ -639,7 +601,6 @@
     "bats": "R",
     "throws": "R",
     "repertoire": ["slider", "sinker"],
-    "fieldAbility": "laser",
     "bio": "Chews, swings, repeats."
   },
   {
@@ -656,7 +617,6 @@
     "bats": "R",
     "throws": "L",
     "repertoire": ["changeup", "slider"],
-    "fieldAbility": "dive",
     "bio": "Curls into a ball and rolls into third."
   },
   {
@@ -673,7 +633,6 @@
     "bats": "L",
     "throws": "R",
     "repertoire": ["curveball", "changeup"],
-    "fieldAbility": "snap-throw",
     "bio": "Puffs up on every catch and never lets go."
   },
   {
@@ -690,7 +649,6 @@
     "bats": "R",
     "throws": "R",
     "repertoire": ["curveball", "changeup"],
-    "fieldAbility": "snap-throw",
     "bio": "The glove spins before the ball arrives."
   },
   {
@@ -706,7 +664,6 @@
     "bats": "R",
     "throws": "R",
     "repertoire": ["slider", "sinker"],
-    "fieldAbility": "laser",
     "bio": "Big arms, torn ear, gold hoop. Hits like a delivery truck."
   },
   {
@@ -723,7 +680,6 @@
     "bats": "L",
     "throws": "R",
     "repertoire": ["changeup", "slider"],
-    "fieldAbility": "dive",
     "bio": "Masks up and takes the extra base."
   },
   {
@@ -739,7 +695,6 @@
     "bats": "R",
     "throws": "L",
     "repertoire": ["changeup", "slider"],
-    "fieldAbility": "dive",
     "bio": "Finds every gap and every coin on the roof."
   },
   {
@@ -755,7 +710,6 @@
     "bats": "R",
     "throws": "R",
     "repertoire": ["changeup", "slider"],
-    "fieldAbility": "dive",
     "bio": "Rolls the lead off first and dares the throw."
   },
   {
@@ -772,7 +726,6 @@
     "bats": "L",
     "throws": "R",
     "repertoire": ["curveball", "changeup"],
-    "fieldAbility": "snap-throw",
     "bio": "Sticks to the wall and glows while doing it."
   },
   {
@@ -789,7 +742,6 @@
     "bats": "R",
     "throws": "R",
     "repertoire": ["slider", "sinker"],
-    "fieldAbility": "laser",
     "bio": "Drums the bench and drives the ball."
   },
   {
@@ -805,7 +757,6 @@
     "bats": "R",
     "throws": "R",
     "repertoire": ["slider", "sinker"],
-    "fieldAbility": "laser",
     "bio": "Moss on the shoulders, thunder in the bat."
   },
   {
@@ -822,7 +773,6 @@
     "bats": "L",
     "throws": "L",
     "repertoire": ["changeup", "slider"],
-    "fieldAbility": "dive",
     "bio": "Bright feathers, ringed tail, first to the bag."
   },
   {
@@ -838,7 +788,6 @@
     "bats": "R",
     "throws": "R",
     "repertoire": ["changeup", "slider"],
-    "fieldAbility": "dive",
     "bio": "Swings from the rail in the dugout and from the heels at the plate."
   },
   {
@@ -854,7 +803,6 @@
     "bats": "R",
     "throws": "R",
     "repertoire": ["curveball", "changeup"],
-    "fieldAbility": "snap-throw",
     "bio": "A toucanine with a beak built for gloving liners."
   },
   {
@@ -870,7 +818,6 @@
     "bats": "L",
     "throws": "R",
     "repertoire": ["slider", "sinker"],
-    "fieldAbility": "laser",
     "bio": "An ember-shelled bruiser who hits it hot."
   },
   {
@@ -887,7 +834,6 @@
     "bats": "R",
     "throws": "R",
     "repertoire": ["changeup", "slider"],
-    "fieldAbility": "dive",
     "bio": "Tunnels under the tag. Mostly."
   },
   {
@@ -904,7 +850,6 @@
     "bats": "R",
     "throws": "L",
     "repertoire": ["changeup", "slider"],
-    "fieldAbility": "dive",
     "bio": "A coal mole whose nose lights the base path."
   },
   {
@@ -921,7 +866,6 @@
     "bats": "L",
     "throws": "R",
     "repertoire": ["curveball", "changeup"],
-    "fieldAbility": "snap-throw",
     "bio": "Ember-tipped wings and an arm to match."
   },
   {
@@ -938,7 +882,6 @@
     "bats": "R",
     "throws": "R",
     "repertoire": ["curveball", "changeup"],
-    "fieldAbility": "snap-throw",
     "bio": "Watches from the wall and takes everything hit near it."
   },
   {
@@ -954,7 +897,6 @@
     "bats": "R",
     "throws": "R",
     "repertoire": ["slider", "sinker"],
-    "fieldAbility": "laser",
     "bio": "Slaps the plate with a flat tail before every swing."
   },
   {
@@ -970,7 +912,6 @@
     "bats": "L",
     "throws": "R",
     "repertoire": ["slider", "sinker"],
-    "fieldAbility": "laser",
     "bio": "Booming croak, booming bat."
   },
   {
@@ -987,7 +928,6 @@
     "bats": "R",
     "throws": "L",
     "repertoire": ["changeup", "slider"],
-    "fieldAbility": "dive",
     "bio": "Frills out and flies around the bases."
   },
   {
@@ -1004,7 +944,6 @@
     "bats": "R",
     "throws": "R",
     "repertoire": ["changeup", "slider"],
-    "fieldAbility": "dive",
     "bio": "The smallest axoduck. The fastest, too."
   },
   {
@@ -1021,7 +960,6 @@
     "bats": "L",
     "throws": "R",
     "repertoire": ["curveball", "changeup"],
-    "fieldAbility": "snap-throw",
     "bio": "Wades in, long legs, soft hands."
   },
   {
@@ -1037,7 +975,6 @@
     "bats": "R",
     "throws": "R",
     "repertoire": ["slider", "sinker"],
-    "fieldAbility": "laser",
     "bio": "Keeps spare balls in the pouch and hits the one in play."
   },
   {
@@ -1053,7 +990,6 @@
     "bats": "R",
     "throws": "R",
     "repertoire": ["slider", "sinker"],
-    "fieldAbility": "laser",
     "bio": "Hits it like a wave hits the rocks."
   },
   {
@@ -1070,7 +1006,6 @@
     "bats": "L",
     "throws": "L",
     "repertoire": ["slider", "sinker"],
-    "fieldAbility": "laser",
     "bio": "Blows the conch after every homer."
   },
   {
@@ -1086,7 +1021,6 @@
     "bats": "R",
     "throws": "R",
     "repertoire": ["changeup", "slider"],
-    "fieldAbility": "dive",
     "bio": "A crabbit who runs sideways faster than most run forward."
   },
   {
@@ -1102,7 +1036,6 @@
     "bats": "R",
     "throws": "R",
     "repertoire": ["changeup", "slider"],
-    "fieldAbility": "dive",
     "bio": "Swaps shells between innings. Never swaps the glove."
   },
   {
@@ -1118,7 +1051,6 @@
     "bats": "L",
     "throws": "R",
     "repertoire": ["changeup", "slider"],
-    "fieldAbility": "dive",
     "bio": "Slippery on the bases and harder to tag."
   },
   {
@@ -1135,7 +1067,6 @@
     "bats": "R",
     "throws": "R",
     "repertoire": ["curveball", "changeup"],
-    "fieldAbility": "snap-throw",
     "bio": "A dolphup with flippers that never drop a throw."
   },
   {
@@ -1152,7 +1083,6 @@
     "bats": "R",
     "throws": "L",
     "repertoire": ["curveball", "changeup"],
-    "fieldAbility": "snap-throw",
     "bio": "Happy snout, quick arm, always snacking."
   },
   {
@@ -1168,7 +1098,6 @@
     "bats": "L",
     "throws": "R",
     "repertoire": ["slider", "sinker"],
-    "fieldAbility": "laser",
     "bio": "A bisonhorn who does not know the word 'check swing'."
   },
   {
@@ -1185,7 +1114,6 @@
     "bats": "R",
     "throws": "R",
     "repertoire": ["slider", "sinker"],
-    "fieldAbility": "laser",
     "bio": "Shakes the bat before every pitch."
   },
   {
@@ -1201,7 +1129,6 @@
     "bats": "R",
     "throws": "R",
     "repertoire": ["changeup", "slider"],
-    "fieldAbility": "dive",
     "bio": "Tall ears, small antlers, gone before the dust settles."
   },
   {
@@ -1217,7 +1144,6 @@
     "bats": "L",
     "throws": "R",
     "repertoire": ["changeup", "slider"],
-    "fieldAbility": "dive",
     "bio": "The smallest jackalope, first out of the box."
   },
   {
@@ -1234,7 +1160,6 @@
     "bats": "R",
     "throws": "L",
     "repertoire": ["curveball", "changeup"],
-    "fieldAbility": "snap-throw",
     "bio": "Stands tall on watch and reads every hop."
   },
   {
@@ -1250,7 +1175,6 @@
     "bats": "R",
     "throws": "R",
     "repertoire": ["slider", "sinker"],
-    "fieldAbility": "laser",
     "bio": "An ibexbear who rolls downhill and does not stop."
   },
   {
@@ -1266,7 +1190,6 @@
     "bats": "L",
     "throws": "R",
     "repertoire": ["slider", "sinker"],
-    "fieldAbility": "laser",
     "bio": "Swept-back horns and a swing to match."
   },
   {
@@ -1282,7 +1205,6 @@
     "bats": "R",
     "throws": "R",
     "repertoire": ["changeup", "slider"],
-    "fieldAbility": "dive",
     "bio": "A fluffy pikayak who never slips on the bases."
   },
   {
@@ -1298,7 +1220,6 @@
     "bats": "R",
     "throws": "R",
     "repertoire": ["changeup", "slider"],
-    "fieldAbility": "dive",
     "bio": "Runs the ridgeline between bases."
   },
   {
@@ -1315,7 +1236,6 @@
     "bats": "L",
     "throws": "L",
     "repertoire": ["curveball", "changeup"],
-    "fieldAbility": "snap-throw",
     "bio": "Folded wings, sharp eye, sure glove."
   }
 ]

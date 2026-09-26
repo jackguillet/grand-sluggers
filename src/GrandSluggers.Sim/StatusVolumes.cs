@@ -68,8 +68,8 @@ public sealed record BodySlowed(string Pos, Character Who, int Hazard, string Ty
 /// </para>
 ///
 /// <para>
-/// <b>Who is never slowed.</b> A body with <see cref="FieldAbilities.IgnoresParkSlow"/> (Burrow) touches nothing: no
-/// event, no slow, whether it is fielding or running. The fielding preview and every estimate of arrival read the full speed;
+/// <b>Who is never slowed.</b> A read marked immune touches nothing: no event, no slow. No body is immune in play since the
+/// field pool lost Burrow (AB-12); the switch stays on the clock. The fielding preview and every estimate of arrival read the full speed;
 /// the step toward a goal may go around a volume (<see cref="VolumeRoute"/>).
 /// </para>
 /// </summary>

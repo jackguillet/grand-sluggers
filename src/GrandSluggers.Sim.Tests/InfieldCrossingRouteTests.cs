@@ -69,6 +69,15 @@ public sealed class InfieldCrossingRouteTests
         var near = path
             .Where(p => !(p.T < hang && p.Height > rules.Fielding.Catch.StandingHeightFt))
             .MinBy(p => Diamond.Dist(start.Item1, start.Item2, p.X, p.Z));
+        // A ball that gets past the glove where it cannot be played — before the glove may move (the pitcher inside his
+        // delivery recovery, §8.2, §8.6) or over its head — is no route choice: the body chases a ball behind it until the
+        // outfield takes it at the lip (§8.9). That chase is its own question (it showed once Rio's Grow ring left the pool,
+        // AB-12), not the crossing this test pins.
+        var ready = FieldingResolver.CpuReactionLockouts(rules, pre.Grounder ? null : hang)[pos];
+        var reach = FieldingResolver.CatchRadiusFt(pre.Fielder, match.Park, rules, air: !pre.Grounder);
+        var startDepth = FieldBounds.DistHome(start.Item1, start.Item2);
+        if (path.FirstOrDefault(p => FieldBounds.DistHome(p.X, p.Z) > startDepth + reach) is { } by
+            && (by.T < ready || by.Height > rules.Fielding.Catch.StandingHeightFt)) return null;
         var allowed = Math.Max(FieldBounds.DistHome(start.Item1, start.Item2), FieldBounds.DistHome(near.X, near.Z)) + SlackFt;
         for (var i = 0; i < 180 && live.GlovePos == pos; i++)
         {

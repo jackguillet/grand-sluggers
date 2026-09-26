@@ -41,7 +41,7 @@ Names are working titles. Replace freely; keep the *roles*.
 - Stats: Pitch 6 / Bat 7 / Field 6 / Run 7
 - Star Pitch: **Skyrocket** (`heatball`) — fast, and over the last third it rises up to a foot above its aimed crossing.
 - Star Swing: **Sparkler** (`heat-swing`) — exit ×1.15 and a Perfect ring half again as wide; a miss is still a miss.
-- Field: **Grow** — briefly bigger catch radius.
+- Field: **Laser** — ×1.25 on a throw home with a live runner on third.
 - Bats/throws: R/R
 
 ### Queen Vale — Royal Rink
@@ -49,7 +49,7 @@ Names are working titles. Replace freely; keep the *roles*.
 - Stats: Pitch 9 / Bat 4 / Field 8 / Run 5
 - Star Pitch: **Aurora Ribbon** (`charmball`) — an aurora-traced sway that swells to its widest mid-flight, then settles onto the aimed crossing.
 - Star Swing: **Follow Spot** (`heart-swing`) — the rink's follow spot holds the nearest fielder still for 0.8 s; teammates back him up.
-- Field: **Snap Throw** — extra throw velocity, no windup.
+- Field: **Snap Throw** — a 0.22-s release after a clean received throw.
 - Bats/throws: R/R
 
 ### Zig — Carnival Crew
@@ -57,7 +57,7 @@ Names are working titles. Replace freely; keep the *roles*.
 - Stats: Pitch 4 / Bat 4 / Field 6 / Run 9
 - Star Pitch: **Loop-the-Loop** — one vertical loop mid-flight, like a coaster, then the aimed crossing on the ordinary time.
 - Star Swing: **Spinning Top** — a grounder that spins in place at its first hop for 0.8 s, then rolls on at half speed.
-- Field: **Lick Catch** — tongue/stretch catch (range).
+- Field: **Lick Catch** — press East and the tongue snaps 8 ft ahead for 0.3 s to take a ball (tongue bodies only).
 - Bats/throws: L/R
 
 ### Brondo — Skyline Gold (a rooftop bulldog hustler)
@@ -65,7 +65,7 @@ Names are working titles. Replace freely; keep the *roles*.
 - Stats: Pitch 5 / Bat 8 / Field 3 / Run 4
 - Star Pitch: **Phonyball** — shows one side early, switches late; read the switch.
 - Star Swing: **Double Deal** — a card-back decoy flies beside the real ball until the apex.
-- Field: **Laser** — fastest throw in the game, terrible first step.
+- Field: **Laser** — ×1.25 on a throw home with a live runner on third.
 - Bats/throws: R/R
 
 ### Konga — Canopy Clan
@@ -73,7 +73,7 @@ Names are working titles. Replace freely; keep the *roles*.
 - Stats: Pitch 6 / Bat 9 / Field 3 / Run 2
 - Star Pitch: **Vine Swing** — the pitch swings in wide on a vine from a pivot above and crosses where it was aimed, on time.
 - Star Swing: **Lightning Liner** — a liner that jags sideways twice, up to 3 ft, and lands where a straight liner would.
-- Field: **Clamber** — can catch on walls and fences.
+- Field: **Wall Spring** — springs off any wall for +4 ft of reach. (At Canopy Yard any fielder climbs the vine wall; that is the park's rule.)
 - Bats/throws: L/R
 
 ### Ashlord — Ember Keep
@@ -81,7 +81,7 @@ Names are working titles. Replace freely; keep the *roles*.
 - Stats: Pitch 5 / Bat 10 / Field 3 / Run 3
 - Star Pitch: **Anvil** (`skullball`) — fast and glowing; at 70 % of the flight it clangs, turns to cold iron and drops up to 1.5 ft below its aimed crossing.
 - Star Swing: **Hot Iron** (`furnace`) — exit ×1.25; the ball stays molten for 2 s, and a glove that holds it more than 0.5 s of that drops it at its feet.
-- Field: **Spin Check** — knock runners off the base path on contact.
+- Field: **Laser** — ×1.25 on a throw home with a live runner on third.
 - Bats/throws: L/R
 
 ### Elder Fenn — Stillwater
@@ -89,52 +89,52 @@ Names are working titles. Replace freely; keep the *roles*.
 - Stats: Pitch 7 / Bat 5 / Field 8 / Run 3
 - Star Pitch: **Undertow** (`fogball`) — slow, and a fair ball off it washes a ring out on home for 2 s that slows the batter-runner inside it.
 - Star Swing: **Driftwood Reach** (`staff-swing`) — exit ×1.08 and a contact oval 1.4 times as tall; a wide pitch still beats it.
-- Field: **Withdraw** — shell catch, bigger glove window, still slow.
+- Field: **Snap Throw** — a 0.22-s release after a clean received throw.
 - Bats/throws: R/R
 
 
 ### Sable — Dune Nomads
 
 - Bars: Pitch 8 / Bat 5 / Field 6 / Run 5. Body class `trickster` (borrows Vale's takes until its own style exists).
-- Star abilities: Mirage (the ball vanishes in heat shimmer for the middle third of its flight while its shadow keeps crossing the dirt), Dust Bowl (a grounder's first landing raises an 8 ft bowl of loose dust, gone 2 s after contact, that slows fielders inside it to half speed) and Sand Scoop (extra reach on a low grounder that never bobbles).
+- Star abilities: Mirage (the ball vanishes in heat shimmer for the middle third of its flight while its shadow keeps crossing the dirt), Dust Bowl (a grounder's first landing raises an 8 ft bowl of loose dust, gone 2 s after contact, that slows fielders inside it to half speed); field: Snap Throw.
 - Signature bat: Mirage Bat. Bats/throws: R/R. Role players: Sirocco, Tumble, Adobe.
 
 ### Hollis — Peak Guard
 
 - Bars: Pitch 6 / Bat 8 / Field 5 / Run 4. Body class `climber` (borrows Brondo's takes until its own style exists).
-- Star abilities: Cable Car (stops dead mid-flight for 0.15 s, then runs down its line to cross on time), Summit Gust (at its apex the fly catches a gust and carries 15 % farther along its line) and Long Toss (a deep throw keeps its pace 80 ft further).
+- Star abilities: Cable Car (stops dead mid-flight for 0.15 s, then runs down its line to cross on time), Summit Gust (at its apex the fly catches a gust and carries 15 % farther along its line); field: Wall Spring.
 - Signature bat: Summit Axe. Bats/throws: L/R. Role players: Flint, Cairn, Scree.
 
 ### Reed — Marsh Hoppers
 
 - Bars: Pitch 4 / Bat 6 / Field 7 / Run 8. Body class `hopper` (borrows Zig's takes until its own style exists).
-- Star abilities: Skipping Stone (the pitch skips twice on the dirt in front of the plate and pops up onto its aimed crossing, on time), Lily Hop (a liner that hops 5 ft over the first infield glove it reaches, then drops back to its line) and Lily Leap (the jump rises 4.5 ft, for a liner over his head).
+- Star abilities: Skipping Stone (the pitch skips twice on the dirt in front of the plate and pops up onto its aimed crossing, on time), Lily Hop (a liner that hops 5 ft over the first infield glove it reaches, then drops back to its line); field: Lick Catch.
 - Signature bat: Reed Switch. Bats/throws: L/L. Role players: Cattail, Bog, Tad.
 
 ## Role players (slice set)
 
-Enough to fill two lineups. Full bios later.
+Enough to fill two lineups. Full bios later. The verb is the species' field ability.
 
 | Id | Name | Faction | Pitch | Bat | Field | Run | Verb |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| nico | Nico | Spark | 5 | 5 | 7 | 7 | Super Jump |
-| pip | Pip | Spark | 7 | 3 | 5 | 8 | Snap Throw |
-| marlow | Marlow | Spark | 4 | 6 | 6 | 6 | Dive |
+| nico | Nico | Spark | 5 | 5 | 7 | 7 | Snap Throw |
+| pip | Pip | Spark | 7 | 3 | 5 | 8 | Wall Spring |
+| marlow | Marlow | Spark | 4 | 6 | 6 | 6 | Laser |
 | frost | Frost | Royal | 8 | 2 | 6 | 6 | Snap Throw |
-| lace | Lace | Royal | 6 | 5 | 8 | 4 | Dive |
-| dart | Dart | Carnival | 3 | 3 | 5 | 9 | Lick Catch |
+| lace | Lace | Royal | 6 | 5 | 8 | 4 | Snap Throw |
+| dart | Dart | Carnival | 3 | 3 | 5 | 9 | Wall Spring |
 | boom | Boom | Goldrush | 4 | 8 | 2 | 5 | Laser |
-| vine | Vine | Canopy | 3 | 6 | 8 | 4 | Clamber |
-| cinder | Cinder | Ember | 4 | 8 | 4 | 5 | Spin Check |
-| soot | Soot | Ember | 6 | 4 | 5 | 6 | Burrow |
-| grit | Grit | Ember | 5 | 6 | 6 | 5 | Spin Check |
-| hex | Hex | Goldrush | 6 | 5 | 4 | 6 | Laser |
-| gull | Gull | Spark | 4 | 4 | 7 | 8 | Super Jump |
-| pewter | Pewter | Royal | 7 | 3 | 7 | 4 | Snap Throw |
-| jester | Jester | Carnival | 3 | 5 | 5 | 8 | Lick Catch |
+| vine | Vine | Canopy | 3 | 6 | 8 | 4 | Wall Spring |
+| cinder | Cinder | Ember | 4 | 8 | 4 | 5 | Laser |
+| soot | Soot | Ember | 6 | 4 | 5 | 6 | Wall Spring |
+| grit | Grit | Ember | 5 | 6 | 6 | 5 | Laser |
+| hex | Hex | Goldrush | 6 | 5 | 4 | 6 | Snap Throw |
+| gull | Gull | Spark | 4 | 4 | 7 | 8 | Snap Throw |
+| pewter | Pewter | Royal | 7 | 3 | 7 | 4 | Laser |
+| jester | Jester | Carnival | 3 | 5 | 5 | 8 | Wall Spring |
 | nugget | Nugget | Goldrush | 5 | 7 | 2 | 5 | Laser |
-| moss | Moss | Canopy | 4 | 7 | 4 | 3 | Clamber |
-| basil | Basil | Canopy | 5 | 4 | 7 | 5 | Dive |
+| moss | Moss | Canopy | 4 | 7 | 4 | 3 | Laser |
+| basil | Basil | Canopy | 5 | 4 | 7 | 5 | Snap Throw |
 
 ## Sub-stats
 
@@ -170,7 +170,7 @@ Authored in `data/characters/`. Every row carries all nine; the bars above are d
 
 ## Authorship rules
 
-- One defensive verb each.
+- One defensive verb each, from the pool of five (AB-12): Snap Throw, Lick Catch (tongue bodies only: Zig's and Reed's factions), Laser, Relay Pivot, Wall Spring. A sidekick carries its species' (bruiser Laser, scamp Wall Spring, glove Snap Throw); its row names none.
 - At most one bar at 9 or higher per character (CH-08); the validator refuses a second. Specialization is the joke.
 - Color variants (if any) are palette swaps of role players, not new kits.
 - Captains are the only unique Star Pitch/Swing. Do not secretly give role players cutscene specials; a species picks its pair from the generic pool.

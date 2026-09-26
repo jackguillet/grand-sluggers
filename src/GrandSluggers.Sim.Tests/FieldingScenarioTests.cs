@@ -257,9 +257,8 @@ public sealed class FieldingScenarioTests
         if (play.Kind == PlayKind.FlyOut)
         {
             Assert.NotEqual("", catcherPos);
-            var who = map[catcherPos];
-            Assert.True(FlyCatch.JumpWindow(caughtAt, preview.HangTimeSec, match.Rules, who, match.Park)
-                        || FlyCatch.JumpWindow(caughtAt - Frame, preview.HangTimeSec, match.Rules, who, match.Park),
+            Assert.True(FlyCatch.JumpWindow(caughtAt, preview.HangTimeSec, match.Rules)
+                        || FlyCatch.JumpWindow(caughtAt - Frame, preview.HangTimeSec, match.Rules),
                 $"{catcherPos} caught at {caughtAt:0.00} inside the window around {preview.HangTimeSec:0.00}");
         }
         else
@@ -298,9 +297,8 @@ public sealed class FieldingScenarioTests
         var (play, _, _) = RunCpu(match, hit, preview, out _, null, out var caughtAt);
         Assert.Equal(PlayKind.FlyOut, play.Kind);
         var c = match.Rules.Fielding.Catch;
-        var extra = FlyCatch.ExtraWindowSec(preview.Fielder, match.Park, match.Rules);
-        Assert.True(caughtAt >= preview.HangTimeSec - c.WindowBeforeSec - extra - Frame, $"caught at {caughtAt:0.00}, hang {preview.HangTimeSec:0.00}");
-        Assert.True(caughtAt <= preview.HangTimeSec + c.WindowAfterSec + extra * 0.5 + Frame);
+        Assert.True(caughtAt >= preview.HangTimeSec - c.WindowBeforeSec - Frame, $"caught at {caughtAt:0.00}, hang {preview.HangTimeSec:0.00}");
+        Assert.True(caughtAt <= preview.HangTimeSec + c.WindowAfterSec + Frame);
     }
 
     [Theory]

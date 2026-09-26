@@ -5,15 +5,14 @@ using Xunit;
 namespace GrandSluggers.Sim.Tests;
 
 /// <summary>
-/// Reed's three (spec §13, §8.4): Skipping Stone's two skips on the dirt, Lily Hop's hop over the first infield glove and Lily
-/// Leap's high jump. The pitch keeps its ground track, crossing and arrival; the liner keeps its ground track and landing; the
-/// leap is the normal jump and the catch is the glove meeting the ball — pressed by the player, never automatic.
+/// Reed's three (spec §13, §8.4): Skipping Stone's two skips on the dirt, Lily Hop's hop over the first infield glove; his field
+/// ability is the pool's Lick Catch (AB-12). The pitch keeps its ground track, crossing and arrival; the liner keeps its ground
+/// track and landing.
 /// </summary>
 public sealed class ReedAbilityTests
 {
     static readonly ContentCatalog Game = Shipped.Content;
     const double Frame = 1.0 / 60.0;
-    static readonly LiveSeats HumanGlove = new(HumanBats: false, HumanPitches: true, PlayerMustField: true, Versus: false);
 
     [Fact]
     public void ReedCarriesHisOwnThree()
@@ -21,9 +20,9 @@ public sealed class ReedAbilityTests
         var reed = Game.Must("reed");
         Assert.Equal("leapfrog", reed.StarPitch);
         Assert.Equal("pond-skip", reed.StarSwing);
-        Assert.Equal(FieldAbilityId.LilyLeap, reed.FieldAbility);
+        Assert.Equal(FieldAbilityId.LickCatch, reed.FieldAbility);   // the shared field pool (AB-12): a tongue body
         Assert.DoesNotContain(Game.Characters.Values, c => c.Id != "reed"
-            && (c.StarPitch == "leapfrog" || c.StarSwing == "pond-skip" || c.FieldAbility == FieldAbilityId.LilyLeap));
+            && (c.StarPitch == "leapfrog" || c.StarSwing == "pond-skip"));
     }
 
     static PitchSkips Skips => Game.StarSkills.Pitch("leapfrog")!.Skips!;
@@ -249,120 +248,6 @@ public sealed class ReedAbilityTests
             }
         }
         return (hops, over, play);
-    }
-
-    // ---------------------------------------------------------------------------------
-    // Lily Leap
-    // ---------------------------------------------------------------------------------
-
-    [Fact]
-    public void LilyLeapIsTheNormalJumpWithAHigherRiseForItsHolderOnly()
-    {
-        var rules = Game.Rules;
-        Assert.Equal(4.5, rules.Fielding.Abilities.LilyLeapRiseFt);
-        Assert.Equal(rules.Fielding.Abilities.LilyLeapRiseFt, FieldAbilities.JumpRiseFt(Game.Must("reed"), rules));
-        Assert.Equal(rules.Fielding.Catch.JumpRiseFt, FieldAbilities.JumpRiseFt(Game.Must("soot"), rules));
-        Assert.Equal(0, FieldAbilities.CatchBonus(Game.Must("reed"), rules));   // no wider ring: the reach is up, and only in the air
-    }
-
-    /// <summary>
-    /// A liner over the shortstop's head (90 mph, 12°, 9.5 ft at the bag-side spot): Reed's leap takes it and the fact says
-    /// only the leap could; Soot's ordinary jump at the same press cannot. A dead stick with no press catches nothing, and a
-    /// 100-mph liner at 12.6 ft is over even Reed's leap.
-    /// </summary>
-    [Theory]
-    [InlineData("reed", 90, true, true)]
-    [InlineData("soot", 90, true, false)]
-    [InlineData("reed", 90, false, false)]
-    [InlineData("reed", 100, true, false)]
-    public void ALinerOverTheShortstopsHeadIsReedsOnlyWithAPressedLeap(string shortstop, double exit, bool press, bool caught)
-    {
-        var home = Game.Team("Defense", "vale", "pewter", "lace", "frost", "basil", shortstop, "vine", "moss", "hex");
-        var away = Game.Team("Offense", "rio", "boom", "cinder", "grit", "zig", "nugget", "nico", "gull", "marlow");
-        var match = Match.Exhibition(Game, home, away, 3, 1, parkId: ParkId.Harbor);
-        var hit = FlightFixtures.Hit(match.Park, exit, 12, -20, rules: match.Rules);
-        var preview = match.PreviewHit(hit);
-        Assert.Equal("SS", preview.Position);
-        var live = match.LivePlay;
-        Assert.True(live.Apply(LivePlayCommand.BeginLive(Scenario.Paint, Scenario.Swing, hit, preview, null, HumanGlove, 0,
-            LivePlayCommandSource.Human)).Snapshot.Active);
-        // Stand on the shortstop's spot, where the liner passes overhead, with a manual sliver of stick, and leap 0.30 s before it arrives.
-        var spot = DiamondGeometry.Of(match.Rules).Positions["SS"];
-        var (over, overT) = (double.MaxValue, 0.0);
-        foreach (var sample in preview.Ball!.Samples)
-            if (Diamond.Dist(sample.X, sample.Z, spot.X, spot.Z) is var sd && sd < over) (over, overT) = (sd, sample.T);
-        PlayEvent? play = null;
-        var pressed = false;
-        // Until a catch ends the play, or the ball is well past the spot: the leap had its chance.
-        for (var i = 0; i < 60 * 12 && play is null && live.ElapsedSeconds < overT + 0.6; i++)
-        {
-            var dx = spot.X - live.GloveX;
-            var dz = spot.Z - live.GloveZ;
-            var d = Math.Sqrt(dx * dx + dz * dz);
-            var mag = d > 1 ? 1.0 : 0.21;
-            var pad = live.HoldsBall ? LivePadInput.Dead
-                : new LivePadInput(StickX: dx / Math.Max(1e-6, d) * mag, StickY: dz / Math.Max(1e-6, d) * mag);
-            if (!live.HoldsBall && press && !pressed && live.ElapsedSeconds >= overT - 0.30)
-            {
-                pad = pad with { WestDown = true };
-                pressed = true;
-            }
-            play = live.Apply(LivePlayCommand.Tick(Frame, pad, LivePadInput.Dead, false, LivePlayCommandSource.Human)).CompletedPlay;
-        }
-        // Read the completed play: a catch with nobody on completes on its own frame, and that frame resets the field.
-        var took = play is { Kind: PlayKind.FlyOut } && play.Outcome?.DefensiveFeat == DefensiveFeat.Jump && play.Fielder?.Id == shortstop;
-        var leapFact = live.FactsThisPlay.OfType<ReachBonusTake>().Any(f => f.Ability == FieldAbilityId.LilyLeap);
-        Assert.Equal(caught, took);
-        Assert.Equal(caught, leapFact);
-    }
-
-    /// <summary>The lesson: a human leap three times, each a Lily Leap reach; the CPU and a demonstration earn nothing.</summary>
-    [Fact]
-    public void TheLilyLeapLessonNeedsTheSeatsOwnLeapThreeTimes()
-    {
-        var catalog = TutorialCatalog.Load(Game);
-        var run = new TutorialSession(Game, catalog, "T-A-lily-leap");
-        run.Begin();
-        for (var n = 1; n <= 3; n++)
-        {
-            Leap(run, LivePlayCommandSource.Human);
-            Assert.True(run.Feedback!.Success, run.Feedback.Detail);
-            Assert.Equal("ability-reach-lily-leap", run.Feedback.Code);
-            Assert.Equal(n, run.Successes);
-            Assert.Equal(run.Feedback, TutorialSession.Replay(Game, catalog, run.Recording()).Feedback);
-            run.Retry();
-        }
-        var cpu = new TutorialSession(Game, catalog, "T-A-lily-leap");
-        cpu.Begin();
-        Leap(cpu, LivePlayCommandSource.Cpu);
-        Assert.Equal(0, cpu.Successes);
-        var demo = new TutorialSession(Game, catalog, "T-A-lily-leap");
-        demo.Begin(demonstration: true);
-        Leap(demo, LivePlayCommandSource.Cpu);
-        Assert.Equal(0, demo.Successes);
-    }
-
-    static void Leap(TutorialSession run, LivePlayCommandSource source)
-    {
-        var spot = DiamondGeometry.Of(run.Match.Rules).Positions["SS"];
-        double? overT = null;
-        var pressed = false;
-        for (var i = 0; i < 1800 && run.Phase == TutorialPhase.Attempt; i++)
-        {
-            var live = run.Match.LivePlay;
-            var pad = LivePadInput.Dead;
-            if (live.Preview?.Ball is { } ball && live.Active)
-            {
-                overT ??= ball.Samples.MinBy(s => Diamond.Dist(s.X, s.Z, spot.X, spot.Z)).T;
-                var dx = spot.X - live.GloveX;
-                var dz = spot.Z - live.GloveZ;
-                var d = Math.Sqrt(dx * dx + dz * dz);
-                var mag = d > 1 ? 1.0 : 0.21;
-                pad = new LivePadInput(StickX: dx / Math.Max(1e-6, d) * mag, StickY: dz / Math.Max(1e-6, d) * mag);
-                if (!pressed && live.ElapsedSeconds >= overT - 0.30) { pad = pad with { WestDown = true }; pressed = true; }
-            }
-            run.Tick(Frame, pad, source);
-        }
     }
 
     // ---------------------------------------------------------------------------------

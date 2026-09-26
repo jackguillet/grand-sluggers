@@ -36,8 +36,8 @@ public sealed class PlayTraceTests
         Assert.NotNull(met);
         // The C80 copy (#719): a body takes the ball from its stand-up reach (catch.standUpReachFt 6.0), so on the take's own
         // tick the ball is that far off the glove (3.6 ft here); the shipped glove runs onto the ball. One tick later it is in the glove on both.
-        var takeFt = FieldingResolver.CatchWindowFt(FieldingResolver.CatchRadiusFt(preview.Fielder, match.Park, match.Rules, air: !preview.Grounder)
-            + FieldAbilities.GroundRangeBonus(preview.Fielder, match.Rules), false, false, match.Rules);
+        var takeFt = FieldingResolver.CatchWindowFt(FieldingResolver.CatchRadiusFt(preview.Fielder, match.Park, match.Rules, air: !preview.Grounder),
+            false, false, match.Rules);
         Assert.True(Diamond.Dist(met!.Glove.X, met.Glove.Z, met.Ball.X, met.Ball.Z) < takeFt,
             $"glove and ball must meet; glove ({met.Glove.X:0.0},{met.Glove.Z:0.0}) ball ({met.Ball.X:0.0},{met.Ball.Z:0.0})");
         var inGlove = trace.Ticks[trace.Ticks.ToList().IndexOf(met) + 1];
@@ -87,8 +87,8 @@ public sealed class PlayTraceTests
         var catchTick = trace.Ticks.FirstOrDefault(t => t.Ball.Caught || t.Glove.HasBall);
         Assert.NotNull(catchTick);
         Assert.True(
-            FlyCatch.JumpWindow(catchTick!.T, preview.HangTimeSec, match.Rules, preview.Fielder, match.Park)
-            || FlyCatch.JumpWindow(catchTick.T - Frame, preview.HangTimeSec, match.Rules, preview.Fielder, match.Park),
+            FlyCatch.JumpWindow(catchTick!.T, preview.HangTimeSec, match.Rules)
+            || FlyCatch.JumpWindow(catchTick.T - Frame, preview.HangTimeSec, match.Rules),
             $"caught at t={catchTick.T:0.00} vs hang {preview.HangTimeSec:0.00}");
         Assert.True(
             FlyCatch.Under(catchTick.Glove.X, catchTick.Glove.Z, catchTick.Ball.X, catchTick.Ball.Z,

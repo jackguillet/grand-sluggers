@@ -50,7 +50,8 @@ public static class Highlight
     {
         if (ev.Kind == PlayKind.FlyOut && ev.Outcome?.DefensiveFeat == DefensiveFeat.BuddyJump)
             return new HighlightClip(ev, HighlightBeat.BuddyJump, 100);
-        if (ev.Kind == PlayKind.FlyOut && ev.Outcome?.DefensiveFeat is DefensiveFeat.SuperJump or DefensiveFeat.Clamber)
+        if (ev.Kind == PlayKind.FlyOut && (ev.Outcome?.DefensiveFeat == DefensiveFeat.Clamber
+            || ev.Outcome?.DefensiveFeat == DefensiveFeat.Jump && ev.AtBat.HomeRun))
             return new HighlightClip(ev, HighlightBeat.RobbedHomer, 90);
         if (ev.Kind == PlayKind.HomeRun)
             return new HighlightClip(ev, HighlightBeat.HomeRun, 80);

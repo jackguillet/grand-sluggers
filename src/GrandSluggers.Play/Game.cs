@@ -423,7 +423,7 @@ public sealed class Game : IDisposable
             var plant = FlyCatch.ChaseTarget(pre, _match.Rules, _match.Park);
             var window = FieldingResolver.CatchWindowFt(pre.CatchRadius, false, field.Jump, _match.Rules);
             var under = FlyCatch.Under(_fx, _fz, _ball.X, _ball.Z, plant.X, plant.Z, window, needsJump, _match.Rules);
-            var inWin = FlyCatch.JumpWindow(_hitT, hang, _match.Rules, pre.Fielder, _match.Park);
+            var inWin = FlyCatch.JumpWindow(_hitT, hang, _match.Rules);
             var jumpTry = field.Jump && FlyCatch.HighEnough(_ball.Y, needsJump || FieldingResolver.BuddyJumpOffered(pre), _match.Rules);
             if (FlyCatch.PlayerCaught(jumpTry, field.ConfirmPressed, under, inWin, needsJump))
             {
