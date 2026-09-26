@@ -55,7 +55,7 @@ public static class PlayNarrator
         CallBeat.Foul => "Foul.",
         CallBeat.HomeRun => p.Word switch
         {
-            "furnace" => $"{p.Who} FURNACE - it's gone.",
+            "furnace" => $"{p.Who} HOT IRON - it's gone.",
             "heat-swing" => $"{p.Who} SPARKLER - it's gone.",
             _ => $"{p.Who} goes deep."
         },

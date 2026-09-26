@@ -121,6 +121,10 @@ public static class PitchFlight
         // The pendulum (§13): the ball swings on its vine about a pivot riding above the ordinary ball, and hangs straight at the plate.
         if (row?.Pendulum is { } vine && vine.Offset(time, PendulumSide(pitch, r, from)) is var swing && swing != (0, 0))
             p = (p.X + swing.X, p.Y + swing.Y, p.Z);
+        // A late drop (§13, Anvil): after the clang the iron sinks to a crossing below the aimed one. This moves the crossing,
+        // so the umpire, the bat and the CPU all judge the dropped ball; in reference-zone feet, like every vertical star shape.
+        if (row?.Drop is { } sink && sink.Fall(u) is var fall and not 0)
+            p = (p.X, p.Y - fall * zone.VerticalScale, p.Z);
         var st = r.Pitching.StarShapes;
         return starPitchId switch
         {
