@@ -42,20 +42,26 @@ public static class BallFlight
 
     /// <summary>Open field: no walls, wind blowing out along the ball's line, on <see cref="OpenFieldGround"/>. For estimates and tests.</summary>
     public static IReadOnlyList<Sample> Trajectory(double exitMph, double launchDeg, double windMph, RulesTable rules) =>
-        Integrate(exitMph, launchDeg, 0, windMph, (0, 1), null, null, rules);
+        Integrate(exitMph, launchDeg, 0, windMph, (0, 1), null, null, rules, 1);
 
     /// <summary>The clipped path in this park: 3-D, the park's directional wind, the fence and the foul walls, on the park's ground zones.</summary>
-    /// <remarks><paramref name="windMul"/> scales the park's wind on this one ball (<see cref="AtBatResult.WindMul"/>); 1 is every ordinary ball.</remarks>
+    /// <remarks>
+    /// <paramref name="apexCarryMul"/> is this one ball's gust (<see cref="AtBatResult.ApexCarryMul"/>); 1 is every ordinary ball.
+    /// From the apex to the first time the ball meets the ground or a wall, every step's horizontal move is this many times the
+    /// plain ball's, along the same heading; the velocity, the drag, the wind, the height and the clock are the plain ball's. So
+    /// the fly lands at the same instant, the horizontal travel from the apex to the landing is exactly this many times as long,
+    /// the fence and the walls meet the ball where it really is, and a ball that lands runs on as the plain ball would.
+    /// </remarks>
     public static IReadOnlyList<Sample> Trajectory(double exitMph, double launchDeg, double sprayDeg, Park park, RulesTable rules,
-        double windMul = 1)
+        double apexCarryMul = 1)
     {
         var r = rules;
-        return Integrate(exitMph, launchDeg, sprayDeg, park.WindMph * windMul, park.WindDirection, FieldBounds.Of(park, r), GroundZones.Of(park, r), r);
+        return Integrate(exitMph, launchDeg, sprayDeg, park.WindMph, park.WindDirection, FieldBounds.Of(park, r), GroundZones.Of(park, r), r, apexCarryMul);
     }
 
     static IReadOnlyList<Sample> Integrate(
         double exitMph, double launchDeg, double sprayDeg, double windMph, (double X, double Z) windDir,
-        FieldBounds.Boundary? walls, GroundZones? zones, RulesTable rules)
+        FieldBounds.Boundary? walls, GroundZones? zones, RulesTable rules, double apexCarryMul)
     {
         var f = rules.Flight;
         var v = exitMph * MphToFtPerSec;
@@ -69,7 +75,7 @@ public static class BallFlight
         var wz = windMph * MphToFtPerSec * f.WindMul * windDir.Z;
         var scale = f.TimeScaleFor(launchDeg, exitMph, rules);
         var list = new List<Sample>(512) { new(0, 0, f.PlateHeightFt, 0, 0) };
-        Run(list, rules, walls, zones, 0.0, 0.0, f.PlateHeightFt, 0.0, vx, vy, vz, wx, wz, scale, rolling: false);
+        Run(list, rules, walls, zones, 0.0, 0.0, f.PlateHeightFt, 0.0, vx, vy, vz, wx, wz, scale, rolling: false, apexCarryMul);
         return list;
     }
 
@@ -78,14 +84,15 @@ public static class BallFlight
     /// kept as they were, then the shared flight and ground physics — drag, the park's wind, gravity, the bounce, the roll, the walls —
     /// run on from (<paramref name="x"/>, <paramref name="y"/>, <paramref name="z"/>) at (<paramref name="vx"/>, <paramref name="vy"/>,
     /// <paramref name="vz"/>) measured in play seconds, on the same time scale the hit had. A deflected ball is a batted ball still.
+    /// A continued ball catches no apex gust: the gust belongs to the ball's first flight, already in the kept samples.
     /// </summary>
     public static IReadOnlyList<Sample> Continue(IReadOnlyList<Sample> path, double fromT, double x, double y, double z,
-        double vx, double vy, double vz, double launchDeg, double exitMph, Park park, RulesTable rules, double windMul = 1)
+        double vx, double vy, double vz, double launchDeg, double exitMph, Park park, RulesTable rules)
     {
         var r = rules;
         var f = r.Flight;
-        var wx = park.WindMph * windMul * MphToFtPerSec * f.WindMul * park.WindDirection.X;
-        var wz = park.WindMph * windMul * MphToFtPerSec * f.WindMul * park.WindDirection.Z;
+        var wx = park.WindMph * MphToFtPerSec * f.WindMul * park.WindDirection.X;
+        var wz = park.WindMph * MphToFtPerSec * f.WindMul * park.WindDirection.Z;
         var scale = f.TimeScaleFor(launchDeg, exitMph, r);
         var list = new List<Sample>(512);
         foreach (var s in path)
@@ -93,17 +100,19 @@ public static class BallFlight
         var y0 = Math.Max(0, y);
         list.Add(new Sample(fromT, Math.Sqrt(x * x + z * z), y0, x, z));
         var rolling = y0 <= 1e-9 && Math.Abs(vy) < 1e-9;
-        Run(list, r, FieldBounds.Of(park, r), GroundZones.Of(park, r), fromT, x, y0, z, vx * scale, vy * scale, vz * scale, wx, wz, scale, rolling);
+        Run(list, r, FieldBounds.Of(park, r), GroundZones.Of(park, r), fromT, x, y0, z, vx * scale, vy * scale, vz * scale, wx, wz, scale, rolling, 1);
         return list;
     }
 
     /// <summary>
     /// One integration of the flight and ground physics, appending to <paramref name="list"/> from the given state until the ball
     /// rests or the clock runs out. <paramref name="zones"/> is the park's ground (null for the open field, which stands on
-    /// <see cref="OpenFieldGround"/>); impact velocity determines each ground response.
+    /// <see cref="OpenFieldGround"/>); impact velocity determines each ground response. <paramref name="apexCarryMul"/> is the
+    /// gust (<see cref="Trajectory(double, double, double, Park, RulesTable, double)"/>): armed until the first ground or wall
+    /// contact, it stretches each horizontal move from the step the ball stops rising.
     /// </summary>
     static void Run(List<Sample> list, RulesTable rules, FieldBounds.Boundary? walls, GroundZones? zones, double t0, double x, double y, double z,
-        double vx, double vy, double vz, double wx, double wz, double scale, bool rolling)
+        double vx, double vy, double vz, double wx, double wz, double scale, bool rolling, double apexCarryMul)
     {
         var f = rules.Flight;
         var grounds = rules.Grounds;
@@ -112,6 +121,9 @@ public static class BallFlight
         GroundRules Under(double px, double pz) => open ?? zones.GetValueOrDefault().RowAt(px, pz, grounds);
         var dt = 1.0 / f.SampleHz;
         var gone = false;
+        // The gust (§13): armed on a rising ball, it blows from the apex step until the ball first meets anything.
+        var gustArmed = apexCarryMul != 1 && !rolling && vy > 0;
+        var carry = 1.0;
         var steps = (int)(f.SampleHz * f.MaxSeconds);
         for (var i = 0; i < steps; i++)
         {
@@ -149,9 +161,15 @@ public static class BallFlight
             var rs = Math.Sqrt(rvx * rvx + vy * vy + rvz * rvz);
             vx -= f.Drag * rs * rvx * dt;
             vz -= f.Drag * rs * rvz * dt;
+            var wasRising = vy > 0;
             vy -= (f.Gravity + f.Drag * rs * vy) * dt;
-            var nx = x + vx * dt;
-            var nz = z + vz * dt;
+            if (gustArmed && wasRising && vy <= 0)
+            {
+                carry = apexCarryMul;
+                gustArmed = false;
+            }
+            var nx = x + vx * dt * carry;
+            var nz = z + vz * dt * carry;
             var ny = y + vy * dt;
             var evt = SampleEvent.None;
 
@@ -173,12 +191,16 @@ public static class BallFlight
                     evt = fair ? SampleEvent.Wall : SampleEvent.FoulWall;
                     (nx, nz) = Carom(cross, ref vx, ref vz, WallOf(rules.Walls, cross.Segment));
                     ny = h;
+                    gustArmed = false;
+                    carry = 1;
                 }
             }
 
             if (ny <= 0)
             {
                 ny = 0;
+                gustArmed = false;
+                carry = 1;
                 if (gone)
                 {
                     x = nx;

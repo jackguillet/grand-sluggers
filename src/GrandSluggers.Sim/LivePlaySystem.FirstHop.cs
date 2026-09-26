@@ -55,10 +55,10 @@ public sealed partial class LivePlaySystem
             now = (now.X, 0, now.Z);
             var mul = swing.FirstHopStallSpeedMul;
             Path = BallFlight.Continue(Stall(Path, t, now.X, now.Z, stall), t + stall,
-                now.X, 0, now.Z, kx * mul, vy * mul, kz * mul, Hit.LaunchDeg, Hit.ExitVeloMph, Park, R, Hit.WindMul);
+                now.X, 0, now.Z, kx * mul, vy * mul, kz * mul, Hit.LaunchDeg, Hit.ExitVeloMph, Park, R);
         }
         else
-            Path = BallFlight.Continue(Path, t, now.X, now.Y, now.Z, kx, vy, kz, Hit.LaunchDeg, Hit.ExitVeloMph, Park, R, Hit.WindMul);
+            Path = BallFlight.Continue(Path, t, now.X, now.Y, now.Z, kx, vy, kz, Hit.LaunchDeg, Hit.ExitVeloMph, Park, R);
         Ball = BattedBall.Reread(Path, Hit.ExitVeloMph, Hit.LaunchDeg, false, Park, R);
         (BallX, BallY, BallZ) = now;
         _ballPrev = null;

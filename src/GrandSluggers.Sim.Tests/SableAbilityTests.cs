@@ -32,7 +32,7 @@ public sealed class SableAbilityTests
         // The middle third, and the ordinary speed: no twin, no path shape of any kind.
         Assert.Equal(new PitchVanish(0.3333, 0.6667), pitch.Vanish);
         Assert.Equal(1.0, pitch.SpeedMul);
-        Assert.Null(pitch.Float);
+        Assert.Null(pitch.Hitch);
         Assert.Null(pitch.Leap);
         Assert.Null(pitch.Loop);
         // An 8-ft bowl (a radius, like a park's slow disc) for 2 s at half speed; the ball's hop is left alone.

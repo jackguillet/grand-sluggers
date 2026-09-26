@@ -27,7 +27,7 @@ public sealed class ZigAbilityTests
         var pitch = Game.StarSkills.Pitch("prismball")!;
         Assert.False(pitch.LateBreak);
         Assert.Null(pitch.Leap);
-        Assert.Null(pitch.Float);
+        Assert.Null(pitch.Hitch);
         Assert.NotNull(pitch.Loop);
     }
 
