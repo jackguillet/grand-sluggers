@@ -60,11 +60,11 @@ Names are working titles. Replace freely; keep the *roles*.
 - Field: **Lick Catch** — tongue/stretch catch (range).
 - Bats/throws: L/R
 
-### Brondo — Goldrush
+### Brondo — Skyline Gold (a rooftop bulldog hustler)
 
 - Stats: Pitch 5 / Bat 8 / Field 3 / Run 4
-- Star Pitch: **Phonyball** — decoy ball; real one is late.
-- Star Swing: **Phony Swing** — two balls; fielders must pick.
+- Star Pitch: **Phonyball** — shows one side early, switches late; read the switch.
+- Star Swing: **Double Deal** — a card-back decoy flies beside the real ball until the apex.
 - Field: **Laser** — fastest throw in the game, terrible first step.
 - Bats/throws: R/R
 
