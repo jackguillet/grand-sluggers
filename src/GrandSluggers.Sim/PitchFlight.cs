@@ -102,6 +102,10 @@ public static class PitchFlight
         // A row's own path shape (§13): the float rises early and lands on the crossing the pitch was always going to make.
         if (row?.Float is { } rise && rise.Lift(u) is var lift and not 0)
             p = (p.X, p.Y + lift * zone.VerticalScale, p.Z);
+        // A late drop (§13, Anvil): after the clang the iron sinks to a crossing below the aimed one. This moves the crossing,
+        // so the umpire, the bat and the CPU all judge the dropped ball; in reference-zone feet, like every vertical star shape.
+        if (row?.Drop is { } sink && sink.Fall(u) is var fall and not 0)
+            p = (p.X, p.Y - fall * zone.VerticalScale, p.Z);
         var st = r.Pitching.StarShapes;
         return starPitchId switch
         {

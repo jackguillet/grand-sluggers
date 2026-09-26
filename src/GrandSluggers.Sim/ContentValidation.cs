@@ -263,6 +263,11 @@ public static class ContentDataValidator
                     errors.Add($"{source}: star pitch '{key}' cannot carry firstHopBounceMul; it is a swing's");
                 if (value.Float is { } rise && (rise.RiseFt <= 0 || rise.RiseFt > PitchFloatLimits.MaxRiseFt || rise.DropFrom <= 0 || rise.DropFrom >= 1))
                     errors.Add($"{source}: star pitch '{key}' float needs 0 < riseFt <= {PitchFloatLimits.MaxRiseFt.ToString(CultureInfo.InvariantCulture)} and 0 < dropFrom < 1");
+                // The drop ends at the plate and is always down (§13): out of the bottom of the zone, never into the dirt.
+                if (value.Drop is { } sink && (sink.DropFt <= 0 || sink.DropFt > PitchDrop.MaxDropFt || sink.From <= 0 || sink.From >= 1))
+                    errors.Add($"{source}: star pitch '{key}' drop needs 0 < dropFt <= {PitchDrop.MaxDropFt.ToString(CultureInfo.InvariantCulture)} and 0 < from < 1");
+                if (value.HotBall is not null)
+                    errors.Add($"{source}: star pitch '{key}' cannot carry a hotBall; it is a swing's");
             }
             else
             {
@@ -278,6 +283,11 @@ public static class ContentDataValidator
                     errors.Add($"{source}: star swing '{key}' cannot carry a float; it is a pitch's");
                 if (value.Leap is not null)
                     errors.Add($"{source}: star swing '{key}' cannot carry a leap; it is a pitch's");
+                if (value.Drop is not null)
+                    errors.Add($"{source}: star swing '{key}' cannot carry a drop; it is a pitch's");
+                // The ball cools within two seconds of contact (§13), and a glove must be able to hold it a moment first.
+                if (value.HotBall is { } hot && (hot.MoltenSec <= 0 || hot.MoltenSec > HotBall.MaxMoltenSec || hot.HoldSec <= 0 || hot.HoldSec >= hot.MoltenSec))
+                    errors.Add($"{source}: star swing '{key}' hotBall needs 0 < holdSec < moltenSec <= {HotBall.MaxMoltenSec.ToString(CultureInfo.InvariantCulture)}");
                 if (value.FirstHopBounceMul is not null && (value.FirstHopBounceMul < 1 || value.FirstHopBounceMul > StarSwingSkill.MaxBounceMul))
                     errors.Add($"{source}: star swing '{key}' firstHopBounceMul must be between 1 and {StarSwingSkill.MaxBounceMul.ToString(CultureInfo.InvariantCulture)}; got {value.FirstHopBounceMul}");
                 if (value.WindMul is not null && (value.WindMul < 0 || value.WindMul > StarSwingSkill.MaxWindMul))
@@ -1652,6 +1662,10 @@ internal sealed class StarSkillDto
     public PitchFloatDto? Float { get; set; }
     /// <summary>A pitch's leap (<see cref="PitchLeap"/>); pitches only.</summary>
     public PitchLeapDto? Leap { get; set; }
+    /// <summary>A pitch's late drop (<see cref="PitchDrop"/>); pitches only.</summary>
+    public PitchDropDto? Drop { get; set; }
+    /// <summary>A swing's hot ball (<see cref="Sim.HotBall"/>); swings only.</summary>
+    public HotBallDto? HotBall { get; set; }
     /// <summary>A swing's first hop springs this many times as fast upward (<see cref="StarSwingSkill.FirstHopBounceMul"/>); swings only.</summary>
     public double? FirstHopBounceMul { get; set; }
     /// <summary>A swing's ball kicks this many degrees off its first hop (<see cref="StarSwingSkill.FirstHopKickDeg"/>); swings only.</summary>
@@ -1667,11 +1681,26 @@ internal sealed class StarSkillDto
         LateBreak, Decoy, OnCatch,
         Twin is null ? null : new PitchTwin(Twin.OffsetFt, Twin.FadeFrom, Twin.FadeTo),
         Float is null ? null : new PitchFloat(Float.RiseFt, Float.DropFrom),
-        Leap is null ? null : new PitchLeap(Leap.At, Leap.HoldSpan, Leap.HoldPace));
+        Leap is null ? null : new PitchLeap(Leap.At, Leap.HoldSpan, Leap.HoldPace),
+        Drop: Drop is null ? null : new PitchDrop(Drop.DropFt, Drop.From));
 
     public StarSwingSkill ToSwing() => new(Id, Name, Kind, ExitVeloMul ?? 1.0, LaunchDeg, Terrain,
         FielderPauseSec ?? 0, InfieldChaos, Decoy, Fragments, FirstHopKickDeg ?? 0,
-        WindMul ?? 1, FirstHopBounceMul ?? 1);
+        WindMul ?? 1, FirstHopBounceMul ?? 1,
+        HotBall: HotBall is null ? null : new Sim.HotBall(HotBall.MoltenSec, HotBall.HoldSec));
+}
+
+internal sealed class PitchDropDto
+{
+    public double DropFt { get; set; }
+    /// <summary>The share of the flight after which the ball starts to drop (a fraction, not seconds).</summary>
+    public double From { get; set; }
+}
+
+internal sealed class HotBallDto
+{
+    public double MoltenSec { get; set; }
+    public double HoldSec { get; set; }
 }
 
 internal sealed class PitchLeapDto

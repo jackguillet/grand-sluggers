@@ -55,7 +55,7 @@ public sealed class NarratorTests
         Assert.Equal(" Foul.", PlayNarrator.Narrate(PlayCall.Of(Live(InPlay.ThrowVerdict.None), new CallPart(CallBeat.Foul))));
 
     [Theory]
-    [InlineData("furnace", "Rio FURNACE - it's gone.")]
+    [InlineData("furnace", "Rio HOT IRON - it's gone.")]
     [InlineData("heat-swing", "Rio HEAT-SWING - it's gone.")]
     [InlineData("cask-swing", "Rio goes deep.")]
     [InlineData(null, "Rio goes deep.")]

@@ -53,9 +53,12 @@ public static class PlayNarrator
         CallBeat.Balk => "Balk: threw to a base after committing to pitch. Runners advance one base.",
         CallBeat.StolenBase => "Stolen base.",
         CallBeat.Foul => "Foul.",
-        CallBeat.HomeRun => p.Word is "furnace" or "heat-swing"
-            ? $"{p.Who} {p.Word.ToUpperInvariant()} - it's gone."
-            : $"{p.Who} goes deep.",
+        CallBeat.HomeRun => p.Word switch
+        {
+            "furnace" => $"{p.Who} HOT IRON - it's gone.",
+            "heat-swing" => $"{p.Who} HEAT-SWING - it's gone.",
+            _ => $"{p.Who} goes deep."
+        },
         CallBeat.InsideTheParkHomeRun => $"{p.Who} - all the way around!",
         CallBeat.GroundRuleDouble => $"{p.Who} - over the fence on a hop. Ground-rule double.",
         CallBeat.Triple => $"{p.Who} triples.",

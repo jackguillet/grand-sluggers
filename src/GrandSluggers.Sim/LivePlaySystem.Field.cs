@@ -508,6 +508,7 @@ public sealed partial class LivePlaySystem
         Ball = Preview?.Ball ?? BattedBall.Of(Hit, Park, R);
         Path = Ball.Samples;
         BeginFirstHopKick();
+        BeginHotBall();
         CoverBallX = Preview?.LandingX ?? Ball.LandingX;
         PlayerFielding = FieldAssist.PlayerStartsOnGlove(Seats.PlayerMustField);
         var airHang = Ball.Shape.OnTheDirt() ? (double?)null : Hang;
@@ -569,6 +570,7 @@ public sealed partial class LivePlaySystem
         Path = null;
         Ball = null;
         _kickAt = null;
+        _hot = null;
         FlightDone = false;
         OffTheBat = false;
         _call = FairFoulCall.Undecided;
@@ -718,6 +720,8 @@ public sealed partial class LivePlaySystem
         }
         foreach (var pos in _items.Tick(dt, _fielders, R))
             Foil(pos, R.Batting.Items.SlipSec);
+        // The hot ball (§13, Hot Iron): a glove that has held it past its hold while it is molten drops it at its feet.
+        ReadHotBall();
         if (_items.Due(ElapsedSeconds))
             LandItem();
 

@@ -12,9 +12,10 @@ Each replacement effect for a pitch that lost its window penalty is its own revi
 | Prismball | Late break, ghost images | |
 | Phonyball | Decoy path: the ball shows one side early and switches late (`starShapes.phonyball*`); reading the switch is the counterplay. Contact is contact | |
 | Caskball | Slow, knockback on the catch (0.55 s) | |
-| Skullball | +20% speed, nothing else until its review | |
+| Anvil (`skullball`) | Speed ×1.2 and a `drop`: the ball flies the plain path until `from` (0.7) of the flight — the clang, where the glowing ball turns to cold iron — then sinks on a quadratic ease to `dropFt` (1.5 ft, in the batter's zone like every vertical star shape) below it, the whole drop at the plate. The crossing moves: the umpire, the bat and the CPU judge the dropped ball, in the ordinary timing window judged at that real crossing. The drop is always straight down; a low strike can drop out of the zone and a high ball into it. The clang comes first: aim low | |
 | Fogball | Speed ×0.82, nothing else until its review | |
-| Heat / Furnace swing | Exit ×1.15 / ×1.25; a burn patch / lava strip where it lands slows the fielder ×0.45 for 2 s | |
+| Heat swing | Exit ×1.15; a burn patch where it lands slows the fielder ×0.45 for 2 s | |
+| Hot Iron (`furnace`) | Exit ×1.25 and a `hotBall`: the ball stays molten for `moltenSec` (2 s) after contact. A glove that holds it more than `holdSec` (0.5 s) of that time — from its take to its throw's command — drops it at its feet, a live loose ball, and cannot take it back until it cools; any other glove may. A take late enough to hold less than `holdSec` of molten ball never drops. A catch still counts: a caught fly is an out before any drop. The same clock for a CPU glove and a player's; no roll. Throw it at once, or let it cool on a hop. Nothing is left on the track | |
 | Heart swing | The nearest fielder pauses 0.8 s; no drop roll (§8.6) | |
 | Shell / Staff swing | Exit ×1.1 / ×1.08; the warp roll is retired (§8.6) until each swing's own effect is built | |
 | Phony swing | Decoy ball; the real one shows at the apex; no drop roll (§8.6) | |
