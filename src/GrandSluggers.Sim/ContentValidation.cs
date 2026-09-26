@@ -449,12 +449,14 @@ public static class ContentDataValidator
                 errors.Add($"{row.Source}: captain '{row.Value.Id}' {field} '{skill}' is a sidekick's generic special; a captain carries their own");
             if (!generic && !owner.TryAdd(skill, row.Value.Id))
                 errors.Add($"{row.Source}: character '{row.Value.Id}' {field} '{skill}' is already '{owner[skill]}''s; a captain's special is theirs alone");
-            // No two captains share an effect family (AB-02): a row that names its family is checked against the others.
-            if (!generic && !string.IsNullOrEmpty(dto.Family))
+            // No two captains share an effect family (AB-02): every captain's special names its family, checked against the others.
+            if (!generic && string.IsNullOrEmpty(dto.Family))
+                errors.Add($"{row.Source}: captain '{row.Value.Id}' {field} '{skill}' names no effect family; a captain's special names one (AB-02)");
+            else if (!generic && dto.Family is { } family)
             {
-                if (families.TryGetValue(dto.Family, out var other) && other != skill)
-                    errors.Add($"{row.Source}: captain '{row.Value.Id}' {field} '{skill}' shares effect family '{dto.Family}' with '{other}'; every captain's special is its own");
-                else families[dto.Family] = skill;
+                if (families.TryGetValue(family, out var other) && other != skill)
+                    errors.Add($"{row.Source}: captain '{row.Value.Id}' {field} '{skill}' shares effect family '{family}' with '{other}'; every captain's special is its own");
+                else families[family] = skill;
             }
         }
     }
