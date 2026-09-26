@@ -95,16 +95,16 @@ public sealed record BattedBall(
     public bool Leaves => LeavesT is not null;
 
     public static BattedBall Of(AtBatResult hit, Park park, RulesTable rules) =>
-        Of(hit.ExitVeloMph, hit.LaunchDeg, hit.SprayDeg, hit.Class == BattedBallClass.Bunt, park, rules, hit.WindMul);
+        Of(hit.ExitVeloMph, hit.LaunchDeg, hit.SprayDeg, hit.Class == BattedBallClass.Bunt, park, rules, hit.ApexCarryMul);
 
     public static BattedBall Of(double exitMph, double launchDeg, double sprayDeg, Park park, RulesTable rules) =>
         Of(exitMph, launchDeg, sprayDeg, false, park, rules);
 
     public static BattedBall Of(double exitMph, double launchDeg, double sprayDeg, bool bunt, Park park, RulesTable rules,
-        double windMul = 1)
+        double apexCarryMul = 1)
     {
         var r = rules;
-        var samples = BallFlight.Trajectory(exitMph, launchDeg, sprayDeg, park, r, windMul);
+        var samples = BallFlight.Trajectory(exitMph, launchDeg, sprayDeg, park, r, apexCarryMul);
         return Read(samples, exitMph, launchDeg, bunt, park, r);
     }
 

@@ -18,7 +18,7 @@
   "bats": "L",
   "throws": "R",
   "repertoire": ["curveball", "slider"],
-  // His own three (WD-15 A): Rockfall's float, Updraft's wind, Long Toss's range.
+  // His own three (WD-15 A): Cable Car's stop, Summit Gust's apex carry, Long Toss's range.
   "starPitch": "rockfall",
   "starSwing": "updraft",
   "fieldAbility": "long-toss",

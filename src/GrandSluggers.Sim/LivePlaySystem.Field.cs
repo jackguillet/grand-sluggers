@@ -1919,7 +1919,7 @@ public sealed partial class LivePlaySystem
         var before = BallFlight.PointAt(Path, Math.Max(0, t - dt), R);
         var (vx, vy, vz) = ((BallX - before.X) / dt, (BallY - before.Y) / dt, (BallZ - before.Z) / dt);
         if (SolidBodies.Carom(_solids, t, BallX, BallY, BallZ, vx, vz) is not { } hit) return;
-        Path = BallFlight.Continue(Path, t, hit.X, BallY, hit.Z, hit.Vx, vy, hit.Vz, Hit.LaunchDeg, Hit.ExitVeloMph, Park, R, Hit.WindMul);
+        Path = BallFlight.Continue(Path, t, hit.X, BallY, hit.Z, hit.Vx, vy, hit.Vz, Hit.LaunchDeg, Hit.ExitVeloMph, Park, R);
         Ball = BattedBall.Reread(Path, Hit.ExitVeloMph, Hit.LaunchDeg, Ball.Shape == BattedBallClass.Bunt, Park, R);
         (BallX, BallZ) = (hit.X, hit.Z);
         _ballPrev = null;
@@ -1964,7 +1964,7 @@ public sealed partial class LivePlaySystem
         var (vx, vz) = ((BallX - before.X) / dt, (BallZ - before.Z) / dt);
         var (x, y, z, ox, oy, oz) = BallHazards.Launch(exit, vx, vz);
         var entry = (X: BallX, Z: BallZ);
-        Path = BallFlight.Continue(Path, t, x, y, z, ox, oy, oz, Hit.LaunchDeg, Hit.ExitVeloMph, Park, R, Hit.WindMul);
+        Path = BallFlight.Continue(Path, t, x, y, z, ox, oy, oz, Hit.LaunchDeg, Hit.ExitVeloMph, Park, R);
         Ball = BattedBall.Reread(Path, Hit.ExitVeloMph, Hit.LaunchDeg, Ball.Shape == BattedBallClass.Bunt, Park, R);
         (BallX, BallY, BallZ) = (x, y, z);
         _ballPrev = null;
@@ -2742,7 +2742,7 @@ public sealed partial class LivePlaySystem
         var s = retention * speed;
         if (Path is not null && Hit is not null)
         {
-            Path = BallFlight.Continue(Path, ElapsedSeconds, BallX, BallY, BallZ, ox * s, retention * vy, oz * s, Hit.LaunchDeg, Hit.ExitVeloMph, Park, R, Hit.WindMul);
+            Path = BallFlight.Continue(Path, ElapsedSeconds, BallX, BallY, BallZ, ox * s, retention * vy, oz * s, Hit.LaunchDeg, Hit.ExitVeloMph, Park, R);
             if (Ball is not null) Ball = BattedBall.Reread(Path, Hit.ExitVeloMph, Hit.LaunchDeg, Ball.Shape == BattedBallClass.Bunt, Park, R);
             _ballPrev = null;
         }

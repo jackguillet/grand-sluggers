@@ -165,9 +165,9 @@ public sealed class AtBatResolver
         exit = Math.Round(exit, 1);
         launch = Math.Round(launch, 1);
         spray = Math.Round(spray, 1);
-        // A star swing may ride the park's wind harder or softer (§13, windMul): the ball's own factor, read by every flight of it.
-        var windMul = input.UseStarSwing && !input.Bunt ? StarSkills.SwingWindMul(input.Batter.StarSwing, _skills) : 1.0;
-        var ball = BattedBall.Of(exit, launch, spray, input.Bunt, park, _rules, windMul);
+        // A star swing's fly may catch a gust at its apex (§13, apexCarryMul): the ball's own factor, read by every flight of it.
+        var carryMul = input.UseStarSwing && !input.Bunt ? StarSkills.SwingApexCarryMul(input.Batter.StarSwing, _skills) : 1.0;
+        var ball = BattedBall.Of(exit, launch, spray, input.Bunt, park, _rules, carryMul);
 
         return new AtBatResult(
             quality,
@@ -184,7 +184,7 @@ public sealed class AtBatResolver
             Foul: ball.Foul,
             InZone: input.PitchInZone,
             Class: ball.Shape,
-            WindMul: windMul);
+            ApexCarryMul: carryMul);
     }
 
     /// <summary>

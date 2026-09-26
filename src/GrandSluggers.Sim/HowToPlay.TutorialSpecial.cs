@@ -36,7 +36,7 @@ public static partial class HowToPlay
             "T-SP-changeup" => "Star Change",
             "T-SP-breaker" => "Star Breaker",
             "T-SP-mirageball" => "Mirage Ball",
-            "T-SP-rockfall" => "Rockfall",
+            "T-SP-rockfall" => "Cable Car",
             "T-SP-leapfrog" => "Leapfrog",
             "T-SS-heat-swing" => "Sparkler",
             "T-SS-heart-swing" => "Follow Spot",
@@ -46,7 +46,7 @@ public static partial class HowToPlay
             "T-SS-furnace" => "Furnace",
             "T-SS-staff-swing" => "Staff Swing",
             "T-SS-sidewinder" => "Sidewinder",
-            "T-SS-updraft" => "Updraft",
+            "T-SS-updraft" => "Summit Gust",
             "T-SS-pond-skip" => "Pond Skip",
             "T-SS-ground" => "Star Grounder",
             "T-SS-fly" => "Star Fly",
@@ -63,6 +63,8 @@ public static partial class HowToPlay
             "T-SS-shell-swing" => " The grounder spins in place at its first hop, then rolls on slowly. Run.",
             "T-SP-charmball" => " The ball sways widest at mid-flight, then settles onto your aim before the plate.",
             "T-SS-heart-swing" => " The follow spot holds the nearest fielder still for a moment after contact.",
+            "T-SP-rockfall" => " It stops dead mid-flight for a beat, then runs down its line to cross where you aimed, on time.",
+            "T-SS-updraft" => " At the top of its flight the fly catches a gust and carries farther along its line.",
             _ => ""
         };
         return pitch

@@ -12,8 +12,6 @@ public sealed record StarPitchSkill(
     string? OnCatch,
     /// <summary>A faint second ball drawn beside the real one early in the flight, or null (§13).</summary>
     PitchTwin? Twin = null,
-    /// <summary>A path that floats high early and drops onto the unchanged crossing late, or null (§13).</summary>
-    PitchFloat? Float = null,
     /// <summary>A pace that hangs the ball over one stretch of its path and leaps it to the plate on time, or null (§13).</summary>
     PitchLeap? Leap = null,
     /// <summary>A late rise that lifts the ball over the last stretch of its flight to a crossing above the aimed one, or null (§13).</summary>
@@ -21,7 +19,47 @@ public sealed record StarPitchSkill(
     /// <summary>One full vertical loop mid-flight, then the ordinary crossing on the ordinary time, or null (§13).</summary>
     PitchLoop? Loop = null,
     /// <summary>A side-to-side sway that swells to its widest mid-flight and settles onto the ordinary path before the plate, or null (§13).</summary>
-    PitchSway? Sway = null);
+    PitchSway? Sway = null,
+    /// <summary>A full stop at one point of the path for a fixed time, then a run on down the line to arrive on time, or null (§13).</summary>
+    PitchHitch? Hitch = null);
+
+/// <summary>
+/// A star pitch's hitch (spec §13): at <see cref="At"/> of the flight the ball stops dead at one point of its path — a cable car
+/// at its station — for <see cref="HoldSec"/> seconds, then runs on down the rest of its path fast enough to arrive at the
+/// ordinary instant. The path, the crossing and the arrival time are the ordinary pitch's; only where the ball is along its
+/// path, and when, changes. The stop is in seconds, so its share of the flight is the delivery's own: a slow pitch stops for
+/// a smaller share of its longer flight. Nothing is rolled.
+/// </summary>
+public sealed record PitchHitch(double At, double HoldSec)
+{
+    /// <summary>The longest stop a row may name: a beat the eye catches, not a pitch that hangs until the batter gives up.</summary>
+    public const double MaxHoldSec = 0.3;
+
+    /// <summary>
+    /// The share of a flight of <paramref name="airSec"/> seconds the stop takes: <see cref="HoldSec"/> over the air time, never
+    /// more than half of what is left of the flight after the station, so the run down the line always has a stretch to make up
+    /// the time in. A caller with no clock (<paramref name="airSec"/> ≤ 0) reads the slowest flight the table allows.
+    /// </summary>
+    public double HoldShare(double airSec, RulesTable rules)
+    {
+        var air = airSec > 0 ? airSec : rules.Pitching.Flight.AirMaxSec;
+        return Math.Min(HoldSec / air, (1 - At) / 2);
+    }
+
+    /// <summary>
+    /// How far along its path the ball is at time fraction <paramref name="u"/> of a flight of <paramref name="airSec"/> seconds:
+    /// the identity up to the station, standing still there for the stop, then an even run that reaches the plate at 1 on 1.
+    /// </summary>
+    public double Progress(double u, double airSec, RulesTable rules)
+    {
+        u = Math.Clamp(u, 0, 1);
+        if (u <= At) return u;
+        var hold = HoldShare(airSec, rules);
+        if (u <= At + hold) return At;
+        if (u >= 1) return 1;
+        return At + (1 - At) * (u - At - hold) / (1 - At - hold);
+    }
+}
 
 /// <summary>
 /// A star pitch's loop (spec §13): from <see cref="At"/> of the flight the ball runs one full vertical loop,
@@ -63,7 +101,7 @@ public sealed record PitchLoop(double At, double Span, double DiameterFt)
 
 /// <summary>
 /// A star pitch's late rise (spec §13): nothing until <see cref="From"/> of the flight, then the ball climbs on a quadratic ease
-/// to <see cref="RiseFt"/> above its ordinary path exactly at the plate. Unlike a float, the crossing moves: the umpire, the
+/// to <see cref="RiseFt"/> above its ordinary path exactly at the plate. Unlike a shape that settles before the plate, the crossing moves: the umpire, the
 /// bat and the CPU judge the risen ball, and the timing window is judged at that real crossing. The rise is always up.
 /// </summary>
 public sealed record PitchRise(double RiseFt, double From)
@@ -131,24 +169,6 @@ public sealed record PitchLeap(double At, double Hold, double HoldPace)
 }
 
 /// <summary>
-/// A star pitch's float (spec §13): the ball rises up to <see cref="RiseFt"/> above its ordinary path, highest at
-/// <see cref="DropFrom"/> of the flight, then drops back onto the ordinary path by the plate. The crossing — what the
-/// umpire, the bat and the CPU judge — is the ordinary one; only the look of the flight bends.
-/// </summary>
-public sealed record PitchFloat(double RiseFt, double DropFrom)
-{
-    /// <summary>The height over the ordinary path at <paramref name="u"/>: up along a quarter sine, down along a parabola, exactly 0 at the plate.</summary>
-    public double Lift(double u)
-    {
-        u = Math.Clamp(u, 0, 1);
-        if (u >= 1) return 0;
-        if (u <= DropFrom) return RiseFt * Math.Sin(Math.PI / 2 * u / DropFrom);
-        var d = (u - DropFrom) / (1 - DropFrom);
-        return RiseFt * (1 - d * d);
-    }
-}
-
-/// <summary>
 /// A star pitch's twin (spec §13): a faint second ball <see cref="OffsetFt"/> to the far side of the zone from the real
 /// crossing, flying beside the real ball at full strength until <see cref="FadeFrom"/> of the flight and gone by
 /// <see cref="FadeTo"/>. It is drawn only: the umpire, the bat and the CPU read the one real ball.
@@ -183,8 +203,6 @@ public sealed record StarSwingSkill(
     /// A fair ball off this swing turns this many degrees at its first hop, away from the fielder chasing it (§13); 0 is none.
     /// </summary>
     double FirstHopKickDeg = 0,
-    /// <summary>How strongly the park's wind acts on this swing's ball (§13, <see cref="AtBatResult.WindMul"/>); 1 is the ordinary ball.</summary>
-    double WindMul = 1,
     /// <summary>A fair ball off this swing leaves its first hop this many times as fast upward (§13); 1 is the ordinary hop.</summary>
     double FirstHopBounceMul = 1,
     /// <summary>A fair ball off this swing stands still at its first hop for this many seconds (§13); 0 is none.</summary>
@@ -195,7 +213,12 @@ public sealed record StarSwingSkill(
     /// This swing's Perfect ring is this many times the ordinary one (§13, PH-16-R2: a swing's own contact area); 1 is the
     /// ordinary ring. The nice oval, the sour rim and the timing window are unchanged, so a miss is still a miss.
     /// </summary>
-    double PerfectRingMul = 1)
+    double PerfectRingMul = 1,
+    /// <summary>
+    /// At its apex this swing's fly carries this many times as far along its own line as the plain ball would from there, to its
+    /// first landing (§13, <see cref="AtBatResult.ApexCarryMul"/>); 1 is the ordinary ball. The wind and the park do not enter it.
+    /// </summary>
+    double ApexCarryMul = 1)
 {
     /// <summary>The longest stall a row may name: the ball spins, then baseball resumes inside the two-second rule.</summary>
     public const double MaxStallSec = 1.2;
@@ -212,8 +235,8 @@ public sealed record StarSwingSkill(
     /// <summary>The swing changes its ball's first hop.</summary>
     public bool ShapesFirstHop => FirstHopKickDeg > 0 || FirstHopBounceMul != 1 || FirstHopStallSec > 0;
 
-    /// <summary>The largest wind factor a row may name: the wind may carry a star ball twice as far, never more.</summary>
-    public const double MaxWindMul = 2;
+    /// <summary>The largest apex carry a row may name: a gust, not a launch; the fly's fall carries at most half again as far.</summary>
+    public const double MaxApexCarryMul = 1.5;
 
     /// <summary>The longest pause a row may name: every special's bend ends within 2 s of the contact (§13).</summary>
     public const double MaxFielderPauseSec = 2;
@@ -290,9 +313,9 @@ public static class StarSkills
     /// <summary>The kind a sidekick's special names: the generic pool (§13). A captain's specials name any other kind.</summary>
     public const string GenericKind = "generic";
 
-    /// <summary>How strongly the park's wind acts on a star swing's ball (§13); 1 for a swing whose row names none.</summary>
-    public static double SwingWindMul(string? starSwing, StarSkillTable? table = null) =>
-        StarSkillTable.Or(table).Swing(starSwing)?.WindMul ?? 1.0;
+    /// <summary>How much farther a star swing's fly carries from its apex (§13); 1 for a swing whose row names none.</summary>
+    public static double SwingApexCarryMul(string? starSwing, StarSkillTable? table = null) =>
+        StarSkillTable.Or(table).Swing(starSwing)?.ApexCarryMul ?? 1.0;
 
     /// <summary>How much larger a star swing's Perfect ring is (§13); 1 for a swing whose row names none.</summary>
     public static double SwingPerfectRingMul(string? starSwing, StarSkillTable? table = null) =>
@@ -325,10 +348,4 @@ public static class StarSkills
     /// </summary>
     public static double SpectacleSeconds(string? id) =>
         string.IsNullOrEmpty(id) ? 0 : 2.0;
-}
-
-/// <summary>The float's bound (§13): a rise, not a lob over the backstop.</summary>
-public static class PitchFloatLimits
-{
-    public const double MaxRiseFt = 4;
 }
