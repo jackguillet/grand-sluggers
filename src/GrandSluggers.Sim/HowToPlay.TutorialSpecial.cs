@@ -27,7 +27,7 @@ public static partial class HowToPlay
             "T-B09" => "Heat Swing",
             "T-SP-heatball" => "Heatball",
             "T-SP-charmball" => "Charmball",
-            "T-SP-prismball" => "Prismball",
+            "T-SP-prismball" => "Loop-the-Loop",
             "T-SP-phonyball" => "Phonyball",
             "T-SP-caskball" => "Caskball",
             "T-SP-skullball" => "Skullball",
@@ -40,7 +40,7 @@ public static partial class HowToPlay
             "T-SP-leapfrog" => "Leapfrog",
             "T-SS-heat-swing" => "Heat Swing",
             "T-SS-heart-swing" => "Heart Swing",
-            "T-SS-shell-swing" => "Shell Swing",
+            "T-SS-shell-swing" => "Spinning Top",
             "T-SS-phony-swing" => "Phony Swing",
             "T-SS-cask-swing" => "Cask Swing",
             "T-SS-furnace" => "Furnace",
@@ -54,12 +54,19 @@ public static partial class HowToPlay
             _ => ""
         };
         if (skill.Length == 0) return null;
+        // What the special does, where its lesson teaches it (§13).
+        var does = id switch
+        {
+            "T-SP-prismball" => " It runs one loop mid-flight, then crosses where you aimed, on time.",
+            "T-SS-shell-swing" => " The grounder spins in place at its first hop, then rolls on slowly. Run.",
+            _ => ""
+        };
         return pitch
             ? new("Pitch: " + skill, "Throw " + skill + " and spend its star cost.",
-                "Your pitcher has " + skill + " and enough meter. Hold the star button as you let go of the pitch.",
+                "Your pitcher has " + skill + " and enough meter. Hold the star button as you let go of the pitch." + does,
                 "Hold LT as you let go of RT.")
             : new("Swing: " + skill, "Use " + skill + " to make fair contact and spend its star cost.",
-                "Your batter has " + skill + " and enough meter. Hold the star button as you let go of the swing, and time contact with the strike.",
+                "Your batter has " + skill + " and enough meter. Hold the star button as you let go of the swing, and time contact with the strike." + does,
                 "Hold LT as you let go of RT, as the pitch arrives.");
     }
 }

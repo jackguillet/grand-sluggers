@@ -9,14 +9,15 @@ Each replacement effect for a pitch that lost its window penalty is its own revi
 | --- | --- | --- |
 | Heatball | +15% speed, the catcher's glove smokes. The burn-hop drop roll is retired (§8.6) | baseball |
 | Charmball | Speed ×0.9 and a visible side-to-side wobble (`starShapes.charmball*`); its replacement effect is reviewed separately | |
-| Prismball | Late break, ghost images | |
+| Loop-the-Loop (`prismball`) | A `loop`: from `at` of the flight the ball runs one full vertical loop `diameterFt` (4 ft) across over `span` of the flight, standing on its path at that point, leaving forward toward the plate and coming back down to where it started; then it runs the rest of its path to arrive on time. The path, the crossing and the arrival instant are the ordinary pitch's, so the timing window is too; the loop is at the same point of every flight. No late break and no ghosts. Speed ×1.0 | |
 | Phonyball | Decoy path: the ball shows one side early and switches late (`starShapes.phonyball*`); reading the switch is the counterplay. Contact is contact | |
 | Caskball | Slow, knockback on the catch (0.55 s) | |
 | Skullball | +20% speed, nothing else until its review | |
 | Fogball | Speed ×0.82, nothing else until its review | |
 | Heat / Furnace swing | Exit ×1.15 / ×1.25; a burn patch / lava strip where it lands slows the fielder ×0.45 for 2 s | |
 | Heart swing | The nearest fielder pauses 0.8 s; no drop roll (§8.6) | |
-| Shell / Staff swing | Exit ×1.1 / ×1.08; the warp roll is retired (§8.6) until each swing's own effect is built | |
+| Spinning Top (`shell-swing`) | A star grounder (launch 0°, exit ×1.1) that stands on the ground at its first hop for `firstHopStallSec` (0.8 s), then runs on from that spot at `firstHopStallSpeedMul` (half) of its speed on the shared ground physics. A glove that reaches the standing ball takes it there; a ball gloved before its hop never stands. The stall ends inside two seconds of contact: a later hop stands only for what is left | |
+| Staff swing | Exit ×1.08; the warp roll is retired (§8.6) until its own effect is built | |
 | Phony swing | Decoy ball; the real one shows at the apex; no drop roll (§8.6) | |
 | Cask swing | Fragments: two decoy balls fall with it | |
 | Mirage Ball | A faint twin (`twin`) flies `offsetFt` to the far half of the zone from the real crossing, full until `fadeFrom` of the flight and gone by `fadeTo`, never later than half the flight. The real ball is the pitch as thrown; the umpire, the bat and the CPU read only it. Picking the real ball before the twin fades is the counterplay | |

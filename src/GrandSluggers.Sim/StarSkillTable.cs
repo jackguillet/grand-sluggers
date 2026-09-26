@@ -15,7 +15,47 @@ public sealed record StarPitchSkill(
     /// <summary>A path that floats high early and drops onto the unchanged crossing late, or null (§13).</summary>
     PitchFloat? Float = null,
     /// <summary>A pace that hangs the ball over one stretch of its path and leaps it to the plate on time, or null (§13).</summary>
-    PitchLeap? Leap = null);
+    PitchLeap? Leap = null,
+    /// <summary>One full vertical loop mid-flight, then the ordinary crossing on the ordinary time, or null (§13).</summary>
+    PitchLoop? Loop = null);
+
+/// <summary>
+/// A star pitch's loop (spec §13): from <see cref="At"/> of the flight the ball runs one full vertical loop,
+/// <see cref="DiameterFt"/> across, over <see cref="Span"/> of the flight, standing still along its path while it loops;
+/// then it runs on along the rest of its path to arrive at the ordinary instant. The loop sits on the path like a coaster
+/// loop on its track: it leaves forward along the flight, climbs, turns over the top and comes back down to where it
+/// started. The path, the crossing and the arrival time are the ordinary pitch's; only where the ball is, and when, changes.
+/// </summary>
+public sealed record PitchLoop(double At, double Span, double DiameterFt)
+{
+    /// <summary>The widest loop a row may name: a loop over the plate's width, not over the backstop.</summary>
+    public const double MaxDiameterFt = 6;
+
+    /// <summary>The time fraction the loop is done by: the ball runs its last stretch on its own path.</summary>
+    public double Exit => At + Span;
+
+    /// <summary>How far along its path the ball is at time fraction <paramref name="u"/>: the identity, held through the loop, then a catch-up; 1 at 1.</summary>
+    public double Progress(double u)
+    {
+        u = Math.Clamp(u, 0, 1);
+        if (u <= At) return u;
+        if (u <= Exit) return At;
+        if (u >= 1) return 1;
+        return At + (1 - At) * (u - Exit) / (1 - Exit);
+    }
+
+    /// <summary>
+    /// The loop's offset from the path at time fraction <paramref name="u"/>: along the flight (toward the plate) and up, in feet.
+    /// A circle of the loop's diameter standing on the path, entered and left at its foot; (0, 0) outside the loop.
+    /// </summary>
+    public (double Forward, double Up) Offset(double u)
+    {
+        if (u <= At || u >= Exit) return (0, 0);
+        var turn = 2 * Math.PI * (u - At) / Span;
+        var r = DiameterFt / 2;
+        return (r * Math.Sin(turn), r * (1 - Math.Cos(turn)));
+    }
+}
 
 /// <summary>
 /// A star pitch's leap (spec §13): from <see cref="At"/> of the flight the ball crawls at <see cref="HoldPace"/> of its pace for
@@ -88,13 +128,23 @@ public sealed record StarSwingSkill(
     /// <summary>How strongly the park's wind acts on this swing's ball (§13, <see cref="AtBatResult.WindMul"/>); 1 is the ordinary ball.</summary>
     double WindMul = 1,
     /// <summary>A fair ball off this swing leaves its first hop this many times as fast upward (§13); 1 is the ordinary hop.</summary>
-    double FirstHopBounceMul = 1)
+    double FirstHopBounceMul = 1,
+    /// <summary>A fair ball off this swing stands still at its first hop for this many seconds (§13); 0 is none.</summary>
+    double FirstHopStallSec = 0,
+    /// <summary>After a first-hop stall the ball runs on at this share of its speed (§13); 1 is its own.</summary>
+    double FirstHopStallSpeedMul = 1)
 {
+    /// <summary>The longest stall a row may name: the ball spins, then baseball resumes inside the two-second rule.</summary>
+    public const double MaxStallSec = 1.2;
+
+    /// <summary>The highest launch a stalling swing may name: the stall is a grounder's, so its first hop comes early.</summary>
+    public const double MaxStallLaunchDeg = 4;
+
     /// <summary>The highest first-hop bounce a row may name: a chopper, not a moon shot.</summary>
     public const double MaxBounceMul = 3;
 
     /// <summary>The swing changes its ball's first hop.</summary>
-    public bool ShapesFirstHop => FirstHopKickDeg > 0 || FirstHopBounceMul != 1;
+    public bool ShapesFirstHop => FirstHopKickDeg > 0 || FirstHopBounceMul != 1 || FirstHopStallSec > 0;
 
     /// <summary>The largest wind factor a row may name: the wind may carry a star ball twice as far, never more.</summary>
     public const double MaxWindMul = 2;
