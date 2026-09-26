@@ -24,6 +24,8 @@ namespace GrandSluggers.UnityClient
         BuntSide ShowingSide { get; }
         bool LettingGo { get; }
         float LetGoCharge { get; }
+        /// <summary>The star swing the batter holds for this pitch (the release would ask for it and the pool can pay), or "".</summary>
+        string ArmedStarSwing { get; }
     }
 
     internal sealed class AtBatDirector : ISetCameraHost, IBatterTells

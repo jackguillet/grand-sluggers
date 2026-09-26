@@ -11,7 +11,8 @@ namespace GrandSluggers.UnityClient
     /// of <see cref="SpecialTells.Builders"/> — and this draws that tell's procedural stand-in until an Art session drops a
     /// prefab into the slot's folder. Every tell is placed and timed from the sim alone: the pitch's own
     /// <see cref="PitchFlight.Point"/> and row, the live ball's path, facts and status volumes. Nothing here decides a play,
-    /// and no tell names a special: the builder is picked by the slot's <c>tell</c>. No full-screen paint, no input invert.
+    /// and no tell names a special: the builder is picked by the slot's <c>tell</c>. No full-screen paint, no input invert, and
+    /// no line to a glove or a throw's end: a tell's line traces the ball's own flight, a ring or a cable, never a beam.
     /// </summary>
     public sealed class SpecialFx : MonoBehaviour
     {

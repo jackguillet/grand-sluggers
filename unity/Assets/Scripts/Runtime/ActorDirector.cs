@@ -369,7 +369,7 @@ namespace GrandSluggers.UnityClient
                 PitchU = _play.PitchDur > 0 ? Mathf.Clamp01(_play.Flight / _play.PitchDur) : 0f,
                 PitchDur = _play.PitchDur,
                 ReleaseFrom = _play.ReleaseFrom,
-                ArmedSwing = oval.HasValue ? _host.ArmedStarSwing : "",
+                ArmedSwing = oval.HasValue ? _host.Batter.ArmedStarSwing : "",
                 Oval = oval ?? default,
                 OvalShown = oval.HasValue,
                 Live = livePlay,
@@ -618,8 +618,6 @@ namespace GrandSluggers.UnityClient
         float SwingContactSec(SwingCommand swing);
         /// <summary>Draws the batter's oval and returns it: the sim's oval, a held star swing's own size included.</summary>
         CursorOval ShowCursor();
-        /// <summary>The star swing the batter holds for this pitch (the release would ask for it and the pool can pay), or "".</summary>
-        string ArmedStarSwing { get; }
         void HoldBallInGlove();
         /// <summary>The batter-runner's first step, for a training drill.</summary>
         void OnRun();
