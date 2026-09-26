@@ -25,9 +25,9 @@ public static partial class HowToPlay
         {
             "T-P09" => "Heatball",
             "T-B09" => "Heat Swing",
-            "T-SP-heatball" => "Heatball",
+            "T-SP-heatball" => "Skyrocket",
             "T-SP-charmball" => "Charmball",
-            "T-SP-prismball" => "Prismball",
+            "T-SP-prismball" => "Loop-the-Loop",
             "T-SP-phonyball" => "Phonyball",
             "T-SP-caskball" => "Caskball",
             "T-SP-skullball" => "Anvil",
@@ -38,9 +38,9 @@ public static partial class HowToPlay
             "T-SP-mirageball" => "Mirage Ball",
             "T-SP-rockfall" => "Rockfall",
             "T-SP-leapfrog" => "Leapfrog",
-            "T-SS-heat-swing" => "Heat Swing",
+            "T-SS-heat-swing" => "Sparkler",
             "T-SS-heart-swing" => "Heart Swing",
-            "T-SS-shell-swing" => "Shell Swing",
+            "T-SS-shell-swing" => "Spinning Top",
             "T-SS-phony-swing" => "Phony Swing",
             "T-SS-cask-swing" => "Cask Swing",
             "T-SS-furnace" => "Hot Iron",
@@ -57,6 +57,10 @@ public static partial class HowToPlay
         // What the special does, where it is its own (§13): the lesson names the bend it teaches.
         var effect = id switch
         {
+            "T-SP-heatball" => " It flies fast, then rises up to a foot over the last third, so aim it low.",
+            "T-SS-heat-swing" => " Its Perfect ring is half again as wide, but the bat must still meet the ball.",
+            "T-SP-prismball" => " It runs one loop mid-flight, then crosses where you aimed, on time.",
+            "T-SS-shell-swing" => " The grounder spins in place at its first hop, then rolls on slowly. Run.",
             "T-SP-skullball" => " It flies fast, clangs late and drops up to a foot and a half, so aim it above where you want it.",
             "T-SS-furnace" => " The ball stays hot for two seconds: a glove that holds it drops it, so fielders must throw at once.",
             _ => ""

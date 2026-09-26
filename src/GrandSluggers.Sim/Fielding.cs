@@ -76,7 +76,8 @@ public sealed class FieldingResolver
         var freeze = hit.StarSwingUsed == "heart-swing";
         var radius = CatchRadiusFt(fielder, park, _rules, air: !grounder);
         var heat = hit.StarPitchUsed is "heatball" or "caskball";
-        var furnace = hit.StarSwingUsed is "furnace" or "heat-swing";
+        // Only Hot Iron's ball is hot (§13): the flag the client's heat reads; nothing is left on the dirt. Sparkler's bend is its Perfect ring.
+        var furnace = hit.StarSwingUsed is "furnace";
         return new FieldingPreview(
             fielder, pos, buddy, hang, landing.X, landing.Z, shape,
             heat, furnace, freeze, radius, warped, Foul: ball.Foul, Ball: ball);

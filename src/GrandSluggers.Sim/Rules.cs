@@ -859,10 +859,6 @@ public sealed record PitchFamilyRules
 
 public sealed record StarPitchShapeRules
 {
-    public double HeatballWobbleHz { get; init; }
-    public double HeatballWobbleFt { get; init; }
-    public double PrismballWobbleHz { get; init; }
-    public double PrismballWobbleFt { get; init; }
     public double CharmballWobbleHz { get; init; }
     public double CharmballWobbleFt { get; init; }
     [Chance] public double PhonyballSwitchAt { get; init; }
@@ -1039,7 +1035,6 @@ public sealed record BattingRules
     public FoulRules Foul { get; init; } = new();
     public CursorRules Cursor { get; init; } = new();
     public HbpRules Hbp { get; init; } = new();
-    public StarSwingRules Star { get; init; } = new();
     public PitchFactorRules PitchFactor { get; init; } = new();
     public OffenseItemRules Items { get; init; } = new();
     public CpuBatterRules Cpu { get; init; } = new();
@@ -1228,12 +1223,6 @@ public sealed record CursorRules
 public sealed record HbpRules
 {
     [Positive] public double BodyRadiusFt { get; init; }
-}
-
-/// <summary>Star-swing rules that are not the skill's own numbers (those are star-skills.json, spec §13).</summary>
-public sealed record StarSwingRules
-{
-    public double PrismballSpraySpanDeg { get; init; }
 }
 
 /// <summary>

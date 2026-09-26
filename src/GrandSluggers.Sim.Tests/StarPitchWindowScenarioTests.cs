@@ -160,15 +160,16 @@ public sealed class StarPitchWindowScenarioTests
     public void S194_TheRetiredWhiffChanceIsRefusedByName()
     {
         var file = Path.Combine(_content.Root.Shipped, "rules", "batting.json");
-        Assert.False(Parse(file)["star"]!.AsObject().ContainsKey("phonyballWhiff"), file);
+        // The batting table has no star section left (the prismball's spray span went with its late break).
+        Assert.False(Parse(file).ContainsKey("star"), file);
 
         using var fixture = new ContentFixture();
         var path = fixture.Path("rules/batting.json");
         var json = Parse(path);
-        json["star"]!["phonyballWhiff"] = 0.4;
+        json["star"] = new JsonObject { ["phonyballWhiff"] = 0.4 };
         File.WriteAllText(path, json.ToJsonString());
         Assert.Contains(RulesTable.Validate(new DataRoot(fixture.Root)),
-            e => e.Contains("batting.star.phonyballWhiff is not a rule this table owns", StringComparison.Ordinal)
+            e => e.Contains("batting.star is not a rule this table owns", StringComparison.Ordinal)
                  && e.Contains(fixture.Path("rules/batting.json"), StringComparison.Ordinal));
     }
 

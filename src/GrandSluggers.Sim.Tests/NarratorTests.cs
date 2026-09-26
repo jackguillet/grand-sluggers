@@ -56,7 +56,7 @@ public sealed class NarratorTests
 
     [Theory]
     [InlineData("furnace", "Rio HOT IRON - it's gone.")]
-    [InlineData("heat-swing", "Rio HEAT-SWING - it's gone.")]
+    [InlineData("heat-swing", "Rio SPARKLER - it's gone.")]
     [InlineData("cask-swing", "Rio goes deep.")]
     [InlineData(null, "Rio goes deep.")]
     public void AHomeRunNamesOnlyTheStarSwingsThatCallThemselves(string? star, string caption) =>

@@ -56,7 +56,7 @@ public static class PlayNarrator
         CallBeat.HomeRun => p.Word switch
         {
             "furnace" => $"{p.Who} HOT IRON - it's gone.",
-            "heat-swing" => $"{p.Who} HEAT-SWING - it's gone.",
+            "heat-swing" => $"{p.Who} SPARKLER - it's gone.",
             _ => $"{p.Who} goes deep."
         },
         CallBeat.InsideTheParkHomeRun => $"{p.Who} - all the way around!",
@@ -65,7 +65,7 @@ public static class PlayNarrator
         CallBeat.Double => $"{p.Who} doubles.",
         CallBeat.Single => $"{p.Who} singles.",
         CallBeat.RedirectSingle => $"{p.Who} - it went through a {RedirectName(p.Word)}!",
-        CallBeat.HeatballSingle => $"{p.Who} - it drops! Heatball.",
+        CallBeat.HeatballSingle => $"{p.Who} - it drops in off the star pitch!",
         CallBeat.Live => p.Moment is { } m ? Verdict(m.Verdict, m.Bag, m.Fielder?.Name ?? p.Other, p.Who, m.Runner?.Name) : "",
         CallBeat.BatterInAtFirst => $"{p.Who} in at first.",
         CallBeat.TriplePlay => "Triple play!",

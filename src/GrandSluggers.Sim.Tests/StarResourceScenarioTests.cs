@@ -369,7 +369,10 @@ public sealed class StarResourceScenarioTests
                     PitchInZone: true, Charge01: charge, CrossingX: offset);
                 var plain = resolver.Resolve(input, park, new Random(5));
                 var star = resolver.Resolve(input with { UseStarSwing = true }, park, new Random(5));
-                // Placement: the special meets the ball exactly where the ordinary swing at that charge does.
+                // Placement: the special meets the ball exactly where the ordinary swing at that charge does. A swing's own
+                // larger Perfect ring (§13, Sparkler) only grades a Nice meeting Perfect; it never turns a miss into contact.
+                if (skill.PerfectRingMul != 1 && plain.Quality == ContactQuality.Nice && star.Quality == ContactQuality.Perfect)
+                    continue;
                 Assert.Equal(plain.Quality, star.Quality);
                 if (plain.Quality == ContactQuality.Miss)
                 {
