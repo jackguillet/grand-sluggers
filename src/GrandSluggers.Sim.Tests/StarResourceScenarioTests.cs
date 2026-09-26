@@ -245,8 +245,9 @@ public sealed class StarResourceScenarioTests
         using var fixture = new ContentFixture();
         fixture.ChangeObject("abilities/star-skills.json", json => json["pitches"]!["fastball"]!["kind"] = "element");
         var errors = ContentDataValidator.Validate(new DataRoot(fixture.Root));
-        Assert.Contains(errors, e => e.Contains("starPitch 'fastball' is a captain's special; a sidekick carries the generic pool's", StringComparison.Ordinal)
-            && e.Contains("role-players.json", StringComparison.Ordinal));
+        // The species carries its sidekicks' specials (AB-10), so the refusal names the species row.
+        Assert.Contains(errors, e => e.Contains("starPitch 'fastball' is a captain's special; a species carries the generic pool's", StringComparison.Ordinal)
+            && e.Contains("species.json", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -258,6 +259,15 @@ public sealed class StarResourceScenarioTests
         var errors = ContentDataValidator.Validate(new DataRoot(fixture.Root));
         Assert.Contains(errors, e => e.Contains("starPitch 'heatball' is already", StringComparison.Ordinal));
         Assert.Contains(errors, e => e.Contains("captain 'zig' starSwing 'line' is a sidekick's generic special", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void S174_ACaptainsSpecialWithNoEffectFamilyIsRefused()
+    {
+        using var fixture = new ContentFixture();
+        fixture.ChangeObject("abilities/star-skills.json", json => json["pitches"]!["heatball"]!.AsObject().Remove("family"));
+        var errors = ContentDataValidator.Validate(new DataRoot(fixture.Root));
+        Assert.Contains(errors, e => e.Contains("starPitch 'heatball' names no effect family", StringComparison.Ordinal));
     }
 
     [Fact]

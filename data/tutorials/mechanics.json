@@ -684,6 +684,42 @@
       ]
     },
     {
+      "id": "star-pitch.dot",
+      "title": "dot",
+      "category": "special",
+      "spec": "gameplay-spec:13",
+      "sources": [
+        "star-pitch:dot"
+      ]
+    },
+    {
+      "id": "star-pitch.sinkball",
+      "title": "sinkball",
+      "category": "special",
+      "spec": "gameplay-spec:13",
+      "sources": [
+        "star-pitch:sinkball"
+      ]
+    },
+    {
+      "id": "star-pitch.lob",
+      "title": "lob",
+      "category": "special",
+      "spec": "gameplay-spec:13",
+      "sources": [
+        "star-pitch:lob"
+      ]
+    },
+    {
+      "id": "star-pitch.sidearm",
+      "title": "sidearm",
+      "category": "special",
+      "spec": "gameplay-spec:13",
+      "sources": [
+        "star-pitch:sidearm"
+      ]
+    },
+    {
       "id": "star-pitch.mirageball",
       "title": "mirageball",
       "category": "special",
@@ -798,6 +834,42 @@
       "spec": "gameplay-spec:13",
       "sources": [
         "star-swing:line"
+      ]
+    },
+    {
+      "id": "star-swing.pull",
+      "title": "pull",
+      "category": "special",
+      "spec": "gameplay-spec:13",
+      "sources": [
+        "star-swing:pull"
+      ]
+    },
+    {
+      "id": "star-swing.opposite",
+      "title": "opposite",
+      "category": "special",
+      "spec": "gameplay-spec:13",
+      "sources": [
+        "star-swing:opposite"
+      ]
+    },
+    {
+      "id": "star-swing.chopper",
+      "title": "chopper",
+      "category": "special",
+      "spec": "gameplay-spec:13",
+      "sources": [
+        "star-swing:chopper"
+      ]
+    },
+    {
+      "id": "star-swing.drag-bunt",
+      "title": "drag-bunt",
+      "category": "special",
+      "spec": "gameplay-spec:13",
+      "sources": [
+        "star-swing:drag-bunt"
       ]
     },
     {

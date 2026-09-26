@@ -146,8 +146,15 @@ public sealed class AtBatResolver
         }
         launch = Math.Clamp(launch, b.Launch.MinDeg, b.Launch.MaxDeg);
 
+        var starSwing = input.UseStarSwing && !input.Bunt ? _skills.Swing(input.Batter.StarSwing) : null;
         if (input.UseStarSwing && !input.Bunt)
             launch = StarSkills.SwingLaunchDeg(input.Batter.StarSwing, _skills) ?? launch;
+        // A Star Drag Bunt squares at contact (§13): the bunt's own exit for this contact, no Power, charge, star or pitch term.
+        var drag = starSwing?.DragBunt;
+        if (drag is not null) exit = response.ExitMph.For(quality);
+        // A Star Sinker (§13): a ball put in play off it leaves this many degrees lower, whatever the swing, never under the floor.
+        var sink = input.UseStarPitch ? StarSkills.PitchSinkDeg(input.Pitcher.StarPitch, _skills) : 0;
+        if (sink != 0) launch = Math.Max(b.Launch.MinDeg, launch - sink);
 
         // Direction (§5.3): early pulls, late pushes; the stick shifts while it shapes this swing; the
         // zone spreads. A bunt leans toward its held side instead (§5.8, PH-14-R2), and its spread is its
@@ -157,7 +164,12 @@ public sealed class AtBatResolver
                     + sprayAim + (rng.NextDouble() - 0.5) * spread;
         if (!input.PitchInZone)
             spray += (rng.NextDouble() - 0.5) * b.Spray.OutOfZoneSpanDeg;
+        // A Star Pull or Star Opposite (§13): the ball goes the row's degrees toward the batter's pull line or away from it.
+        if (starSwing is { PullDeg: not 0 } lean) spray += lean.PullSprayDeg(bats);
         spray = Math.Round(SourFoulPull(quality, spray, rng, b.Foul), 1);
+        // A Star Drag Bunt's bearing is the geometry of its roll (§13): the ball comes to rest just inside the pull line.
+        if (drag is not null)
+            spray = drag.SprayDeg(Math.Round(exit, 1), Math.Round(launch, 1), SwingDragBunt.Side(bats), park, _rules);
         // Past the vertical (§5.4): a launch over 90° is the ball going up and back over the plate.
         (launch, spray) = PastVertical(launch, spray);
 
@@ -171,7 +183,7 @@ public sealed class AtBatResolver
         var carryMul = input.UseStarSwing && !input.Bunt ? StarSkills.SwingApexCarryMul(input.Batter.StarSwing, _skills) : 1.0;
         // A star swing may jag its ball in the air (§13, jag): the ball's own path, read by every flight of it.
         var jag = input.UseStarSwing && !input.Bunt ? StarSkills.SwingJag(input.Batter.StarSwing, _skills) : null;
-        var ball = BattedBall.Of(exit, launch, spray, input.Bunt, park, _rules, carryMul, jag);
+        var ball = BattedBall.Of(exit, launch, spray, input.Bunt || drag is not null, park, _rules, carryMul, jag);
 
         return new AtBatResult(
             quality,

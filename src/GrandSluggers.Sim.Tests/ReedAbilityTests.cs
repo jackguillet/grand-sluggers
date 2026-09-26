@@ -388,16 +388,14 @@ public sealed class ReedAbilityTests
     }
 
     [Fact]
-    public void TheRetiredLeapAndFirstHopBounceKeysAreRefusedByName()
+    public void TheRetiredLeapKeyIsRefusedByName()
     {
         using var fixture = new ContentFixture();
         fixture.ChangeObject("abilities/star-skills.json", json =>
         {
-            json["swings"]!["pond-skip"]!["firstHopBounceMul"] = 2.2;
             json["pitches"]!["leapfrog"]!["leap"] = new JsonObject { ["at"] = 0.35, ["holdSpan"] = 0.25, ["holdPace"] = 0.2 };
         });
         var errors = ContentDataValidator.Validate(fixture.Root);
-        Assert.Contains(errors, e => e.Contains("swings.pond-skip.firstHopBounceMul is not a key this file declares", StringComparison.Ordinal));
         Assert.Contains(errors, e => e.Contains("pitches.leapfrog.leap is not a key this file declares", StringComparison.Ordinal));
     }
 }

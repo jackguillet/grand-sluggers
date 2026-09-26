@@ -109,7 +109,8 @@ public sealed class ContentCatalog
         var characters = new Dictionary<string, Character>(StringComparer.OrdinalIgnoreCase);
         foreach (var row in data.Characters)
             characters.Add(row.Value.Id, row.Value.ToCharacter());
-        // A sidekick wears its species' body (WD-27): the species' own proportions, else its build's. It keeps its faction
+        // A sidekick wears its species' body (WD-27): the species' own proportions, else its build's; and it carries its species'
+        // Star Pitch and Star Swing (AB-10: the species is the source of truth, the row names none). It keeps its faction
         // captain's rig variant and body class (§8.1), unless it names its own class. Resolved once, here, from the data;
         // the validator has already refused a sidekick with no species or no captain.
         var builds = (data.Species.Builds ?? []).ToDictionary(kv => kv.Key, kv => kv.Value!.ToSpec(), StringComparer.OrdinalIgnoreCase);
@@ -127,6 +128,8 @@ public sealed class ContentCatalog
             {
                 BodyType = cap.BodyType,
                 Proportions = species[c.Species].Proportions,
+                StarPitch = species[c.Species].StarPitch,
+                StarSwing = species[c.Species].StarSwing,
                 BodyClass = string.IsNullOrEmpty(c.BodyClass) ? cap.BodyClass : c.BodyClass
             };
         }
