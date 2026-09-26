@@ -30,7 +30,6 @@ public sealed class FennAbilityTests
         Assert.Equal(new PitchUndertow(12, 2, 0.8), pitch.Undertow);
         Assert.Equal(1.08, swing.ExitVeloMul);
         Assert.Equal(1.4, swing.OvalHeightMul);
-        Assert.False(swing.InfieldChaos);   // the warp roll's flag is gone: the bend is the oval, spent at the plate
         Assert.Equal(1.0, swing.PerfectRingMul);
         Assert.Null(pitch.Rise);
         Assert.DoesNotContain(Game.Characters.Values, c => c.Id != "fenn" && (c.StarPitch == "fogball" || c.StarSwing == "staff-swing"));

@@ -27,7 +27,7 @@ public static partial class HowToPlay
             "T-B09" => "Heat Swing",
             "T-SP-heatball" => "Skyrocket",
             "T-SP-charmball" => "Charmball",
-            "T-SP-prismball" => "Prismball",
+            "T-SP-prismball" => "Loop-the-Loop",
             "T-SP-phonyball" => "Phonyball",
             "T-SP-caskball" => "Caskball",
             "T-SP-skullball" => "Skullball",
@@ -40,7 +40,7 @@ public static partial class HowToPlay
             "T-SP-leapfrog" => "Leapfrog",
             "T-SS-heat-swing" => "Sparkler",
             "T-SS-heart-swing" => "Heart Swing",
-            "T-SS-shell-swing" => "Shell Swing",
+            "T-SS-shell-swing" => "Spinning Top",
             "T-SS-phony-swing" => "Phony Swing",
             "T-SS-cask-swing" => "Cask Swing",
             "T-SS-furnace" => "Furnace",
@@ -61,6 +61,8 @@ public static partial class HowToPlay
             "T-SS-heat-swing" => " Its Perfect ring is half again as wide, but the bat must still meet the ball.",
             "T-SP-fogball" => " It comes in slow; if it is hit fair, a ring on home slows the batter's first steps for 2 seconds.",
             "T-SS-staff-swing" => " Its contact oval reaches higher and lower, not wider: a wide pitch still beats it.",
+            "T-SP-prismball" => " It runs one loop mid-flight, then crosses where you aimed, on time.",
+            "T-SS-shell-swing" => " The grounder spins in place at its first hop, then rolls on slowly. Run.",
             _ => ""
         };
         return pitch

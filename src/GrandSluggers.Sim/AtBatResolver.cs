@@ -155,8 +155,6 @@ public sealed class AtBatResolver
         var spread = input.Bunt ? response.SpreadDeg.For(quality) : SpraySpread(quality, b.Spray);
         var spray = (input.Bunt ? BuntHold.LeanDeg(input.BuntSide, _rules) : TimingSprayDeg(err, window, bats, _rules))
                     + sprayAim + (rng.NextDouble() - 0.5) * spread;
-        if (input.UseStarPitch && input.Pitcher.StarPitch == "prismball")
-            spray += (rng.NextDouble() - 0.5) * b.Star.PrismballSpraySpanDeg;
         if (!input.PitchInZone)
             spray += (rng.NextDouble() - 0.5) * b.Spray.OutOfZoneSpanDeg;
         spray = Math.Round(SourFoulPull(quality, spray, rng, b.Foul), 1);
