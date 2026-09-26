@@ -47,8 +47,8 @@ Names are working titles. Replace freely; keep the *roles*.
 ### Queen Vale — Royal Rink
 
 - Stats: Pitch 9 / Bat 4 / Field 8 / Run 5
-- Star Pitch: **Charmball** — catcher-frame freeze; batter’s window shrinks.
-- Star Swing: **Heart Swing** — flare that charms the nearest fielder into a pause.
+- Star Pitch: **Aurora Ribbon** (`charmball`) — an aurora-traced sway that swells to its widest mid-flight, then settles onto the aimed crossing.
+- Star Swing: **Follow Spot** (`heart-swing`) — the rink's follow spot holds the nearest fielder still for 0.8 s; teammates back him up.
 - Field: **Snap Throw** — extra throw velocity, no windup.
 - Bats/throws: R/R
 

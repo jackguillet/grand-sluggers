@@ -118,7 +118,7 @@ namespace GrandSluggers.EditorTools
             var initialPos = play._glovePos;
             var initialWho = map[initialPos];
             var initialAt = ((Dictionary<string, (double X, double Z)>)play._gloveAt)[initialPos];
-            var initialSpeed = FieldingResolver.ChaseSpeedFt(initialWho, preview.Frozen, match.Rules);
+            var initialSpeed = FieldingResolver.ChaseSpeedFt(initialWho, false, match.Rules);
             var initialRoute = FieldingPursuit.Plan(
                 preview, match.Park, unityPath, 0, initialAt.X, initialAt.Z, initialSpeed, match.Rules);
             entry.initialFielder = initialWho.Id;
@@ -161,7 +161,7 @@ namespace GrandSluggers.EditorTools
                 {
                     var step = Diamond.Dist(before.X, before.Z, afterX, afterZ);
                     var who = map.TryGetValue(afterOwner, out var active) ? active : preview.Fielder;
-                    var allowed = FieldingResolver.ChaseSpeedFt(who, preview.Frozen, match.Rules) * Dt + 0.06;
+                    var allowed = FieldingResolver.ChaseSpeedFt(who, false, match.Rules) * Dt + 0.06;
                     maxRunStep = Math.Max(maxRunStep, step);
                     maxAllowedStep = Math.Max(maxAllowedStep, allowed);
                     Require(step <= allowed,
@@ -184,7 +184,7 @@ namespace GrandSluggers.EditorTools
                 {
                     var ball = play._ball;
                     var who = map.TryGetValue(afterOwner, out var active) ? active : preview.Fielder;
-                    var speed = FieldingResolver.ChaseSpeedFt(who, preview.Frozen, match.Rules);
+                    var speed = FieldingResolver.ChaseSpeedFt(who, false, match.Rules);
                     var route = FieldingPursuit.Plan(
                         preview, match.Park, unityPath, match.LivePlay.ElapsedSeconds,
                         afterX, afterZ, speed, match.Rules);

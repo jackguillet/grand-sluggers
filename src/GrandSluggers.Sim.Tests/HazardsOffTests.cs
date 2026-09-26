@@ -220,8 +220,8 @@ public sealed class HazardsOffTests
                 if (begin?.Preview is not { } pre) continue;
                 Assert.Same(match.Park, trace.Context!.Park);
                 var star = begin.Hit?.StarSwingUsed;
-                // A park's volume never freezes the preview (FD-08-R1): only the heart swing does.
-                Assert.True(!pre.Frozen || star == "heart-swing", "a frozen preview without the heart swing");
+                // A park's volume never pauses a body in the preview (FD-08-R1): only Follow Spot does.
+                Assert.True(pre.Dazzled == "" || star == "heart-swing", "a paused body without Follow Spot");
                 Assert.True(!pre.Warped || star is "shell-swing" or "cask-swing", "a park never warps the preview (F4-c)");
             }
             match.Tracing = true; // drops the traces just read; tracing is observation and moves no play
@@ -270,7 +270,7 @@ public sealed class HazardsOffTests
                 Catalog.MustPark(ParkId.Crystal), seed: 1, hazards: hazards);
             var hit = FlightFixtures.Landing(match.Park, carry, 30, spray);
             var preview = match.PreviewHit(hit);
-            Assert.False(preview.Frozen);
+            Assert.Equal("", preview.Dazzled);
             var live = match.LivePlay;
             live.Recording = true;
             Assert.True(live.Apply(LivePlayCommand.BeginLive(Scenario.Paint, Scenario.Swing, hit, preview, null, HumanGlove, 0,

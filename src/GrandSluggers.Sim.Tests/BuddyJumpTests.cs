@@ -64,8 +64,8 @@ public sealed class BuddyJumpTests
         var hit = FlightFixtures.OverTheFence(match.Park, 5, 0, 60);
         var pre = match.PreviewHit(hit);
         Assert.NotNull(pre.Buddy);
-        // Retain the original offer but slow the actual bodies: the live gate must recheck arrival.
-        pre = pre with { Frozen = true };
+        // Retain the original offer but hold the glove's body until the ball is down: the live gate must recheck arrival.
+        pre = pre with { Dazzled = pre.Position, DazzleSec = pre.HangTimeSec };
         var live = match.LivePlay;
         live.Apply(LivePlayCommand.BeginLive(Scenario.Paint, Scenario.Swing, hit, pre, null,
             human ? new LiveSeats(false, true, true, false) : LiveSeats.CpuOnly));
