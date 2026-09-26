@@ -158,7 +158,8 @@ public sealed class ContentCatalog
         }
 
         var rules = data.Rules ?? throw new InvalidOperationException("content data read no rules table");
-        var chemistry = new ChemistryTable(characters.Values, data.Chemistry, rules);
+        var crews = (data.Crews.Crews ?? []).Select(c => new Crew(c!.Id, c.Name, c.Desc, c.Rival)).ToList();
+        var chemistry = new ChemistryTable(characters.Values, data.Chemistry, rules, crews);
         var shots = CameraShots.Load(root);
         var feel = FeelTable.Load(root);
         var art = ArtCatalog.Load(root);
@@ -276,6 +277,23 @@ public sealed class ContentCatalog
         return null;
     }
 
+}
+
+/// <summary>A crew (WD-28, <c>data/chemistry/crews.json</c>): a shared trait across parks and builds.</summary>
+public sealed record Crew(string Id, string Name, string Desc, string? Rival);
+
+public sealed class CrewsFile
+{
+    [JsonPropertyName("crews")]
+    public List<CrewDto?>? Crews { get; set; }
+}
+
+public sealed class CrewDto
+{
+    [JsonPropertyName("id")] public string Id { get; set; } = "";
+    [JsonPropertyName("name")] public string Name { get; set; } = "";
+    [JsonPropertyName("desc")] public string Desc { get; set; } = "";
+    [JsonPropertyName("rival")] public string? Rival { get; set; }
 }
 
 public sealed class ChemistryOverrides

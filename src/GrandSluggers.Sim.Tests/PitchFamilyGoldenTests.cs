@@ -24,7 +24,7 @@ namespace GrandSluggers.Sim.Tests;
 /// <b>What is stored, and what is composed.</b> A fixture of raw doubles is only honest where the
 /// arithmetic is. Y, Z and mph are pure add/multiply/clamp/table-lookup, so they are stored and
 /// compared bit for bit. X is not always: <see cref="PitchFlight.BreakShiftFt"/> calls
-/// <c>Math.Sin(u * π)</c>, and charmball adds <c>Math.Sin(u * hz)</c> — and
+/// <c>Math.Sin(u * π)</c>, and charmball's sway adds a sine and a cosine — and
 /// <c>Math.Sin</c> differs by one ULP between macOS libm and glibc (this repository already met that
 /// in #736). A stored X under break would pin the platform, not the pitch.
 ///
@@ -67,7 +67,7 @@ public sealed class PitchFamilyGoldenTests
     static readonly double[] Rubbers = [-1, 0, 0.6];
     static readonly (double X, double Y)[] Aims = [(0, 0), (0.35, -0.6), (-0.5, 0.4)];
     static readonly int[] Stats = [1, 5, 10];
-    static readonly string?[] StarIds = [null, "heatball", "prismball", "charmball", "phonyball", "caskball"];
+    static readonly string?[] StarIds = [null, "heatball", "prismball", "charmball", "phonyball"];
 
     /// <summary>
     /// The three spellings of the two shipped deliveries as the pre-#810 API took them, and the
@@ -204,7 +204,7 @@ public sealed class PitchFamilyGoldenTests
         /// True when a <c>Math.Sin</c> stands between the rules table and this sample's X: a stick
         /// break (<see cref="PitchFlight.BreakShiftFt"/>) or one of the wobbling star pitches.
         /// Phonyball shifts X too, but by a table constant, so it stays reproducible from the
-        /// fixture alone; caskball lifts Y and never touches X.
+        /// fixture alone.
         /// </summary>
         public bool TouchesSine =>
             Pitch is not null
@@ -314,9 +314,10 @@ public sealed class PitchFamilyGoldenTests
         internal double StarX(double x, double u, StarPitchShapeRules st) =>
             !Delivery.Star ? x : Star switch
             {
-                "charmball" => x + Math.Sin(u * st.CharmballWobbleHz) * st.CharmballWobbleFt,
+                // Aurora Ribbon's sway is its row's (star-skills.json `sway`), added where Point adds it.
+                "charmball" => StarSkillTable.Default.Pitch("charmball")?.Sway is { } sway && sway.OffsetFt(u) is var side and not 0 ? x + side : x,
                 "phonyball" => x + (u > st.PhonyballSwitchAt ? st.PhonyballLateX : st.PhonyballEarlyX),
-                // caskball lifts Y, not X; every other id falls through untouched.
+                // every other id falls through untouched.
                 _ => x
             };
     }
@@ -367,7 +368,7 @@ public sealed class PitchFamilyGoldenTests
                 foreach (var breakX in CrossBreaks)
                     foreach (var rubberX in Rubbers)
                         foreach (var (aimX, aimY) in Aims.Take(2))
-                            foreach (var star in new string?[] { null, "prismball", "caskball" })
+                            foreach (var star in new string?[] { null, "prismball" })
                                 yield return new Sample(
                                     $"cross|{SpellingKeys[s]}|c{Name(charge)}|b{Name(breakX)}|r{Name(rubberX)}|x{Name(aimX)}|{star ?? "none"}",
                                     Command(s, charge, star is not null, aimX, aimY, breakX, rubberX), 1, star, Crossing: true);

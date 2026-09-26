@@ -155,7 +155,7 @@ public sealed partial class Match
         // park that names its air has to reach them the same way it reaches the live ball's continuation.
         // The rung comes with it — the preview's CPU reaction lockouts are the ones LivePlaySystem waits.
         _atBat = new AtBatResolver(content.Chemistry, _rules, content.StarSkills);
-        _fielding = new FieldingResolver(content.Chemistry, _rules);
+        _fielding = new FieldingResolver(content.Chemistry, _rules, content.StarSkills);
         LivePlay = new LivePlaySystem(this);
         PitchSetup = new PitchSetupSystem(this);
         CpuPitcher = new CpuPitcher(this);

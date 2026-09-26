@@ -103,12 +103,9 @@
     }
   },
   "starShapes": {
-    "charmballWobbleHz": 9,
-    "charmballWobbleFt": 0.7,
     "phonyballSwitchAt": 0.55,
     "phonyballEarlyX": -0.5,
-    "phonyballLateX": 2.4,
-    "caskballRise": 0.55
+    "phonyballLateX": 2.4
   },
   "stamina": {
     "poolBase": 60,

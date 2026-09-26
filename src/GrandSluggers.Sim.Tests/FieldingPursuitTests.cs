@@ -19,7 +19,7 @@ public class FieldingPursuitTests
             var path = BallFlight.Trajectory(exit, -12, spray, park, Rules.Default);
             var pre = match.PreviewHit(hit);
             var start = Diamond.Positions[pre.Position];
-            var speed = FieldingResolver.ChaseSpeedFt(pre.Fielder, pre.Frozen, rules: Rules.Default);
+            var speed = FieldingResolver.ChaseSpeedFt(pre.Fielder, false, rules: Rules.Default);
             var route = FieldingPursuit.Plan(pre, park, path, 0, start.X, start.Z, speed, rules: Rules.Default);
             var early = BallFlight.PointAt(path, Math.Min(0.2, route.MeetTimeSec * 0.5), rules: Rules.Default);
 
@@ -48,7 +48,7 @@ public class FieldingPursuitTests
         var hit = FlightFixtures.Hit(park, exit, 7, spray);
         var pre = match.PreviewHit(hit);
         var at = Diamond.Positions[pre.Position];
-        var speed = FieldingResolver.ChaseSpeedFt(pre.Fielder, pre.Frozen, rules: Rules.Default);
+        var speed = FieldingResolver.ChaseSpeedFt(pre.Fielder, false, rules: Rules.Default);
         const double dt = 1.0 / 30;
 
         for (var t = 0.0; t < Math.Min(1.4, BallFlight.RestTime(path)); t += dt)
@@ -72,7 +72,7 @@ public class FieldingPursuitTests
             var hit = FlightFixtures.Hit(park, 104, 30, spray, ContactQuality.Perfect);
             var pre = match.PreviewHit(hit);
             var start = Diamond.Positions[pre.Position];
-            var speed = FieldingResolver.ChaseSpeedFt(pre.Fielder, pre.Frozen, rules: Rules.Default);
+            var speed = FieldingResolver.ChaseSpeedFt(pre.Fielder, false, rules: Rules.Default);
             var route = FieldingPursuit.Plan(pre, park, path, 0, start.X, start.Z, speed, rules: Rules.Default);
             var plant = FlyCatch.ChaseTarget(pre, Rules.Default, park);
 

@@ -27,11 +27,14 @@ public sealed class FieldingResolver
 
     readonly ChemistryTable _chem;
     readonly RulesTable _rules;
+    readonly StarSkillTable? _skills;
 
-    public FieldingResolver(ChemistryTable chem, RulesTable rules)
+    /// <param name="skills">The star skills a batted ball's swing is read from (§13); absent, the table found from the data root.</param>
+    public FieldingResolver(ChemistryTable chem, RulesTable rules, StarSkillTable? skills = null)
     {
         _chem = chem;
         _rules = rules;
+        _skills = skills;
     }
 
     public FieldingPreview Preview(
@@ -53,35 +56,42 @@ public sealed class FieldingResolver
         var grounder = shape.OnTheDirt();
         var assigned = Assign(defense, pitcher, gloves);
         var seed = new FieldingPreview(
-            pitcher, "P", null, hang, landing.X, landing.Z, shape, false, false, false, 10, Foul: ball.Foul, Ball: ball);
-        var pursuit = FieldingPursuit.Choose(
-            assigned,
-            PursuitPool(shape, ball.Foul),
-            seed,
-            park,
-            samples, _rules,
-            at,
-            readyAt: CpuReactionLockouts(_rules, grounder ? null : hang, hit.Class == BattedBallClass.Bunt));
+            pitcher, "P", null, hang, landing.X, landing.Z, shape, false, false, 10, Foul: ball.Foul, Ball: ball);
+        var pool = PursuitPool(shape, ball.Foul);
+        var ready = CpuReactionLockouts(_rules, grounder ? null : hang, hit.Class == BattedBallClass.Bunt);
+        var pursuit = FieldingPursuit.Choose(assigned, pool, seed, park, samples, _rules, at, readyAt: ready);
+        // A star swing's pause (§13, fielderPauseSec): the nearest fielder — the body the play would send, the soonest to the
+        // ball — stands still that long from the contact, and the play is chosen again with that body's wait in it, so a
+        // teammate who now reaches the ball first backs it up. Geometry and the row decide it; a foul pauses nobody.
+        var dazzled = "";
+        var pause = ball.Foul ? 0 : StarSkillTable.Or(_skills).Swing(hit.StarSwingUsed)?.FielderPauseSec ?? 0;
+        if (pause > 0)
+        {
+            dazzled = pursuit.Position;
+            ready[dazzled] = Dazzle(ready[dazzled], pause);
+            pursuit = FieldingPursuit.Choose(assigned, pool, seed, park, samples, _rules, at, readyAt: ready);
+        }
         var fielder = pursuit.Fielder;
         var pos = pursuit.Position;
         // A park's redirects act on the live ball (F4-c, FR-07): the preview plans the path as hit and nothing is foreseen.
         var warped = false;
-        var buddy = Buddy(assigned, seed with
-        {
-            Fielder = fielder, Position = pos, Frozen = hit.StarSwingUsed == "heart-swing"
-        }, park, samples, at);
-        // The heart swing's slow (a special, §13; outside D21 and the 3e boundary): every chaser for the play, exactly as it
-        // shipped. A park's status volume is not read here any more (F4-b, #896, FR-07): it slows the body that touches it,
-        // live (BodySlows), and nothing is decided from where the ball lands.
-        var freeze = hit.StarSwingUsed == "heart-swing";
+        var buddy = Buddy(assigned, seed with { Fielder = fielder, Position = pos }, park, samples, at);
+        // A park's status volume is not read here (F4-b, #896, FR-07): it slows the body that touches it, live (BodySlows),
+        // and nothing is decided from where the ball lands.
         var radius = CatchRadiusFt(fielder, park, _rules, air: !grounder);
-        var heat = hit.StarPitchUsed is "heatball" or "caskball";
+        var heat = hit.StarPitchUsed is "heatball";
         // Only Hot Iron's ball is hot (§13): the flag the client's heat reads; nothing is left on the dirt. Sparkler's bend is its Perfect ring.
         var furnace = hit.StarSwingUsed is "furnace";
         return new FieldingPreview(
             fielder, pos, buddy, hang, landing.X, landing.Z, shape,
-            heat, furnace, freeze, radius, warped, Foul: ball.Foul, Ball: ball);
+            heat, furnace, radius, warped, Foul: ball.Foul, Ball: ball, Dazzled: dazzled, DazzleSec: pause > 0 ? pause : 0);
     }
+
+    /// <summary>
+    /// When a paused body may move (§13, <see cref="StarSwingSkill.FielderPauseSec"/>): not before its own reaction lockout
+    /// and not before the pause, both counted from the contact. The one rule the preview and the live play share.
+    /// </summary>
+    public static double Dazzle(double readyAt, double pauseSec) => Math.Max(readyAt, pauseSec);
 
     /// <summary>
     /// What the batted ball decides on its own, before any glove (§7): a homer at the crossing, a
@@ -398,8 +408,8 @@ public sealed class FieldingResolver
 
     /// <summary>
     /// The one glove speed (§8.1, fielding.chase): human stick and CPU chase share it; dash (East held) multiplies it.
-    /// <paramref name="frozen"/> is the heart swing's play-wide slow (<see cref="FieldingPreview.Frozen"/>, a special). A
-    /// status volume's slow is not an input here: it is the touching body's, applied to its steps (<see cref="BodySlows"/>).
+    /// <paramref name="frozen"/> asks the speed at <c>fielding.chase.frozenMul</c>. No play asks it: a status volume's slow is
+    /// the touching body's, applied to its steps (<see cref="BodySlows"/>), and no special slows a chaser.
     /// </summary>
     public static double ChaseSpeedFt(Character fielder, bool frozen, RulesTable rules, bool dash = false)
     {
@@ -416,7 +426,7 @@ public sealed class FieldingResolver
     /// and a loose ball run at the one speed.
     /// </summary>
     public static double ChaseSpeedFt(Character fielder, string pos, FieldingPreview? pre, RulesTable rules, bool dash = false) =>
-        ChaseSpeedFt(fielder, pre?.Frozen ?? false, rules, dash) * AirMul(pos, pre, rules);
+        ChaseSpeedFt(fielder, false, rules, dash) * AirMul(pos, pre, rules);
 
     /// <summary>
     /// The speed a body walks to a bag, the throw line or a backup spot (§8.7, #718): the flat cover speed on the
@@ -623,12 +633,10 @@ public sealed record FieldingResult(
 /// ball's class (§6.2) — the one table the pools, the ring, the catch window, and the cameras read.
 ///
 /// <para>
-/// <see cref="Frozen"/> is the heart swing's slow (a special, §13): every chaser runs at
-/// <c>fielding.chase.frozenMul</c> for the play, and the CPU's catch rolls <c>fielding.drops.frozen</c>,
-/// exactly as shipped, because the specials are outside this phase. It is no longer set by a park
-/// (F4-b, #896; FD-08-R1, FR-07): the preview says nothing about a status volume, and a volume slows
-/// only the body that touches it, live (<see cref="BodySlows"/>). The preview and the CPU plan at full
-/// speed; they do not foresee a slow.
+/// <see cref="Dazzled"/> is the one body a star swing's pause holds (§13, <see cref="StarSwingSkill.FielderPauseSec"/>): the
+/// nearest fielder, which stands still <see cref="DazzleSec"/> from the contact; every other body plays on at its own speed.
+/// The preview says nothing about a status volume (F4-b, #896; FD-08-R1, FR-07): a volume slows only the body that touches
+/// it, live (<see cref="BodySlows"/>). The preview and the CPU plan at full speed; they do not foresee a slow.
 /// </para>
 /// </summary>
 public sealed record FieldingPreview(
@@ -641,11 +649,14 @@ public sealed record FieldingPreview(
     BattedBallClass Class,
     bool Heatball,
     bool Furnace,
-    bool Frozen,
     double CatchRadius,
     bool Warped = false,
     bool Foul = false,
-    BattedBall? Ball = null)
+    BattedBall? Ball = null,
+    /// <summary>The position a star swing's pause holds (§13), or empty when none does.</summary>
+    string Dazzled = "",
+    /// <summary>How long, from the contact, the <see cref="Dazzled"/> body stands still; 0 when none does.</summary>
+    double DazzleSec = 0)
 {
     /// <summary>On the dirt: the glove scoops it, no ring, no window.</summary>
     public bool Grounder => Class.OnTheDirt();

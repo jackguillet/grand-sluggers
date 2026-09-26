@@ -72,13 +72,13 @@ public sealed record PlayTraceThrow(string FromPos, string ReceiverPos, int Bag,
 
 /// <summary>
 /// Assignments and gates are separate from measured displacement: cover/coast can differ from pursuit speed.
-/// <see cref="PursuitSpeedFtSec"/> is the speed the table asks (the planner's, at full speed); <see cref="FrozenPreview"/> is the
-/// heart swing's play-wide slow. <see cref="Slowed"/> is true on a frame a park's status volume slowed this body's steps
+/// <see cref="PursuitSpeedFtSec"/> is the speed the table asks (the planner's, at full speed); <see cref="Dazzled"/> is true for the one
+/// body a star swing's pause holds (§13); its wait is <see cref="ReadEligibleAt"/>. <see cref="Slowed"/> is true on a frame a park's status volume slowed this body's steps
 /// (F4-b, #896) and absent otherwise, so a trace with no touch is the bytes it always was.
 /// </summary>
 public sealed record PlayTraceFielder(string Pos, Character Who, double X, double Z,
     double ReadEligibleAt, bool ReadEligible, bool Selected, bool HumanOwned,
-    double PursuitSpeedFtSec, bool FrozenPreview, bool DashHeld, bool Coasting,
+    double PursuitSpeedFtSec, bool Dazzled, bool DashHeld, bool Coasting,
     bool CutoffAssigned, bool BackupAssigned, double DiveRemainingSec, double JumpRemainingSec,
     double RecoilRemainingSec, double SwapLockRemainingSec, double? ObservedVx = null, double? ObservedVz = null,
     bool? Slowed = null);
@@ -113,7 +113,7 @@ public sealed partial class LivePlaySystem
             var at = pos == GlovePos ? (GloveX, GloveZ) : _fielders.TryGetValue(pos, out var feet) ? feet : Starts[pos];
             var dash = pos == GlovePos && pad.EastHeld;
             return new PlayTraceFielder(pos, kv.Value, at.Item1, at.Item2, ReadyAt(pos), CanMove(pos), pos == GlovePos,
-                HumanGlove(pos), FieldingResolver.ChaseSpeedFt(kv.Value, pos, Preview, R, dash), Preview?.Frozen ?? false,
+                HumanGlove(pos), FieldingResolver.ChaseSpeedFt(kv.Value, pos, Preview, R, dash), pos == DazzledPos,
                 dash, Coasting(pos), pos == _support.CutoffPos, pos == _support.BackupPos,
                 pos == GlovePos ? DiveT : 0, pos == GlovePos ? JumpT : 0,
                 pos == GlovePos ? RecoilT : 0, pos == GlovePos ? SwapLock : 0, Slowed: IsSlowed(pos) ? true : null);

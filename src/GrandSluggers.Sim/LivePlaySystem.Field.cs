@@ -514,6 +514,7 @@ public sealed partial class LivePlaySystem
         var airHang = Ball.Shape.OnTheDirt() ? (double?)null : Hang;
         foreach (var kv in FieldingResolver.CpuReactionLockouts(R, airHang, Hit.Class == BattedBallClass.Bunt)) _readyAt[kv.Key] = kv.Value;
         foreach (var kv in FieldingResolver.ReactionLockouts(R, 1, airHang, Hit.Class == BattedBallClass.Bunt)) _readyHuman[kv.Key] = kv.Value;
+        BeginDazzle();
         InitGloves();
         // The park's status volumes, as this play reads them (F4-b): every body starts outside them, unslowed.
         _bodySlows.Begin(ParkHazards.StatusVolumes(Park, R, _match.Night));
@@ -839,7 +840,7 @@ public sealed partial class LivePlaySystem
         if (steering && map.TryGetValue(GlovePos, out var glove) && _stick.Manual && CanMove(GlovePos))
         {
             var speed = CarrySpeed(glove, FieldingResolver.ChaseSpeedFt(glove, GlovePos, pre, R, pad.EastHeld));
-            var feet = StepStick(GlovePos, (GloveX, GloveZ), _stick.WantX, _stick.WantY, speed, dt, specialSlowed: pre.Frozen);
+            var feet = StepStick(GlovePos, (GloveX, GloveZ), _stick.WantX, _stick.WantY, speed, dt);
             GloveX = feet.X;
             GloveZ = feet.Z;
             _fielders[GlovePos] = (GloveX, GloveZ);
@@ -1179,7 +1180,7 @@ public sealed partial class LivePlaySystem
         if (!map.TryGetValue(GlovePos, out var glove)) return;
         var asked = LooseBall ? null : Preview;
         var speed = CarrySpeed(glove, FieldingResolver.ChaseSpeedFt(glove, GlovePos, asked, R, pad.EastHeld));
-        var feet = StepStick(GlovePos, (GloveX, GloveZ), _stick.WantX, _stick.WantY, speed, dt, specialSlowed: asked?.Frozen == true);
+        var feet = StepStick(GlovePos, (GloveX, GloveZ), _stick.WantX, _stick.WantY, speed, dt);
         GloveX = feet.X;
         GloveZ = feet.Z;
         _fielders[GlovePos] = (GloveX, GloveZ);
@@ -1209,7 +1210,7 @@ public sealed partial class LivePlaySystem
     void WalkGloveTo((double X, double Z) goal, double dt)
     {
         var who = GloveChar();
-        var speed = CarrySpeed(who, FieldingResolver.ChaseSpeedFt(who, Preview?.Frozen ?? false, R));
+        var speed = CarrySpeed(who, FieldingResolver.ChaseSpeedFt(who, false, R));
         var next = StepTo(GlovePos, (GloveX, GloveZ), goal, speed, R.Fielding.Chase.StepStopFt, dt, flat: false);
         GloveX = next.X;
         GloveZ = next.Z;
@@ -1363,7 +1364,7 @@ public sealed partial class LivePlaySystem
     double CpuWalkSec(int bag)
     {
         var at = Geometry.Bag(bag);
-        var speed = CarrySpeed(GloveChar(), FieldingResolver.ChaseSpeedFt(GloveChar(), Preview?.Frozen ?? false, R));
+        var speed = CarrySpeed(GloveChar(), FieldingResolver.ChaseSpeedFt(GloveChar(), false, R));
         return Diamond.Dist(GloveX, GloveZ, at.X, at.Z) / Math.Max(1, speed);
     }
 
@@ -1549,7 +1550,7 @@ public sealed partial class LivePlaySystem
         else if (LooseBall)
         {
             var who = GloveChar();
-            var speed = FieldingResolver.ChaseSpeedFt(who, Preview.Frozen, R);
+            var speed = FieldingResolver.ChaseSpeedFt(who, false, R);
             var meetAt = ElapsedSeconds + Diamond.Dist(GloveX, GloveZ, BallX, BallZ) / Math.Max(1, speed);
             ball = new BallSituation(false, false, 0, 0, BallX, BallZ, meetAt,
                 FieldingResolver.OutfieldGrass(BallX, BallZ, R), BallX, BallZ, carry);
@@ -1591,7 +1592,7 @@ public sealed partial class LivePlaySystem
             TryHandoffLoose();
             if (!CanMove(GlovePos)) return;
             var chaser = map.TryGetValue(GlovePos, out var lc) ? lc : pre.Fielder;
-            var run = FieldingResolver.ChaseSpeedFt(chaser, pre.Frozen, R);
+            var run = FieldingResolver.ChaseSpeedFt(chaser, false, R);
             var step = StepTo(GlovePos, (GloveX, GloveZ), (BallX, BallZ), run, R.Fielding.Chase.StepStopFt, dt, flat: false);
             if (Diamond.Dist(GloveX, GloveZ, step.X, step.Z) > 1e-6)
                 _facts.Add(new AssistedRouteStep(chaser.Id));
@@ -1874,9 +1875,7 @@ public sealed partial class LivePlaySystem
 
     /// <summary>
     /// What a step of the body at <paramref name="pos"/> is multiplied by this frame (F4-b): <c>fielding.chase.frozenMul</c> while a
-    /// status volume slows it, else exactly 1, so an unslowed step is the double it always was. A speed that already carries the
-    /// heart swing's slow (<paramref name="specialSlowed"/>; a special, outside this phase) is not slowed again: the special and
-    /// the volume are the one slow, never two stacked — stacking stays with the specials (the 3e boundary).
+    /// status volume slows it, else exactly 1, so an unslowed step is the double it always was.
     /// </summary>
     /// <summary>
     /// The route cost of a status volume (FD-14, SF-26; F4-g): every step to a goal — the CPU's chase, cover, cutoff and backup
@@ -1984,7 +1983,7 @@ public sealed partial class LivePlaySystem
         Sub = $"Into the {PlayNarrator.RedirectName(mouth.Type)}!";
     }
 
-    double VolumeMul(string pos, bool specialSlowed) => BodySlows.Mul(!specialSlowed && _bodySlows.Slowed(pos), R);
+    double VolumeMul(string pos) => BodySlows.Mul(_bodySlows.Slowed(pos), R);
 
     // ---------------------------------------------------------------------------------
     // The pursuit stick (#718, F693-02-pursuit-neutral-boundary, -analog-response, -arming)
@@ -2045,10 +2044,11 @@ public sealed partial class LivePlaySystem
     /// </summary>
     (double X, double Z) StepTo(string pos, (double X, double Z) at, (double X, double Z) goal, double speed, double stopFt, double dt, bool flat)
     {
-        // A status volume slows the body that touched it (F4-b): every step it takes. The flat step is the cover, cutoff and
-        // backup walk, whose speed never carries the heart swing's slow; every other step is a chase over the preview.
+        // A body a star swing's pause holds takes no step of any kind (§13): the chase, the cover walk and the backup wait it out.
+        if (Dazzled(pos)) return at;
+        // A status volume slows the body that touched it (F4-b): every step it takes, the walk and the chase alike.
         goal = RouteAround(pos, at, goal, speed);
-        speed *= VolumeMul(pos, specialSlowed: !flat && Preview?.Frozen == true);
+        speed *= VolumeMul(pos);
         var dx = goal.X - at.X;
         var dz = goal.Z - at.Z;
         var dist = Math.Sqrt(dx * dx + dz * dz);
@@ -2061,11 +2061,11 @@ public sealed partial class LivePlaySystem
 
     /// <summary>
     /// The stick's step (§8.1): today's proportional step on the shipped table; under the response law the same want, answered through the body's velocity.
-    /// <paramref name="specialSlowed"/> says the asked speed already carries the heart swing's slow (<see cref="VolumeMul"/>).
     /// </summary>
-    (double X, double Z) StepStick(string pos, (double X, double Z) at, double stickX, double stickY, double speed, double dt, bool specialSlowed)
+    (double X, double Z) StepStick(string pos, (double X, double Z) at, double stickX, double stickY, double speed, double dt)
     {
-        speed *= VolumeMul(pos, specialSlowed);
+        if (Dazzled(pos)) return at;
+        speed *= VolumeMul(pos);
         var v = Respond(pos, at, (stickX * speed, stickY * speed), speed, dt);
         return FieldBounds.ClampFielder(Park, at.X + v.X * dt, at.Z + v.Z * dt, R);
     }

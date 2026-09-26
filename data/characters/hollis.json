@@ -2,6 +2,7 @@
   "id": "hollis",
   "name": "Hollis",
   "faction": "peak",
+  "crews": ["early-birds"],
   "captain": true,
   // The body class (data/rules/body-classes.json, spec §8.1): reach, contact width, ramp, knockback, motion style.
   "bodyClass": "climber",

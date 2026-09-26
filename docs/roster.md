@@ -47,8 +47,8 @@ Names are working titles. Replace freely; keep the *roles*.
 ### Queen Vale — Royal Rink
 
 - Stats: Pitch 9 / Bat 4 / Field 8 / Run 5
-- Star Pitch: **Charmball** — catcher-frame freeze; batter’s window shrinks.
-- Star Swing: **Heart Swing** — flare that charms the nearest fielder into a pause.
+- Star Pitch: **Aurora Ribbon** (`charmball`) — an aurora-traced sway that swells to its widest mid-flight, then settles onto the aimed crossing.
+- Star Swing: **Follow Spot** (`heart-swing`) — the rink's follow spot holds the nearest fielder still for 0.8 s; teammates back him up.
 - Field: **Snap Throw** — extra throw velocity, no windup.
 - Bats/throws: R/R
 
@@ -71,8 +71,8 @@ Names are working titles. Replace freely; keep the *roles*.
 ### Konga — Canopy Clan
 
 - Stats: Pitch 6 / Bat 9 / Field 3 / Run 2
-- Star Pitch: **Caskball** — pitch is a barrel; catch it and you eat a knockback.
-- Star Swing: **Cask Swing** — barrel fragments become infield obstacles.
+- Star Pitch: **Vine Swing** — the pitch swings in wide on a vine from a pivot above and crosses where it was aimed, on time.
+- Star Swing: **Lightning Liner** — a liner that jags sideways twice, up to 3 ft, and lands where a straight liner would.
 - Field: **Clamber** — can catch on walls and fences.
 - Bats/throws: L/R
 

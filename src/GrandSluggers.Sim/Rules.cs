@@ -859,12 +859,9 @@ public sealed record PitchFamilyRules
 
 public sealed record StarPitchShapeRules
 {
-    public double CharmballWobbleHz { get; init; }
-    public double CharmballWobbleFt { get; init; }
     [Chance] public double PhonyballSwitchAt { get; init; }
     [Signed] public double PhonyballEarlyX { get; init; }
     [Signed] public double PhonyballLateX { get; init; }
-    public double CaskballRise { get; init; }
 }
 
 /// <summary>

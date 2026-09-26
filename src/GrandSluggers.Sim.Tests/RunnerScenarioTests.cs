@@ -62,7 +62,7 @@ public sealed class RunnerScenarioTests
         var map = FieldingResolver.Assign(match.DefenseRoster, match.Pitcher, match.Defense.Gloves);
         var start = Diamond.Positions[preview.Position];
         var route = FieldingPursuit.Plan(preview, match.Park, preview.Ball!.Samples, 0, start.X, start.Z,
-            FieldingResolver.ChaseSpeedFt(map[preview.Position], preview.Frozen, match.Rules), match.Rules, body: map[preview.Position]);
+            FieldingResolver.ChaseSpeedFt(map[preview.Position], false, match.Rules), match.Rules, body: map[preview.Position]);
         var meetAt = route.Reachable ? route.MeetTimeSec : Math.Max(BallFlight.RestTime(preview.Ball.Samples), route.TravelTimeSec);
         var ball = new BallSituation(false, false, 0, 0, route.X, route.Z, meetAt,
             FieldingResolver.OutfieldGrass(route.X, route.Z, match.Rules), preview.LandingX, preview.LandingZ, hit.CarryFt);
