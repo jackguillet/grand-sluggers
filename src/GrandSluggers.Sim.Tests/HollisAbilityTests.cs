@@ -29,7 +29,6 @@ public sealed class HollisAbilityTests
         // The row is a hitch and nothing else: no late break, no twin, no leap, no rise, no loop, no sway.
         Assert.NotNull(pitch.Hitch);
         Assert.False(pitch.LateBreak);
-        Assert.Null(pitch.Twin);
         Assert.Null(pitch.Leap);
         Assert.Null(pitch.Rise);
         Assert.Null(pitch.Loop);

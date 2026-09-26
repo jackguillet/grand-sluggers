@@ -140,15 +140,40 @@ public sealed class CpuBatter
     /// release (<see cref="PitchFlight.BreakReach"/> over the time to the commit, never more than the
     /// command carries): exactly what a hand holding it, or the CPU pitcher's drawn steer, has reached
     /// by then. Pure: no draw, no state.
+    /// <para>
+    /// A ball the CPU cannot see costs it the read it costs a player (§13, <see cref="PitchVanish"/>): when a star pitch hides
+    /// the ball at the commit instant, the CPU reads the flight as it stood when the ball vanished — the stick's break no
+    /// further than it could have reached by then, whatever it was at the commit. Fixed, never a roll.
+    /// </para>
     /// </summary>
     public PitchCommand ReadPitch(PitchCommand pitch, double? breakAtCommit = null)
     {
-        if (breakAtCommit is { } seen) return pitch with { BreakX = Math.Clamp(seen, -1, 1) };
-        if (pitch.BreakX == 0) return pitch;
         var airSec = PitchFlight.AirSeconds(PitchSpeedMph(pitch), Rules);
         var commitSec = Math.Max(0, AtBatMotion.CpuDecisionTime(airSec, Rules));
-        var soFar = Math.Min(Math.Abs(pitch.BreakX), PitchFlight.BreakReach(Pitcher.Stats.Control, commitSec, Rules));
+        var seenSec = LastSeenSec(pitch, commitSec, airSec);
+        if (breakAtCommit is { } seen)
+        {
+            var held = Math.Clamp(seen, -1, 1);
+            if (seenSec < commitSec)
+                held = Math.Sign(held) * Math.Min(Math.Abs(held), PitchFlight.BreakReach(Pitcher.Stats.Control, seenSec, Rules));
+            return pitch with { BreakX = held };
+        }
+        if (pitch.BreakX == 0) return pitch;
+        var soFar = Math.Min(Math.Abs(pitch.BreakX), PitchFlight.BreakReach(Pitcher.Stats.Control, seenSec, Rules));
         return pitch with { BreakX = Math.Sign(pitch.BreakX) * soFar };
+    }
+
+    /// <summary>
+    /// The last instant, in seconds from the release, the CPU batter has seen the ball by its commit at
+    /// <paramref name="commitSec"/>: the commit itself, or — while a star pitch's vanish hides the ball then — the instant it vanished.
+    /// </summary>
+    double LastSeenSec(PitchCommand pitch, double commitSec, double airSec)
+    {
+        if (!pitch.Star || airSec <= 0) return commitSec;
+        var u = commitSec / airSec;
+        if (PitchFlight.Visible(pitch, u, Pitcher.StarPitch, _match.Content.StarSkills)) return commitSec;
+        var vanish = StarSkillTable.Or(_match.Content.StarSkills).Pitch(Pitcher.StarPitch)!.Vanish!;
+        return Math.Min(commitSec, vanish.From * airSec);
     }
 
     enum Zone { Middle, Edge, Near, Far }

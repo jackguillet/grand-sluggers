@@ -175,21 +175,12 @@ public static class PitchFlight
     }
 
     /// <summary>
-    /// Where a star pitch's twin is drawn at <paramref name="u"/> and how strongly (spec §13), or null when the pitch has
-    /// no twin or it has faded. The twin flies beside the real ball, <see cref="PitchTwin.OffsetFt"/> toward the far
-    /// half of the zone from the real crossing, so the hitter sees two balls on either side and must pick the real
-    /// one before it goes. Nothing reads it but the eye: the umpire, the bat and the CPU batter read the real ball's <c>Point</c>.
+    /// Whether the ball itself can be seen at time fraction <paramref name="u"/> of the flight (spec §13): false only while a
+    /// star pitch's <see cref="PitchVanish"/> hides it. The ball is still there — <see cref="Point"/>, the crossing and the
+    /// timing window are the ordinary pitch's — and its shadow is drawn the whole flight; the client hides the ball alone.
     /// </summary>
-    public static (double X, double Y, double Z, double Alpha)? Twin(PitchCommand pitch, double u, RulesTable rules,
-        string? starPitchId, StarSkillTable? skills = null, (double X, double Y, double Z)? from = null)
-    {
-        if (!pitch.Star || StarSkillTable.Or(skills).Pitch(starPitchId)?.Twin is not { } twin) return null;
-        var alpha = twin.Alpha(Math.Clamp(u, 0, 1));
-        if (alpha <= 0) return null;
-        var real = Point(pitch, u, rules, starPitchId, from, skills);
-        var side = Crossing(pitch, rules, starPitchId).X >= 0 ? -1 : 1;
-        return (real.X + side * twin.OffsetFt, real.Y, real.Z, alpha);
-    }
+    public static bool Visible(PitchCommand pitch, double u, string? starPitchId, StarSkillTable? skills = null) =>
+        !pitch.Star || StarSkillTable.Or(skills).Pitch(starPitchId)?.Vanish is not { } vanish || vanish.Visible(Math.Clamp(u, 0, 1));
 
     /// <summary>
     /// Lateral shift from the stick at u: a bend the eye sees mid-flight (gone by the plate) plus

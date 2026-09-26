@@ -35,7 +35,7 @@ public static partial class HowToPlay
             "T-SP-fastball" => "Star Fastball",
             "T-SP-changeup" => "Star Change",
             "T-SP-breaker" => "Star Breaker",
-            "T-SP-mirageball" => "Mirage Ball",
+            "T-SP-mirageball" => "Mirage",
             "T-SP-rockfall" => "Cable Car",
             "T-SP-leapfrog" => "Leapfrog",
             "T-SS-heat-swing" => "Sparkler",
@@ -45,7 +45,7 @@ public static partial class HowToPlay
             "T-SS-cask-swing" => "Lightning Liner",
             "T-SS-furnace" => "Hot Iron",
             "T-SS-staff-swing" => "Driftwood Reach",
-            "T-SS-sidewinder" => "Sidewinder",
+            "T-SS-sidewinder" => "Dust Bowl",
             "T-SS-updraft" => "Summit Gust",
             "T-SS-pond-skip" => "Pond Skip",
             "T-SS-ground" => "Star Grounder",
@@ -73,6 +73,8 @@ public static partial class HowToPlay
             "T-SS-furnace" => " The ball stays hot for two seconds: a glove that holds it drops it, so fielders must throw at once.",
             "T-SP-rockfall" => " It stops dead mid-flight for a beat, then runs down its line to cross where you aimed, on time.",
             "T-SS-updraft" => " At the top of its flight the fly catches a gust and carries farther along its line.",
+            "T-SP-mirageball" => " The ball vanishes for the middle third of its flight; its shadow still shows the way.",
+            "T-SS-sidewinder" => " The grounder kicks up a bowl of dust where it lands; fielders in it run at half speed.",
             _ => ""
         };
         return pitch

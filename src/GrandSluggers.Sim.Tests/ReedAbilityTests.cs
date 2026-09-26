@@ -73,7 +73,6 @@ public sealed class ReedAbilityTests
         var plain = Run(spray, "ground");
         Assert.Empty(plain.Kicks);
         var hop = Assert.Single(skip.Kicks);
-        Assert.Equal(0, hop.TurnDeg);
         Assert.Equal(2.2, hop.BounceMul);
         // Before the hop the two balls are one ball; off it the skip climbs higher than the plain hop ever does.
         var at = skip.Balls.FindIndex(b => b.T >= hop.T);

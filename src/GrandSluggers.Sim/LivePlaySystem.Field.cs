@@ -1903,9 +1903,10 @@ public sealed partial class LivePlaySystem
         if (_solids.Count > 0)
             goal = VolumeRoute.Waypoint(at, goal, _solids.Select(b => b.AsVolume(ElapsedSeconds)).ToList(), speed, 1e-6,
                 R.Fielding.Chase.VolumeClearFt);
-        return _bodySlows.FielderVolumes.Count == 0 || _routeImmune.Contains(pos)
+        // The park's discs only: a star's disc (the Undertow's ring, a Dust Bowl; §13) is not routed around — going round it is the player's verb.
+        return _bodySlows.ParkVolumes.Count == 0 || _routeImmune.Contains(pos)
             ? goal
-            : VolumeRoute.Waypoint(at, goal, _bodySlows.FielderVolumes, speed, R.Fielding.Chase.FrozenMul, R.Fielding.Chase.VolumeClearFt);
+            : VolumeRoute.Waypoint(at, goal, _bodySlows.ParkVolumes, speed, R.Fielding.Chase.FrozenMul, R.Fielding.Chase.VolumeClearFt);
     }
 
     /// <summary>The redirects the ball went through this play, in order (F4-c).</summary>

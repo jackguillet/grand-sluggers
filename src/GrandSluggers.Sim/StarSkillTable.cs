@@ -10,8 +10,6 @@ public sealed record StarPitchSkill(
     bool LateBreak,
     bool Decoy,
     string? OnCatch,
-    /// <summary>A faint second ball drawn beside the real one early in the flight, or null (§13).</summary>
-    PitchTwin? Twin = null,
     /// <summary>A pace that hangs the ball over one stretch of its path and leaps it to the plate on time, or null (§13).</summary>
     PitchLeap? Leap = null,
     /// <summary>A late rise that lifts the ball over the last stretch of its flight to a crossing above the aimed one, or null (§13).</summary>
@@ -27,7 +25,9 @@ public sealed record StarPitchSkill(
     /// <summary>A late drop that sinks the ball over the last stretch of its flight to a crossing below the aimed one, or null (§13).</summary>
     PitchDrop? Drop = null,
     /// <summary>A full stop at one point of the path for a fixed time, then a run on down the line to arrive on time, or null (§13).</summary>
-    PitchHitch? Hitch = null);
+    PitchHitch? Hitch = null,
+    /// <summary>A stretch of the flight in which the ball is hidden and only its shadow shows, or null (§13).</summary>
+    PitchVanish? Vanish = null);
 
 /// <summary>
 /// A star pitch's hitch (spec §13): at <see cref="At"/> of the flight the ball stops dead at one point of its path — a cable car
@@ -65,6 +65,21 @@ public sealed record PitchHitch(double At, double HoldSec)
         if (u >= 1) return 1;
         return At + (1 - At) * (u - At - hold) / (1 - At - hold);
     }
+}
+
+/// <summary>
+/// A star pitch's vanish (spec §13): from <see cref="From"/> to <see cref="To"/> of the flight the ball is hidden in heat
+/// shimmer; its shadow keeps crossing the dirt, and it shows again for the rest of the flight. The path, the speed, the crossing
+/// and the timing window are the ordinary pitch's: only what can be seen changes. The CPU batter pays the same read: while
+/// the ball is hidden at its commit instant it reads the flight as it stood when the ball vanished (<see cref="CpuBatter.ReadPitch"/>).
+/// </summary>
+public sealed record PitchVanish(double From, double To)
+{
+    /// <summary>The ball is back by this share of the flight at the latest: the hitter always sees the last quarter.</summary>
+    public const double BackBy = 0.75;
+
+    /// <summary>The ball can be seen at time fraction <paramref name="u"/>: everywhere but the half-open stretch [From, To).</summary>
+    public bool Visible(double u) => u < From || u >= To;
 }
 
 /// <summary>
@@ -260,21 +275,6 @@ public sealed record PitchLeap(double At, double Hold, double HoldPace)
     }
 }
 
-/// <summary>
-/// A star pitch's twin (spec §13): a faint second ball <see cref="OffsetFt"/> to the far side of the zone from the real
-/// crossing, flying beside the real ball at full strength until <see cref="FadeFrom"/> of the flight and gone by
-/// <see cref="FadeTo"/>. It is drawn only: the umpire, the bat and the CPU read the one real ball.
-/// </summary>
-public sealed record PitchTwin(double OffsetFt, double FadeFrom, double FadeTo)
-{
-    /// <summary>The twin is gone by half the flight at the latest: the hitter judges one ball in the second half.</summary>
-    public const double GoneBy = 0.5;
-
-    /// <summary>How strongly the twin shows at <paramref name="u"/> of the flight: 1, fading linearly to 0.</summary>
-    public double Alpha(double u) =>
-        u <= FadeFrom ? 1 : u >= FadeTo ? 0 : 1 - (u - FadeFrom) / (FadeTo - FadeFrom);
-}
-
 /// <summary>A captain's star swing (data/abilities/star-skills.json, spec §13).</summary>
 public sealed record StarSwingSkill(
     string Id,
@@ -289,10 +289,6 @@ public sealed record StarSwingSkill(
     /// </summary>
     double FielderPauseSec,
     bool Decoy,
-    /// <summary>
-    /// A fair ball off this swing turns this many degrees at its first hop, away from the fielder chasing it (§13); 0 is none.
-    /// </summary>
-    double FirstHopKickDeg = 0,
     /// <summary>A fair ball off this swing leaves its first hop this many times as fast upward (§13); 1 is the ordinary hop.</summary>
     double FirstHopBounceMul = 1,
     /// <summary>A fair ball off this swing stands still at its first hop for this many seconds (§13); 0 is none.</summary>
@@ -318,7 +314,9 @@ public sealed record StarSwingSkill(
     /// At its apex this swing's fly carries this many times as far along its own line as the plain ball would from there, to its
     /// first landing (§13, <see cref="AtBatResult.ApexCarryMul"/>); 1 is the ordinary ball. The wind and the park do not enter it.
     /// </summary>
-    double ApexCarryMul = 1)
+    double ApexCarryMul = 1,
+    /// <summary>A bowl of loose dust this swing's grounder raises where it first lands, slowing the fielders inside it, or null (§13).</summary>
+    SwingDustBowl? DustBowl = null)
 {
     /// <summary>The tallest contact oval a row may name: twice the batter's zone, never more.</summary>
     public const double MaxOvalHeightMul = 2;
@@ -335,16 +333,53 @@ public sealed record StarSwingSkill(
     public const double MaxBounceMul = 3;
 
     /// <summary>The swing changes its ball's first hop.</summary>
-    public bool ShapesFirstHop => FirstHopKickDeg > 0 || FirstHopBounceMul != 1 || FirstHopStallSec > 0;
+    public bool ShapesFirstHop => FirstHopBounceMul != 1 || FirstHopStallSec > 0 || DustBowl is not null;
+
+    /// <summary>The swing changes its ball's path at the first hop (a spring or a stall); a dust bowl leaves the path alone.</summary>
+    public bool BendsFirstHop => FirstHopBounceMul != 1 || FirstHopStallSec > 0;
 
     /// <summary>The largest apex carry a row may name: a gust, not a launch; the fly's fall carries at most half again as far.</summary>
     public const double MaxApexCarryMul = 1.5;
 
     /// <summary>The longest pause a row may name: every special's bend ends within 2 s of the contact (§13).</summary>
     public const double MaxFielderPauseSec = 2;
+}
 
-    /// <summary>The largest kick a row may name: a hop, not a U-turn.</summary>
-    public const double MaxKickDeg = 45;
+/// <summary>
+/// A star swing's dust bowl (spec §13): where the swing's fair grounder first meets the ground, a disc of loose dust of radius
+/// <see cref="RadiusFt"/> (measured like a park's slow disc, from its centre) rises at that landing and settles
+/// <see cref="Sec"/> after the contact — the two-second rule (§13): a later landing gives a shorter bowl, and a landing at or
+/// past <see cref="Sec"/> none. Every step a fielder takes inside it is at <see cref="Mul"/> of its speed. It is a status volume on the park's rail
+/// (<see cref="BodySlows"/>) that touches fielders only: no runner, and no time after the body leaves it or the dust settles.
+/// Routes ignore it (<see cref="VolumeRoute"/> reads the park's discs only); going round it is the fielder's own verb.
+/// </summary>
+public sealed record SwingDustBowl(double RadiusFt, double Sec, double Mul)
+{
+    /// <summary>The <see cref="StatusVolume.Type"/> the bowl's disc carries: presentation draws the dust by this name.</summary>
+    public const string Type = "dust-bowl";
+
+    /// <summary>The widest bowl a row may name: a patch of the infield, not the infield.</summary>
+    public const double MaxRadiusFt = 15;
+
+    /// <summary>The latest a bowl may settle, in seconds after the contact: a bend ends within two seconds (§13).</summary>
+    public const double MaxSec = 2;
+
+    /// <summary>The highest launch a bowl-raising swing may name: the bowl is a grounder's, so its first landing comes early.</summary>
+    public const double MaxLaunchDeg = 6;
+
+    /// <summary>The <see cref="StatusVolume.Hazard"/> the bowl's disc carries: a star's, below every park index.</summary>
+    public const int Hazard = -2;
+
+    /// <summary>
+    /// The bowl as the live ball reads it, for a play whose clock starts at contact: centred on the landing (<paramref name="x"/>,
+    /// <paramref name="z"/>), raised when it is added (at the landing) and gone at play second <see cref="Sec"/>, <see cref="Mul"/>
+    /// inside, no time after the body leaves it (<c>slowSec</c> 0), fielders' alone.
+    /// </summary>
+    public StatusVolume Volume(double x, double z) =>
+        new(Hazard, Type, x, z, RadiusFt, 0, SlowMul: Mul, UntilT: Sec, FieldersOnly: true);
+
+    /// <summary>A landing at play second <paramref name="landT"/> raises a bowl: only before the dust's window from contact closes.</summary>
+    public bool RaisesAt(double landT) => landT < Sec;
 }
 
 /// <summary>
