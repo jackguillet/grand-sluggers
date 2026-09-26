@@ -149,12 +149,10 @@ public static class ContentDataValidator
         foreach (var row in data.Characters)
             ValidateCharacter(row, pitches, swings, errors);
         ValidateCaptains(data, errors);
-        // The top cost tier is the captains' (§12, PH-16-R8): a role player carrying a top-tier special is refused.
-        foreach (var row in data.Characters.Where(r => !r.Value.Captain))
-        {
-            TopTierIsCaptainOnly(row, "starPitch", row.Value.StarPitch, data.StarSkills.Pitches, errors);
-            TopTierIsCaptainOnly(row, "starSwing", row.Value.StarSwing, data.StarSkills.Swings, errors);
-        }
+        // A sidekick never carries a captain's special, and no two captains share one (§13, AB-02, AB-10): a sidekick's
+        // specials are the generic pool's; a captain's belongs to that captain alone.
+        SpecialsBelongToTheirCarrier(data.Characters, "starPitch", r => r.StarPitch, data.StarSkills.Pitches, errors);
+        SpecialsBelongToTheirCarrier(data.Characters, "starSwing", r => r.StarSwing, data.StarSkills.Swings, errors);
         // The hazard type set is the library's table, not a list this file keeps (FD-09, FR-02), and
         // so is the ground set a park's surface and zones are checked against (FD-05, SF-03). Both are
         // the tables this root loaded, so a trial that authors either file is checked against its own
@@ -236,9 +234,9 @@ public static class ContentDataValidator
                 errors.Add($"{source}: star {kind} '{key}' has an empty id");
             else if (!value.Id.Equals(key, StringComparison.Ordinal))
                 errors.Add($"{source}: star {kind} key '{key}' does not match id '{value.Id}'");
-            // Every special names the cost tier stars.json prices (§12, PH-16-R7).
-            if (!StarTierRules.IsTier(value.Tier))
-                errors.Add($"{source}: star {kind} '{key}' tier must be one of [{string.Join(", ", StarTierRules.Ids)}]; got '{value.Tier ?? "null"}'");
+            // The price follows the carrier (§12), so a row that still names a tier is stale.
+            if (value.Tier is not null)
+                errors.Add($"{source}: star {kind} '{key}' names a tier; tiers are retired and the carrier sets the price (stars.prices)");
             // The numbers the sim reads (spec §13): a value outside its range is a data error, not a fallback.
             if (kind == "pitch")
             {
@@ -283,12 +281,31 @@ public static class ContentDataValidator
         return ids;
     }
 
-    static void TopTierIsCaptainOnly(
-        Sourced<CharacterDto> row, string field, string? skill, Dictionary<string, StarSkillDto?>? rows, List<string> errors)
+    static void SpecialsBelongToTheirCarrier(IEnumerable<Sourced<CharacterDto>> characters, string field,
+        Func<CharacterDto, string?> skillOf, Dictionary<string, StarSkillDto?>? rows, List<string> errors)
     {
-        if (string.IsNullOrEmpty(skill) || rows is null || !rows.TryGetValue(skill, out var dto) || dto is null) return;
-        if (dto.Tier == StarTierRules.TopId)
-            errors.Add($"{row.Source}: character '{row.Value.Id}' {field} '{skill}' is a top-tier special, and the top tier is for captains only");
+        if (rows is null) return;
+        var owner = new Dictionary<string, string>(StringComparer.Ordinal);
+        var families = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (var row in characters)
+        {
+            var skill = skillOf(row.Value);
+            if (string.IsNullOrEmpty(skill) || !rows.TryGetValue(skill, out var dto) || dto is null) continue;
+            var generic = dto.Kind == StarSkills.GenericKind;
+            if (!row.Value.Captain && !generic)
+                errors.Add($"{row.Source}: character '{row.Value.Id}' {field} '{skill}' is a captain's special; a sidekick carries the generic pool's");
+            if (row.Value.Captain && generic)
+                errors.Add($"{row.Source}: captain '{row.Value.Id}' {field} '{skill}' is a sidekick's generic special; a captain carries their own");
+            if (!generic && !owner.TryAdd(skill, row.Value.Id))
+                errors.Add($"{row.Source}: character '{row.Value.Id}' {field} '{skill}' is already '{owner[skill]}''s; a captain's special is theirs alone");
+            // No two captains share an effect family (AB-02): a row that names its family is checked against the others.
+            if (!generic && !string.IsNullOrEmpty(dto.Family))
+            {
+                if (families.TryGetValue(dto.Family, out var other) && other != skill)
+                    errors.Add($"{row.Source}: captain '{row.Value.Id}' {field} '{skill}' shares effect family '{dto.Family}' with '{other}'; every captain's special is its own");
+                else families[dto.Family] = skill;
+            }
+        }
     }
 
     /// <summary>
@@ -1572,17 +1589,19 @@ internal sealed class StarSkillDto
     public double? FirstHopKickDeg { get; set; }
     /// <summary>A swing's ball rides the park's wind this many times as hard (<see cref="StarSwingSkill.WindMul"/>); swings only.</summary>
     public double? WindMul { get; set; }
-    /// <summary>The cost tier (PH-16-R7): one of <see cref="StarTierRules.Ids"/>. Required.</summary>
+    /// <summary>The effect family a captain's special belongs to (§13, AB-02); no two captains' specials share one.</summary>
+    public string? Family { get; set; }
+    /// <summary>Retired (§12): the carrier sets the price. Read only so a stale row is refused by name.</summary>
     public string? Tier { get; set; }
 
     public StarPitchSkill ToPitch() => new(Id, Name, Kind, SpeedMul ?? 1.0, StaminaCost ?? 0,
-        LateBreak, Decoy, OnCatch, Tier ?? StarTierRules.LowId,
+        LateBreak, Decoy, OnCatch,
         Twin is null ? null : new PitchTwin(Twin.OffsetFt, Twin.FadeFrom, Twin.FadeTo),
         Float is null ? null : new PitchFloat(Float.RiseFt, Float.DropFrom),
         Leap is null ? null : new PitchLeap(Leap.At, Leap.HoldSpan, Leap.HoldPace));
 
     public StarSwingSkill ToSwing() => new(Id, Name, Kind, ExitVeloMul ?? 1.0, LaunchDeg, Terrain,
-        FielderPauseSec ?? 0, InfieldChaos, Decoy, Fragments, Tier ?? StarTierRules.LowId, FirstHopKickDeg ?? 0,
+        FielderPauseSec ?? 0, InfieldChaos, Decoy, Fragments, FirstHopKickDeg ?? 0,
         WindMul ?? 1, FirstHopBounceMul ?? 1);
 }
 

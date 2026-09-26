@@ -140,11 +140,6 @@
     "jumpBufferSec": 0.10,
     "jumpAirResponseMul": 0.10
   },
-  "drops": {
-    "heatball": 0.35,
-    "phonySwing": 0.35,
-    "frozen": 0.4
-  },
   "wallPlant": {
     "insideFenceFt": 8,
     "minFraction": 0.45,
@@ -296,12 +291,6 @@
     "deflectRetainMin": 0.50,
     "deflectObstruction": 0.5,
     "deflectMinFtPerSec": 55
-  },
-  // #847 moved emberNightFireMul and pipeReachPadFt out of this block and under their hazard types
-  // in rules/hazards.json. What is left is not a park hazard's: a shell or cask star swing flags a
-  // grounder warped with no can in the park at all.
-  "park": {
-    "shellWarpChance": 0.6
   },
   // #625, spec §7.3: the batter squares at the West press and the defense reads it before the pitch. The corners
   // crash crashFt toward the plate at their own chase speed, coverFirst / coverSecond walk to their bags at the cover

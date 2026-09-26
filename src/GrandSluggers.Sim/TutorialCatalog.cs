@@ -90,7 +90,7 @@ public sealed class TutorialCatalog
     {
         var errors = new List<string>();
         void Require(bool ok, string message) { if (!ok) errors.Add("tutorials: " + message); }
-        // A lesson's meter has to pay for the named special at its tier price on the team it plays for (§12, PH-16-R7).
+        // A lesson's meter has to pay for the named special at its carrier's price on the team it plays for (§12).
         int PitchPrice(TutorialSetup s, string id) =>
             StarSkills.PitchCost(content.Characters[id], content.Characters[s.Home[0]], content.Rules, content.StarSkills);
         int SwingPrice(TutorialSetup s, string id) =>

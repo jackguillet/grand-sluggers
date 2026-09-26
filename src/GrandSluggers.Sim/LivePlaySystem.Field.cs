@@ -175,8 +175,6 @@ public sealed partial class LivePlaySystem
     // The facts of this play the result carries (§8.6, §8.5).
     bool _bobbled;
     bool _sailed;
-    bool _dropRolled;
-    bool _dropped;
     Character? _firstGlove;
 
     // The hand-off coast (§8.9): the body the ring left keeps the glove's last velocity for chase.handoffCoastSec, then brakes.
@@ -617,8 +615,6 @@ public sealed partial class LivePlaySystem
         _wallCued = false;
         _bobbled = false;
         _sailed = false;
-        _dropRolled = false;
-        _dropped = false;
         _firstGlove = null;
         _coast.Reset();
         _response.Reset();
@@ -1036,7 +1032,7 @@ public sealed partial class LivePlaySystem
             if (LooseBall ? FlyCatch.TouchScoop(cpuDist, R.Fielding.Chase.LooseScoopFt, BallY, R)
                 : FlyCatch.TouchScoop(pre, Park, BallX, BallZ, BallY, ElapsedSeconds, hang, cpuDist, cpuScoop, R))
                 TakeBattedBall();
-            else if (ElapsedSeconds < hang && !LooseBall && !_dropped)
+            else if (ElapsedSeconds < hang && !LooseBall)
             {
                 var plant = FlyCatch.ChaseTarget(pre, R, Park);
                 var needsJump = FlyCatch.NeedsJump(pre);
@@ -1051,24 +1047,14 @@ public sealed partial class LivePlaySystem
                 var autoStand = FlyCatch.AutoCatch(underStand, inWin, needsJump, canRob, linerInAir: linerInAir);
                 if (autoStand)
                 {
-                    // Drop chances belong to star effects only (§8.6): rolled once, on the one seeded stream. A glove a park's
-                    // status volume slowed rolls nothing (F4-b, FD-08-R1, SF-22): the glove and the ball decide its catch.
-                    // pre.Frozen is the heart swing's alone, the special's use of drops.frozen, left exactly as it was.
-                    if (!_dropRolled)
+                    // No roll decides the catch (§8.6): the glove and the ball do.
+                    if (needsJump) CatchJump = true;
+                    if (needsJump && buddyAt)
                     {
-                        _dropRolled = true;
-                        _dropped = _match.RollDrop(Hit!, pre.Frozen);
+                        Buddy = true;
+                        _events.Add(LiveEvent.BuddyJump);
                     }
-                    if (!_dropped)
-                    {
-                        if (needsJump) CatchJump = true;
-                        if (needsJump && buddyAt)
-                        {
-                            Buddy = true;
-                            _events.Add(LiveEvent.BuddyJump);
-                        }
-                        TakeBattedBall();
-                    }
+                    TakeBattedBall();
                 }
             }
         }

@@ -133,18 +133,17 @@ public sealed class StarResourceScenarioTests
     }
 
     // ---------------------------------------------------------------------------------
-    // S-172  An affordable special pays its tier price at the release
+    // S-172  An affordable special pays its carrier's price at the release
     // ---------------------------------------------------------------------------------
 
     [Fact]
-    public void S172_AnAffordableStarPitchPaysItsTierPriceAtTheReleaseAndFliesAsTheSpecial()
+    public void S172_AnAffordableStarPitchPaysItsCarriersPriceAtTheReleaseAndFliesAsTheSpecial()
     {
         var content = Shipped;
         var m = new Scenario(content).Match;
         m.GiveDefenseStars(content.Rules.Stars.MeterMax);
-        var tier = content.StarSkills.Pitch(m.Pitcher.StarPitch)!.Tier;
         var cost = m.PitchStarCost;
-        Assert.Equal(content.Rules.Stars.Tiers.Of(tier), cost);
+        Assert.Equal(content.Rules.Stars.Prices.Of(m.Pitcher), cost);
         var before = m.DefenseStars;
 
         var ev = m.Play(Scenario.PitchAt(2.5, CenterY) with { Star = true }, Scenario.Take);
@@ -160,7 +159,7 @@ public sealed class StarResourceScenarioTests
     [Fact]
     public void S172_ExactlyThePriceIsEnoughAndOneShortIsNot()
     {
-        // A captain whose tier price is above 1, so "one short" is still a positive balance.
+        // A captain, whose price is above 1, so "one short" is still a positive balance.
         var m = new Scenario(Shipped).Match;
         var cost = m.PitchStarCost;
         Assert.True(cost > 1, $"pitcher {m.Pitcher.Id} costs {cost}");
@@ -198,9 +197,8 @@ public sealed class StarResourceScenarioTests
                 m.GiveOffenseStars(content.Rules.Stars.MeterMax);
                 var before = m.OffenseStars;
                 var cost = m.SwingStarCost;
-                var tier = content.StarSkills.Swing(batter.StarSwing)!.Tier;
                 var guest = batter.Captain && !batter.Id.Equals(m.Offense.Captain.Id, StringComparison.OrdinalIgnoreCase);
-                Assert.Equal(content.Rules.Stars.Tiers.Of(tier) + (guest ? content.Rules.Stars.Costs.GuestCaptainSurcharge : 0), cost);
+                Assert.Equal(content.Rules.Stars.Prices.Of(batter) + (guest ? content.Rules.Stars.Costs.GuestCaptainSurcharge : 0), cost);
                 var ev = m.Play(Scenario.PitchAt(0, CenterY), new SwingCommand(true, 0, 40, true));
                 Assert.Equal(ContactQuality.Miss, ev.AtBat.Quality);
                 Assert.True(ev.Swing.Star);
@@ -213,11 +211,11 @@ public sealed class StarResourceScenarioTests
                 prices.Add(cost);
             }
         }
-        Assert.True(prices.Count > 1, "the tiers price the order's specials differently");
+        Assert.True(prices.Count > 1, "captains and sidekicks price the order's specials differently");
     }
 
     [Fact]
-    public void S173_AGuestCaptainPaysHisTierPlusTheSurchargeOnAWhiffToo()
+    public void S173_AGuestCaptainPaysTheCaptainPricePlusTheSurchargeOnAWhiffToo()
     {
         var content = Shipped;
         var m = new Scenario(content).Match;
@@ -228,8 +226,7 @@ public sealed class StarResourceScenarioTests
         var vale = m.Batter;
         Assert.Equal("vale", vale.Id);
         Assert.NotEqual(vale.Id, m.Offense.Captain.Id);
-        var tier = content.StarSkills.Swing(vale.StarSwing)!.Tier;
-        var cost = content.Rules.Stars.Tiers.Of(tier) + content.Rules.Stars.Costs.GuestCaptainSurcharge;
+        var cost = content.Rules.Stars.Prices.Captain + content.Rules.Stars.Costs.GuestCaptainSurcharge;
         Assert.Equal(cost, m.SwingStarCost);
         m.GiveOffenseStars(content.Rules.Stars.MeterMax);
         var before = m.OffenseStars;
@@ -239,58 +236,73 @@ public sealed class StarResourceScenarioTests
     }
 
     // ---------------------------------------------------------------------------------
-    // S-174  The tiers and the captain-only top tier are validated
+    // S-174  Specials belong to their carrier; the prices are validated
     // ---------------------------------------------------------------------------------
 
     [Fact]
-    public void S174_ARolePlayerCarryingATopTierSpecialIsRefusedByName()
+    public void S174_ASidekickCarryingACaptainsSpecialIsRefusedByName()
     {
         using var fixture = new ContentFixture();
-        fixture.ChangeObject("abilities/star-skills.json", json => json["pitches"]!["fastball"]!["tier"] = "top");
+        fixture.ChangeObject("abilities/star-skills.json", json => json["pitches"]!["fastball"]!["kind"] = "element");
         var errors = ContentDataValidator.Validate(new DataRoot(fixture.Root));
-        Assert.Contains(errors, e => e.Contains("starPitch 'fastball' is a top-tier special", StringComparison.Ordinal)
+        Assert.Contains(errors, e => e.Contains("starPitch 'fastball' is a captain's special; a sidekick carries the generic pool's", StringComparison.Ordinal)
             && e.Contains("role-players.json", StringComparison.Ordinal));
-        // A captain may carry it.
-        Assert.DoesNotContain(errors, e => e.Contains("character 'rio'", StringComparison.Ordinal));
     }
 
     [Fact]
-    public void S174_EverySpecialNamesAKnownTier()
+    public void S174_TwoCaptainsSharingASpecialAndACaptainOnAGenericAreRefused()
+    {
+        using var fixture = new ContentFixture();
+        fixture.ChangeObject("characters/vale.json", json => json["starPitch"] = "heatball");
+        fixture.ChangeObject("characters/zig.json", json => json["starSwing"] = "line");
+        var errors = ContentDataValidator.Validate(new DataRoot(fixture.Root));
+        Assert.Contains(errors, e => e.Contains("starPitch 'heatball' is already", StringComparison.Ordinal));
+        Assert.Contains(errors, e => e.Contains("captain 'zig' starSwing 'line' is a sidekick's generic special", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void S174_TwoCaptainsSpecialsInOneEffectFamilyAreRefused()
     {
         using var fixture = new ContentFixture();
         fixture.ChangeObject("abilities/star-skills.json", json =>
         {
-            json["swings"]!["furnace"]!["tier"] = "legendary";
-            json["pitches"]!["heatball"]!.AsObject().Remove("tier");
+            json["pitches"]!["heatball"]!["family"] = "late-rise";
+            json["pitches"]!["skullball"]!["family"] = "late-rise";
         });
         var errors = ContentDataValidator.Validate(new DataRoot(fixture.Root));
-        Assert.Contains(errors, e => e.Contains("star swing 'furnace' tier must be one of [low, mid, top]; got 'legendary'", StringComparison.Ordinal));
-        Assert.Contains(errors, e => e.Contains("star pitch 'heatball' tier must be one of [low, mid, top]; got 'null'", StringComparison.Ordinal));
+        Assert.Contains(errors, e => e.Contains("shares effect family 'late-rise'", StringComparison.Ordinal));
     }
 
     [Fact]
-    public void S174_ATierTableThatIsFreeTooDearOrCheaperUpTheLadderIsRefused()
+    public void S174_ARowThatStillNamesATierIsRefused()
     {
-        foreach (var (low, mid, top, expect) in new[]
+        using var fixture = new ContentFixture();
+        fixture.ChangeObject("abilities/star-skills.json", json => json["swings"]!["furnace"]!["tier"] = "top");
+        var errors = ContentDataValidator.Validate(new DataRoot(fixture.Root));
+        Assert.Contains(errors, e => e.Contains("star swing 'furnace' names a tier; tiers are retired", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void S174_APriceThatIsFreeOrTooDearIsRefused()
+    {
+        foreach (var (captain, sidekick, expect) in new[]
                  {
-                     (0, 1, 1, "stars.tiers.low must cost at least 1"),
-                     (1, 1, 6, "stars.tiers.top must fit the meter"),
-                     (1, 3, 2, "stars.tiers must not get cheaper up the ladder"),
+                     (2, 0, "stars.prices.sidekick must cost at least 1"),
+                     (6, 1, "stars.prices.captain must fit the meter"),
                  })
         {
             using var fixture = new ContentFixture();
             fixture.ChangeObject("rules/stars.json", json =>
             {
-                json["tiers"]!["low"] = low;
-                json["tiers"]!["mid"] = mid;
-                json["tiers"]!["top"] = top;
+                json["prices"]!["captain"] = captain;
+                json["prices"]!["sidekick"] = sidekick;
             });
             Assert.Contains(RulesTable.Validate(new DataRoot(fixture.Root)), e => e.Contains(expect, StringComparison.Ordinal));
         }
     }
 
     [Fact]
-    public void S174_EveryCharacterHasOneStarPitchAndOneStarSwingAndOnlyCaptainsHoldTheTopTier()
+    public void S174_EveryCharacterHasOneStarPitchAndOneStarSwingAndOnlyCaptainsCarryTheirOwn()
     {
         foreach (var content in new[] { Shipped })
         {
@@ -303,11 +315,8 @@ public sealed class StarResourceScenarioTests
                 var swing = content.StarSkills.Swing(c.StarSwing);
                 Assert.NotNull(pitch);
                 Assert.NotNull(swing);
-                if (!c.Captain)
-                {
-                    Assert.NotEqual(StarTierRules.TopId, pitch!.Tier);
-                    Assert.NotEqual(StarTierRules.TopId, swing!.Tier);
-                }
+                Assert.Equal(!c.Captain, pitch!.Kind == StarSkills.GenericKind);
+                Assert.Equal(!c.Captain, swing!.Kind == StarSkills.GenericKind);
             }
         }
     }
@@ -379,21 +388,20 @@ public sealed class StarResourceScenarioTests
     // ---------------------------------------------------------------------------------
 
     [Fact]
-    public void S176_TheTiersRiseOneStarAtATimeAndTheReserveBuysACaptainsOwnTopSpecialButNotAGuests()
+    public void S176_ACaptainsSpecialCostsTwoASidekicksOneAndTheReserveBuysAGuestCaptainsToo()
     {
         var stars = Shipped.Rules.Stars;
-        var t = stars.Tiers;
-        // Accepted by Jack: low 1 / mid 2 / top 3, surcharge 1, reserve 3, base gain 0.1 per completed appearance.
-        Assert.Equal((1, 2, 3), (t.Low, t.Mid, t.Top));
+        var p = stars.Prices;
+        // Accepted by Jack: a captain's special 2, a sidekick's 1, surcharge 1, reserve 3, base gain 0.1 per appearance.
+        Assert.Equal((2, 1), (p.Captain, p.Sidekick));
         Assert.Equal(1, stars.Costs.GuestCaptainSurcharge);
         Assert.Equal(3, stars.StartingReserve);
         Assert.Equal(0.1, stars.Gains.PlateAppearance, 9);
-        // The relations the numbers were chosen for: a rising ladder; the reserve buys a captain's own top special
-        // and no more, so a guest captain's top special has to be earned; a full meter still buys that one.
-        Assert.True(t.Low < t.Mid && t.Mid < t.Top);
-        Assert.Equal(t.Top, stars.StartingReserve);
-        Assert.True(stars.StartingReserve < t.Top + stars.Costs.GuestCaptainSurcharge);
-        Assert.True(t.Top + stars.Costs.GuestCaptainSurcharge <= stars.MeterMax);
+        // The relations: a captain's special costs more than a sidekick's; the reserve buys any captain's special,
+        // a guest captain's included, at the opening appearance; a full meter buys it too.
+        Assert.True(p.Sidekick < p.Captain);
+        Assert.True(stars.StartingReserve >= p.Captain + stars.Costs.GuestCaptainSurcharge);
+        Assert.True(p.Captain + stars.Costs.GuestCaptainSurcharge <= stars.MeterMax);
     }
 
     // ---------------------------------------------------------------------------------
@@ -468,21 +476,20 @@ public sealed class StarResourceScenarioTests
     }
 
     [Fact]
-    public void S181_TheRulesValidatorRefusesAReserveOffTheMeterOrBelowTheCheapestTier()
+    public void S181_TheRulesValidatorRefusesAReserveOffTheMeterOrBelowTheCheaperPrice()
     {
         foreach (var (reserve, low, expect) in new[]
                  {
                      (6, 1, "stars.startingReserve must fit the meter"),
-                     (1, 2, "stars.startingReserve must buy the cheapest tier"),
+                     (1, 2, "stars.startingReserve must buy the cheaper price"),
                  })
         {
             using var fixture = new ContentFixture();
             fixture.ChangeObject("rules/stars.json", json =>
             {
                 json["startingReserve"] = reserve;
-                json["tiers"]!["low"] = low;
-                json["tiers"]!["mid"] = low;
-                json["tiers"]!["top"] = low;
+                json["prices"]!["captain"] = low;
+                json["prices"]!["sidekick"] = low;
             });
             Assert.Contains(RulesTable.Validate(new DataRoot(fixture.Root)), e => e.Contains(expect, StringComparison.Ordinal));
         }

@@ -98,9 +98,7 @@ public sealed class HazardLibraryTests
         // because a star swing sets the same slow and the specials are outside this phase.
         var rules = RulesTable.Load(root);
         Assert.Equal(0.45, rules.Fielding.Chase.FrozenMul);
-        Assert.Equal(0.4, rules.Fielding.Drops.Frozen);
         Assert.Equal(1.0, rules.Stars.Gains.Billboard);
-        Assert.Equal(0.6, rules.Fielding.Park.ShellWarpChance);
 
         // Only a status volume or a surge (the high tide) widens at night, only a redirect has a pad, and only a status volume slows a body for a
         // time (F4-b, FD-08-R2: 3.0 s).

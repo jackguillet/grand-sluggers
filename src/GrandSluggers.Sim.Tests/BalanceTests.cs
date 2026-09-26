@@ -151,8 +151,7 @@ public sealed class BalanceTests
         var whiff = new SwingCommand(true, 0, 40, false);
         for (var i = 0; i < 3; i++) match.Play(strike, whiff);
         Assert.Equal(Math.Min(_content.Rules.Stars.MeterMax, before + g.Strikeout + g.PlateAppearance), match.DefenseStars, 6);
-        var tier = _content.StarSkills.Pitch(match.Pitcher.StarPitch)!.Tier;
-        Assert.Equal(_content.Rules.Stars.Tiers.Of(tier), match.PitchStarCost);
+        Assert.Equal(_content.Rules.Stars.Prices.Of(match.Pitcher), match.PitchStarCost);
     }
 
     // ---------------------------------------------------------------------------------
@@ -251,7 +250,6 @@ public sealed class BalanceTests
     public void NoParkCarriesANightWindow()
     {
         Assert.Null(typeof(Park).GetProperty("NightContactWindowMul"));
-        Assert.Null(typeof(ParkHazardRules).GetProperty("CrystalNightWindowMul"));
         Assert.Null(typeof(ParkHazards).GetMethod("ContactWindowMul"));
         var day = AtBatResolver.ContactWindowFrames(null, _content.Parks[ParkId.Crystal], false, rules: Rules.Default);
         var night = AtBatResolver.ContactWindowFrames(null, _content.Parks[ParkId.Crystal], true, rules: Rules.Default);

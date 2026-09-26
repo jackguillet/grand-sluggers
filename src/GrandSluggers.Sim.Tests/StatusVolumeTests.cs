@@ -440,14 +440,13 @@ public sealed class StatusVolumeTests
         }
         Assert.Equal(12, caught);
 
-        // The control: the heart swing freezes the glove and rolls drops.frozen once.
+        // The heart swing freezes the glove and draws no roll either (§8.6): no skill decides a catch by chance.
         var control = new Match(Catalog, PresetTeams.EmberCourt(Catalog), PresetTeams.SparkAllStars(Catalog), park, seed: 1);
         var heart = FlightFixtures.Landing(park, carry, 70, spray) with { StarSwingUsed = "heart-swing" };
         Assert.True(control.PreviewHit(heart).Frozen);
         var counted = Count(control);
         Play(control, heart);
-        // The drop roll is the first draw; a dropped ball's live play may draw on after it (the pickup, the throw).
-        Assert.True(counted.Draws >= 1, $"{counted.Draws} draws under the heart swing");
+        Assert.Equal(0, counted.Draws);
     }
 
     // ---------------------------------------------------------------------------------
