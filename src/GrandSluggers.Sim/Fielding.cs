@@ -79,7 +79,7 @@ public sealed class FieldingResolver
         // A park's status volume is not read here (F4-b, #896, FR-07): it slows the body that touches it, live (BodySlows),
         // and nothing is decided from where the ball lands.
         var radius = CatchRadiusFt(fielder, park, _rules, air: !grounder);
-        var heat = hit.StarPitchUsed is "heatball" or "caskball";
+        var heat = hit.StarPitchUsed is "heatball";
         // Only the furnace leaves a patch on the dirt; Sparkler's bend is its Perfect ring, spent at the plate (§13).
         var furnace = hit.StarSwingUsed is "furnace";
         return new FieldingPreview(
