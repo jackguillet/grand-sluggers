@@ -2148,7 +2148,7 @@
     },
     {
       "id": "T-SP-charmball",
-      "revision": 4,
+      "revision": 5,
       "mechanics": [
         "star-pitch.charmball"
       ],
@@ -2198,7 +2198,7 @@
     },
     {
       "id": "T-SP-phonyball",
-      "revision": 4,
+      "revision": 5,
       "mechanics": [
         "star-pitch.phonyball"
       ],
@@ -2223,7 +2223,7 @@
     },
     {
       "id": "T-SP-caskball",
-      "revision": 4,
+      "revision": 5,
       "mechanics": [
         "star-pitch.caskball"
       ],
@@ -2248,7 +2248,7 @@
     },
     {
       "id": "T-SP-skullball",
-      "revision": 4,
+      "revision": 5,
       "mechanics": [
         "star-pitch.skullball"
       ],
@@ -2473,7 +2473,7 @@
     },
     {
       "id": "T-SS-heart-swing",
-      "revision": 4,
+      "revision": 5,
       "mechanics": [
         "star-swing.heart-swing"
       ],
@@ -2523,7 +2523,7 @@
     },
     {
       "id": "T-SS-phony-swing",
-      "revision": 4,
+      "revision": 5,
       "mechanics": [
         "star-swing.phony-swing"
       ],
@@ -2548,7 +2548,7 @@
     },
     {
       "id": "T-SS-cask-swing",
-      "revision": 4,
+      "revision": 5,
       "mechanics": [
         "star-swing.cask-swing"
       ],
@@ -2573,7 +2573,7 @@
     },
     {
       "id": "T-SS-furnace",
-      "revision": 4,
+      "revision": 5,
       "mechanics": [
         "star-swing.furnace"
       ],

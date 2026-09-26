@@ -49,7 +49,6 @@ public sealed class Game : IDisposable
     bool _caught;
     bool _buddyJump;
     bool _catchJump;
-    bool _frozenSlow;
     bool _itemArmed;
 
     public Game(bool demo, int seed, string parkId = ExhibitionPick.DefaultPark, bool two = false,
@@ -369,7 +368,6 @@ public sealed class Game : IDisposable
             var start = DiamondGeometry.Of(_match.Rules).Positions[_preview.Position];
             _fx = start.X;
             _fz = start.Z;
-            _frozenSlow = _preview.Frozen;
             _playerFielding = true;
             _caught = false;
             _buddyJump = false;
@@ -417,7 +415,7 @@ public sealed class Game : IDisposable
 
         if (_playerFielding && _preview is { } pre && _pendingHit is { } hit)
         {
-            var speed = (18 + pre.Fielder.Stats.Run * 1.8) * (_frozenSlow ? 0.4 : 1);
+            var speed = 18 + pre.Fielder.Stats.Run * 1.8;
             _fx += field.MoveX * speed * dt;
             _fz += field.MoveZ * speed * dt;
             var hang = BallFlight.HangTime(_hitPath, _match.Rules);

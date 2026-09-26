@@ -11,10 +11,12 @@
     },
     "charmball": {
       "id": "charmball",
-      "name": "Charmball",
-      "kind": "status",
+      "name": "Aurora Ribbon",
+      "kind": "break",
+      "family": "swelling-sway",
       "speedMul": 0.9,
-      "staminaCost": 16
+      "staminaCost": 16,
+      "sway": { "widthFt": 1.2, "cycles": 2, "peakAt": 0.5, "settleBy": 0.85 }
     },
     "prismball": {
       "id": "prismball",
@@ -29,24 +31,28 @@
       "id": "phonyball",
       "name": "Phonyball",
       "kind": "decoy",
+      "family": "decoy-switch",
       "speedMul": 1.0,
       "staminaCost": 16,
       "decoy": true
     },
     "caskball": {
       "id": "caskball",
-      "name": "Caskball",
-      "kind": "payload",
-      "speedMul": 0.85,
+      "name": "Vine Swing",
+      "kind": "break",
+      "family": "pendulum-arc",
+      "speedMul": 1.0,
       "staminaCost": 20,
-      "onCatch": "knockback"
+      "pendulum": { "lengthFt": 6, "swingDeg": 45, "widestAt": 0.25 }
     },
     "skullball": {
       "id": "skullball",
-      "name": "Skullball",
-      "kind": "intimidate",
+      "name": "Anvil",
+      "kind": "break",
+      "family": "late-drop",
       "speedMul": 1.2,
-      "staminaCost": 22
+      "staminaCost": 22,
+      "drop": { "dropFt": 1.5, "from": 0.7 }
     },
     "fogball": {
       "id": "fogball",
@@ -87,11 +93,11 @@
   },
   "swings": {
     "heat-swing": { "id": "heat-swing", "name": "Sparkler", "kind": "contact", "family": "bigger-sweet-spot", "exitVeloMul": 1.15, "perfectRingMul": 1.5 },
-    "heart-swing": { "id": "heart-swing", "name": "Heart Swing", "kind": "status", "exitVeloMul": 1.05, "fielderPauseSec": 0.8 },
+    "heart-swing": { "id": "heart-swing", "name": "Follow Spot", "kind": "status", "family": "one-fielder-paused", "exitVeloMul": 1.05, "fielderPauseSec": 0.8 },
     "shell-swing": { "id": "shell-swing", "name": "Spinning Top", "kind": "bounce", "family": "first-hop-stall", "exitVeloMul": 1.1, "launchDeg": 0, "firstHopStallSec": 0.8, "firstHopStallSpeedMul": 0.5 },
-    "phony-swing": { "id": "phony-swing", "name": "Phony Swing", "kind": "decoy", "exitVeloMul": 1.1, "decoy": true },
-    "cask-swing": { "id": "cask-swing", "name": "Cask Swing", "kind": "payload", "exitVeloMul": 1.2, "fragments": true },
-    "furnace": { "id": "furnace", "name": "Furnace", "kind": "terrain", "exitVeloMul": 1.25, "terrain": "warning-lava" },
+    "phony-swing": { "id": "phony-swing", "name": "Double Deal", "kind": "decoy", "family": "decoy-ball", "exitVeloMul": 1.1, "decoy": true },
+    "cask-swing": { "id": "cask-swing", "name": "Lightning Liner", "kind": "path", "family": "jagged-flight", "exitVeloMul": 1.2, "launchDeg": 18, "jag": { "offsetFt": 3, "firstAt": 0.3, "secondAt": 0.65, "span": 0.08 } },
+    "furnace": { "id": "furnace", "name": "Hot Iron", "kind": "hot", "family": "hot-ball", "exitVeloMul": 1.25, "hotBall": { "moltenSec": 2.0, "holdSec": 0.5 } },
     "staff-swing": { "id": "staff-swing", "name": "Driftwood Reach", "kind": "contact", "family": "tall-contact", "exitVeloMul": 1.08, "ovalHeightMul": 1.4 },
     "sidewinder": { "id": "sidewinder", "name": "Sidewinder", "kind": "bounce", "exitVeloMul": 1.12, "launchDeg": 4, "firstHopKickDeg": 20 },
     "updraft": { "id": "updraft", "name": "Updraft", "kind": "wind", "exitVeloMul": 1.1, "launchDeg": 34, "windMul": 1.5 },

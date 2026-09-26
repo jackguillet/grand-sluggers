@@ -58,5 +58,5 @@ public static class FlightFixtures
     /// <summary>A preview of any class for a glove, with the landing at (x, z). For pure geometry tests.</summary>
     public static FieldingPreview Preview(Character who, string pos, BattedBallClass shape, double hang, double x, double z,
         Character? buddy = null, double radius = 14, bool foul = false) =>
-        new(who, pos, buddy, hang, x, z, shape, false, false, false, radius, Foul: foul);
+        new(who, pos, buddy, hang, x, z, shape, false, false, radius, Foul: foul);
 }

@@ -47,8 +47,8 @@ Names are working titles. Replace freely; keep the *roles*.
 ### Queen Vale — Royal Rink
 
 - Stats: Pitch 9 / Bat 4 / Field 8 / Run 5
-- Star Pitch: **Charmball** — catcher-frame freeze; batter’s window shrinks.
-- Star Swing: **Heart Swing** — flare that charms the nearest fielder into a pause.
+- Star Pitch: **Aurora Ribbon** (`charmball`) — an aurora-traced sway that swells to its widest mid-flight, then settles onto the aimed crossing.
+- Star Swing: **Follow Spot** (`heart-swing`) — the rink's follow spot holds the nearest fielder still for 0.8 s; teammates back him up.
 - Field: **Snap Throw** — extra throw velocity, no windup.
 - Bats/throws: R/R
 
@@ -60,27 +60,27 @@ Names are working titles. Replace freely; keep the *roles*.
 - Field: **Lick Catch** — tongue/stretch catch (range).
 - Bats/throws: L/R
 
-### Brondo — Goldrush
+### Brondo — Skyline Gold (a rooftop bulldog hustler)
 
 - Stats: Pitch 5 / Bat 8 / Field 3 / Run 4
-- Star Pitch: **Phonyball** — decoy ball; real one is late.
-- Star Swing: **Phony Swing** — two balls; fielders must pick.
+- Star Pitch: **Phonyball** — shows one side early, switches late; read the switch.
+- Star Swing: **Double Deal** — a card-back decoy flies beside the real ball until the apex.
 - Field: **Laser** — fastest throw in the game, terrible first step.
 - Bats/throws: R/R
 
 ### Konga — Canopy Clan
 
 - Stats: Pitch 6 / Bat 9 / Field 3 / Run 2
-- Star Pitch: **Caskball** — pitch is a barrel; catch it and you eat a knockback.
-- Star Swing: **Cask Swing** — barrel fragments become infield obstacles.
+- Star Pitch: **Vine Swing** — the pitch swings in wide on a vine from a pivot above and crosses where it was aimed, on time.
+- Star Swing: **Lightning Liner** — a liner that jags sideways twice, up to 3 ft, and lands where a straight liner would.
 - Field: **Clamber** — can catch on walls and fences.
 - Bats/throws: L/R
 
 ### Ashlord — Ember Keep
 
 - Stats: Pitch 5 / Bat 10 / Field 3 / Run 3
-- Star Pitch: **Skullball** — heavy, late hop, intimidation (smaller swing window).
-- Star Swing: **Furnace** — scorched fly; warning track becomes lava for a beat.
+- Star Pitch: **Anvil** (`skullball`) — fast and glowing; at 70 % of the flight it clangs, turns to cold iron and drops up to 1.5 ft below its aimed crossing.
+- Star Swing: **Hot Iron** (`furnace`) — exit ×1.25; the ball stays molten for 2 s, and a glove that holds it more than 0.5 s of that drops it at its feet.
 - Field: **Spin Check** — knock runners off the base path on contact.
 - Bats/throws: L/R
 

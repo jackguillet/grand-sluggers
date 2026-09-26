@@ -23,3 +23,15 @@ public sealed record AssistedRouteStep(string GloveId) : LiveFact;
 /// </summary>
 public sealed record FirstHopKicked(string SwingId, double T, double X, double Z, double TurnDeg, string GloveId, double BounceMul = 1,
     double StallSec = 0) : LiveFact;
+
+/// <summary>
+/// A star swing's pause held one fielder (§13, <see cref="StarSwingSkill.FielderPauseSec"/>): the swing, the glove it held
+/// (its position: the nearest fielder, the body the play would have sent) and the play second that body may move again.
+/// </summary>
+public sealed record FielderDazzled(string SwingId, string GloveId, double UntilT) : LiveFact;
+
+/// <summary>
+/// A glove held a molten ball past its hold (§13, <see cref="StarSwingSkill.HotBall"/>) and dropped it at its feet: the swing,
+/// when and where, and the glove (its id and position), which is kept off the ball until it cools.
+/// </summary>
+public sealed record HotBallDropped(string SwingId, double T, double X, double Z, string GloveId, string Pos) : LiveFact;
