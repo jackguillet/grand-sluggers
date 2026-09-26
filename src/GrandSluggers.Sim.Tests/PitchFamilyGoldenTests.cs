@@ -24,7 +24,7 @@ namespace GrandSluggers.Sim.Tests;
 /// <b>What is stored, and what is composed.</b> A fixture of raw doubles is only honest where the
 /// arithmetic is. Y, Z and mph are pure add/multiply/clamp/table-lookup, so they are stored and
 /// compared bit for bit. X is not always: <see cref="PitchFlight.BreakShiftFt"/> calls
-/// <c>Math.Sin(u * π)</c>, and heatball / prismball / charmball add <c>Math.Sin(u * hz)</c> — and
+/// <c>Math.Sin(u * π)</c>, and charmball adds <c>Math.Sin(u * hz)</c> — and
 /// <c>Math.Sin</c> differs by one ULP between macOS libm and glibc (this repository already met that
 /// in #736). A stored X under break would pin the platform, not the pitch.
 ///
@@ -202,13 +202,13 @@ public sealed class PitchFamilyGoldenTests
     {
         /// <summary>
         /// True when a <c>Math.Sin</c> stands between the rules table and this sample's X: a stick
-        /// break (<see cref="PitchFlight.BreakShiftFt"/>) or one of the three wobbling star pitches.
+        /// break (<see cref="PitchFlight.BreakShiftFt"/>) or one of the wobbling star pitches.
         /// Phonyball shifts X too, but by a table constant, so it stays reproducible from the
         /// fixture alone.
         /// </summary>
         public bool TouchesSine =>
             Pitch is not null
-            && (Pitch.BreakX * Pitch.BreakMul != 0 || (Pitch.Star && Star is "heatball" or "prismball" or "charmball"));
+            && (Pitch.BreakX * Pitch.BreakMul != 0 || (Pitch.Star && Star is "charmball"));
 
         PitchCommand Delivery => Pitch!;
 
@@ -314,8 +314,6 @@ public sealed class PitchFamilyGoldenTests
         internal double StarX(double x, double u, StarPitchShapeRules st) =>
             !Delivery.Star ? x : Star switch
             {
-                "heatball" => x + Math.Sin(u * st.HeatballWobbleHz) * st.HeatballWobbleFt,
-                "prismball" => x + Math.Sin(u * st.PrismballWobbleHz) * st.PrismballWobbleFt,
                 "charmball" => x + Math.Sin(u * st.CharmballWobbleHz) * st.CharmballWobbleFt,
                 "phonyball" => x + (u > st.PhonyballSwitchAt ? st.PhonyballLateX : st.PhonyballEarlyX),
                 // every other id falls through untouched.

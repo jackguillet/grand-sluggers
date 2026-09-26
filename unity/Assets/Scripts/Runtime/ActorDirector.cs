@@ -356,7 +356,7 @@ namespace GrandSluggers.UnityClient
             else _scene.Zone.Hide();
             _scene.Park.Ball.EmitTrail(SetTells.TrailOn(_play.Phase is MatchDirector.Phase.Flight or MatchDirector.Phase.InPlay or MatchDirector.Phase.StealThrow));
 
-            var burn = starSwing == "furnace" || starSwing == "heat-swing";
+            var burn = starSwing == "furnace";
             var frags = starSwing == "cask-swing" || starSwing == "shell-swing";
             var swingAt = Vector3.zero;
             if (!string.IsNullOrEmpty(starSwing) && _play.Match?.Batter != null

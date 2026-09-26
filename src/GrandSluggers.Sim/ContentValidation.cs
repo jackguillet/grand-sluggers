@@ -261,6 +261,15 @@ public static class ContentDataValidator
                     errors.Add($"{source}: star pitch '{key}' leap needs at > 0, holdSpan > 0, at + holdSpan < 1 and 0 <= holdPace < 1");
                 if (value.FirstHopBounceMul is not null)
                     errors.Add($"{source}: star pitch '{key}' cannot carry firstHopBounceMul; it is a swing's");
+                if (value.PerfectRingMul is not null)
+                    errors.Add($"{source}: star pitch '{key}' cannot carry perfectRingMul; it is a swing's");
+                // The rise ends at the plate and is always up (§13): a jump out of the heart of the zone, never a drop.
+                if (value.Rise is { } late && (late.RiseFt <= 0 || late.RiseFt > PitchRise.MaxRiseFt || late.From <= 0 || late.From >= 1))
+                    errors.Add($"{source}: star pitch '{key}' rise needs 0 < riseFt <= {PitchRise.MaxRiseFt.ToString(CultureInfo.InvariantCulture)} and 0 < from < 1");
+                if (value.Loop is { } loop && (loop.At <= 0 || loop.Span <= 0 || loop.At + loop.Span >= 1 || loop.DiameterFt <= 0 || loop.DiameterFt > PitchLoop.MaxDiameterFt))
+                    errors.Add($"{source}: star pitch '{key}' loop needs at > 0, span > 0, at + span < 1 and 0 < diameterFt <= {PitchLoop.MaxDiameterFt.ToString(CultureInfo.InvariantCulture)}");
+                if (value.FirstHopStallSec is not null || value.FirstHopStallSpeedMul is not null)
+                    errors.Add($"{source}: star pitch '{key}' cannot carry a first-hop stall; it is a swing's");
                 if (value.Float is { } rise && (rise.RiseFt <= 0 || rise.RiseFt > PitchFloatLimits.MaxRiseFt || rise.DropFrom <= 0 || rise.DropFrom >= 1))
                     errors.Add($"{source}: star pitch '{key}' float needs 0 < riseFt <= {PitchFloatLimits.MaxRiseFt.ToString(CultureInfo.InvariantCulture)} and 0 < dropFrom < 1");
                 // The pendulum swings out and back in on one arc, below its pivot, and hangs straight at the plate (§13).
@@ -284,6 +293,23 @@ public static class ContentDataValidator
                     errors.Add($"{source}: star swing '{key}' cannot carry a float; it is a pitch's");
                 if (value.Leap is not null)
                     errors.Add($"{source}: star swing '{key}' cannot carry a leap; it is a pitch's");
+                if (value.Rise is not null)
+                    errors.Add($"{source}: star swing '{key}' cannot carry a rise; it is a pitch's");
+                // A bigger heart, never a bigger bat (PH-16-R2): the ring grows, the oval and the window do not.
+                if (value.PerfectRingMul is not null && (value.PerfectRingMul < 1 || value.PerfectRingMul > StarSwingSkill.MaxPerfectRingMul))
+                    errors.Add($"{source}: star swing '{key}' perfectRingMul must be between 1 and {StarSwingSkill.MaxPerfectRingMul.ToString(CultureInfo.InvariantCulture)}; got {value.PerfectRingMul}");
+                if (value.Loop is not null)
+                    errors.Add($"{source}: star swing '{key}' cannot carry a loop; it is a pitch's");
+                // The stall is a grounder's (§13): it names both numbers, and a launch low enough that the hop and the stall end inside two seconds.
+                if (value.FirstHopStallSec is not null || value.FirstHopStallSpeedMul is not null)
+                {
+                    if (value.FirstHopStallSec is not { } stall || stall <= 0 || stall > StarSwingSkill.MaxStallSec)
+                        errors.Add($"{source}: star swing '{key}' firstHopStallSec must be greater than 0 and at most {StarSwingSkill.MaxStallSec.ToString(CultureInfo.InvariantCulture)}; got {value.FirstHopStallSec?.ToString(CultureInfo.InvariantCulture) ?? "null"}");
+                    if (value.FirstHopStallSpeedMul is not { } after || after <= 0 || after > 1)
+                        errors.Add($"{source}: star swing '{key}' firstHopStallSpeedMul must be greater than 0 and at most 1; got {value.FirstHopStallSpeedMul?.ToString(CultureInfo.InvariantCulture) ?? "null"}");
+                    if (value.LaunchDeg is not { } launch || launch > StarSwingSkill.MaxStallLaunchDeg)
+                        errors.Add($"{source}: star swing '{key}' stalls on its first hop, so it must name a grounder's launchDeg of at most {StarSwingSkill.MaxStallLaunchDeg.ToString(CultureInfo.InvariantCulture)}");
+                }
                 if (value.FirstHopBounceMul is not null && (value.FirstHopBounceMul < 1 || value.FirstHopBounceMul > StarSwingSkill.MaxBounceMul))
                     errors.Add($"{source}: star swing '{key}' firstHopBounceMul must be between 1 and {StarSwingSkill.MaxBounceMul.ToString(CultureInfo.InvariantCulture)}; got {value.FirstHopBounceMul}");
                 if (value.WindMul is not null && (value.WindMul < 0 || value.WindMul > StarSwingSkill.MaxWindMul))
@@ -1663,6 +1689,16 @@ internal sealed class StarSkillDto
     public PitchFloatDto? Float { get; set; }
     /// <summary>A pitch's leap (<see cref="PitchLeap"/>); pitches only.</summary>
     public PitchLeapDto? Leap { get; set; }
+    /// <summary>A pitch's late rise (<see cref="PitchRise"/>); pitches only.</summary>
+    public PitchRiseDto? Rise { get; set; }
+    /// <summary>A swing's Perfect ring is this many times the ordinary one (<see cref="StarSwingSkill.PerfectRingMul"/>); swings only.</summary>
+    public double? PerfectRingMul { get; set; }
+    /// <summary>A pitch's loop (<see cref="PitchLoop"/>); pitches only.</summary>
+    public PitchLoopDto? Loop { get; set; }
+    /// <summary>A swing's ball stands still this long at its first hop (<see cref="StarSwingSkill.FirstHopStallSec"/>); swings only.</summary>
+    public double? FirstHopStallSec { get; set; }
+    /// <summary>The share of its speed a stalled ball runs on at (<see cref="StarSwingSkill.FirstHopStallSpeedMul"/>); swings only.</summary>
+    public double? FirstHopStallSpeedMul { get; set; }
     /// <summary>A pitch's pendulum (<see cref="PitchPendulum"/>); pitches only.</summary>
     public PitchPendulumDto? Pendulum { get; set; }
     /// <summary>A swing's jagged flight (<see cref="BallJag"/>); swings only.</summary>
@@ -1683,12 +1719,29 @@ internal sealed class StarSkillDto
         Twin is null ? null : new PitchTwin(Twin.OffsetFt, Twin.FadeFrom, Twin.FadeTo),
         Float is null ? null : new PitchFloat(Float.RiseFt, Float.DropFrom),
         Leap is null ? null : new PitchLeap(Leap.At, Leap.HoldSpan, Leap.HoldPace),
+        Rise is null ? null : new PitchRise(Rise.RiseFt, Rise.From),
+        Loop is null ? null : new PitchLoop(Loop.At, Loop.Span, Loop.DiameterFt),
         Pendulum is null ? null : new PitchPendulum(Pendulum.LengthFt, Pendulum.SwingDeg, Pendulum.WidestAt));
 
     public StarSwingSkill ToSwing() => new(Id, Name, Kind, ExitVeloMul ?? 1.0, LaunchDeg, Terrain,
         FielderPauseSec ?? 0, InfieldChaos, Decoy, FirstHopKickDeg ?? 0,
-        WindMul ?? 1, FirstHopBounceMul ?? 1,
+        WindMul ?? 1, FirstHopBounceMul ?? 1, FirstHopStallSec ?? 0, FirstHopStallSpeedMul ?? 1, PerfectRingMul ?? 1,
         Jag is null ? null : new BallJag(Jag.OffsetFt, Jag.FirstAt, Jag.SecondAt, Jag.Span));
+}
+
+internal sealed class PitchLoopDto
+{
+    public double At { get; set; }
+    /// <summary>The share of the flight the loop takes (a fraction, not seconds).</summary>
+    public double Span { get; set; }
+    public double DiameterFt { get; set; }
+}
+
+internal sealed class PitchRiseDto
+{
+    public double RiseFt { get; set; }
+    /// <summary>The share of the flight after which the ball starts to rise (a fraction, not seconds).</summary>
+    public double From { get; set; }
 }
 
 internal sealed class PitchPendulumDto

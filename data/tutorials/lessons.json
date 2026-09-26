@@ -2123,7 +2123,7 @@
     },
     {
       "id": "T-SP-heatball",
-      "revision": 4,
+      "revision": 5,
       "mechanics": [
         "star-pitch.heatball"
       ],
@@ -2173,7 +2173,7 @@
     },
     {
       "id": "T-SP-prismball",
-      "revision": 4,
+      "revision": 5,
       "mechanics": [
         "star-pitch.prismball"
       ],
@@ -2223,7 +2223,7 @@
     },
     {
       "id": "T-SP-caskball",
-      "revision": 4,
+      "revision": 5,
       "mechanics": [
         "star-pitch.caskball"
       ],
@@ -2448,7 +2448,7 @@
     },
     {
       "id": "T-SS-heat-swing",
-      "revision": 4,
+      "revision": 5,
       "mechanics": [
         "star-swing.heat-swing"
       ],
@@ -2498,7 +2498,7 @@
     },
     {
       "id": "T-SS-shell-swing",
-      "revision": 4,
+      "revision": 5,
       "mechanics": [
         "star-swing.shell-swing"
       ],
@@ -2548,7 +2548,7 @@
     },
     {
       "id": "T-SS-cask-swing",
-      "revision": 4,
+      "revision": 5,
       "mechanics": [
         "star-swing.cask-swing"
       ],
