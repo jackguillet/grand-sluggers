@@ -35,6 +35,10 @@ public static partial class HowToPlay
             "T-SP-fastball" => "Star Fastball",
             "T-SP-changeup" => "Star Change",
             "T-SP-breaker" => "Star Breaker",
+            "T-SP-dot" => "Star Dot",
+            "T-SP-sinkball" => "Star Sinker",
+            "T-SP-lob" => "Star Lob",
+            "T-SP-sidearm" => "Star Sidearm",
             "T-SP-mirageball" => "Mirage",
             "T-SP-rockfall" => "Cable Car",
             "T-SP-leapfrog" => "Skipping Stone",
@@ -51,6 +55,10 @@ public static partial class HowToPlay
             "T-SS-ground" => "Star Grounder",
             "T-SS-fly" => "Star Fly",
             "T-SS-line" => "Star Line",
+            "T-SS-pull" => "Star Pull",
+            "T-SS-opposite" => "Star Opposite",
+            "T-SS-chopper" => "Star Chopper",
+            "T-SS-drag-bunt" => "Star Drag Bunt",
             _ => ""
         };
         if (skill.Length == 0) return null;
@@ -77,6 +85,14 @@ public static partial class HowToPlay
             "T-SS-updraft" => " At the top of its flight the fly catches a gust and carries farther along its line.",
             "T-SP-mirageball" => " The ball vanishes for the middle third of its flight; its shadow still shows the way.",
             "T-SS-sidewinder" => " The grounder kicks up a bowl of dust where it lands; fielders in it run at half speed.",
+            "T-SP-dot" => " It flies a little faster and true: it crosses exactly where you aimed.",
+            "T-SP-sinkball" => " If it is hit, the ball leaves lower, so it is more often on the ground.",
+            "T-SP-lob" => " It leaves slow on a high arc and falls through the zone where you aimed, on time.",
+            "T-SP-sidearm" => " It leaves your hand wider and crosses the zone on a diagonal, where you aimed.",
+            "T-SS-pull" => " The ball goes harder and leans toward your pull line.",
+            "T-SS-opposite" => " The ball goes harder and leans toward the opposite field.",
+            "T-SS-chopper" => " The ball is driven into the dirt and bounces high. Run.",
+            "T-SS-drag-bunt" => " The bat squares at contact and the bunt rolls along the line to stop just fair. Run.",
             _ => ""
         };
         return pitch

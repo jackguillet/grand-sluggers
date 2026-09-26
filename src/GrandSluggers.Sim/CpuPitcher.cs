@@ -77,7 +77,8 @@ public sealed class CpuPitcher
         var intentX = IntentX(row.Location, c.Locations);
         // The CPU arm's miss on its own intent is Control's (§4.8, PH-15-R6).
         var scatter = (11 - Pitcher.Stats.Control) * c.ScatterFtPerPitchStat * (PitcherTired ? c.TiredScatterMul : 1);
-        intentX += Rng.Gauss() * scatter;
+        // Drawn here, laid on once the delivery is known: a Star Dot crosses where it was aimed (§13), so its miss is none.
+        var miss = Rng.Gauss() * scatter;
 
         // (2) The family, as presses from the fastball every SET resets to (PH-02-R5).
         var presses = Presses(row);
@@ -88,6 +89,7 @@ public sealed class CpuPitcher
         var charge = charged ? 1.0 : c.TapMin + Rng.NextDouble() * c.TapSpan;
         var nice = charged && Rng.NextDouble() < c.NiceChance;
         var star = CanStarPitch && Pitcher.Captain && Rng.NextDouble() < row.StarChance;
+        if (!(star && StarSkills.PitchIsDot(Pitcher.StarPitch, _match.Content.StarSkills))) intentX += miss;
 
         // (4) The stick, held one way from release for as long as this delivery is in the air. The
         // speed is read off the delivery as it stands, which is every term AtBatResolver.PitchSpeedMph
