@@ -1,0 +1,42 @@
+// Sidekick species (WD-27, docs/decisions/plan-world.md): each captain's faction has three, one of each build.
+// A species is a body build, a palette and one shared set of add-ons; its sidekicks share its body and its specials.
+// `builds` holds each build's proportions on the shared rig; a species may name its own (the human kids do).
+{
+  "builds": {
+    "bruiser": {"height": 1.05, "width": 1.35, "head": 1.26, "arms": 1.28, "torso": 1.34},
+    "scamp": {"height": 0.78, "width": 1.0, "head": 1.46, "arms": 0.88, "torso": 0.8},
+    "glove": {"height": 0.95, "width": 1.06, "head": 1.34, "arms": 1.06, "torso": 1.0}
+  },
+  "species": [
+    {"id": "big-kids", "name": "Big kids", "faction": "spark", "blend": "Human", "build": "bruiser", "look": "Tall for their age; hand-me-down catcher's gear", "starPitch": "fastball", "starSwing": "fly", "fieldAbility": "laser", "proportions": {"height": 0.98, "width": 1.14, "head": 1.34, "arms": 1.06, "torso": 1.06}},
+    {"id": "small-fry", "name": "Small fry", "faction": "spark", "blend": "Human", "build": "scamp", "look": "The youngest; sneakers with the laces undone", "starPitch": "changeup", "starSwing": "ground", "fieldAbility": "dive", "proportions": {"height": 0.8, "width": 0.96, "head": 1.42, "arms": 0.96, "torso": 0.88}},
+    {"id": "regular-kids", "name": "Regular kids", "faction": "spark", "blend": "Human", "build": "glove", "look": "Team shirt over a hoodie; a well-worn glove", "starPitch": "breaker", "starSwing": "line", "fieldAbility": "snap-throw", "proportions": {"height": 0.9, "width": 1.0, "head": 1.38, "arms": 1.02, "torso": 0.94}},
+    {"id": "walrams", "name": "Walrams", "faction": "royal", "blend": "Walrus and ram", "build": "bruiser", "look": "Curled horns over the tusks", "starPitch": "fastball", "starSwing": "fly", "fieldAbility": "laser"},
+    {"id": "frostlings", "name": "Frostlings", "faction": "royal", "blend": "Penguin and seal", "build": "scamp", "look": "Belly-slide into every base", "starPitch": "changeup", "starSwing": "ground", "fieldAbility": "dive"},
+    {"id": "glintfoxes", "name": "Glintfoxes", "faction": "royal", "blend": "Arctic fox and moth", "build": "glove", "look": "Frosted moth wings that shimmer", "starPitch": "breaker", "starSwing": "line", "fieldAbility": "snap-throw"},
+    {"id": "juggleroos", "name": "Juggleroos", "faction": "carnival", "blend": "Kangaroo and monkey", "build": "bruiser", "look": "Juggles three balls in the dugout", "starPitch": "fastball", "starSwing": "fly", "fieldAbility": "laser"},
+    {"id": "rollers", "name": "Rollers", "faction": "carnival", "blend": "Armadillo and hamster", "build": "scamp", "look": "Curls into a ball to slide", "starPitch": "changeup", "starSwing": "ground", "fieldAbility": "dive"},
+    {"id": "pufflings", "name": "Pufflings", "faction": "carnival", "blend": "Pufferfish and poodle", "build": "glove", "look": "Puffs up like a balloon on a catch", "starPitch": "breaker", "starSwing": "line", "fieldAbility": "snap-throw"},
+    {"id": "alley-ratcats", "name": "Alley Ratcats", "faction": "goldrush", "blend": "Rat and cat", "build": "bruiser", "look": "A torn ear and a gold hoop", "starPitch": "fastball", "starSwing": "fly", "fieldAbility": "laser"},
+    {"id": "scrappers", "name": "Scrappers", "faction": "goldrush", "blend": "Raccoon and pigeon", "build": "scamp", "look": "A bandit mask and stubby wings", "starPitch": "changeup", "starSwing": "ground", "fieldAbility": "dive"},
+    {"id": "glowgeckos", "name": "Glowgeckos", "faction": "goldrush", "blend": "Gecko and firefly", "build": "glove", "look": "Sticky toes and a neon glow", "starPitch": "breaker", "starSwing": "line", "fieldAbility": "snap-throw"},
+    {"id": "mosslings", "name": "Mosslings", "faction": "canopy", "blend": "Sloth and bear", "build": "bruiser", "look": "Moss grows on the shoulders", "starPitch": "fastball", "starSwing": "fly", "fieldAbility": "laser"},
+    {"id": "lemurkeets", "name": "Lemurkeets", "faction": "canopy", "blend": "Lemur and parrot", "build": "scamp", "look": "Ringed tail, bright feathers", "starPitch": "changeup", "starSwing": "ground", "fieldAbility": "dive"},
+    {"id": "toucanines", "name": "Toucanines", "faction": "canopy", "blend": "Toucan and dog", "build": "glove", "look": "A huge bright beak and floppy ears", "starPitch": "breaker", "starSwing": "line", "fieldAbility": "snap-throw"},
+    {"id": "cinderboars", "name": "Cinderboars", "faction": "ember", "blend": "Boar and beetle", "build": "bruiser", "look": "An ember-shell back", "starPitch": "fastball", "starSwing": "fly", "fieldAbility": "laser"},
+    {"id": "coal-moles", "name": "Coal Moles", "faction": "ember", "blend": "Mole and bat", "build": "scamp", "look": "A glowing nose; digs into the dirt", "starPitch": "changeup", "starSwing": "ground", "fieldAbility": "dive"},
+    {"id": "charcrows", "name": "Charcrows", "faction": "ember", "blend": "Crow and hawk", "build": "glove", "look": "Ember-tipped feathers", "starPitch": "breaker", "starSwing": "line", "fieldAbility": "snap-throw"},
+    {"id": "beaverbulls", "name": "Beaverbulls", "faction": "marsh", "blend": "Beaver and bullfrog", "build": "bruiser", "look": "A flat tail and a booming croak", "starPitch": "fastball", "starSwing": "fly", "fieldAbility": "laser"},
+    {"id": "axoducks", "name": "Axoducks", "faction": "marsh", "blend": "Axolotl and duck", "build": "scamp", "look": "Frilly gills and a duck bill", "starPitch": "changeup", "starSwing": "ground", "fieldAbility": "dive"},
+    {"id": "otterons", "name": "Otterons", "faction": "marsh", "blend": "Otter and heron", "build": "glove", "look": "Long wading legs", "starPitch": "breaker", "starSwing": "line", "fieldAbility": "snap-throw"},
+    {"id": "pelicows", "name": "Pelicows", "faction": "fen", "blend": "Pelican and cow", "build": "bruiser", "look": "A pouch full of spare balls", "starPitch": "fastball", "starSwing": "fly", "fieldAbility": "laser"},
+    {"id": "crabbits", "name": "Crabbits", "faction": "fen", "blend": "Crab and rabbit", "build": "scamp", "look": "Long ears and a borrowed shell", "starPitch": "changeup", "starSwing": "ground", "fieldAbility": "dive"},
+    {"id": "dolphups", "name": "Dolphups", "faction": "fen", "blend": "Dolphin and pup", "build": "glove", "look": "Flippers and a happy snout", "starPitch": "breaker", "starSwing": "line", "fieldAbility": "snap-throw"},
+    {"id": "bisonhorns", "name": "Bisonhorns", "faction": "dune", "blend": "Bison and rhino beetle", "build": "bruiser", "look": "A shaggy hump and one horn", "starPitch": "fastball", "starSwing": "fly", "fieldAbility": "laser"},
+    {"id": "jackalopes", "name": "Jackalopes", "faction": "dune", "blend": "Jackrabbit and antelope", "build": "scamp", "look": "Tall ears and small antlers", "starPitch": "changeup", "starSwing": "ground", "fieldAbility": "dive"},
+    {"id": "meerowls", "name": "Meerowls", "faction": "dune", "blend": "Meerkat and owl", "build": "glove", "look": "Stands tall on watch; big round eyes", "starPitch": "breaker", "starSwing": "line", "fieldAbility": "snap-throw"},
+    {"id": "ibexbears", "name": "Ibexbears", "faction": "peak", "blend": "Ibex and bear", "build": "bruiser", "look": "Swept-back horns on a bear's frame", "starPitch": "fastball", "starSwing": "fly", "fieldAbility": "laser"},
+    {"id": "pikayaks", "name": "Pikayaks", "faction": "peak", "blend": "Pika and yak", "build": "scamp", "look": "A fluffy round coat", "starPitch": "changeup", "starSwing": "ground", "fieldAbility": "dive"},
+    {"id": "marmeagles", "name": "Marmeagles", "faction": "peak", "blend": "Marmot and eagle", "build": "glove", "look": "Folded wings and a sharp eye", "starPitch": "breaker", "starSwing": "line", "fieldAbility": "snap-throw"}
+  ]
+}

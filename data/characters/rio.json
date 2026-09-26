@@ -1,6 +1,6 @@
 {
   "id": "rio",
-  "name": "Rio Sparks",
+  "name": "Ronnie Sparks",
   "faction": "spark",
   "captain": true,
   // The body class (data/rules/body-classes.json, spec §8.1): reach, contact width, ramp, knockback, motion style.
@@ -20,5 +20,5 @@
   "starPitch": "heatball",
   "starSwing": "heat-swing",
   "fieldAbility": "grow",
-  "bio": "A 5-tool harbor kid who sets the ball on fire and still runs it out."
+  "bio": "A five-tool kid from the neighborhood field. One swing sparked a door into the Grand Reach, and the sparks never left the bat."
 }
