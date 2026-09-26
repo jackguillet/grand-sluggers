@@ -120,8 +120,9 @@ public class ToyBodyTests
             Assert.Equal(Silhouette.ChestY * Silhouette.SharedRootScale(spec).Y, chest, 9);
             Assert.True(0 < knee && knee < chest && chest < top, $"{id}: knee {knee:0.00}, chest {chest:0.00}, head top {top:0.00}");
         }
-        // A role player stands on its captain's landmarks.
-        Assert.Equal(Silhouette.Landmarks(Content.Must("zig")), Silhouette.Landmarks(Content.Must("jester")));
+        // A sidekick stands on its species' landmarks (WD-27): two of one species stand alike.
+        Assert.Equal(Content.Must("dart").Species, Content.Must("jester").Species);
+        Assert.Equal(Silhouette.Landmarks(Content.Must("dart")), Silhouette.Landmarks(Content.Must("jester")));
     }
 
     [Fact]

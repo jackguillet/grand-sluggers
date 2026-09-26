@@ -25,9 +25,9 @@ public static partial class HowToPlay
         {
             "T-P09" => "Heatball",
             "T-B09" => "Heat Swing",
-            "T-SP-heatball" => "Heatball",
+            "T-SP-heatball" => "Skyrocket",
             "T-SP-charmball" => "Aurora Ribbon",
-            "T-SP-prismball" => "Prismball",
+            "T-SP-prismball" => "Loop-the-Loop",
             "T-SP-phonyball" => "Phonyball",
             "T-SP-caskball" => "Caskball",
             "T-SP-skullball" => "Skullball",
@@ -38,9 +38,9 @@ public static partial class HowToPlay
             "T-SP-mirageball" => "Mirage Ball",
             "T-SP-rockfall" => "Rockfall",
             "T-SP-leapfrog" => "Leapfrog",
-            "T-SS-heat-swing" => "Heat Swing",
+            "T-SS-heat-swing" => "Sparkler",
             "T-SS-heart-swing" => "Follow Spot",
-            "T-SS-shell-swing" => "Shell Swing",
+            "T-SS-shell-swing" => "Spinning Top",
             "T-SS-phony-swing" => "Phony Swing",
             "T-SS-cask-swing" => "Cask Swing",
             "T-SS-furnace" => "Furnace",
@@ -54,21 +54,23 @@ public static partial class HowToPlay
             _ => ""
         };
         if (skill.Length == 0) return null;
-        var effect = SpecialEffect(id);
+        // What the special does, where it is its own (§13): the lesson names the bend it teaches.
+        var effect = id switch
+        {
+            "T-SP-heatball" => " It flies fast, then rises up to a foot over the last third, so aim it low.",
+            "T-SS-heat-swing" => " Its Perfect ring is half again as wide, but the bat must still meet the ball.",
+            "T-SP-prismball" => " It runs one loop mid-flight, then crosses where you aimed, on time.",
+            "T-SS-shell-swing" => " The grounder spins in place at its first hop, then rolls on slowly. Run.",
+            "T-SP-charmball" => " The ball sways widest at mid-flight, then settles onto your aim before the plate.",
+            "T-SS-heart-swing" => " The follow spot holds the nearest fielder still for a moment after contact.",
+            _ => ""
+        };
         return pitch
             ? new("Pitch: " + skill, "Throw " + skill + " and spend its star cost.",
-                "Your pitcher has " + skill + " and enough meter. " + effect + "Hold the star button as you let go of the pitch.",
+                "Your pitcher has " + skill + " and enough meter." + effect + " Hold the star button as you let go of the pitch.",
                 "Hold LT as you let go of RT.")
             : new("Swing: " + skill, "Use " + skill + " to make fair contact and spend its star cost.",
-                "Your batter has " + skill + " and enough meter. " + effect + "Hold the star button as you let go of the swing, and time contact with the strike.",
+                "Your batter has " + skill + " and enough meter." + effect + " Hold the star button as you let go of the swing, and time contact with the strike.",
                 "Hold LT as you let go of RT, as the pitch arrives.");
     }
-
-    /// <summary>What a special's lesson says it does (§13), one sentence ending in a space; empty for a special whose name says it.</summary>
-    static string SpecialEffect(string id) => id switch
-    {
-        "T-SP-charmball" => "The ball sways widest at mid-flight, then settles onto your aim before the plate. ",
-        "T-SS-heart-swing" => "The follow spot holds the nearest fielder still for a moment after contact. ",
-        _ => ""
-    };
 }

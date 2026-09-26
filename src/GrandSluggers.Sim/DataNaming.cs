@@ -52,6 +52,8 @@ public static class DataNaming
         ("art/rig.json", "height"),                     // Blender units
         ("characters/*.json", "height"),                // a proportion: a scale on the shared rig
         ("characters/*.json", "width"),
+        ("world/species.json", "height"),              // a sidekick build's proportion, the same scale as a captain's
+        ("world/species.json", "width"),
         ("characters/*.json", "velocity"),              // a 1–10 rating (pitch power), the code slot's name, not a speed
         ("feel/shots.json", "blend"),
         ("feel/table.json", "afterCountSeconds"),

@@ -53,16 +53,19 @@ public static class PlayNarrator
         CallBeat.Balk => "Balk: threw to a base after committing to pitch. Runners advance one base.",
         CallBeat.StolenBase => "Stolen base.",
         CallBeat.Foul => "Foul.",
-        CallBeat.HomeRun => p.Word is "furnace" or "heat-swing"
-            ? $"{p.Who} {p.Word.ToUpperInvariant()} - it's gone."
-            : $"{p.Who} goes deep.",
+        CallBeat.HomeRun => p.Word switch
+        {
+            "furnace" => $"{p.Who} FURNACE - it's gone.",
+            "heat-swing" => $"{p.Who} SPARKLER - it's gone.",
+            _ => $"{p.Who} goes deep."
+        },
         CallBeat.InsideTheParkHomeRun => $"{p.Who} - all the way around!",
         CallBeat.GroundRuleDouble => $"{p.Who} - over the fence on a hop. Ground-rule double.",
         CallBeat.Triple => $"{p.Who} triples.",
         CallBeat.Double => $"{p.Who} doubles.",
         CallBeat.Single => $"{p.Who} singles.",
         CallBeat.RedirectSingle => $"{p.Who} - it went through a {RedirectName(p.Word)}!",
-        CallBeat.HeatballSingle => $"{p.Who} - it drops! Heatball.",
+        CallBeat.HeatballSingle => $"{p.Who} - it drops in off the star pitch!",
         CallBeat.Live => p.Moment is { } m ? Verdict(m.Verdict, m.Bag, m.Fielder?.Name ?? p.Other, p.Who, m.Runner?.Name) : "",
         CallBeat.BatterInAtFirst => $"{p.Who} in at first.",
         CallBeat.TriplePlay => "Triple play!",

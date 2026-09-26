@@ -94,9 +94,6 @@
   "hbp": {
     "bodyRadiusFt": 0.45
   },
-  "star": {
-    "prismballSpraySpanDeg": 22
-  },
   "pitchFactor": {
     "chargedVsSour": 0.6,
     "chargedVsPerfectCharge": 1.1,

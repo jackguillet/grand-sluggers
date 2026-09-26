@@ -38,11 +38,11 @@ SMS research ladder (outlines only, not IP): Baby < Mario ≈ Wario < Peach < DK
 
 Head/Height ≥ 1.0 on every type so the face reads at catcher-eye. Cuts stay different. Numbers live in each captain's `proportions` in `data/characters`.
 
-Numbers live in each captain's `proportions` in `data/characters`; the select order and preset teams live in `data/teams/teams.json`. Role players do not get a new anatomy. Unique captains are deferred: `docs/character-package.md`.
+Numbers live in each captain's `proportions` in `data/characters`; the select order and preset teams live in `data/teams/teams.json`. Sidekicks wear their species' body (below), never a new anatomy. Unique captains are deferred: `docs/character-package.md`.
 
 ## Role players
 
-Faction variants, not 18 new skeletons. Same proportions as the captain. Jersey, stripe, and skin from `Colors`. No extras on role players. No extras on captains until they read as toys (#687).
+Sidekicks, not new skeletons (WD-27). Each captain's faction has three species in `data/world/species.json`, one of each build: a **bruiser** (tall, wide, heavy arms), a **scamp** (short, big head) and a **glove** (middle). A sidekick wears its species' proportions on the one rig: the build's, or the species' own (Rio's human kids). Jersey, stripe and skin from `Colors`. A species' add-ons (ears, tails, shells) are one shared set per species and wait for extras (#687); no extras on sidekicks until then. No extras on captains until they read as toys (#687).
 
 ## Signature extras (catalog only)
 

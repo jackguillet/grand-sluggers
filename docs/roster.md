@@ -2,7 +2,7 @@
 
 Original characters. Factions exist so chemistry has a graph that a player can learn in one sitting.
 
-Launch fantasy: **6 factions × 1 captain + ~3 role players = ~24**, then grow toward 40. Now in data: **10 captains + 27 role players** (ten factions, one home park each). Exhibition auto-fills a 9 from the captain, faction mates, then chemistry, and the lineup is a draft: swap the eight, assign gloves (P, C, IF, OF), and hearts and scribbles show chemistry vs the captain (it pays off in the field; both teams start on the same Stars).
+Launch fantasy: **6 factions × 1 captain + ~3 role players = ~24**, then grow toward 40. Now in data: **10 captains + 80 sidekicks** (eight per captain, three species per faction, WD-27) (ten factions, one home park each). Exhibition auto-fills a 9 from the captain, faction mates, then chemistry, and the lineup is a draft: swap the eight, assign gloves (P, C, IF, OF), and hearts and scribbles show chemistry vs the captain (it pays off in the field; both teams start on the same Stars).
 
 Stats are 1–10. Each character authors nine sub-stats; the four bars on the card are derived, the mean of each group rounded half up (spec §2):
 
@@ -17,20 +17,20 @@ The bars below are what the derived numbers are today; the sub-stats are in "Sub
 
 | Faction | Color | Vibe | Baseball identity | Home park |
 | --- | --- | --- | --- | --- |
-| **Spark League** | Red | All-round heroes, harbor town | 5-tool, fire specials | Harbor Diamond |
-| **Royal Rink** | Pink / ice blue | Pageant, ice, manners with teeth | Pitching + glove, weak bats | Aurora Rink |
+| **Spark League** | Red | Rio and the neighborhood kids, the only humans | 5-tool, portal-spark specials | Neighborhood Park |
+| **Aurora Blades** | Pink / ice blue | Pageant, ice, manners with teeth | Pitching + glove, weak bats | Aurora Rink |
 | **Carnival Crew** | Green / rainbow | Fairground speedsters | Run + range, contact, no power | Funfair Park |
-| **Goldrush** | Yellow | Schemers, rooftop industrial | Power + stamina, bad gloves | Rooftop City |
+| **Skyline Gold** | Yellow | Schemers, rooftop industrial | Power + stamina, bad gloves | Rooftop City |
 | **Canopy Clan** | Brown | Jungle family, climbers | Power + wall climbs, slow | Canopy Yard |
 | **Ember Keep** | Black / purple | Villain castle, lava | Pure slug, laser throws, no legs | Ember Keep |
-| **Stillwater** | Sage / cream | Turtle elders | Glove + slow fog, no legs | Coconut Cove (Harbor until its park file lands) |
-| **Dune Nomads** | Sand / rust | Desert tricksters, canyon rim | Pitching (a heavy sinker), sure hands | Sunscorch Mesa (Harbor until its park file lands) |
+| **Tidewater** | Sage / cream | Turtle elders | Glove + slow fog, no legs | Coconut Cove (Harbor until its park file lands) |
+| **Canyon Nomads** | Sand / rust | Desert tricksters, canyon rim | Pitching (a heavy sinker), sure hands | Sunscorch Mesa (Harbor until its park file lands) |
 | **Peak Guard** | Navy / white | Mountain climbers | Power and a big arm, slow feet | Summit Park (Harbor until its park file lands) |
 | **Marsh Hoppers** | Green / lotus pink | Frog jumpers of the river delta | Speed and range, huge leaps | Stillwater Marsh (Harbor until its park file lands) |
 
 Cross-faction buddy examples (authored, not generated): a Spark pitcher who grew up with a Carnival runner; a Royal and a Goldrush who date and therefore *hate* fielding together some days — no: keep bad chem as rivalry, good as buddy. Royals buddy with Spark. Goldrush buddy only with each other plus one traitor. Ember hates Spark and Royals. Canopy hates Ember’s mercenary lizards (a sub-rival).
 
-Body types are locked in [silhouette-bible.md](silhouette-bible.md). Role players reuse the captain anatomy for their faction.
+Body types are locked in [silhouette-bible.md](silhouette-bible.md). Sidekicks wear their species' body (`data/world/species.json`).
 
 ## Captains (placeholders)
 
@@ -39,8 +39,8 @@ Names are working titles. Replace freely; keep the *roles*.
 ### Rio Sparks — Spark League
 
 - Stats: Pitch 6 / Bat 7 / Field 6 / Run 7
-- Star Pitch: **Heatball** — fire trail; fielders who catch it hop and drop on a timer.
-- Star Swing: **Heat Swing** — line drive that leaves a burn patch (terrain deny, not a free homer).
+- Star Pitch: **Skyrocket** (`heatball`) — fast, and over the last third it rises up to a foot above its aimed crossing.
+- Star Swing: **Sparkler** (`heat-swing`) — exit ×1.15 and a Perfect ring half again as wide; a miss is still a miss.
 - Field: **Grow** — briefly bigger catch radius.
 - Bats/throws: R/R
 
@@ -55,8 +55,8 @@ Names are working titles. Replace freely; keep the *roles*.
 ### Zig — Carnival Crew
 
 - Stats: Pitch 4 / Bat 4 / Field 6 / Run 9
-- Star Pitch: **Prismball** — rainbow break, late two-plane cut.
-- Star Swing: **Shell Swing** — bouncing egg/grounder that randomizes infield hops.
+- Star Pitch: **Loop-the-Loop** — one vertical loop mid-flight, like a coaster, then the aimed crossing on the ordinary time.
+- Star Swing: **Spinning Top** — a grounder that spins in place at its first hop for 0.8 s, then rolls on at half speed.
 - Field: **Lick Catch** — tongue/stretch catch (range).
 - Bats/throws: L/R
 

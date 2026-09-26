@@ -46,9 +46,14 @@ public sealed class InfieldCrossingRouteTests
     /// deeper of its start and the ball's nearest playable point (a sample at catch height before the bounce, or on the ground
     /// after it) plus <see cref="SlackFt"/>. Null when it holds.
     /// </summary>
+    static Team Nine(params string[] ids) =>
+        new(PresetTeams.TeamName(Game.Must(ids[0])), Game.Must(ids[0]), ids.Select(Game.Must).ToList());
+
     static string? DeepRun(double exit, double launch, double spray)
     {
-        var match = Match.Exhibition(Game);
+        // The nines the #580 sweep pinned, named, so the route rule is tested on the same bodies whatever the auto-fill picks.
+        var match = Match.Exhibition(Game, Nine("rio", "nico", "pip", "gull", "marlow", "tad", "tumble", "cattail", "lace"),
+            Nine("ashlord", "grit", "cinder", "soot", "sirocco", "scree", "frost", "adobe", "cairn"));
         var rules = match.Rules;
         var hit = FlightFixtures.Hit(match.Park, exit, launch, spray, rules: rules);
         if (hit.Foul || hit.HomeRun) return null;

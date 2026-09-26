@@ -81,6 +81,11 @@ public static class ContentDataValidator
         data.World = DataJson.Read<WorldDto>(worldPath, data.ReadErrors) ?? new();
         data.WorldSource = worldPath;
 
+        // The sidekick species (WD-27): read strictly, like every catalog.
+        var speciesPath = root.Resolve(WorldMap.Directory, "species.json");
+        data.Species = DataJson.Read<SpeciesFile>(speciesPath, data.ReadErrors) ?? new();
+        data.SpeciesSource = speciesPath;
+
         var skillsPath = root.Resolve("abilities", "star-skills.json");
         // Read strictly (spec §13): a key no skill declares is a stop, so a retired key such as
         // batterWindowMul (PH-16-R1) cannot sit in the file looking like it still bends a pitch.
@@ -149,6 +154,7 @@ public static class ContentDataValidator
         foreach (var row in data.Characters)
             ValidateCharacter(row, pitches, swings, errors);
         ValidateCaptains(data, errors);
+        ValidateSpecies(data, pitches, swings, errors);
         // A sidekick never carries a captain's special, and no two captains share one (§13, AB-02, AB-10): a sidekick's
         // specials are the generic pool's; a captain's belongs to that captain alone.
         SpecialsBelongToTheirCarrier(data.Characters, "starPitch", r => r.StarPitch, data.StarSkills.Pitches, errors);
@@ -255,6 +261,15 @@ public static class ContentDataValidator
                     errors.Add($"{source}: star pitch '{key}' leap needs at > 0, holdSpan > 0, at + holdSpan < 1 and 0 <= holdPace < 1");
                 if (value.FirstHopBounceMul is not null)
                     errors.Add($"{source}: star pitch '{key}' cannot carry firstHopBounceMul; it is a swing's");
+                if (value.PerfectRingMul is not null)
+                    errors.Add($"{source}: star pitch '{key}' cannot carry perfectRingMul; it is a swing's");
+                // The rise ends at the plate and is always up (§13): a jump out of the heart of the zone, never a drop.
+                if (value.Rise is { } late && (late.RiseFt <= 0 || late.RiseFt > PitchRise.MaxRiseFt || late.From <= 0 || late.From >= 1))
+                    errors.Add($"{source}: star pitch '{key}' rise needs 0 < riseFt <= {PitchRise.MaxRiseFt.ToString(CultureInfo.InvariantCulture)} and 0 < from < 1");
+                if (value.Loop is { } loop && (loop.At <= 0 || loop.Span <= 0 || loop.At + loop.Span >= 1 || loop.DiameterFt <= 0 || loop.DiameterFt > PitchLoop.MaxDiameterFt))
+                    errors.Add($"{source}: star pitch '{key}' loop needs at > 0, span > 0, at + span < 1 and 0 < diameterFt <= {PitchLoop.MaxDiameterFt.ToString(CultureInfo.InvariantCulture)}");
+                if (value.FirstHopStallSec is not null || value.FirstHopStallSpeedMul is not null)
+                    errors.Add($"{source}: star pitch '{key}' cannot carry a first-hop stall; it is a swing's");
                 if (value.Float is { } rise && (rise.RiseFt <= 0 || rise.RiseFt > PitchFloatLimits.MaxRiseFt || rise.DropFrom <= 0 || rise.DropFrom >= 1))
                     errors.Add($"{source}: star pitch '{key}' float needs 0 < riseFt <= {PitchFloatLimits.MaxRiseFt.ToString(CultureInfo.InvariantCulture)} and 0 < dropFrom < 1");
                 // The sway settles before the plate (§13): the last stretch of the flight and the crossing are the ordinary pitch's.
@@ -278,6 +293,23 @@ public static class ContentDataValidator
                     errors.Add($"{source}: star swing '{key}' cannot carry a float; it is a pitch's");
                 if (value.Leap is not null)
                     errors.Add($"{source}: star swing '{key}' cannot carry a leap; it is a pitch's");
+                if (value.Rise is not null)
+                    errors.Add($"{source}: star swing '{key}' cannot carry a rise; it is a pitch's");
+                // A bigger heart, never a bigger bat (PH-16-R2): the ring grows, the oval and the window do not.
+                if (value.PerfectRingMul is not null && (value.PerfectRingMul < 1 || value.PerfectRingMul > StarSwingSkill.MaxPerfectRingMul))
+                    errors.Add($"{source}: star swing '{key}' perfectRingMul must be between 1 and {StarSwingSkill.MaxPerfectRingMul.ToString(CultureInfo.InvariantCulture)}; got {value.PerfectRingMul}");
+                if (value.Loop is not null)
+                    errors.Add($"{source}: star swing '{key}' cannot carry a loop; it is a pitch's");
+                // The stall is a grounder's (§13): it names both numbers, and a launch low enough that the hop and the stall end inside two seconds.
+                if (value.FirstHopStallSec is not null || value.FirstHopStallSpeedMul is not null)
+                {
+                    if (value.FirstHopStallSec is not { } stall || stall <= 0 || stall > StarSwingSkill.MaxStallSec)
+                        errors.Add($"{source}: star swing '{key}' firstHopStallSec must be greater than 0 and at most {StarSwingSkill.MaxStallSec.ToString(CultureInfo.InvariantCulture)}; got {value.FirstHopStallSec?.ToString(CultureInfo.InvariantCulture) ?? "null"}");
+                    if (value.FirstHopStallSpeedMul is not { } after || after <= 0 || after > 1)
+                        errors.Add($"{source}: star swing '{key}' firstHopStallSpeedMul must be greater than 0 and at most 1; got {value.FirstHopStallSpeedMul?.ToString(CultureInfo.InvariantCulture) ?? "null"}");
+                    if (value.LaunchDeg is not { } launch || launch > StarSwingSkill.MaxStallLaunchDeg)
+                        errors.Add($"{source}: star swing '{key}' stalls on its first hop, so it must name a grounder's launchDeg of at most {StarSwingSkill.MaxStallLaunchDeg.ToString(CultureInfo.InvariantCulture)}");
+                }
                 if (value.Sway is not null)
                     errors.Add($"{source}: star swing '{key}' cannot carry a sway; it is a pitch's");
                 // The pause ends within the 2 s every special's bend ends in (§13).
@@ -290,6 +322,61 @@ public static class ContentDataValidator
             }
         }
         return ids;
+    }
+
+    /// <summary>
+    /// The sidekick species (WD-27): every build has proportions; every species names a known build, a captain's faction
+    /// and generic specials and a field ability that exist; each captain's faction has three species, one of each build,
+    /// and eight sidekicks; every sidekick names a species of its own faction, and a captain names none.
+    /// </summary>
+    static void ValidateSpecies(ContentData data, HashSet<string> pitches, HashSet<string> swings, List<string> errors)
+    {
+        var src = data.SpeciesSource;
+        var builds = data.Species.Builds ?? [];
+        foreach (var b in SpeciesBuilds.All)
+            if (!builds.TryGetValue(b, out var p) || p is null)
+                errors.Add($"{src}: builds.{b} proportions are required");
+        var factions = data.Characters.Where(r => r.Value.Captain).Select(r => r.Value.Faction)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var byId = new Dictionary<string, SpeciesDto>(StringComparer.OrdinalIgnoreCase);
+        foreach (var s in data.Species.Species ?? [])
+        {
+            if (s is null) { errors.Add($"{src}: a species row must be an object; got null"); continue; }
+            if (string.IsNullOrWhiteSpace(s.Id) || !byId.TryAdd(s.Id, s))
+                errors.Add($"{src}: species id '{s.Id}' is empty or repeated");
+            if (!SpeciesBuilds.All.Contains(s.Build))
+                errors.Add($"{src}: species '{s.Id}' build must be one of [{string.Join(", ", SpeciesBuilds.All)}]; got '{s.Build}'");
+            if (!factions.Contains(s.Faction))
+                errors.Add($"{src}: species '{s.Id}' faction '{s.Faction}' has no captain");
+            if (string.IsNullOrWhiteSpace(s.Name) || string.IsNullOrWhiteSpace(s.Blend) || string.IsNullOrWhiteSpace(s.Look))
+                errors.Add($"{src}: species '{s.Id}' needs a name, a blend and a look");
+            if (!pitches.Contains(s.StarPitch)) errors.Add($"{src}: species '{s.Id}' starPitch '{s.StarPitch}' is not a star pitch");
+            if (!swings.Contains(s.StarSwing)) errors.Add($"{src}: species '{s.Id}' starSwing '{s.StarSwing}' is not a star swing");
+            if (!FieldAbilityIds.Contains(s.FieldAbility)) errors.Add($"{src}: species '{s.Id}' fieldAbility '{s.FieldAbility}' is not a field ability");
+        }
+        foreach (var f in factions)
+        {
+            var mine = byId.Values.Where(s => s.Faction.Equals(f, StringComparison.OrdinalIgnoreCase)).ToList();
+            var got = mine.Select(s => s.Build).OrderBy(b => b, StringComparer.Ordinal).ToList();
+            if (!got.SequenceEqual(SpeciesBuilds.All.OrderBy(b => b, StringComparer.Ordinal)))
+                errors.Add($"{src}: faction '{f}' needs three species, one of each build; got [{string.Join(", ", got)}]");
+            var sidekicks = data.Characters.Count(r => !r.Value.Captain && r.Value.Faction.Equals(f, StringComparison.OrdinalIgnoreCase));
+            if (sidekicks != SpeciesBuilds.SidekicksPerCaptain)
+                errors.Add($"{data.Characters.FirstOrDefault(r => !r.Value.Captain).Source}: faction '{f}' needs {SpeciesBuilds.SidekicksPerCaptain} sidekicks; got {sidekicks}");
+        }
+        foreach (var row in data.Characters)
+        {
+            var c = row.Value;
+            if (c.Captain)
+            {
+                if (c.Species is not null) errors.Add($"{row.Source}: captain '{c.Id}' names a species; only a sidekick does");
+                continue;
+            }
+            if (string.IsNullOrEmpty(c.Species) || !byId.TryGetValue(c.Species, out var sp))
+                errors.Add($"{row.Source}: sidekick '{c.Id}' species '{c.Species ?? "null"}' is not a row in {src}");
+            else if (!sp.Faction.Equals(c.Faction, StringComparison.OrdinalIgnoreCase))
+                errors.Add($"{row.Source}: sidekick '{c.Id}' species '{c.Species}' belongs to faction '{sp.Faction}', not '{c.Faction}'");
+        }
     }
 
     static void SpecialsBelongToTheirCarrier(IEnumerable<Sourced<CharacterDto>> characters, string field,
@@ -1149,6 +1236,8 @@ internal sealed class ContentData
     public string MatchSource { get; set; } = "";
     public List<string> ReadErrors { get; } = [];
     public WorldDto World { get; set; } = new();
+    public SpeciesFile Species { get; set; } = new();
+    public string SpeciesSource { get; set; } = "";
     /// <summary>Where the world file was read from — named by a park whose region it does not have.</summary>
     public string WorldSource { get; set; } = "";
 }
@@ -1242,8 +1331,12 @@ internal sealed class CharacterDto
     public string Bio { get; set; } = "";
     /// <summary>A captain's identity (#1032): its team's name, its signature bat, its body on the shared rig. A role player names none.</summary>
     public string? TeamName { get; set; }
+    /// <summary>The name a tight tile shows when the full name will not fit (the captain board); null is the full name.</summary>
+    public string? ShortName { get; set; }
     public string? SignatureBat { get; set; }
     public ProportionsDto? Proportions { get; set; }
+    /// <summary>A sidekick's species (WD-27, <c>data/world/species.json</c>): its body. Required on a sidekick; a captain names none.</summary>
+    public string? Species { get; set; }
 
     public Character ToCharacter() => new(
         Id, Name, Faction, Captain,
@@ -1254,9 +1347,11 @@ internal sealed class CharacterDto
         BodyClass = BodyClass ?? "",
         Repertoire = ParseRepertoire(),
         TeamName = TeamName,
+        ShortName = ShortName ?? "",
         SignatureBat = SignatureBat,
         BodyType = Captain ? Id.ToLowerInvariant() : "",
-        Proportions = Proportions?.ToSpec() ?? default
+        Proportions = Proportions?.ToSpec() ?? default,
+        Species = Species ?? ""
     };
 
     /// <summary>
@@ -1594,6 +1689,16 @@ internal sealed class StarSkillDto
     public PitchFloatDto? Float { get; set; }
     /// <summary>A pitch's leap (<see cref="PitchLeap"/>); pitches only.</summary>
     public PitchLeapDto? Leap { get; set; }
+    /// <summary>A pitch's late rise (<see cref="PitchRise"/>); pitches only.</summary>
+    public PitchRiseDto? Rise { get; set; }
+    /// <summary>A swing's Perfect ring is this many times the ordinary one (<see cref="StarSwingSkill.PerfectRingMul"/>); swings only.</summary>
+    public double? PerfectRingMul { get; set; }
+    /// <summary>A pitch's loop (<see cref="PitchLoop"/>); pitches only.</summary>
+    public PitchLoopDto? Loop { get; set; }
+    /// <summary>A swing's ball stands still this long at its first hop (<see cref="StarSwingSkill.FirstHopStallSec"/>); swings only.</summary>
+    public double? FirstHopStallSec { get; set; }
+    /// <summary>The share of its speed a stalled ball runs on at (<see cref="StarSwingSkill.FirstHopStallSpeedMul"/>); swings only.</summary>
+    public double? FirstHopStallSpeedMul { get; set; }
     /// <summary>A pitch's sway (<see cref="PitchSway"/>); pitches only.</summary>
     public PitchSwayDto? Sway { get; set; }
     /// <summary>A swing's first hop springs this many times as fast upward (<see cref="StarSwingSkill.FirstHopBounceMul"/>); swings only.</summary>
@@ -1612,11 +1717,28 @@ internal sealed class StarSkillDto
         Twin is null ? null : new PitchTwin(Twin.OffsetFt, Twin.FadeFrom, Twin.FadeTo),
         Float is null ? null : new PitchFloat(Float.RiseFt, Float.DropFrom),
         Leap is null ? null : new PitchLeap(Leap.At, Leap.HoldSpan, Leap.HoldPace),
+        Rise is null ? null : new PitchRise(Rise.RiseFt, Rise.From),
+        Loop is null ? null : new PitchLoop(Loop.At, Loop.Span, Loop.DiameterFt),
         Sway is null ? null : new PitchSway(Sway.WidthFt, Sway.Cycles, Sway.PeakAt, Sway.SettleBy));
 
     public StarSwingSkill ToSwing() => new(Id, Name, Kind, ExitVeloMul ?? 1.0, LaunchDeg, Terrain,
         FielderPauseSec ?? 0, InfieldChaos, Decoy, Fragments, FirstHopKickDeg ?? 0,
-        WindMul ?? 1, FirstHopBounceMul ?? 1);
+        WindMul ?? 1, FirstHopBounceMul ?? 1, FirstHopStallSec ?? 0, FirstHopStallSpeedMul ?? 1, PerfectRingMul ?? 1);
+}
+
+internal sealed class PitchLoopDto
+{
+    public double At { get; set; }
+    /// <summary>The share of the flight the loop takes (a fraction, not seconds).</summary>
+    public double Span { get; set; }
+    public double DiameterFt { get; set; }
+}
+
+internal sealed class PitchRiseDto
+{
+    public double RiseFt { get; set; }
+    /// <summary>The share of the flight after which the ball starts to rise (a fraction, not seconds).</summary>
+    public double From { get; set; }
 }
 
 internal sealed class PitchLeapDto

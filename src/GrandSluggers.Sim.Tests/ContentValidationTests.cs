@@ -156,7 +156,7 @@ public sealed class ContentValidationTests
         });
 
         var errors = ContentDataValidator.Validate(fixture.Root);
-        Assert.Contains(errors, e => e.Contains("characters/role-players.json[27]: character row must be an object; got null", StringComparison.Ordinal));
+        Assert.Contains(errors, e => e.Contains("characters/role-players.json[80]: character row must be an object; got null", StringComparison.Ordinal));
         Assert.Contains(errors, e => e.Contains("parks/harbor-diamond.json: park 'harbor-diamond' hazard[0] must be an object; got null", StringComparison.Ordinal));
         Assert.Contains(errors, e => e.Contains("abilities/star-skills.json: star pitch 'fastball' must be an object; got null", StringComparison.Ordinal));
         Assert.Contains(errors, e => e.Contains("chemistry/overrides.json: chemistry buddies must be an array; got null", StringComparison.Ordinal));
