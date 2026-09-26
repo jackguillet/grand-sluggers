@@ -31,4 +31,4 @@ Each replacement effect for a pitch that lost its window penalty is its own revi
 
 Star skills cannot produce a free home run; the exit multipliers are capped so a Perfect charged star swing at Bat 10 clears Harbor's 400 only with a Perfect. ✅ by tuning.
 
-A captain's Star Pitch and Star Swing belong to that captain alone, and no two captains share an effect family; a sidekick's are the generic pool's (`kind: generic`). What a special costs and what happens when a team cannot pay are §12.
+A captain's Star Pitch and Star Swing belong to that captain alone; each names its effect `family`, and no two captains share one; a sidekick's are the generic pool's (`kind: generic`). What a special costs and what happens when a team cannot pay are §12.
